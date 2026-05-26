@@ -1,0 +1,246 @@
+import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PlayerCard } from '@/components/PlayerCard';
+import { RANKS, SKINS, usePlayer } from '@/context/PlayerContext';
+import { getGameConfig } from '@/store/gameSession';
+import { useColors } from '@/hooks/useColors';
+
+const BOT_POOL = [
+  { name: 'Blaze_99', rank: 'Platinum', color: '#FF4757' },
+  { name: 'IceQueen', rank: 'Diamond', color: '#00BFFF' },
+  { name: 'Venom_X', rank: 'Master', color: '#00FF88' },
+  { name: 'ShadowFX', rank: 'Gold', color: '#9B59B6' },
+  { name: 'NeonBlitz', rank: 'Platinum', color: '#FF6B35' },
+  { name: 'DarkMatter', rank: 'Silver', color: '#C0C0C0' },
+  { name: 'PulseWave', rank: 'Diamond', color: '#FF00FF' },
+  { name: 'GhostPing', rank: 'Bronze', color: '#CD7F32' },
+];
+
+const MAPS = [
+  { id: 'classic', name: 'Classic', desc: 'Standard arena' },
+  { id: 'narrow', name: 'Danger Zone', desc: 'Narrow arena, faster action' },
+  { id: 'power', name: 'Power Surge', desc: 'Extra power-ups spawn' },
+];
+
+export default function LobbyScreen() {
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
+  const { profile } = usePlayer();
+  const config = getGameConfig();
+
+  const [bots, setBots] = useState<typeof BOT_POOL>([]);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [searching, setSearching] = useState(true);
+  const [selectedMap, setSelectedMap] = useState('classic');
+  const pulseAnim = useRef(new Animated.Value(0.5)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.5, duration: 700, useNativeDriver: true }),
+      ])
+    );
+    pulse.start();
+
+    // Simulate players joining
+    const shuffled = [...BOT_POOL].sort(() => Math.random() - 0.5).slice(0, 3);
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    shuffled.forEach((bot, i) => {
+      timers.push(setTimeout(() => {
+        setBots(prev => [...prev, bot]);
+        if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }, (i + 1) * 900));
+    });
+
+    timers.push(setTimeout(() => {
+      setSearching(false);
+      // Start countdown
+      let c = 3;
+      setCountdown(3);
+      const cTimer = setInterval(() => {
+        c -= 1;
+        setCountdown(c);
+        if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (c <= 0) {
+          clearInterval(cTimer);
+          router.replace('/game');
+        }
+      }, 1000);
+      timers.push(cTimer as unknown as ReturnType<typeof setTimeout>);
+    }, 3400));
+
+    return () => {
+      timers.forEach(clearTimeout);
+      pulse.stop();
+    };
+  }, []);
+
+  const playerSkin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
+  const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
+
+  return (
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <LinearGradient colors={['#080814', '#0A0A1E', '#080814']} style={StyleSheet.absoluteFill} />
+
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: topPad + 8 }]}>
+        <Pressable onPress={() => router.back()} style={styles.backBtn}>
+          <Feather name="arrow-left" size={22} color={colors.foreground} />
+        </Pressable>
+        <Text style={[styles.headerTitle, { color: colors.foreground }]}>MATCHMAKING</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        {/* Status */}
+        <View style={styles.statusRow}>
+          {searching ? (
+            <>
+              <Animated.View style={[styles.dot, { opacity: pulseAnim, backgroundColor: '#FFD700' }]} />
+              <Text style={[styles.statusText, { color: colors.mutedForeground }]}>Finding opponents...</Text>
+            </>
+          ) : countdown !== null ? (
+            <>
+              <View style={[styles.dot, { backgroundColor: '#00FF88' }]} />
+              <Text style={[styles.statusText, { color: '#00FF88' }]}>Match found! Starting in {countdown}...</Text>
+            </>
+          ) : (
+            <>
+              <View style={[styles.dot, { backgroundColor: '#00FF88' }]} />
+              <Text style={[styles.statusText, { color: '#00FF88' }]}>All players ready!</Text>
+            </>
+          )}
+        </View>
+
+        {/* Players */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>PLAYERS</Text>
+          <View style={styles.playersList}>
+            {/* Human player */}
+            <PlayerCard
+              name={profile.name}
+              rank={profile.rank}
+              color={playerSkin.color}
+              wins={profile.wins}
+              level={profile.level}
+              isBot={false}
+              isReady={true}
+            />
+            {/* Bots */}
+            {bots.map((bot) => (
+              <PlayerCard
+                key={bot.name}
+                name={bot.name}
+                rank={bot.rank}
+                color={bot.color}
+                isBot={true}
+                isReady={bots.indexOf(bot) < bots.length}
+              />
+            ))}
+            {/* Empty slots */}
+            {Array.from({ length: 3 - bots.length }).map((_, i) => (
+              <View key={i} style={[styles.emptySlot, { borderColor: colors.border }]}>
+                <Animated.View style={{ opacity: pulseAnim }}>
+                  <Feather name="user" size={20} color={colors.mutedForeground} />
+                </Animated.View>
+                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Searching...</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Map select */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>MAP</Text>
+          <View style={styles.mapRow}>
+            {MAPS.map(map => (
+              <Pressable
+                key={map.id}
+                onPress={() => setSelectedMap(map.id)}
+                style={[styles.mapCard, {
+                  backgroundColor: selectedMap === map.id ? '#FFD70022' : colors.card,
+                  borderColor: selectedMap === map.id ? '#FFD700' : colors.border,
+                }]}
+              >
+                <Text style={[styles.mapName, { color: selectedMap === map.id ? '#FFD700' : colors.foreground }]}>
+                  {map.name}
+                </Text>
+                <Text style={[styles.mapDesc, { color: colors.mutedForeground }]}>{map.desc}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* Game rules */}
+        <View style={[styles.rulesCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.rulesTitle, { color: colors.foreground }]}>HOW TO PLAY</Text>
+          <View style={styles.rulesList}>
+            {[
+              'Swipe anywhere to move YOUR GOLD paddle',
+              'Deflect balls — let them through and lose a life',
+              'Each player starts with 3 lives',
+              'New balls spawn every 10 seconds',
+              'Collect power-ups near your paddle zone',
+              'Last player standing wins!',
+            ].map((rule, i) => (
+              <View key={i} style={styles.ruleItem}>
+                <View style={[styles.ruleDot, { backgroundColor: colors.primary }]} />
+                <Text style={[styles.ruleText, { color: colors.mutedForeground }]}>{rule}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Big countdown overlay */}
+      {countdown !== null && countdown > 0 && (
+        <View style={styles.countdownOverlay} pointerEvents="none">
+          <Text style={styles.countdownText}>{countdown}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12 },
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 2 },
+  content: { paddingHorizontal: 20, paddingBottom: 40, gap: 20 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  statusText: { fontFamily: 'Inter_500Medium', fontSize: 13 },
+  section: { gap: 10 },
+  sectionTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 11, letterSpacing: 1.5 },
+  playersList: { gap: 8 },
+  emptySlot: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 14, borderWidth: 1, borderStyle: 'dashed' },
+  emptyText: { fontFamily: 'Inter_500Medium', fontSize: 13 },
+  mapRow: { flexDirection: 'row', gap: 8 },
+  mapCard: { flex: 1, padding: 10, borderRadius: 10, borderWidth: 1, gap: 2 },
+  mapName: { fontFamily: 'Inter_700Bold', fontSize: 12 },
+  mapDesc: { fontFamily: 'Inter_400Regular', fontSize: 10 },
+  rulesCard: { borderRadius: 14, borderWidth: 1, padding: 14, gap: 10 },
+  rulesTitle: { fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1 },
+  rulesList: { gap: 6 },
+  ruleItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  ruleDot: { width: 6, height: 6, borderRadius: 3, marginTop: 5 },
+  ruleText: { fontFamily: 'Inter_400Regular', fontSize: 12, flex: 1, lineHeight: 18 },
+  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#00000099', alignItems: 'center', justifyContent: 'center' },
+  countdownText: { color: '#FFD700', fontSize: 96, fontFamily: 'Inter_700Bold', textShadowColor: '#FFD700', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 30 },
+});
