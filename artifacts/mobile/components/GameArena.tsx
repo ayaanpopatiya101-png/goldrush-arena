@@ -1,16 +1,19 @@
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, PanResponder, Platform, StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, PanResponder, Platform, StyleSheet, Text, View } from 'react-native';
+import Svg, { Defs, Line, Polygon, RadialGradient, Rect, Stop } from 'react-native-svg';
 
-const WALL_MARGIN = 22;
-const PADDLE_LENGTH = 90;
+const WALL_MARGIN = 24;
+const PADDLE_LENGTH = 88;
 const PADDLE_THICKNESS = 14;
-const MAX_BALLS = 6;
-const BALL_SPAWN_FRAMES = 600;
-const POWERUP_SPAWN_FRAMES = 380;
-const INITIAL_SPEED = 5.2;
-const MAX_SPEED = 12;
+const MAX_BALLS = 8;
+const BALL_SPAWN_FRAMES = 900; // 15 seconds at 60fps
+const POWERUP_SPAWN_FRAMES = 420;
+const INITIAL_LIVES = 5;
+const INITIAL_SPEED = 5.0;
+const MAX_SPEED = 13;
+
 const BOTTOM = 0;
 const TOP = 1;
 const LEFT = 2;
@@ -18,14 +21,12 @@ const RIGHT = 3;
 
 type BallType = 'normal' | 'fire' | 'heavy' | 'tiny' | 'gold';
 type PowerUpType = 'shield' | 'speed' | 'shrink' | 'extralife' | 'multiball';
-type GamePhase = 'countdown' | 'playing' | 'gameover';
+export type GameMode = 'square' | 'triangle' | 'duel';
 
 interface BallRef {
   id: number;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
+  x: number; y: number;
+  vx: number; vy: number;
   radius: number;
   type: BallType;
   color: string;
@@ -53,8 +54,7 @@ interface PlayerRef {
 
 interface PowerUpRef {
   id: number;
-  x: number;
-  y: number;
+  x: number; y: number;
   type: PowerUpType;
   active: boolean;
 }
@@ -68,7 +68,8 @@ interface GameStateRef {
   nextPowerupFrame: number;
   speedMultiplier: number;
   winner: number | null;
-  phase: GamePhase;
+  phase: 'countdown' | 'playing' | 'gameover';
+  gameMode: GameMode;
 }
 
 export interface GameResult {
@@ -88,36 +89,40 @@ interface GameArenaProps {
   botNames: string[];
   botRanks: string[];
   onGameOver: (result: GameResult) => void;
+  onGameModeChange?: (mode: GameMode) => void;
+  onPlayerLivesChange?: (lives: number) => void;
+  grantExtraLifeRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 const POWERUP_COLORS: Record<PowerUpType, string> = {
-  shield: '#FFD700',
-  speed: '#00FF88',
-  shrink: '#FF4757',
-  extralife: '#FF69B4',
-  multiball: '#00E5FF',
+  shield: '#FFD700', speed: '#00FF88', shrink: '#FF4757',
+  extralife: '#FF69B4', multiball: '#00E5FF',
 };
-
 const POWERUP_LABELS: Record<PowerUpType, string> = {
-  shield: 'SHD',
-  speed: 'SPD',
-  shrink: 'SHK',
-  extralife: '+1',
-  multiball: 'MLB',
+  shield: 'SHD', speed: 'SPD', shrink: 'SHK', extralife: '+1', multiball: 'MLB',
 };
 
-function clampPaddle(val: number, len: number, arenaSize: number): number {
-  return Math.max(len / 2, Math.min(arenaSize - len / 2, val));
+// Arena background colors by mode
+const ARENA_COLORS: Record<GameMode, [string, string, string]> = {
+  square: ['#0D0035', '#16005A', '#0D0035'],
+  triangle: ['#00200D', '#004020', '#001510'],
+  duel: ['#350000', '#5A0010', '#350000'],
+};
+
+const PLAYER_COLORS = ['#FFD700', '#FF4757', '#00BFFF', '#00FF88'];
+const PLAYER_GLOW = ['#FFD70088', '#FF475788', '#00BFFF88', '#00FF8888'];
+
+function clampPaddle(val: number, len: number, arenaSize: number) {
+  return Math.max(len / 2 + 2, Math.min(arenaSize - len / 2 - 2, val));
+}
+
+function getPaddleLen(player: PlayerRef) {
+  return player.shrunkFrames > 0 ? PADDLE_LENGTH * 0.52 : PADDLE_LENGTH;
 }
 
 export function GameArena({
-  arenaSize,
-  playerName,
-  playerColor,
-  playerGlowColor,
-  botNames,
-  botRanks,
-  onGameOver,
+  arenaSize, playerName, playerColor, playerGlowColor,
+  botNames, botRanks, onGameOver, onGameModeChange, onPlayerLivesChange, grantExtraLifeRef,
 }: GameArenaProps) {
   const arenaSizeRef = useRef(arenaSize);
   arenaSizeRef.current = arenaSize;
@@ -133,9 +138,10 @@ export function GameArena({
     Array.from({ length: MAX_BALLS }, () => new Animated.ValueXY({ x: -200, y: -200 }))
   ).current;
 
-  const [livesState, setLivesState] = useState<number[]>([3, 3, 3, 3]);
+  const [livesState, setLivesState] = useState<number[]>([INITIAL_LIVES, INITIAL_LIVES, INITIAL_LIVES, INITIAL_LIVES]);
   const [eliminatedState, setEliminatedState] = useState<boolean[]>([false, false, false, false]);
-  const [gamePhase, setGamePhase] = useState<GamePhase>('countdown');
+  const [gamePhase, setGamePhase] = useState<'countdown' | 'playing' | 'gameover'>('countdown');
+  const [gameMode, setGameMode] = useState<GameMode>('square');
   const [countdown, setCountdown] = useState(3);
   const [announcer, setAnnouncer] = useState('');
   const [ballVisuals, setBallVisuals] = useState<Array<{ active: boolean; color: string; radius: number }>>([]);
@@ -150,34 +156,51 @@ export function GameArena({
   const deflectionsRef = useRef(0);
   const goalsAgainstRef = useRef(0);
   const onGameOverRef = useRef(onGameOver);
+  const gameModeRef = useRef<GameMode>('square');
   useEffect(() => { onGameOverRef.current = onGameOver; }, [onGameOver]);
+
+  // Allow parent to grant extra life
+  useEffect(() => {
+    if (grantExtraLifeRef) {
+      grantExtraLifeRef.current = () => {
+        const gs = gameStateRef.current;
+        const p0 = gs.players[BOTTOM];
+        if (p0.isEliminated) return;
+        p0.lives = Math.min(p0.lives + 1, 9);
+        setLivesState(gs.players.map(p => p.lives));
+        onPlayerLivesChange?.(p0.lives);
+        showAnnouncer('EXTRA LIFE! ❤');
+        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      };
+    }
+  }, []);
 
   const gameStateRef = useRef<GameStateRef>({
     balls: [],
     players: [
       {
         id: BOTTOM, name: playerName, paddleCenter: arenaSize / 2, prevPaddleCenter: arenaSize / 2,
-        lives: 3, isBot: false, isEliminated: false, score: 0, color: playerColor,
-        glowColor: playerGlowColor, rank: 'Gold', botSpeed: 0, botAccuracy: 1,
-        hasShield: false, speedBoostFrames: 0, shrunkFrames: 0,
+        lives: INITIAL_LIVES, isBot: false, isEliminated: false, score: 0,
+        color: playerColor, glowColor: playerGlowColor, rank: 'Gold',
+        botSpeed: 0, botAccuracy: 1, hasShield: false, speedBoostFrames: 0, shrunkFrames: 0,
       },
       {
         id: TOP, name: botNames[0] ?? 'Blaze_99', paddleCenter: arenaSize / 2, prevPaddleCenter: arenaSize / 2,
-        lives: 3, isBot: true, isEliminated: false, score: 0, color: '#FF4757',
-        glowColor: '#FF475544', rank: botRanks[0] ?? 'Platinum', botSpeed: 4.6, botAccuracy: 0.88,
-        hasShield: false, speedBoostFrames: 0, shrunkFrames: 0,
+        lives: INITIAL_LIVES, isBot: true, isEliminated: false, score: 0,
+        color: PLAYER_COLORS[1], glowColor: PLAYER_GLOW[1], rank: botRanks[0] ?? 'Platinum',
+        botSpeed: 4.4, botAccuracy: 0.87, hasShield: false, speedBoostFrames: 0, shrunkFrames: 0,
       },
       {
         id: LEFT, name: botNames[1] ?? 'IceQueen', paddleCenter: arenaSize / 2, prevPaddleCenter: arenaSize / 2,
-        lives: 3, isBot: true, isEliminated: false, score: 0, color: '#00BFFF',
-        glowColor: '#00BFFF44', rank: botRanks[1] ?? 'Diamond', botSpeed: 5.2, botAccuracy: 0.91,
-        hasShield: false, speedBoostFrames: 0, shrunkFrames: 0,
+        lives: INITIAL_LIVES, isBot: true, isEliminated: false, score: 0,
+        color: PLAYER_COLORS[2], glowColor: PLAYER_GLOW[2], rank: botRanks[1] ?? 'Diamond',
+        botSpeed: 5.0, botAccuracy: 0.90, hasShield: false, speedBoostFrames: 0, shrunkFrames: 0,
       },
       {
         id: RIGHT, name: botNames[2] ?? 'Venom_X', paddleCenter: arenaSize / 2, prevPaddleCenter: arenaSize / 2,
-        lives: 3, isBot: true, isEliminated: false, score: 0, color: '#00FF88',
-        glowColor: '#00FF8844', rank: botRanks[2] ?? 'Master', botSpeed: 5.8, botAccuracy: 0.94,
-        hasShield: false, speedBoostFrames: 0, shrunkFrames: 0,
+        lives: INITIAL_LIVES, isBot: true, isEliminated: false, score: 0,
+        color: PLAYER_COLORS[3], glowColor: PLAYER_GLOW[3], rank: botRanks[2] ?? 'Master',
+        botSpeed: 5.6, botAccuracy: 0.93, hasShield: false, speedBoostFrames: 0, shrunkFrames: 0,
       },
     ],
     powerups: [],
@@ -187,16 +210,26 @@ export function GameArena({
     speedMultiplier: 1.0,
     winner: null,
     phase: 'countdown',
+    gameMode: 'square',
   });
 
   function showAnnouncer(text: string) {
     if (announcerTimer.current) clearTimeout(announcerTimer.current);
     setAnnouncer(text);
-    announcerTimer.current = setTimeout(() => setAnnouncer(''), 1800);
+    announcerTimer.current = setTimeout(() => setAnnouncer(''), 2000);
   }
 
-  function getPaddleLen(player: PlayerRef): number {
-    return player.shrunkFrames > 0 ? PADDLE_LENGTH * 0.52 : PADDLE_LENGTH;
+  function updateGameMode(gs: GameStateRef) {
+    const alive = gs.players.filter(p => !p.isEliminated).length;
+    const newMode: GameMode = alive >= 4 ? 'square' : alive === 3 ? 'triangle' : 'duel';
+    if (newMode !== gameModeRef.current) {
+      gameModeRef.current = newMode;
+      gs.gameMode = newMode;
+      setGameMode(newMode);
+      onGameModeChange?.(newMode);
+      if (newMode === 'triangle') showAnnouncer('TRIANGLE MODE — 3 PLAYERS!');
+      if (newMode === 'duel') showAnnouncer('1v1 BATTLE — FINAL ROUND!');
+    }
   }
 
   function spawnBall(gs: GameStateRef, size: number) {
@@ -212,7 +245,7 @@ export function GameArena({
     let color = '#FFFFFF';
     switch (type) {
       case 'fire': radius = 10; color = '#FF6B35'; break;
-      case 'heavy': radius = 15; color = '#9B59B6'; break;
+      case 'heavy': radius = 15; color = '#BF5FFF'; break;
       case 'tiny': radius = 6; color = '#00E5FF'; break;
       default: color = '#FFFFFF';
     }
@@ -230,36 +263,42 @@ export function GameArena({
   function spawnPowerup(gs: GameStateRef, size: number) {
     const types: PowerUpType[] = ['shield', 'speed', 'shrink', 'extralife', 'multiball'];
     const type = types[Math.floor(Math.random() * types.length)];
-    const margin = 70;
-    const x = margin + Math.random() * (size - margin * 2);
-    const y = margin + Math.random() * (size - margin * 2);
-    const pu: PowerUpRef = { id: gs.frame, x, y, type, active: true };
+    const margin = 80;
+    const pu: PowerUpRef = {
+      id: gs.frame,
+      x: margin + Math.random() * (size - margin * 2),
+      y: margin + Math.random() * (size - margin * 2),
+      type, active: true,
+    };
     gs.powerups = gs.powerups.filter(p => p.active).concat(pu).slice(-4);
     setPowerUpsUI([...gs.powerups]);
   }
 
-  function handleGoal(gs: GameStateRef, playerIdx: number, size: number) {
+  function handleGoal(gs: GameStateRef, playerIdx: number) {
     const player = gs.players[playerIdx];
     if (player.isEliminated) return;
     if (player.hasShield) {
       player.hasShield = false;
       setShieldActive(prev => { const n = [...prev]; n[playerIdx] = false; return n; });
-      showAnnouncer('SHIELD BLOCKED!');
+      showAnnouncer('🛡 SHIELD BLOCKED!');
       return;
     }
     player.lives = Math.max(0, player.lives - 1);
-    if (playerIdx === BOTTOM) goalsAgainstRef.current += 1;
+    if (playerIdx === BOTTOM) {
+      goalsAgainstRef.current += 1;
+      onPlayerLivesChange?.(player.lives);
+    }
     setLivesState(gs.players.map(p => p.lives));
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-
-    const msgs = ['GOAL!', 'POINT SCORED!', 'NICE SHOT!'];
+    const msgs = ['GOAL!', 'POINT!', 'NICE SHOT!', 'SCORE!'];
     showAnnouncer(msgs[Math.floor(Math.random() * msgs.length)]);
 
     if (player.lives <= 0) {
       player.isEliminated = true;
       if (playerIdx !== BOTTOM) finishPositionRef.current = Math.max(2, finishPositionRef.current - 1);
       setEliminatedState(gs.players.map(p => p.isEliminated));
-      showAnnouncer(playerIdx === BOTTOM ? 'YOU ARE ELIMINATED!' : `${player.name} ELIMINATED!`);
+      showAnnouncer(playerIdx === BOTTOM ? '💀 YOU\'RE ELIMINATED!' : `${player.name} ELIMINATED!`);
+      updateGameMode(gs);
 
       const alive = gs.players.filter(p => !p.isEliminated);
       if (alive.length === 1) {
@@ -268,18 +307,16 @@ export function GameArena({
         isRunningRef.current = false;
         setGamePhase('gameover');
         const won = gs.winner === BOTTOM;
-        const xp = won ? 200 + deflectionsRef.current * 2 : 40 + deflectionsRef.current;
-        const coins = won ? 60 : 15;
+        const xp = won ? 220 + deflectionsRef.current * 2 : 40 + deflectionsRef.current;
+        const coins = won ? 70 : 20;
         setTimeout(() => {
           onGameOverRef.current({
-            won,
-            position: won ? 1 : finishPositionRef.current,
+            won, position: won ? 1 : finishPositionRef.current,
             deflections: deflectionsRef.current,
             goalsAgainst: goalsAgainstRef.current,
-            xpEarned: xp,
-            coinsEarned: coins,
+            xpEarned: xp, coinsEarned: coins,
           });
-        }, 1400);
+        }, 1500);
       }
     }
   }
@@ -293,19 +330,16 @@ export function GameArena({
       let pos = 0;
       if (playerId === TOP) {
         const t = ball.vy < 0 ? (ball.y - WALL_MARGIN) / Math.abs(ball.vy) : 9999;
-        threat = ball.vy < 0 ? 5000 - t * 10 : -(ball.y);
-        pos = Math.max(PADDLE_LENGTH / 2, Math.min(size - PADDLE_LENGTH / 2,
-          ball.vy < 0 ? ball.x + ball.vx * t : ball.x));
+        threat = ball.vy < 0 ? 5000 - t * 10 : -ball.y;
+        pos = Math.max(PADDLE_LENGTH / 2, Math.min(size - PADDLE_LENGTH / 2, ball.vy < 0 ? ball.x + ball.vx * t : ball.x));
       } else if (playerId === LEFT) {
         const t = ball.vx < 0 ? (ball.x - WALL_MARGIN) / Math.abs(ball.vx) : 9999;
-        threat = ball.vx < 0 ? 5000 - t * 10 : -(ball.x);
-        pos = Math.max(PADDLE_LENGTH / 2, Math.min(size - PADDLE_LENGTH / 2,
-          ball.vx < 0 ? ball.y + ball.vy * t : ball.y));
+        threat = ball.vx < 0 ? 5000 - t * 10 : -ball.x;
+        pos = Math.max(PADDLE_LENGTH / 2, Math.min(size - PADDLE_LENGTH / 2, ball.vx < 0 ? ball.y + ball.vy * t : ball.y));
       } else {
         const t = ball.vx > 0 ? (size - WALL_MARGIN - ball.x) / Math.abs(ball.vx) : 9999;
         threat = ball.vx > 0 ? 5000 - t * 10 : -(size - ball.x);
-        pos = Math.max(PADDLE_LENGTH / 2, Math.min(size - PADDLE_LENGTH / 2,
-          ball.vx > 0 ? ball.y + ball.vy * t : ball.y));
+        pos = Math.max(PADDLE_LENGTH / 2, Math.min(size - PADDLE_LENGTH / 2, ball.vx > 0 ? ball.y + ball.vy * t : ball.y));
       }
       if (threat > highThreat) { highThreat = threat; best = pos; }
     }
@@ -327,74 +361,73 @@ export function GameArena({
     const GXL = WALL_MARGIN;
     const GXR = size - WALL_MARGIN;
 
+    // In duel mode, left/right are hard bounce walls (not goals)
+    const isDuel = gs.gameMode === 'duel';
+
     for (let i = 0; i < gs.balls.length; i++) {
       const ball = gs.balls[i];
       if (!ball.active) continue;
       ball.x += ball.vx;
       ball.y += ball.vy;
 
-      // Bottom wall
+      // Bottom
       if (ball.y + ball.radius >= GYB) {
         const p = gs.players[BOTTOM];
         const pLen = getPaddleLen(p);
         const hit = !p.isEliminated && ball.x >= p.paddleCenter - pLen / 2 && ball.x <= p.paddleCenter + pLen / 2;
         if (hit) {
           const pv = p.paddleCenter - p.prevPaddleCenter;
-          ball.vy = -(Math.abs(ball.vy) + 0.1);
-          ball.vx += pv * 0.38;
-          p.score += 1;
-          deflectionsRef.current += 1;
+          ball.vy = -(Math.abs(ball.vy) + 0.12);
+          ball.vx += pv * 0.4;
+          p.score += 1; deflectionsRef.current += 1;
         } else {
           ball.vy = -Math.abs(ball.vy);
-          handleGoal(gs, BOTTOM, size);
+          handleGoal(gs, BOTTOM);
         }
         ball.y = GYB - ball.radius - 1;
       }
-      // Top wall
+      // Top
       if (ball.y - ball.radius <= GYT) {
         const p = gs.players[TOP];
         const pLen = getPaddleLen(p);
         const hit = !p.isEliminated && ball.x >= p.paddleCenter - pLen / 2 && ball.x <= p.paddleCenter + pLen / 2;
         if (hit) {
           const pv = p.paddleCenter - p.prevPaddleCenter;
-          ball.vy = Math.abs(ball.vy) + 0.1;
-          ball.vx += pv * 0.38;
-          p.score += 1;
+          ball.vy = Math.abs(ball.vy) + 0.12;
+          ball.vx += pv * 0.4; p.score += 1;
         } else {
           ball.vy = Math.abs(ball.vy);
-          handleGoal(gs, TOP, size);
+          handleGoal(gs, TOP);
         }
         ball.y = GYT + ball.radius + 1;
       }
-      // Left wall
+      // Left
       if (ball.x - ball.radius <= GXL) {
         const p = gs.players[LEFT];
         const pLen = getPaddleLen(p);
-        const hit = !p.isEliminated && ball.y >= p.paddleCenter - pLen / 2 && ball.y <= p.paddleCenter + pLen / 2;
+        const hit = !p.isEliminated && !isDuel && ball.y >= p.paddleCenter - pLen / 2 && ball.y <= p.paddleCenter + pLen / 2;
         if (hit) {
           const pv = p.paddleCenter - p.prevPaddleCenter;
-          ball.vx = Math.abs(ball.vx) + 0.1;
-          ball.vy += pv * 0.38;
-          p.score += 1;
+          ball.vx = Math.abs(ball.vx) + 0.12;
+          ball.vy += pv * 0.4; p.score += 1;
         } else {
           ball.vx = Math.abs(ball.vx);
-          handleGoal(gs, LEFT, size);
+          if (!isDuel) handleGoal(gs, LEFT);
         }
         ball.x = GXL + ball.radius + 1;
       }
-      // Right wall
+      // Right
       if (ball.x + ball.radius >= GXR) {
         const p = gs.players[RIGHT];
         const pLen = getPaddleLen(p);
-        const hit = !p.isEliminated && ball.y >= p.paddleCenter - pLen / 2 && ball.y <= p.paddleCenter + pLen / 2;
+        const hit = !p.isEliminated && !isDuel && ball.y >= p.paddleCenter - pLen / 2 && ball.y <= p.paddleCenter + pLen / 2;
         if (hit) {
           const pv = p.paddleCenter - p.prevPaddleCenter;
-          ball.vx = -(Math.abs(ball.vx) + 0.1);
-          ball.vy += pv * 0.38;
-          p.score += 1;
+          ball.vx = -(Math.abs(ball.vx) + 0.12);
+          ball.vy += pv * 0.4; p.score += 1;
         } else {
           ball.vx = -Math.abs(ball.vx);
-          handleGoal(gs, RIGHT, size);
+          if (!isDuel) handleGoal(gs, RIGHT);
         }
         ball.x = GXR - ball.radius - 1;
       }
@@ -406,14 +439,15 @@ export function GameArena({
       ballAnims[i]?.setValue({ x: ball.x, y: ball.y });
     }
 
-    // Bots (every 3 frames)
+    // Bot AI every 3 frames
     if (gs.frame % 3 === 0) {
       for (const pid of [TOP, LEFT, RIGHT]) {
         const bot = gs.players[pid];
         if (bot.isEliminated) continue;
+        if (isDuel && (pid === LEFT || pid === RIGHT)) continue; // no-op in duel
         const target = getBotTarget(pid, gs.balls, size);
         if (target !== null) {
-          const inaccuracy = (1 - bot.botAccuracy) * 25 * (Math.random() - 0.5);
+          const inaccuracy = (1 - bot.botAccuracy) * 22 * (Math.random() - 0.5);
           const adj = target + inaccuracy;
           const spd = bot.speedBoostFrames > 0 ? bot.botSpeed * 1.5 : bot.botSpeed;
           const diff = adj - bot.paddleCenter;
@@ -431,11 +465,11 @@ export function GameArena({
     if (p0.speedBoostFrames > 0) p0.speedBoostFrames -= 1;
     if (p0.shrunkFrames > 0) p0.shrunkFrames -= 1;
 
-    // New ball spawn
+    // New ball every 15 seconds
     if (gs.frame >= gs.nextBallFrame && gs.balls.filter(b => b.active).length < MAX_BALLS) {
       spawnBall(gs, size);
       gs.nextBallFrame = gs.frame + BALL_SPAWN_FRAMES;
-      gs.speedMultiplier = Math.min(gs.speedMultiplier + 0.1, 2.2);
+      gs.speedMultiplier = Math.min(gs.speedMultiplier + 0.08, 2.0);
     }
 
     // Power-up spawn
@@ -444,13 +478,13 @@ export function GameArena({
       gs.nextPowerupFrame = gs.frame + POWERUP_SPAWN_FRAMES + Math.floor(Math.random() * 120);
     }
 
-    // Power-up collection by human
+    // Power-up collection by human player
     if (!p0.isEliminated) {
       for (const pu of gs.powerups) {
         if (!pu.active) continue;
         const dx = pu.x - p0.paddleCenter;
         const dy = pu.y - (size - WALL_MARGIN);
-        if (Math.sqrt(dx * dx + dy * dy) < 48) {
+        if (Math.sqrt(dx * dx + dy * dy) < 52) {
           pu.active = false;
           applyPowerup(gs, pu.type, p0, size);
           setPowerUpsUI([...gs.powerups]);
@@ -466,24 +500,25 @@ export function GameArena({
       case 'shield':
         player.hasShield = true;
         setShieldActive(prev => { const n = [...prev]; n[player.id] = true; return n; });
-        showAnnouncer('SHIELD ACTIVATED!');
+        showAnnouncer('🛡 SHIELD ACTIVATED!');
         break;
       case 'speed':
         player.speedBoostFrames = 360;
-        showAnnouncer('SPEED BOOST!');
+        showAnnouncer('⚡ SPEED BOOST!');
         break;
       case 'shrink':
         for (const p of gs.players) { if (p.id !== player.id) p.shrunkFrames = 420; }
-        showAnnouncer('OPPONENTS SHRUNK!');
+        showAnnouncer('⬇ OPPONENTS SHRUNK!');
         break;
       case 'extralife':
-        player.lives = Math.min(player.lives + 1, 5);
+        player.lives = Math.min(player.lives + 1, 9);
         setLivesState(gs.players.map(p => p.lives));
-        showAnnouncer('EXTRA LIFE!');
+        onPlayerLivesChange?.(player.lives);
+        showAnnouncer('❤ EXTRA LIFE!');
         break;
       case 'multiball':
         spawnBall(gs, size);
-        showAnnouncer('MULTIBALL!');
+        showAnnouncer('⚽ MULTIBALL!');
         break;
     }
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -542,39 +577,124 @@ export function GameArena({
     };
   }, []);
 
+  // Triangle points for SVG overlay based on who is alive
+  function getTrianglePoints(size: number, elim: boolean[]): string {
+    const CX = size / 2;
+    const CY = size / 2;
+    const vertices = [
+      !elim[BOTTOM] ? `${CX},${size - WALL_MARGIN}` : null, // bottom
+      !elim[TOP] ? `${CX},${WALL_MARGIN}` : null,            // top
+      !elim[LEFT] ? `${WALL_MARGIN},${CY}` : null,           // left
+      !elim[RIGHT] ? `${size - WALL_MARGIN},${CY}` : null,   // right
+    ].filter(Boolean) as string[];
+    return vertices.join(' ');
+  }
+
   const gs = gameStateRef.current;
+  const bgColors = ARENA_COLORS[gameMode];
+  const triPoints = gameMode === 'triangle' ? getTrianglePoints(arenaSize, eliminatedState) : '';
+  const CX = arenaSize / 2;
+  const CY = arenaSize / 2;
 
   return (
     <View style={{ width: arenaSize, height: arenaSize, overflow: 'hidden', borderRadius: 6 }}>
-      <LinearGradient colors={['#060614', '#0A0A1E', '#060614']} style={StyleSheet.absoluteFill} />
+      {/* Vibrant background */}
+      <LinearGradient colors={bgColors} style={StyleSheet.absoluteFill} />
 
-      {/* Grid lines */}
-      <View style={[s.gridH, { top: arenaSize / 2 }]} />
-      <View style={[s.gridV, { left: arenaSize / 2 }]} />
-      <View style={[s.centerCircle, {
-        width: arenaSize * 0.3, height: arenaSize * 0.3,
-        borderRadius: arenaSize * 0.15,
-        left: arenaSize * 0.35, top: arenaSize * 0.35,
-      }]} />
+      {/* SVG decorations layer */}
+      <Svg width={arenaSize} height={arenaSize} style={StyleSheet.absoluteFill}>
+        <Defs>
+          <RadialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.12" />
+            <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
 
-      {/* Player zone glows */}
+        {/* Center radial glow */}
+        <Rect x={0} y={0} width={arenaSize} height={arenaSize} fill="url(#centerGlow)" />
+
+        {/* Grid lines */}
+        <Line x1={0} y1={CY} x2={arenaSize} y2={CY} stroke="#FFFFFF18" strokeWidth={1} />
+        <Line x1={CX} y1={0} x2={CX} y2={arenaSize} stroke="#FFFFFF18" strokeWidth={1} />
+
+        {/* Center circle */}
+        <Polygon
+          points={`${CX - 40},${CY} ${CX},${CY - 40} ${CX + 40},${CY} ${CX},${CY + 40}`}
+          fill="none" stroke="#FFFFFF14" strokeWidth={1}
+        />
+
+        {/* Active triangle overlay in 3-player mode */}
+        {gameMode === 'triangle' && triPoints !== '' && (
+          <Polygon
+            points={triPoints}
+            fill="none"
+            stroke="#00FF8866"
+            strokeWidth={1.5}
+            strokeDasharray="10,5"
+          />
+        )}
+
+        {/* 1v1 center divider in duel mode */}
+        {gameMode === 'duel' && (
+          <Line x1={0} y1={CY} x2={arenaSize} y2={CY} stroke="#FF475755" strokeWidth={2} strokeDasharray="12,6" />
+        )}
+
+        {/* Player wall color indicators */}
+        {!eliminatedState[BOTTOM] && (
+          <Line x1={WALL_MARGIN} y1={arenaSize - WALL_MARGIN + 2} x2={arenaSize - WALL_MARGIN} y2={arenaSize - WALL_MARGIN + 2}
+            stroke={PLAYER_COLORS[BOTTOM]} strokeWidth={3} strokeOpacity={0.6} />
+        )}
+        {!eliminatedState[TOP] && (
+          <Line x1={WALL_MARGIN} y1={WALL_MARGIN - 2} x2={arenaSize - WALL_MARGIN} y2={WALL_MARGIN - 2}
+            stroke={PLAYER_COLORS[TOP]} strokeWidth={3} strokeOpacity={0.6} />
+        )}
+        {!eliminatedState[LEFT] && !gs.gameMode?.includes('duel') && (
+          <Line x1={WALL_MARGIN - 2} y1={WALL_MARGIN} x2={WALL_MARGIN - 2} y2={arenaSize - WALL_MARGIN}
+            stroke={PLAYER_COLORS[LEFT]} strokeWidth={3} strokeOpacity={0.6} />
+        )}
+        {!eliminatedState[RIGHT] && !gs.gameMode?.includes('duel') && (
+          <Line x1={arenaSize - WALL_MARGIN + 2} y1={WALL_MARGIN} x2={arenaSize - WALL_MARGIN + 2} y2={arenaSize - WALL_MARGIN}
+            stroke={PLAYER_COLORS[RIGHT]} strokeWidth={3} strokeOpacity={0.6} />
+        )}
+
+        {/* Eliminated wall: gray X stripes */}
+        {eliminatedState[RIGHT] && (
+          <>
+            <Line x1={arenaSize - WALL_MARGIN + 2} y1={0} x2={arenaSize - WALL_MARGIN + 2} y2={arenaSize}
+              stroke="#FFFFFF22" strokeWidth={2} strokeDasharray="8,8" />
+          </>
+        )}
+        {eliminatedState[LEFT] && (
+          <Line x1={WALL_MARGIN - 2} y1={0} x2={WALL_MARGIN - 2} y2={arenaSize}
+            stroke="#FFFFFF22" strokeWidth={2} strokeDasharray="8,8" />
+        )}
+        {eliminatedState[TOP] && (
+          <Line x1={0} y1={WALL_MARGIN - 2} x2={arenaSize} y2={WALL_MARGIN - 2}
+            stroke="#FFFFFF22" strokeWidth={2} strokeDasharray="8,8" />
+        )}
+      </Svg>
+
+      {/* Player zone colored bands */}
       {gs.players.map((player, idx) => {
         if (player.isEliminated) return null;
         const zs: Record<string, number> = {};
-        if (idx === BOTTOM) { zs.bottom = 0; zs.left = 0; zs.right = 0; zs.height = WALL_MARGIN + 4; }
-        else if (idx === TOP) { zs.top = 0; zs.left = 0; zs.right = 0; zs.height = WALL_MARGIN + 4; }
-        else if (idx === LEFT) { zs.left = 0; zs.top = 0; zs.bottom = 0; zs.width = WALL_MARGIN + 4; }
-        else { zs.right = 0; zs.top = 0; zs.bottom = 0; zs.width = WALL_MARGIN + 4; }
-        return <View key={idx} style={[s.zoneGlow, zs as never, { backgroundColor: player.glowColor }]} />;
+        const thickness = WALL_MARGIN + 2;
+        if (idx === BOTTOM) { zs.bottom = 0; zs.left = 0; zs.right = 0; zs.height = thickness; }
+        else if (idx === TOP) { zs.top = 0; zs.left = 0; zs.right = 0; zs.height = thickness; }
+        else if (idx === LEFT) { zs.left = 0; zs.top = 0; zs.bottom = 0; zs.width = thickness; }
+        else { zs.right = 0; zs.top = 0; zs.bottom = 0; zs.width = thickness; }
+        return (
+          <View key={idx} style={[{ position: 'absolute' }, zs as never, { backgroundColor: player.color + '44' }]} />
+        );
       })}
 
       <View style={{ width: arenaSize, height: arenaSize, position: 'absolute' }} {...panResponder.panHandlers}>
         {/* Power-ups */}
         {powerUpsUI.filter(p => p.active).map((pu) => (
           <View key={pu.id} style={[s.powerup, {
-            left: pu.x - 17, top: pu.y - 17,
+            left: pu.x - 18, top: pu.y - 18,
             borderColor: POWERUP_COLORS[pu.type],
-            backgroundColor: POWERUP_COLORS[pu.type] + '22',
+            backgroundColor: POWERUP_COLORS[pu.type] + '33',
             shadowColor: POWERUP_COLORS[pu.type],
           }]}>
             <Text style={[s.powerupLabel, { color: POWERUP_COLORS[pu.type] }]}>{POWERUP_LABELS[pu.type]}</Text>
@@ -593,93 +713,92 @@ export function GameArena({
           }]} />
         ) : null)}
 
-        {/* Paddles */}
-        {/* Bottom (P0) */}
+        {/* Bottom paddle (P0) */}
         <Animated.View style={[s.paddle, {
-          width: getPaddleLen(gs.players[0]),
+          width: getPaddleLen(gs.players[BOTTOM]),
           height: PADDLE_THICKNESS,
           bottom: WALL_MARGIN - PADDLE_THICKNESS / 2,
-          backgroundColor: shieldActive[0] ? '#FFD700' : gs.players[0].color,
-          shadowColor: gs.players[0].color,
+          backgroundColor: shieldActive[0] ? '#FFD700' : gs.players[BOTTOM].color,
+          shadowColor: gs.players[BOTTOM].color,
           left: 0,
-          transform: [{ translateX: Animated.subtract(paddleAnims[BOTTOM], getPaddleLen(gs.players[0]) / 2) }],
+          transform: [{ translateX: Animated.subtract(paddleAnims[BOTTOM], getPaddleLen(gs.players[BOTTOM]) / 2) }],
         }]} />
 
-        {/* Top (P1) */}
-        {!gs.players[1].isEliminated && (
+        {/* Top paddle (P1) */}
+        {!gs.players[TOP].isEliminated && (
           <Animated.View style={[s.paddle, {
-            width: getPaddleLen(gs.players[1]),
+            width: getPaddleLen(gs.players[TOP]),
             height: PADDLE_THICKNESS,
             top: WALL_MARGIN - PADDLE_THICKNESS / 2,
-            backgroundColor: gs.players[1].color,
-            shadowColor: gs.players[1].color,
+            backgroundColor: gs.players[TOP].color,
+            shadowColor: gs.players[TOP].color,
             left: 0,
-            transform: [{ translateX: Animated.subtract(paddleAnims[TOP], getPaddleLen(gs.players[1]) / 2) }],
+            transform: [{ translateX: Animated.subtract(paddleAnims[TOP], getPaddleLen(gs.players[TOP]) / 2) }],
           }]} />
         )}
 
-        {/* Left (P2) */}
-        {!gs.players[2].isEliminated && (
+        {/* Left paddle (P2) */}
+        {!gs.players[LEFT].isEliminated && gameMode !== 'duel' && (
           <Animated.View style={[s.paddleV, {
             width: PADDLE_THICKNESS,
-            height: getPaddleLen(gs.players[2]),
+            height: getPaddleLen(gs.players[LEFT]),
             left: WALL_MARGIN - PADDLE_THICKNESS / 2,
-            backgroundColor: gs.players[2].color,
-            shadowColor: gs.players[2].color,
+            backgroundColor: gs.players[LEFT].color,
+            shadowColor: gs.players[LEFT].color,
             top: 0,
-            transform: [{ translateY: Animated.subtract(paddleAnims[LEFT], getPaddleLen(gs.players[2]) / 2) }],
+            transform: [{ translateY: Animated.subtract(paddleAnims[LEFT], getPaddleLen(gs.players[LEFT]) / 2) }],
           }]} />
         )}
 
-        {/* Right (P3) */}
-        {!gs.players[3].isEliminated && (
+        {/* Right paddle (P3) */}
+        {!gs.players[RIGHT].isEliminated && gameMode !== 'duel' && (
           <Animated.View style={[s.paddleV, {
             width: PADDLE_THICKNESS,
-            height: getPaddleLen(gs.players[3]),
+            height: getPaddleLen(gs.players[RIGHT]),
             right: WALL_MARGIN - PADDLE_THICKNESS / 2,
-            backgroundColor: gs.players[3].color,
-            shadowColor: gs.players[3].color,
+            backgroundColor: gs.players[RIGHT].color,
+            shadowColor: gs.players[RIGHT].color,
             top: 0,
-            transform: [{ translateY: Animated.subtract(paddleAnims[RIGHT], getPaddleLen(gs.players[3]) / 2) }],
+            transform: [{ translateY: Animated.subtract(paddleAnims[RIGHT], getPaddleLen(gs.players[RIGHT]) / 2) }],
           }]} />
         )}
 
-        {/* Lives - corners */}
-        <View style={[s.lives, { top: 4, left: arenaSize / 2 - 24 }]}>
-          {[0, 1, 2].map(i => (
-            <View key={i} style={[s.lifeHeart, {
-              backgroundColor: i < livesState[TOP] && !eliminatedState[TOP] ? gs.players[TOP].color : '#2a2a3e'
-            }]} />
-          ))}
-        </View>
-        <View style={[s.lives, { bottom: 4, left: arenaSize / 2 - 24 }]}>
-          {[0, 1, 2].map(i => (
-            <View key={i} style={[s.lifeHeart, {
-              backgroundColor: i < livesState[BOTTOM] && !eliminatedState[BOTTOM] ? gs.players[BOTTOM].color : '#2a2a3e'
-            }]} />
-          ))}
-        </View>
-        <View style={[s.livesV, { left: 4, top: arenaSize / 2 - 12 }]}>
-          {[0, 1, 2].map(i => (
-            <View key={i} style={[s.lifeHeart, {
-              backgroundColor: i < livesState[LEFT] && !eliminatedState[LEFT] ? gs.players[LEFT].color : '#2a2a3e'
-            }]} />
-          ))}
-        </View>
-        <View style={[s.livesV, { right: 4, top: arenaSize / 2 - 12 }]}>
-          {[0, 1, 2].map(i => (
-            <View key={i} style={[s.lifeHeart, {
-              backgroundColor: i < livesState[RIGHT] && !eliminatedState[RIGHT] ? gs.players[RIGHT].color : '#2a2a3e'
-            }]} />
-          ))}
-        </View>
+        {/* Lives — hearts row */}
+        {([TOP, BOTTOM, LEFT, RIGHT] as const).map(pid => {
+          const player = gs.players[pid];
+          const lives = livesState[pid] ?? INITIAL_LIVES;
+          const isV = pid === LEFT || pid === RIGHT;
+          const posStyle =
+            pid === TOP ? { top: 4, left: CX - 30 } :
+            pid === BOTTOM ? { bottom: 4, left: CX - 30 } :
+            pid === LEFT ? { left: 4, top: CY - 14 } :
+            { right: 4, top: CY - 14 };
+          return (
+            <View key={pid} style={[{ position: 'absolute' }, posStyle, isV ? s.livesV : s.livesH]}>
+              {Array.from({ length: Math.max(lives, 0) }).map((_, i) => (
+                <View key={i} style={[s.heart, {
+                  backgroundColor: eliminatedState[pid] ? '#333' : player.color,
+                  shadowColor: player.color,
+                }]} />
+              ))}
+              {eliminatedState[pid] && (
+                <Text style={[s.elimX, { color: player.color + '88' }]}>✕</Text>
+              )}
+            </View>
+          );
+        })}
 
-        {/* Eliminated X markers */}
-        {[TOP, LEFT, RIGHT].map(idx => eliminatedState[idx] && (
-          <View key={idx} style={[s.elim, idx === TOP && { top: 6, left: arenaSize / 2 - 8 }, idx === LEFT && { left: 6, top: arenaSize / 2 - 8 }, idx === RIGHT && { right: 6, top: arenaSize / 2 - 8 }]}>
-            <Text style={s.elimText}>✕</Text>
+        {/* Game mode badge */}
+        {(gameMode === 'triangle' || gameMode === 'duel') && (
+          <View style={[s.modeBadge, {
+            backgroundColor: gameMode === 'duel' ? '#FF475733' : '#00FF8833',
+            borderColor: gameMode === 'duel' ? '#FF4757' : '#00FF88',
+          }]}>
+            <Text style={[s.modeBadgeText, { color: gameMode === 'duel' ? '#FF4757' : '#00FF88' }]}>
+              {gameMode === 'duel' ? '⚔ 1v1' : '▲ 3P'}
+            </Text>
           </View>
-        ))}
+        )}
 
         {/* Announcer */}
         {announcer !== '' && (
@@ -688,14 +807,15 @@ export function GameArena({
           </View>
         )}
 
-        {/* Countdown */}
+        {/* Countdown overlay */}
         {gamePhase === 'countdown' && (
           <View style={[s.countdownOverlay, { pointerEvents: 'none' } as never]}>
             <Text style={s.countdownText}>{countdown > 0 ? String(countdown) : 'GO!'}</Text>
+            <Text style={s.countdownSub}>SWIPE TO MOVE YOUR PADDLE</Text>
           </View>
         )}
 
-        {/* Border glow */}
+        {/* Arena border */}
         <View style={[s.border, { width: arenaSize, height: arenaSize, pointerEvents: 'none' } as never]} />
       </View>
     </View>
@@ -703,49 +823,53 @@ export function GameArena({
 }
 
 const s = StyleSheet.create({
-  gridH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: '#FFFFFF08' },
-  gridV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: '#FFFFFF08' },
-  centerCircle: { position: 'absolute', borderWidth: 1, borderColor: '#FFFFFF0D', backgroundColor: 'transparent' },
-  zoneGlow: { position: 'absolute', opacity: 0.45 },
   powerup: {
-    position: 'absolute', width: 34, height: 34, borderRadius: 17, borderWidth: 1.5,
+    position: 'absolute', width: 36, height: 36, borderRadius: 18, borderWidth: 1.5,
     alignItems: 'center', justifyContent: 'center',
-    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.7, shadowRadius: 8, elevation: 4,
+    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 8, elevation: 4,
   },
   powerupLabel: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
   ball: {
     position: 'absolute', top: 0, left: 0,
-    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 10, elevation: 6,
+    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 12, elevation: 6,
   },
   paddle: {
     position: 'absolute', borderRadius: 7,
-    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.9, shadowRadius: 12, elevation: 5,
+    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 14, elevation: 5,
   },
   paddleV: {
     position: 'absolute', borderRadius: 7,
-    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.9, shadowRadius: 12, elevation: 5,
+    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 14, elevation: 5,
   },
-  lives: { position: 'absolute', flexDirection: 'row', gap: 4 },
-  livesV: { position: 'absolute', flexDirection: 'column', gap: 4 },
-  lifeHeart: { width: 7, height: 7, borderRadius: 3.5 },
-  elim: { position: 'absolute' },
-  elimText: { color: '#FF4757', fontSize: 14, fontFamily: 'Inter_700Bold' },
+  livesH: { flexDirection: 'row', gap: 3 },
+  livesV: { flexDirection: 'column', gap: 3 },
+  heart: {
+    width: 7, height: 7, borderRadius: 3.5,
+    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 4,
+  },
+  elimX: { fontFamily: 'Inter_700Bold', fontSize: 12 },
+  modeBadge: {
+    position: 'absolute', top: 6, right: 6,
+    borderRadius: 8, borderWidth: 1,
+    paddingHorizontal: 7, paddingVertical: 3,
+  },
+  modeBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
   announcerWrap: {
     position: 'absolute', top: '42%', left: 0, right: 0,
-    alignItems: 'center', pointerEvents: 'none',
+    alignItems: 'center',
   },
   announcerText: {
-    color: '#FFD700', fontSize: 20, fontFamily: 'Inter_700Bold',
-    letterSpacing: 2,
-    textShadowColor: '#FFD700', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 12,
+    color: '#FFD700', fontSize: 19, fontFamily: 'Inter_700Bold', letterSpacing: 1.5,
+    textShadowColor: '#FFD700', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 14,
   },
   countdownOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: '#00000099', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#000000AA', alignItems: 'center', justifyContent: 'center', gap: 10,
   },
   countdownText: {
-    color: '#FFD700', fontSize: 72, fontFamily: 'Inter_700Bold',
-    textShadowColor: '#FFD700', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24,
+    color: '#FFD700', fontSize: 78, fontFamily: 'Inter_700Bold',
+    textShadowColor: '#FFD700', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 28,
   },
-  border: { position: 'absolute', top: 0, left: 0, borderWidth: 1.5, borderColor: '#FFFFFF18', borderRadius: 6 },
+  countdownSub: { color: '#FFFFFF88', fontFamily: 'Inter_500Medium', fontSize: 13, letterSpacing: 1 },
+  border: { position: 'absolute', top: 0, left: 0, borderWidth: 2, borderColor: '#FFFFFF25', borderRadius: 6 },
 });
