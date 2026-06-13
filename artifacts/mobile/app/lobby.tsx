@@ -102,7 +102,22 @@ export default function LobbyScreen() {
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>MATCHMAKING</Text>
+        <View style={{ alignItems: 'center', gap: 2 }}>
+          <Text style={[styles.headerTitle, { color: colors.foreground }]}>MATCHMAKING</Text>
+          <View style={[
+            styles.modeBadge,
+            config.matchType === 'ranked'
+              ? { backgroundColor: '#FFD70022', borderColor: '#FFD70066' }
+              : { backgroundColor: '#7744FF22', borderColor: '#7744FF66' },
+          ]}>
+            <Text style={[
+              styles.modeBadgeText,
+              { color: config.matchType === 'ranked' ? '#FFD700' : '#AA88FF' },
+            ]}>
+              {config.matchType === 'ranked' ? '⚔️ RANKED' : '🎮 CASUAL'}
+            </Text>
+          </View>
+        </View>
         <View style={{ width: 40 }} />
       </View>
 
@@ -222,6 +237,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12 },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 2 },
+  modeBadge:   { borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 2 },
+  modeBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.5 },
   content: { paddingHorizontal: 20, paddingBottom: 40, gap: 20 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 },
   dot: { width: 8, height: 8, borderRadius: 4 },

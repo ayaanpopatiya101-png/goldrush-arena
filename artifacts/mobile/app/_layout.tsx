@@ -28,6 +28,7 @@ function RootLayoutNav() {
       <Stack.Screen name="lobby"     options={{ headerShown: false, animation: 'slide_from_right' }} />
       <Stack.Screen name="game"      options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="postgame"  options={{ headerShown: false, animation: 'fade' }} />
+      <Stack.Screen name="settings"  options={{ headerShown: false, animation: 'slide_from_right' }} />
     </Stack>
   );
 }

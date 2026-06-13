@@ -1,0 +1,1 @@
+- [GoldRush Arena stack](goldrush-stack.md) — Expo SDK 54, expo-router tabs, Web Audio API for music/SFX (web-only, platform-guarded)

@@ -15,6 +15,7 @@ import {
   RANKS, SEASON_TIERS, SKINS, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
 import { setGameConfig } from '@/store/gameSession';
+import type { MatchType } from '@/store/gameSession';
 import { useColors } from '@/hooks/useColors';
 
 // ─── Mini arena preview ──────────────────────────────────────────────────────
@@ -127,11 +128,12 @@ export default function HomeScreen() {
     return () => { pulse.stop(); glow.stop(); };
   }, []);
 
-  function handlePlay() {
+  function handlePlay(matchType: MatchType) {
     const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
       playerColor: profile.avatarFrameColor, playerGlowColor: profile.avatarFrameColor + '55',
+      matchType,
     });
     router.push('/lobby');
   }
@@ -195,6 +197,9 @@ export default function HomeScreen() {
             </View>
           </View>
           <View style={styles.headerRight}>
+            <Pressable onPress={() => router.push('/settings')} style={styles.settingsBtn}>
+              <Feather name="settings" size={18} color="#FFFFFF66" />
+            </Pressable>
             <RankBadge rank={profile.rank} size="sm" showLabel={false} />
             <View style={styles.coinBadge}>
               <Text style={styles.coinEmoji}>🪙</Text>
@@ -228,13 +233,27 @@ export default function HomeScreen() {
           <Text style={styles.gameSubtitle}>4-PLAYER AIR HOCKEY · LAST ONE STANDING WINS</Text>
         </View>
 
-        {/* Play button */}
+        {/* Play buttons — Ranked + Casual */}
         <View style={styles.playWrap}>
-          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-            <Pressable onPress={handlePlay} style={({ pressed }) => [styles.playBtn, pressed && { opacity: 0.88 }]}>
+          <Animated.View style={[styles.playBtnRow, { transform: [{ scale: pulseAnim }] }]}>
+            {/* Ranked */}
+            <Pressable onPress={() => handlePlay('ranked')} style={({ pressed }) => [styles.playBtn, styles.playBtnRanked, pressed && { opacity: 0.88 }]}>
               <LinearGradient colors={['#FFE233', '#FFAA00']} style={styles.playBtnGrad}>
-                <Feather name="play" size={28} color="#080814" />
-                <Text style={styles.playBtnText}>PLAY NOW</Text>
+                <Text style={styles.playBtnIcon}>⚔️</Text>
+                <View>
+                  <Text style={styles.playBtnText}>RANKED</Text>
+                  <Text style={styles.playBtnSub}>Affects your rank</Text>
+                </View>
+              </LinearGradient>
+            </Pressable>
+            {/* Casual */}
+            <Pressable onPress={() => handlePlay('casual')} style={({ pressed }) => [styles.playBtn, styles.playBtnCasual, pressed && { opacity: 0.88 }]}>
+              <LinearGradient colors={['#5533FF', '#8822EE']} style={styles.playBtnGrad}>
+                <Text style={styles.playBtnIcon}>🎮</Text>
+                <View>
+                  <Text style={[styles.playBtnText, { color: '#FFFFFF' }]}>CASUAL</Text>
+                  <Text style={[styles.playBtnSub, { color: '#FFFFFF88' }]}>Just for fun</Text>
+                </View>
               </LinearGradient>
             </Pressable>
           </Animated.View>
@@ -382,9 +401,15 @@ const styles = StyleSheet.create({
   gameTitle:  { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 27, letterSpacing: 3.5, textShadowColor: '#FFD700', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 18, textAlign: 'center' },
   gameSubtitle: { color: '#FFFFFF66', fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 1.5, textAlign: 'center' },
   playWrap:   { paddingHorizontal: 24, marginBottom: 20 },
-  playBtn:    { borderRadius: 18, overflow: 'hidden', shadowColor: '#FFD700', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.55, shadowRadius: 20, elevation: 8 },
-  playBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 18, gap: 10 },
-  playBtnText: { color: '#080814', fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 2 },
+  settingsBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  playBtnRow:  { flexDirection: 'row', gap: 10 },
+  playBtn:     { flex: 1, borderRadius: 18, overflow: 'hidden', elevation: 8 },
+  playBtnRanked: { shadowColor: '#FFD700', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.55, shadowRadius: 20 },
+  playBtnCasual: { shadowColor: '#7744FF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.55, shadowRadius: 20 },
+  playBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, paddingHorizontal: 10, gap: 8 },
+  playBtnIcon: { fontSize: 20 },
+  playBtnText: { color: '#080814', fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 1.5 },
+  playBtnSub:  { color: '#08081488', fontFamily: 'Inter_500Medium', fontSize: 10, letterSpacing: 0.5 },
   modeRow:    { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 16 },
   modeCard:   { flex: 1, alignItems: 'center', padding: 10, borderRadius: 12, borderWidth: 1, gap: 4 },
   modeLabel:  { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1 },

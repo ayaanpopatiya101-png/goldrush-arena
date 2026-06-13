@@ -9,6 +9,7 @@ import { GameArena, type GameMode, type GameResult } from '@/components/GameAren
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
 import { usePlayer } from '@/context/PlayerContext';
 import { getGameConfig } from '@/store/gameSession';
+import { useSettings } from '@/hooks/useSettings';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X'];
 const BOT_RANKS  = ['Platinum', 'Diamond', 'Master'];
@@ -23,10 +24,11 @@ export default function GameScreen() {
   const { addMatchResult } = usePlayer();
   const config   = getGameConfig();
   const music    = useBackgroundMusic();
+  const { settings } = useSettings();
 
   const topPad    = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
   const bottomPad = Platform.OS === 'web' ? Math.max(insets.bottom, 34) : insets.bottom;
-  const hudHeight = 48 + 54 + bottomPad + 10; // top HUD + bottom HUD
+  const hudHeight = 48 + 54 + bottomPad + 10;
   const arenaSize = Math.max(260, Math.min(width - 8, height - topPad - hudHeight, 410));
 
   const [gameOver,    setGameOver]    = useState(false);
@@ -36,9 +38,33 @@ export default function GameScreen() {
   const grantExtraLifeRef = useRef<(() => void) | null>(null);
   const modePulse         = useRef(new Animated.Value(1)).current;
   const musicStarted      = useRef(false);
+  const prevLivesRef      = useRef(5);
+
+  // Sync music mute with settings
+  useEffect(() => {
+    music.setMuted(!settings.musicEnabled);
+  }, [settings.musicEnabled]);
+
+  // Sound on mode change (a player was eliminated)
+  const prevModeRef = useRef<GameMode>('square');
+  function handleGameModeChange(mode: GameMode) {
+    if (mode !== prevModeRef.current) {
+      prevModeRef.current = mode;
+      setGameMode(mode);
+    }
+  }
+
+  // Sound on life loss (goal scored against player)
+  function handleLivesChange(lives: number) {
+    prevLivesRef.current = lives;
+    setPlayerLives(lives);
+  }
 
   function ensureMusic() {
-    if (!musicStarted.current) { musicStarted.current = true; music.start(); }
+    if (!musicStarted.current && settings.musicEnabled) {
+      musicStarted.current = true;
+      music.start();
+    }
   }
 
   useEffect(() => { return () => music.stop(); }, []);
@@ -138,10 +164,12 @@ export default function GameScreen() {
             botNames={BOT_NAMES}
             botRanks={BOT_RANKS}
             onGameOver={handleGameOver}
-            onGameModeChange={setGameMode}
-            onPlayerLivesChange={setPlayerLives}
+            onGameModeChange={handleGameModeChange}
+            onPlayerLivesChange={handleLivesChange}
             grantExtraLifeRef={grantExtraLifeRef}
             onEliminatedSpectating={() => {}}
+            colorBoard={settings.colorBoard}
+            soundEnabled={settings.soundEnabled}
           />
         )}
 
