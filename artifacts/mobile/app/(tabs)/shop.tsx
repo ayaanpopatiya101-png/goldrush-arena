@@ -20,15 +20,24 @@ const EXTRA_LIVES = [
 
 const BALL_TRAILS = [
   { id: 'trail_fire', name: 'Fire Trail', desc: 'Balls leave fire trails', price: 200, color: '#FF6B35' },
-  { id: 'trail_ice', name: 'Ice Trail', desc: 'Balls leave ice trails', price: 200, color: '#00BFFF' },
-  { id: 'trail_neon', name: 'Neon Trail', desc: 'Rainbow neon trails', price: 300, color: '#FF00FF' },
+  { id: 'trail_ice',  name: 'Ice Trail',  desc: 'Balls leave ice trails', price: 200, color: '#00BFFF' },
+  { id: 'trail_neon', name: 'Neon Trail', desc: 'Rainbow neon trails',   price: 300, color: '#FF00FF' },
+];
+
+const ARENA_THEMES = [
+  { id: 'default',   name: 'Dark Void',       desc: 'Classic deep-space arena',     price: 0,   color: '#6655FF', preview: ['#0D0035','#16005A'] },
+  { id: 'solar',     name: 'Solar Flare',      desc: 'Scorching red-orange arena',   price: 300, color: '#FF6B35', preview: ['#350000','#5A1000'] },
+  { id: 'arctic',    name: 'Arctic Ice',       desc: 'Cool blue frost arena',        price: 300, color: '#00BFFF', preview: ['#001828','#003050'] },
+  { id: 'toxic',     name: 'Toxic Wasteland',  desc: 'Neon green hazard zone',       price: 350, color: '#00FF88', preview: ['#001A08','#003020'] },
+  { id: 'cosmic',    name: 'Cosmic Dream',     desc: 'Purple nebula atmosphere',     price: 400, color: '#BF5FFF', preview: ['#180030','#2A0060'] },
+  { id: 'golden',    name: 'Gold Rush',        desc: 'Prestige golden arena',        price: 500, color: '#FFD700', preview: ['#1A1200','#2A2000'] },
 ];
 
 export default function ShopScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { profile, purchaseSkin, equipSkin, spendCoins } = usePlayer();
-  const [activeTab, setActiveTab] = useState<'skins' | 'powerups' | 'extras'>('skins');
+  const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras'>('skins');
   const [purchasing, setPurchasing] = useState<string | null>(null);
 
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
@@ -102,10 +111,10 @@ export default function ShopScreen() {
 
       {/* Tabs */}
       <View style={[styles.tabRow, { borderBottomColor: colors.border }]}>
-        {(['skins', 'powerups', 'extras'] as const).map(t => (
+        {(['skins', 'themes', 'powerups', 'extras'] as const).map(t => (
           <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: colors.primary }]}>
             <Text style={[styles.tabText, { color: activeTab === t ? colors.primary : colors.mutedForeground }]}>
-              {t === 'skins' ? 'SKINS' : t === 'powerups' ? 'POWER-UPS' : 'EXTRAS'}
+              {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : 'EXTRAS'}
             </Text>
           </Pressable>
         ))}
@@ -183,6 +192,72 @@ export default function ShopScreen() {
                 </View>
               </Pressable>
             ))}
+          </>
+        )}
+
+        {activeTab === 'themes' && (
+          <>
+            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
+              Arena color themes change the board's background during gameplay. No gameplay effect.
+            </Text>
+            {ARENA_THEMES.map(theme => {
+              const owned = (profile.ownedThemes ?? ['default']).includes(theme.id);
+              const equipped = (profile.currentArenaTheme ?? 'default') === theme.id;
+              return (
+                <Pressable
+                  key={theme.id}
+                  onPress={async () => {
+                    if (equipped) return;
+                    if (owned) {
+                      Alert.alert('Theme Equipped', `${theme.name} is now your arena theme!`);
+                      return;
+                    }
+                    if (profile.coins < theme.price) {
+                      Alert.alert('Not enough coins', `You need ${theme.price - profile.coins} more coins.`);
+                      return;
+                    }
+                    Alert.alert(`Buy ${theme.name}?`, `Cost: ${theme.price} coins`, [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Buy', onPress: async () => {
+                        const ok = await spendCoins(theme.price);
+                        if (ok) {
+                          if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                          Alert.alert('Purchased!', `${theme.name} is now your arena theme!`);
+                        }
+                      }},
+                    ]);
+                  }}
+                  style={({ pressed }) => [styles.bundleCard, {
+                    backgroundColor: equipped ? theme.color + '22' : colors.card,
+                    borderColor: equipped ? theme.color : owned ? theme.color + '55' : colors.border,
+                    opacity: pressed ? 0.8 : 1,
+                  }]}
+                >
+                  <LinearGradient colors={theme.preview as [string,string]} style={styles.themePreview}>
+                    <View style={[styles.themeArena, { borderColor: theme.color + '66' }]}>
+                      <View style={[styles.themePaddle, { backgroundColor: theme.color }]} />
+                    </View>
+                  </LinearGradient>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.itemName, { color: equipped ? theme.color : colors.foreground }]}>{theme.name}</Text>
+                    <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{theme.desc}</Text>
+                    {equipped && <Text style={[styles.ownedLabel, { color: theme.color }]}>● EQUIPPED</Text>}
+                    {owned && !equipped && <Text style={[styles.ownedLabel, { color: theme.color + '88' }]}>OWNED — TAP TO EQUIP</Text>}
+                  </View>
+                  {!owned && theme.price > 0 && (
+                    <View style={[styles.buyBtn, { backgroundColor: theme.color + '22', borderColor: theme.color + '55' }]}>
+                      <Feather name="circle" size={10} color="#FFD700" />
+                      <Text style={[styles.buyBtnText, { color: theme.color }]}>{theme.price}</Text>
+                    </View>
+                  )}
+                  {!owned && theme.price === 0 && (
+                    <View style={[styles.buyBtn, { backgroundColor: '#FFFFFF11', borderColor: '#FFFFFF22' }]}>
+                      <Text style={[styles.buyBtnText, { color: '#FFFFFF55' }]}>FREE</Text>
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
           </>
         )}
 
@@ -320,4 +395,7 @@ const styles = StyleSheet.create({
   earnCard: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 14, borderWidth: 1, padding: 14, gap: 10 },
   earnTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
   earnDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18, marginTop: 2 },
+  themePreview: { width: 60, height: 60, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  themeArena: { width: 46, height: 46, borderRadius: 6, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
+  themePaddle: { width: 28, height: 5, borderRadius: 3, opacity: 0.9 },
 });

@@ -62,6 +62,14 @@ interface GameArenaProps {
   colorBoard?: boolean;
   /** Enable Web-Audio sound effects */
   soundEnabled?: boolean;
+  /** Paddle sensitivity multiplier: 1.0 = normal, 1.5 = fast, 0.6 = slow */
+  sensitivity?: number;
+  /** Called whenever the active ball count changes */
+  onActiveBallsChange?: (count: number) => void;
+  /** Bot difficulty: easy = Casual mode, normal = Ranked mode */
+  botDifficulty?: 'easy' | 'normal';
+  /** Called once the countdown finishes and gameplay begins */
+  onGameStart?: () => void;
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
@@ -82,10 +90,10 @@ function clampPaddle(v: number, len: number, sz: number) {
 }
 function getPaddleLen(p: PlayerRef) { return p.shrunkFrames > 0 ? PADDLE_LENGTH * 0.52 : PADDLE_LENGTH; }
 
-// ─── Colour-board tints cycling through warm/cool hues at low opacity ─────────
-const COLOR_BOARD_TINTS = [
-  '#FF000018','#FF880018','#FFDD0018','#00FF5518',
-  '#00CCFF18','#8800FF18','#FF00BB18','#FF000018',
+// ─── Colour-board base hues (opacity applied dynamically in render) ────────────
+const COLOR_BOARD_COLORS = [
+  '#FF0000','#FF8800','#FFDD00','#00FF55',
+  '#00CCFF','#8800FF','#FF00BB','#FF0000',
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -94,6 +102,7 @@ export function GameArena({
   botNames, botRanks, onGameOver, onGameModeChange,
   onPlayerLivesChange, grantExtraLifeRef, onEliminatedSpectating,
   colorBoard = true, soundEnabled = true,
+  sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
 }: GameArenaProps) {
 
   const szRef = useRef(arenaSize);
@@ -141,7 +150,21 @@ export function GameArena({
   const comboTimestamps   = useRef<number[]>([]);
   const onGameOverRef     = useRef(onGameOver);
   const gameModeRef       = useRef<GameMode>('square');
+  const sensitivityRef    = useRef(sensitivity);
+  useEffect(() => { sensitivityRef.current = sensitivity; }, [sensitivity]);
+  const botDifficultyRef  = useRef(botDifficulty);
+  useEffect(() => { botDifficultyRef.current = botDifficulty; }, [botDifficulty]);
   useEffect(() => { onGameOverRef.current = onGameOver; }, [onGameOver]);
+
+  // ── Report active ball count to parent whenever ballVisuals changes ───────────
+  const prevBallCountRef = useRef(0);
+  useEffect(() => {
+    const count = ballVisuals.filter(b => b.active).length;
+    if (count !== prevBallCountRef.current) {
+      prevBallCountRef.current = count;
+      onActiveBallsChange?.(count);
+    }
+  }, [ballVisuals]);
 
   // ── Color-board: cycle through tint phases ──────────────────────────────────
   const colorPhaseAnim = useRef(new Animated.Value(0)).current;
@@ -149,8 +172,8 @@ export function GameArena({
     if (!colorBoard) return;
     const loop = Animated.loop(
       Animated.timing(colorPhaseAnim, {
-        toValue: COLOR_BOARD_TINTS.length - 1,
-        duration: (COLOR_BOARD_TINTS.length - 1) * 8000,
+        toValue: COLOR_BOARD_COLORS.length - 1,
+        duration: (COLOR_BOARD_COLORS.length - 1) * 8000,
         useNativeDriver: false,
       })
     );
@@ -484,7 +507,7 @@ export function GameArena({
       if (ball.y + ball.radius >= GYB) {
         const defender = isDuel ? duelHuman : gs.players[BOTTOM];
         const pLen = getPaddleLen(defender);
-        const pc   = isDuel ? paddleAnims[BOTTOM].__getValue() : defender.paddleCenter;
+        const pc   = isDuel ? (paddleAnims[BOTTOM] as unknown as { _value: number })._value : defender.paddleCenter;
         const hit  = !defender.isEliminated && ball.x >= pc - pLen/2 && ball.x <= pc + pLen/2;
         if (hit) {
           const pv = defender.paddleCenter - defender.prevPaddleCenter;
@@ -503,7 +526,7 @@ export function GameArena({
       if (ball.y - ball.radius <= GYT) {
         const defender = isDuel ? duelBot : gs.players[TOP];
         const pLen = getPaddleLen(defender);
-        const pc   = isDuel ? paddleAnims[TOP].__getValue() : defender.paddleCenter;
+        const pc   = isDuel ? (paddleAnims[TOP] as unknown as { _value: number })._value : defender.paddleCenter;
         const hit  = !defender.isEliminated && ball.x >= pc - pLen/2 && ball.x <= pc + pLen/2;
         if (hit) {
           const pv = defender.paddleCenter - defender.prevPaddleCenter;
@@ -586,9 +609,10 @@ export function GameArena({
           if (bot.isEliminated || !bot.isBot) continue;
           const side: 'top'|'left'|'right' = pid === TOP ? 'top' : pid === LEFT ? 'left' : 'right';
           const target    = getBotTarget(side, gs.balls, size);
-          const inaccuracy = (1 - bot.botAccuracy) * 22 * (Math.random() - 0.5);
+          const diffMult = botDifficultyRef.current === 'easy' ? 0.62 : 1.0;
+          const inaccuracy = (1 - bot.botAccuracy) * 22 * (Math.random() - 0.5) * (botDifficultyRef.current === 'easy' ? 2.2 : 1.0);
           const adj = target + inaccuracy;
-          const spd = bot.speedBoostFrames > 0 ? bot.botSpeed * 1.5 : bot.botSpeed;
+          const spd = (bot.speedBoostFrames > 0 ? bot.botSpeed * 1.5 : bot.botSpeed) * diffMult;
           const diff = adj - bot.paddleCenter;
           const move = Math.sign(diff) * Math.min(Math.abs(diff), spd);
           bot.prevPaddleCenter = bot.paddleCenter;
@@ -645,7 +669,8 @@ export function GameArena({
         const p0  = gs.players[BOTTOM];
         if (p0.isEliminated || gs.phase !== 'playing') return;
         p0.prevPaddleCenter = p0.paddleCenter;
-        p0.paddleCenter     = clampPaddle(x, getPaddleLen(p0), szRef.current);
+        const cx = szRef.current / 2;
+        p0.paddleCenter = clampPaddle(cx + (x - cx) * sensitivityRef.current, getPaddleLen(p0), szRef.current);
         paddleAnims[BOTTOM].setValue(p0.paddleCenter);
       },
       onPanResponderMove: (evt) => {
@@ -654,7 +679,8 @@ export function GameArena({
         const p0  = gs.players[BOTTOM];
         if (p0.isEliminated || gs.phase !== 'playing') return;
         p0.prevPaddleCenter = p0.paddleCenter;
-        p0.paddleCenter     = clampPaddle(x, getPaddleLen(p0), szRef.current);
+        const cx = szRef.current / 2;
+        p0.paddleCenter = clampPaddle(cx + (x - cx) * sensitivityRef.current, getPaddleLen(p0), szRef.current);
         paddleAnims[BOTTOM].setValue(p0.paddleCenter);
       },
     })
@@ -680,6 +706,7 @@ export function GameArena({
         rafRef.current       = requestAnimationFrame(gameLoop);
         showAnnouncer('GAME START!');
         playSFX('start');
+        onGameStart?.();
       }
     }, 1000);
     return () => {
@@ -721,21 +748,24 @@ export function GameArena({
       {/* Background */}
       <LinearGradient colors={bgColors} style={StyleSheet.absoluteFill} />
 
-      {/* Color-shifting board overlay */}
-      {colorBoard && (
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            StyleSheet.absoluteFill,
-            {
+      {/* Color-shifting board overlay — intensifies with more balls / fewer players */}
+      {colorBoard && (() => {
+        const activeBallCount = ballVisuals.filter(b => b.active).length;
+        const eliminatedCount = eliminatedState.filter(Boolean).length;
+        const cbOpacity = Math.min(0.05 + activeBallCount * 0.028 + eliminatedCount * 0.035, 0.26);
+        return (
+          <Animated.View
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFill, {
               backgroundColor: colorPhaseAnim.interpolate({
-                inputRange: COLOR_BOARD_TINTS.map((_, i) => i),
-                outputRange: COLOR_BOARD_TINTS,
+                inputRange: COLOR_BOARD_COLORS.map((_, i) => i),
+                outputRange: COLOR_BOARD_COLORS,
               }),
-            },
-          ]}
-        />
-      )}
+              opacity: cbOpacity,
+            }]}
+          />
+        );
+      })()}
 
       {/* SVG layer */}
       <Svg width={arenaSize} height={arenaSize} style={StyleSheet.absoluteFill}>

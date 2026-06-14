@@ -15,6 +15,7 @@ export default function PostGameScreen() {
   const params = useLocalSearchParams<{
     won: string; position: string; deflections: string;
     goalsAgainst: string; xpEarned: string; coinsEarned: string;
+    matchType: string; levelBefore: string;
   }>();
   const { profile, unlockAchievement } = usePlayer();
 
@@ -24,6 +25,10 @@ export default function PostGameScreen() {
   const goalsAgainst = parseInt(params.goalsAgainst ?? '0', 10);
   const xpEarned = parseInt(params.xpEarned ?? '50', 10);
   const coinsEarned = parseInt(params.coinsEarned ?? '15', 10);
+  const matchType = params.matchType ?? 'casual';
+  const levelBefore = parseInt(params.levelBefore ?? String(profile.competitiveLevel ?? 1), 10);
+  const levelAfter  = profile.competitiveLevel ?? 1;
+  const levelDelta  = levelAfter - levelBefore;
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.7)).current;
@@ -156,6 +161,39 @@ export default function PostGameScreen() {
           </View>
         )}
 
+        {/* Competitive level change (ranked only) */}
+        {matchType === 'ranked' && (
+          <View style={[styles.lvlCard, {
+            backgroundColor: levelDelta > 0 ? '#00FF8811' : levelDelta < 0 ? '#FF475711' : colors.card,
+            borderColor: levelDelta > 0 ? '#00FF8855' : levelDelta < 0 ? '#FF475755' : colors.border,
+          }]}>
+            <View style={styles.lvlRow}>
+              <Text style={[styles.lvlLabel, { color: colors.mutedForeground }]}>COMPETITIVE LEVEL</Text>
+              {levelDelta !== 0 && (
+                <View style={[styles.lvlDeltaBadge, {
+                  backgroundColor: levelDelta > 0 ? '#00FF8822' : '#FF475722',
+                  borderColor: levelDelta > 0 ? '#00FF8866' : '#FF475766',
+                }]}>
+                  <Text style={[styles.lvlDeltaText, { color: levelDelta > 0 ? '#00FF88' : '#FF4757' }]}>
+                    {levelDelta > 0 ? `+${levelDelta}` : `${levelDelta}`}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.lvlBefore}>
+              <Text style={[styles.lvlNum, { color: colors.mutedForeground }]}>{levelBefore}</Text>
+              {levelDelta !== 0 && (
+                <>
+                  <Feather name="arrow-right" size={14} color={levelDelta > 0 ? '#00FF88' : '#FF4757'} />
+                  <Text style={[styles.lvlNum, { color: levelDelta > 0 ? '#00FF88' : '#FF4757' }]}>{levelAfter}</Text>
+                </>
+              )}
+              {levelDelta === 0 && <Text style={[styles.lvlStable, { color: colors.mutedForeground }]}>— No change</Text>}
+              <Text style={[styles.lvlSuffix, { color: colors.mutedForeground }]}> / 50</Text>
+            </View>
+          </View>
+        )}
+
         {/* Achievement unlock */}
         {newAchievement && (
           <View style={[styles.achieveCard, { borderColor: '#FFD700' }]}>
@@ -223,6 +261,15 @@ const styles = StyleSheet.create({
   achieveCard: { borderRadius: 14, borderWidth: 1.5, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10, overflow: 'hidden' },
   achieveTitle: { color: '#FFFFFF88', fontFamily: 'Inter_500Medium', fontSize: 11 },
   achieveName: { fontFamily: 'Inter_700Bold', fontSize: 14 },
+  lvlCard: { borderRadius: 14, borderWidth: 1, padding: 14, gap: 8 },
+  lvlRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  lvlLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 11, letterSpacing: 1.5 },
+  lvlDeltaBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
+  lvlDeltaText: { fontFamily: 'Inter_700Bold', fontSize: 13 },
+  lvlBefore: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  lvlNum: { fontFamily: 'Inter_700Bold', fontSize: 22 },
+  lvlStable: { fontFamily: 'Inter_400Regular', fontSize: 13 },
+  lvlSuffix: { fontFamily: 'Inter_400Regular', fontSize: 12 },
   buttons: { flexDirection: 'row', gap: 10 },
   playAgainBtn: { flex: 1, borderRadius: 14, overflow: 'hidden', elevation: 4, shadowColor: '#FFD700', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.4, shadowRadius: 10 },
   playAgainGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 8 },

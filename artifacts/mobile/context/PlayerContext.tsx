@@ -126,18 +126,25 @@ export interface PlayerProfile {
   winStreak: number;
   bestStreak: number;
   matchHistory: MatchResult[];
-  // New fields
   loginStreak: number;
-  lastLoginDate: string;       // "YYYY-MM-DD"
+  lastLoginDate: string;
   streakBonusClaimed: boolean;
   avatarEmoji: string;
   avatarFrameColor: string;
-  seasonPassClaimed: number[]; // tier indices already claimed
+  seasonPassClaimed: number[];
+  // Halo-style competitive ranking
+  competitiveLevel: number;    // 1–50
+  highestLevel: number;        // best ever reached
+  // Arena theme
+  ownedThemes: string[];
+  currentArenaTheme: string;
 }
 
 export interface MatchResult {
   id: string; won: boolean; xpEarned: number; coinsEarned: number;
   deflections: number; goalsAgainst: number; position: number; timestamp: number;
+  matchType?: 'ranked' | 'casual';
+  levelBefore?: number; levelAfter?: number;
 }
 
 const DEFAULT_PROFILE: PlayerProfile = {
@@ -148,7 +155,17 @@ const DEFAULT_PROFILE: PlayerProfile = {
   loginStreak: 0, lastLoginDate: '', streakBonusClaimed: false,
   avatarEmoji: '🎮', avatarFrameColor: '#FFD700',
   seasonPassClaimed: [],
+  competitiveLevel: 1, highestLevel: 1,
+  ownedThemes: ['default'], currentArenaTheme: 'default',
 };
+
+// ─── Halo-style level change calculator ───────────────────────────────────────
+export function calcLevelDelta(position: number, matchType: 'ranked' | 'casual'): number {
+  if (matchType === 'casual') return 0; // casual never affects rank
+  if (position === 1) return 2;         // champion → +2 levels
+  if (position === 2) return 0;         // runner-up → no change
+  return -1;                            // eliminated early → -1 level
+}
 
 // ─── Utility fns ──────────────────────────────────────────────────────────────
 export function xpToLevel(xp: number) { return Math.floor(Math.pow(xp / 80, 0.72)) + 1; }
@@ -251,9 +268,15 @@ export function PlayerProvider({ username, onLogout, children }: {
 
   const addMatchResult = useCallback(async (result: Omit<MatchResult, 'id'|'timestamp'>) => {
     const id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-    const match: MatchResult = { ...result, id, timestamp: Date.now() };
+    const matchType = result.matchType ?? 'casual';
+    const levelDelta = calcLevelDelta(result.position, matchType);
+    const newCompLevel = Math.max(1, Math.min(50, profile.competitiveLevel + levelDelta));
     const newXP  = profile.xp + result.xpEarned;
     const newWinStreak = result.won ? profile.winStreak + 1 : 0;
+    const match: MatchResult = {
+      ...result, id, timestamp: Date.now(),
+      levelBefore: profile.competitiveLevel, levelAfter: newCompLevel,
+    };
     await save({
       ...profile,
       xp: newXP, level: xpToLevel(newXP), rank: getRankFromXP(newXP),
@@ -264,6 +287,8 @@ export function PlayerProvider({ username, onLogout, children }: {
       totalDeflections: profile.totalDeflections + result.deflections,
       winStreak: newWinStreak, bestStreak: Math.max(profile.bestStreak, newWinStreak),
       matchHistory: [match, ...profile.matchHistory].slice(0, 50),
+      competitiveLevel: newCompLevel,
+      highestLevel: Math.max(profile.highestLevel, newCompLevel),
     });
   }, [profile, save]);
 
