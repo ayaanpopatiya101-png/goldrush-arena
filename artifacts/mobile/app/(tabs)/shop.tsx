@@ -307,49 +307,50 @@ export default function ShopScreen() {
             </Text>
 
             {EXTRA_LIVES.map(item => (
-              <Pressable
+              <View
                 key={item.id}
-                onPress={() => handleExtraLife(item)}
-                style={({ pressed }) => [styles.bundleCard, { backgroundColor: colors.card, borderColor: '#FF69B433', opacity: pressed ? 0.8 : 1 }]}
+                style={[styles.bundleCard, { backgroundColor: colors.card, borderColor: '#FF69B422', opacity: 0.38 }]}
               >
-                <LinearGradient colors={['#FF69B422', '#FF69B408']} style={StyleSheet.absoluteFill} />
-                <View style={[styles.bundleIcon, { backgroundColor: '#FF69B422', borderColor: '#FF69B444' }]}>
-                  <Feather name="heart" size={22} color="#FF69B4" />
+                <LinearGradient colors={['#FF69B411', '#FF69B405']} style={StyleSheet.absoluteFill} />
+                <View style={[styles.bundleIcon, { backgroundColor: '#FF69B411', borderColor: '#FF69B422' }]}>
+                  <Feather name="heart" size={22} color="#FF69B466" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.itemName, { color: colors.foreground }]}>{item.name}</Text>
                   <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{item.desc}</Text>
                 </View>
-                <View style={[styles.iapBtn, { backgroundColor: '#FF69B422', borderColor: '#FF69B455' }]}>
-                  <Text style={[styles.iapText, { color: '#FF69B4' }]}>IAP</Text>
+                <View style={[styles.iapBtn, { backgroundColor: '#FFFFFF0A', borderColor: '#FFFFFF18' }]}>
+                  <Text style={[styles.iapText, { color: '#FFFFFF33' }]}>SOON</Text>
                 </View>
-              </Pressable>
+              </View>
             ))}
 
             {/* Coin IAP */}
             <Text style={[styles.subsectionTitle, { color: colors.foreground }]}>COIN PACKS</Text>
+            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
+              Real-money purchases coming in a future update.
+            </Text>
             {[
               { label: '100 Coins', price: '$0.99', coins: 100 },
               { label: '500 Coins', price: '$3.99', coins: 500 },
               { label: '1200 Coins', price: '$7.99', coins: 1200 },
             ].map(pack => (
-              <Pressable
+              <View
                 key={pack.label}
-                onPress={() => Alert.alert('Coming Soon', 'In-app coin purchases are coming soon!')}
-                style={({ pressed }) => [styles.bundleCard, { backgroundColor: colors.card, borderColor: '#FFD70033', opacity: pressed ? 0.8 : 1 }]}
+                style={[styles.bundleCard, { backgroundColor: colors.card, borderColor: '#FFD70018', opacity: 0.38 }]}
               >
-                <LinearGradient colors={['#FFD70022', '#FFD70008']} style={StyleSheet.absoluteFill} />
-                <View style={[styles.bundleIcon, { backgroundColor: '#FFD70022', borderColor: '#FFD70044' }]}>
-                  <Feather name="circle" size={22} color="#FFD700" />
+                <LinearGradient colors={['#FFD70011', '#FFD70005']} style={StyleSheet.absoluteFill} />
+                <View style={[styles.bundleIcon, { backgroundColor: '#FFD70011', borderColor: '#FFD70022' }]}>
+                  <Feather name="circle" size={22} color="#FFD70066" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.itemName, { color: colors.foreground }]}>{pack.label}</Text>
-                  <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>Best value!</Text>
+                  <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>Coming soon</Text>
                 </View>
-                <View style={[styles.iapBtn, { backgroundColor: '#FFD70022', borderColor: '#FFD70055' }]}>
-                  <Text style={[styles.iapText, { color: '#FFD700' }]}>{pack.price}</Text>
+                <View style={[styles.iapBtn, { backgroundColor: '#FFFFFF0A', borderColor: '#FFFFFF18' }]}>
+                  <Text style={[styles.iapText, { color: '#FFFFFF33' }]}>{pack.price}</Text>
                 </View>
-              </Pressable>
+              </View>
             ))}
           </>
         )}
