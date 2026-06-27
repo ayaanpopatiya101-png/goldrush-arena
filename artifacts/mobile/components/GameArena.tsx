@@ -28,6 +28,7 @@ interface BallRef   { id:number; x:number; y:number; vx:number; vy:number; radiu
 interface PlayerRef { id:number; name:string; paddleCenter:number; prevPaddleCenter:number; lives:number; isBot:boolean; isEliminated:boolean; score:number; color:string; glowColor:string; rank:string; botSpeed:number; botAccuracy:number; hasShield:boolean; speedBoostFrames:number; shrunkFrames:number }
 interface PowerUpRef { id:number; x:number; y:number; type:PowerUpType; active:boolean }
 interface FloatingEmoji { id:number; emoji:string; x:number; anim:Animated.Value }
+interface Spark { id:number; x:number; y:number; color:string; dx:number; dy:number; anim:Animated.Value; tAnim:Animated.Value }
 
 interface GameStateRef {
   balls: BallRef[];
@@ -91,9 +92,9 @@ interface GameArenaProps {
 const POWERUP_COLORS:  Record<PowerUpType, string> = { shield:'#FFD700', speed:'#00FF88', shrink:'#FF4757', extralife:'#FF69B4', multiball:'#00E5FF' };
 const POWERUP_LABELS:  Record<PowerUpType, string> = { shield:'SHD', speed:'SPD', shrink:'SHK', extralife:'+1', multiball:'MLB' };
 const ARENA_BG:        Record<GameMode, [string,string,string]> = {
-  square:   ['#0D0035','#16005A','#0D0035'],
-  triangle: ['#00200D','#004020','#001510'],
-  duel:     ['#350000','#5A0010','#350000'],
+  square:   ['#05000F','#0D0038','#05000F'],
+  triangle: ['#000E04','#002C12','#000E04'],
+  duel:     ['#120000','#3A0008','#120000'],
 };
 const PLAYER_COLORS = ['#FFD700','#FF4757','#00BFFF','#00FF88','#FF9500','#BF5FFF'];
 const PLAYER_GLOW   = ['#FFD70088','#FF475788','#00BFFF88','#00FF8888','#FF950088','#BF5FFF88'];
@@ -165,6 +166,21 @@ export function GameArena({
   const [comboCount, setComboCount]           = useState(0);
   const [duelSecondsLeft, setDuelSecondsLeft] = useState(DUEL_TIME_LIMIT);
   const [isSpectating, setIsSpectating]       = useState(false);
+
+  // ── Visual FX state ─────────────────────────────────────────────────────────
+  const ballTrailRef = useRef<Array<Array<{x:number;y:number}>>>(
+    Array.from({length:MAX_BALLS}, () => [])
+  );
+  const [ballTrailUI, setBallTrailUI] = useState<Array<Array<{x:number;y:number}>>>(
+    Array.from({length:MAX_BALLS}, () => [])
+  );
+  const [sparks, setSparks]             = useState<Spark[]>([]);
+  const sparkIdRef                      = useRef(0);
+  const countdownScaleAnim              = useRef(new Animated.Value(0.4)).current;
+  const countdownOpacityAnim            = useRef(new Animated.Value(0)).current;
+  const paddleGlowAnims                 = useRef(Array.from({length:6}, () => new Animated.Value(0.75))).current;
+  const borderPulseAnim                 = useRef(new Animated.Value(0)).current;
+
   // Duel paddle anim: which anim index each duel position uses
   const duelTopAnimIdx    = useRef(TOP);
   const duelBottomAnimIdx = useRef(BOTTOM);
@@ -186,6 +202,38 @@ export function GameArena({
   const botDifficultyRef  = useRef(botDifficulty);
   useEffect(() => { botDifficultyRef.current = botDifficulty; }, [botDifficulty]);
   useEffect(() => { onGameOverRef.current = onGameOver; }, [onGameOver]);
+
+  // ── Animated countdown: scale-in + flash on each number ─────────────────────
+  useEffect(() => {
+    countdownScaleAnim.setValue(0.25);
+    countdownOpacityAnim.setValue(0);
+    Animated.parallel([
+      Animated.spring(countdownScaleAnim, {toValue:1, tension:200, friction:8, useNativeDriver:true}),
+      Animated.timing(countdownOpacityAnim,{toValue:1, duration:90, useNativeDriver:true}),
+    ]).start();
+  }, [countdown]);
+
+  // ── Paddle glow pulse ────────────────────────────────────────────────────────
+  useEffect(() => {
+    const loops = paddleGlowAnims.map((anim, i) =>
+      Animated.loop(Animated.sequence([
+        Animated.timing(anim, {toValue:1,   duration:850+i*130, useNativeDriver:true}),
+        Animated.timing(anim, {toValue:0.45, duration:850+i*130, useNativeDriver:true}),
+      ]))
+    );
+    loops.forEach(l => l.start());
+    return () => loops.forEach(l => l.stop());
+  }, []);
+
+  // ── Arena border pulse ───────────────────────────────────────────────────────
+  useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(borderPulseAnim, {toValue:1, duration:2200, useNativeDriver:true}),
+      Animated.timing(borderPulseAnim, {toValue:0, duration:2200, useNativeDriver:true}),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, []);
 
   // ── Report active ball count to parent whenever ballVisuals changes ───────────
   const prevBallCountRef = useRef(0);
@@ -283,6 +331,23 @@ export function GameArena({
     setFlashColor(color);
     flashAnim.setValue(0.45);
     Animated.timing(flashAnim, { toValue: 0, duration: 700, useNativeDriver: true }).start();
+  }
+
+  function spawnSparks(x: number, y: number, color: string) {
+    const COUNT = 10;
+    const newSparks: Spark[] = Array.from({length:COUNT}, (_, i) => {
+      const angle = (i/COUNT)*Math.PI*2 + Math.random()*0.5;
+      const dist  = 22 + Math.random()*30;
+      const anim  = new Animated.Value(1);
+      const tAnim = new Animated.Value(0);
+      Animated.parallel([
+        Animated.timing(tAnim, {toValue:1, duration:420, useNativeDriver:true}),
+        Animated.timing(anim,  {toValue:0, duration:420, useNativeDriver:true}),
+      ]).start();
+      return {id:++sparkIdRef.current, x, y, color, dx:Math.cos(angle)*dist, dy:Math.sin(angle)*dist, anim, tAnim};
+    });
+    setSparks(prev => [...prev.slice(-24), ...newSparks]);
+    setTimeout(() => setSparks(prev => prev.filter(s => !newSparks.some(n => n.id===s.id))), 550);
   }
 
   function triggerShake() {
@@ -472,6 +537,9 @@ export function GameArena({
     triggerFlash(player.color);
     triggerShake();
     addEmoji(szRef.current * (0.25 + Math.random() * 0.5));
+    // Spark burst at the ball's current position
+    const hitBall = gs.balls.find(b => b.active);
+    if (hitBall) spawnSparks(hitBall.x, hitBall.y, player.color);
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
     const msgs = ['GOAL!','POINT!','NICE SHOT!','SCORE!'];
@@ -649,7 +717,13 @@ export function GameArena({
       const maxSpd = gs.speedMultiplier * MAX_SPEED;
       if (spd > maxSpd) { ball.vx=(ball.vx/spd)*maxSpd; ball.vy=(ball.vy/spd)*maxSpd; }
       ballAnims[i]?.setValue({ x: ball.x, y: ball.y });
+      // Update ball trail
+      const trail = ballTrailRef.current[i];
+      if (trail) { trail.push({x: ball.x, y: ball.y}); if (trail.length > 8) trail.shift(); }
     }
+
+    // Flush trail UI every 3 frames
+    if (gs.frame % 3 === 0) setBallTrailUI(ballTrailRef.current.map(t => [...t]));
 
     // ── Bot AI (every 3 frames) ──
     if (gs.frame % 3 === 0) {
@@ -941,6 +1015,23 @@ export function GameArena({
           </View>
         ))}
 
+        {/* Ball trails */}
+        {ballTrailUI.map((trail, ballIdx) => {
+          const bv = ballVisuals[ballIdx];
+          if (!bv?.active || trail.length < 2) return null;
+          return trail.map((pos, ti) => {
+            const frac = (ti + 1) / trail.length;
+            const r    = bv.radius * 0.85 * frac;
+            return (
+              <View key={`tr${ballIdx}-${ti}`} pointerEvents="none" style={{
+                position:'absolute', width:r*2, height:r*2, borderRadius:r,
+                backgroundColor:bv.color, opacity:frac * 0.32,
+                left:pos.x - r, top:pos.y - r,
+              } as never} />
+            );
+          });
+        })}
+
         {/* Balls */}
         {ballVisuals.map((bv, i) => bv.active ? (
           <Animated.View key={i} style={[s.ball, {
@@ -949,6 +1040,21 @@ export function GameArena({
             transform:[{ translateX:Animated.subtract(ballAnims[i].x, bv.radius) },{ translateY:Animated.subtract(ballAnims[i].y, bv.radius) }],
           }]} />
         ) : null)}
+
+        {/* Spark burst particles */}
+        {sparks.map(sp => (
+          <Animated.View key={sp.id} pointerEvents="none" style={{
+            position:'absolute', width:7, height:7, borderRadius:3.5,
+            backgroundColor:sp.color, opacity:sp.anim,
+            left:sp.x - 3.5, top:sp.y - 3.5,
+            shadowColor:sp.color, shadowOpacity:0.9, shadowRadius:5, shadowOffset:{width:0,height:0},
+            transform:[
+              { translateX:sp.tAnim.interpolate({inputRange:[0,1], outputRange:[0, sp.dx]}) },
+              { translateY:sp.tAnim.interpolate({inputRange:[0,1], outputRange:[0, sp.dy]}) },
+              { scale:sp.anim.interpolate({inputRange:[0,1], outputRange:[0.3,1.5]}) },
+            ],
+          } as never} />
+        ))}
 
         {/* Paddles */}
         {/* Bottom */}
@@ -1129,12 +1235,27 @@ export function GameArena({
         {/* Countdown */}
         {gamePhase === 'countdown' && (
           <View style={[s.countdownOverlay, { pointerEvents:'none' } as never]}>
-            <Text style={s.countdownText}>{countdown > 0 ? String(countdown) : 'GO!'}</Text>
-            <Text style={s.countdownSub}>SWIPE TO MOVE YOUR PADDLE</Text>
+            <Animated.Text style={[s.countdownText, {
+              opacity: countdownOpacityAnim,
+              transform: [{ scale: countdownScaleAnim }],
+              color: countdown === 0 ? '#00FF88' : '#FFD700',
+              textShadowColor: countdown === 0 ? '#00FF88' : '#FFD700',
+            }]}>
+              {countdown > 0 ? String(countdown) : 'GO!'}
+            </Animated.Text>
+            <Animated.Text style={[s.countdownSub, { opacity: countdownOpacityAnim }]}>
+              SWIPE TO MOVE YOUR PADDLE
+            </Animated.Text>
           </View>
         )}
 
-        <View style={[s.border, { width:arenaSize, height:arenaSize, pointerEvents:'none' } as never]} />
+        <Animated.View pointerEvents="none" style={[s.border, {
+          width:arenaSize, height:arenaSize,
+          borderColor: borderPulseAnim.interpolate({inputRange:[0,1], outputRange:['#FFFFFF18','#FFFFFF50']}),
+          shadowColor:'#FFFFFF',
+          shadowOpacity: borderPulseAnim.interpolate({inputRange:[0,1], outputRange:[0,0.35]}),
+          shadowRadius:10,
+        } as never]} />
       </View>
     </Animated.View>
   );

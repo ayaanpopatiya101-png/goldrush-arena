@@ -114,20 +114,33 @@ export default function HomeScreen() {
     profile, isLoaded, showStreakModal, dismissStreakModal,
     claimDailyStreak, claimSeasonTier,
   } = usePlayer();
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const glowAnim  = useRef(new Animated.Value(0)).current;
+  const pulseAnim   = useRef(new Animated.Value(1)).current;
+  const glowAnim    = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useRef(new Animated.Value(-1)).current;
+  const titleGlowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const pulse = Animated.loop(Animated.sequence([
-      Animated.timing(pulseAnim, { toValue: 1.04, duration: 850, useNativeDriver: true }),
-      Animated.timing(pulseAnim, { toValue: 1,    duration: 850, useNativeDriver: true }),
+      Animated.timing(pulseAnim,  { toValue: 1.05, duration: 900, useNativeDriver: true }),
+      Animated.timing(pulseAnim,  { toValue: 1,    duration: 900, useNativeDriver: true }),
     ]));
     const glow = Animated.loop(Animated.sequence([
-      Animated.timing(glowAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
-      Animated.timing(glowAnim, { toValue: 0, duration: 1500, useNativeDriver: true }),
+      Animated.timing(glowAnim, { toValue: 1, duration: 1600, useNativeDriver: true }),
+      Animated.timing(glowAnim, { toValue: 0, duration: 1600, useNativeDriver: true }),
     ]));
-    pulse.start(); glow.start();
-    return () => { pulse.stop(); glow.stop(); };
+    const shimmer = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, { toValue: 2, duration: 1800, useNativeDriver: true }),
+        Animated.delay(900),
+        Animated.timing(shimmerAnim, { toValue: -1, duration: 0,   useNativeDriver: true }),
+      ])
+    );
+    const titleGlow = Animated.loop(Animated.sequence([
+      Animated.timing(titleGlowAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+      Animated.timing(titleGlowAnim, { toValue: 0, duration: 1200, useNativeDriver: true }),
+    ]));
+    pulse.start(); glow.start(); shimmer.start(); titleGlow.start();
+    return () => { pulse.stop(); glow.stop(); shimmer.stop(); titleGlow.stop(); };
   }, []);
 
   function handlePlay(matchType: MatchType) {
@@ -164,7 +177,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={['#0A0028', '#150050', '#0A0028']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#04000D', '#0A0030', '#04000D']} style={StyleSheet.absoluteFill} />
       <AmbientParticles />
       <Svg style={StyleSheet.absoluteFill as never} pointerEvents="none">
         <Defs>
@@ -239,7 +252,9 @@ export default function HomeScreen() {
         {/* Title */}
         <View style={styles.titleWrap}>
           <Animated.Text style={[styles.gameTitle, {
-            opacity: glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }),
+            opacity: titleGlowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.88, 1] }),
+            textShadowRadius: titleGlowAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 36] }),
+            transform: [{ scale: titleGlowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.99, 1.015] }) }],
           }]}>
             GOLDRUSH ARENA
           </Animated.Text>
@@ -250,24 +265,36 @@ export default function HomeScreen() {
         <View style={styles.playWrap}>
           <Animated.View style={[styles.playBtnRow, { transform: [{ scale: pulseAnim }] }]}>
             {/* Ranked */}
-            <Pressable onPress={() => handlePlay('ranked')} style={({ pressed }) => [styles.playBtn, styles.playBtnRanked, pressed && { opacity: 0.88 }]}>
-              <LinearGradient colors={['#FFE233', '#FFAA00']} style={styles.playBtnGrad}>
+            <Pressable onPress={() => handlePlay('ranked')} style={({ pressed }) => [styles.playBtn, styles.playBtnRanked, pressed && { opacity: 0.85, transform:[{scale:0.97}] }]}>
+              <LinearGradient colors={['#FFE840', '#FFB300', '#FF8C00']} style={styles.playBtnGrad}>
                 <Text style={styles.playBtnIcon}>⚔️</Text>
                 <View>
                   <Text style={styles.playBtnText}>RANKED</Text>
                   <Text style={styles.playBtnSub}>Affects your rank</Text>
                 </View>
               </LinearGradient>
+              {/* Shimmer sweep */}
+              <Animated.View pointerEvents="none" style={{
+                position:'absolute', top:0, bottom:0, width:'40%',
+                backgroundColor:'#FFFFFF', opacity:0.12, borderRadius:14,
+                transform:[{ translateX: shimmerAnim.interpolate({inputRange:[-1,2], outputRange:[-80, 220]}) }, {skewX:'-20deg'}],
+              }} />
             </Pressable>
             {/* Casual */}
-            <Pressable onPress={() => handlePlay('casual')} style={({ pressed }) => [styles.playBtn, styles.playBtnCasual, pressed && { opacity: 0.88 }]}>
-              <LinearGradient colors={['#5533FF', '#8822EE']} style={styles.playBtnGrad}>
+            <Pressable onPress={() => handlePlay('casual')} style={({ pressed }) => [styles.playBtn, styles.playBtnCasual, pressed && { opacity: 0.85, transform:[{scale:0.97}] }]}>
+              <LinearGradient colors={['#6644FF', '#9922FF', '#CC00FF']} style={styles.playBtnGrad}>
                 <Text style={styles.playBtnIcon}>🎮</Text>
                 <View>
                   <Text style={[styles.playBtnText, { color: '#FFFFFF' }]}>CASUAL</Text>
                   <Text style={[styles.playBtnSub, { color: '#FFFFFF88' }]}>Just for fun</Text>
                 </View>
               </LinearGradient>
+              {/* Shimmer sweep */}
+              <Animated.View pointerEvents="none" style={{
+                position:'absolute', top:0, bottom:0, width:'40%',
+                backgroundColor:'#FFFFFF', opacity:0.10, borderRadius:14,
+                transform:[{ translateX: shimmerAnim.interpolate({inputRange:[-1,2], outputRange:[-80, 220]}) }, {skewX:'-20deg'}],
+              }} />
             </Pressable>
           </Animated.View>
         </View>
