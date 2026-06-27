@@ -43,6 +43,7 @@ const VARIANT_META: Record<string, { emoji: string; name: string; color: string 
   sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', color: '#FF4757' },
   turbo:        { emoji: '🚀', name: 'TURBO',        color: '#BF5FFF' },
   pinball:      { emoji: '🎰', name: 'PINBALL',      color: '#FF69B4' },
+  six_player:   { emoji: '6️⃣', name: '6-PLAYER',     color: '#FF9500' },
 };
 
 const VARIANT_RULES: Record<string, string[]> = {
@@ -102,6 +103,14 @@ const VARIANT_RULES: Record<string, string[]> = {
     'Slower starting speed — but volume is brutal',
     'Power-ups spawn normally',
     'Last player standing in the ball storm wins',
+  ],
+  six_player: [
+    '6 fighters — each wall is split into two zones',
+    'You guard the LEFT half of the bottom wall',
+    'Top wall is split between two bots (left & right)',
+    'Left and right walls each have their own bot',
+    '4 lives each — no phase transitions, pure survival',
+    'Last of 6 standing wins — largest bracket ever!',
   ],
 };
 

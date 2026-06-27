@@ -7,7 +7,8 @@ export type GameVariant =
   | 'survival'
   | 'sudden_death'
   | 'turbo'
-  | 'pinball';
+  | 'pinball'
+  | 'six_player';
 
 export interface GameSessionConfig {
   playerName:      string;

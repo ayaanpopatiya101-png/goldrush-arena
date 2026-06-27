@@ -17,6 +17,7 @@ const MAX_SPEED = 14;
 const DUEL_TIME_LIMIT = 60;     // seconds before sudden-death winner declared
 
 const BOTTOM = 0; const TOP = 1; const LEFT = 2; const RIGHT = 3;
+const BOTTOM_R = 4; const TOP_R = 5;
 
 type BallType   = 'normal' | 'fire' | 'heavy' | 'tiny';
 type PowerUpType = 'shield' | 'speed' | 'shrink' | 'extralife' | 'multiball';
@@ -82,6 +83,8 @@ interface GameArenaProps {
   startSpeedMult?: number;
   /** Team 2v2: [BOTTOM,RIGHT] vs [TOP,LEFT]. Skip triangle/duel transitions; team elimination wins. */
   duoMode?: boolean;
+  /** 6-player mode: top & bottom walls each split into left/right halves, giving 6 independent zones. */
+  sixPlayer?: boolean;
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
@@ -92,13 +95,16 @@ const ARENA_BG:        Record<GameMode, [string,string,string]> = {
   triangle: ['#00200D','#004020','#001510'],
   duel:     ['#350000','#5A0010','#350000'],
 };
-const PLAYER_COLORS = ['#FFD700','#FF4757','#00BFFF','#00FF88'];
-const PLAYER_GLOW   = ['#FFD70088','#FF475788','#00BFFF88','#00FF8888'];
+const PLAYER_COLORS = ['#FFD700','#FF4757','#00BFFF','#00FF88','#FF9500','#BF5FFF'];
+const PLAYER_GLOW   = ['#FFD70088','#FF475788','#00BFFF88','#00FF8888','#FF950088','#BF5FFF88'];
 const GOAL_EMOJIS   = ['💥','🎯','⚡','🔥','😱','💫','🚀'];
 const COMBO_COLORS  = ['#FFD700','#FF6B35','#FF4757','#FF00FF'];
 
 function clampPaddle(v: number, len: number, sz: number) {
   return Math.max(len/2+2, Math.min(sz-len/2-2, v));
+}
+function clampPaddleRange(v: number, len: number, minX: number, maxX: number) {
+  return Math.max(minX + len/2 + 2, Math.min(maxX - len/2 - 2, v));
 }
 function getPaddleLen(p: PlayerRef) { return p.shrunkFrames > 0 ? PADDLE_LENGTH * 0.52 : PADDLE_LENGTH; }
 
@@ -115,7 +121,7 @@ export function GameArena({
   onPlayerLivesChange, grantExtraLifeRef, onEliminatedSpectating,
   colorBoard = true, soundEnabled = true,
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
-  initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult, duoMode,
+  initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult, duoMode, sixPlayer,
 }: GameArenaProps) {
 
   const szRef = useRef(arenaSize);
@@ -125,6 +131,7 @@ export function GameArena({
   const noPowerupsRef        = useRef(noPowerups        ?? false);
   const startingBallCountRef = useRef(startingBallCount ?? 1);
   const duoModeRef           = useRef(duoMode           ?? false);
+  const sixPlayerRef         = useRef(sixPlayer         ?? false);
   const initialLivesVal      = initialLives ?? INITIAL_LIVES;
   const startSpeedMultVal    = startSpeedMult ?? 1.0;
 
@@ -133,6 +140,8 @@ export function GameArena({
     new Animated.Value(arenaSize/2),
     new Animated.Value(arenaSize/2),
     new Animated.Value(arenaSize/2),
+    new Animated.Value(arenaSize/4),   // BOTTOM_R — right half of bottom
+    new Animated.Value(arenaSize/4),   // TOP_R    — right half of top
   ]).current;
 
   const ballAnims = useRef(
@@ -143,15 +152,15 @@ export function GameArena({
   const shakeX     = useRef(new Animated.Value(0)).current;
   const shakeY     = useRef(new Animated.Value(0)).current;
   const [flashColor, setFlashColor]           = useState('#FF4757');
-  const [livesState, setLivesState]           = useState<number[]>([initialLivesVal,initialLivesVal,initialLivesVal,initialLivesVal]);
-  const [eliminatedState, setEliminatedState] = useState<boolean[]>([false,false,false,false]);
+  const [livesState, setLivesState]           = useState<number[]>([initialLivesVal,initialLivesVal,initialLivesVal,initialLivesVal,initialLivesVal,initialLivesVal]);
+  const [eliminatedState, setEliminatedState] = useState<boolean[]>([false,false,false,false,false,false]);
   const [gamePhase, setGamePhase]             = useState<'countdown'|'playing'|'gameover'>('countdown');
   const [gameMode, setGameMode]               = useState<GameMode>('square');
   const [countdown, setCountdown]             = useState(3);
   const [announcer, setAnnouncer]             = useState('');
   const [ballVisuals, setBallVisuals]         = useState<Array<{active:boolean;color:string;radius:number}>>([]);
   const [powerUpsUI, setPowerUpsUI]           = useState<PowerUpRef[]>([]);
-  const [shieldActive, setShieldActive]       = useState<boolean[]>([false,false,false,false]);
+  const [shieldActive, setShieldActive]       = useState<boolean[]>([false,false,false,false,false,false]);
   const [floatingEmojis, setFloatingEmojis]   = useState<FloatingEmoji[]>([]);
   const [comboCount, setComboCount]           = useState(0);
   const [duelSecondsLeft, setDuelSecondsLeft] = useState(DUEL_TIME_LIMIT);
@@ -254,10 +263,12 @@ export function GameArena({
     speedMultiplier: startSpeedMultVal, winner: null, phase: 'countdown', gameMode: 'square',
     duelTopId: TOP, duelBottomId: BOTTOM, duelFrames: 0,
     players: [
-      { id:BOTTOM, name:playerName, paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:initialLivesVal, isBot:false, isEliminated:false, score:0, color:playerColor, glowColor:playerGlowColor, rank:'Gold', botSpeed:0, botAccuracy:1, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
-      { id:TOP,    name:botNames[0]??'Blaze_99',  paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:initialLivesVal, isBot:true,  isEliminated:false, score:0, color:PLAYER_COLORS[1], glowColor:PLAYER_GLOW[1], rank:botRanks[0]??'Platinum', botSpeed:4.8, botAccuracy:0.86, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
-      { id:LEFT,   name:botNames[1]??'IceQueen',  paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:initialLivesVal, isBot:true,  isEliminated:false, score:0, color:PLAYER_COLORS[2], glowColor:PLAYER_GLOW[2], rank:botRanks[1]??'Diamond',  botSpeed:5.2, botAccuracy:0.88, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
-      { id:RIGHT,  name:botNames[2]??'Venom_X',   paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:initialLivesVal, isBot:true,  isEliminated:false, score:0, color:PLAYER_COLORS[3], glowColor:PLAYER_GLOW[3], rank:botRanks[2]??'Master',   botSpeed:5.6, botAccuracy:0.91, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
+      { id:BOTTOM,   name:playerName,              paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:false, isEliminated:false,              score:0, color:playerColor,      glowColor:playerGlowColor, rank:'Gold',              botSpeed:0,   botAccuracy:1,    hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
+      { id:TOP,      name:botNames[0]??'Blaze_99',  paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[1], glowColor:PLAYER_GLOW[1],  rank:botRanks[0]??'Platinum',     botSpeed:4.8, botAccuracy:0.86, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
+      { id:LEFT,     name:botNames[1]??'IceQueen',  paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[2], glowColor:PLAYER_GLOW[2],  rank:botRanks[1]??'Diamond',      botSpeed:5.2, botAccuracy:0.88, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
+      { id:RIGHT,    name:botNames[2]??'Venom_X',   paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[3], glowColor:PLAYER_GLOW[3],  rank:botRanks[2]??'Master',       botSpeed:5.6, botAccuracy:0.91, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
+      { id:BOTTOM_R, name:botNames[3]??'ShadowFox', paddleCenter:arenaSize*3/4,                                prevPaddleCenter:arenaSize*3/4,                                lives:initialLivesVal, isBot:true,  isEliminated:!(sixPlayer??false), score:0, color:PLAYER_COLORS[4], glowColor:PLAYER_GLOW[4],  rank:botRanks[3]??'Legend',       botSpeed:4.6, botAccuracy:0.84, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
+      { id:TOP_R,    name:botNames[4]??'CyberWolf',  paddleCenter:arenaSize*3/4,                                prevPaddleCenter:arenaSize*3/4,                                lives:initialLivesVal, isBot:true,  isEliminated:!(sixPlayer??false), score:0, color:PLAYER_COLORS[5], glowColor:PLAYER_GLOW[5],  rank:botRanks[4]??'Grandmaster', botSpeed:5.0, botAccuracy:0.87, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
     ],
   });
 
@@ -476,7 +487,7 @@ export function GameArena({
       setEliminatedState(gs.players.map(p => p.isEliminated));
       showAnnouncer(playerId === BOTTOM ? '💀 YOU\'RE OUT! SPECTATING...' : `${player.name} OUT!`);
 
-      if (!duoModeRef.current) updateGameMode(gs);
+      if (!duoModeRef.current && !sixPlayerRef.current) updateGameMode(gs);
 
       const alive = gs.players.filter(p => !p.isEliminated);
       if (duoModeRef.current) {
@@ -489,6 +500,8 @@ export function GameArena({
           const w = alive.find(p => p.id === BOTTOM || p.id === RIGHT);
           if (w) forceWin(gs, w.id);
         }
+      } else if (sixPlayerRef.current) {
+        if (alive.length === 1) forceWin(gs, alive[0].id);
       } else if (alive.length === 1) {
         forceWin(gs, alive[0].id);
       }
@@ -564,7 +577,9 @@ export function GameArena({
 
       // ─ BOTTOM wall ─
       if (ball.y + ball.radius >= GYB) {
-        const defender = isDuel ? duelHuman : gs.players[BOTTOM];
+        const isSix = sixPlayerRef.current;
+        const midX  = size / 2;
+        const defender = isDuel ? duelHuman : (isSix && ball.x >= midX ? gs.players[BOTTOM_R] : gs.players[BOTTOM]);
         const pLen = getPaddleLen(defender);
         const pc   = isDuel ? (paddleAnims[BOTTOM] as unknown as { _value: number })._value : defender.paddleCenter;
         const hit  = !defender.isEliminated && ball.x >= pc - pLen/2 && ball.x <= pc + pLen/2;
@@ -576,14 +591,16 @@ export function GameArena({
           if (defender.id === BOTTOM) recordCombo();
         } else {
           ball.vy = -Math.abs(ball.vy);
-          handleGoal(gs, defender.id);
+          handleGoal(gs, isDuel ? duelHuman.id : defender.id);
         }
         ball.y = GYB - ball.radius - 1;
       }
 
       // ─ TOP wall ─
       if (ball.y - ball.radius <= GYT) {
-        const defender = isDuel ? duelBot : gs.players[TOP];
+        const isSix = sixPlayerRef.current;
+        const midX  = size / 2;
+        const defender = isDuel ? duelBot : (isSix && ball.x >= midX ? gs.players[TOP_R] : gs.players[TOP]);
         const pLen = getPaddleLen(defender);
         const pc   = isDuel ? (paddleAnims[TOP] as unknown as { _value: number })._value : defender.paddleCenter;
         const hit  = !defender.isEliminated && ball.x >= pc - pLen/2 && ball.x <= pc + pLen/2;
@@ -594,7 +611,7 @@ export function GameArena({
           defender.score++;
         } else {
           ball.vy = Math.abs(ball.vy);
-          handleGoal(gs, defender.id);
+          handleGoal(gs, isDuel ? duelBot.id : defender.id);
         }
         ball.y = GYT + ball.radius + 1;
       }
@@ -667,7 +684,9 @@ export function GameArena({
           const bot = gs.players[pid];
           if (bot.isEliminated || !bot.isBot) continue;
           const side: 'top'|'left'|'right' = pid === TOP ? 'top' : pid === LEFT ? 'left' : 'right';
-          const target    = getBotTarget(side, gs.balls, size);
+          const rawTarget = getBotTarget(side, gs.balls, size);
+          // In six-player mode, TOP only defends the left half — clamp its target
+          const target = (sixPlayerRef.current && pid === TOP) ? Math.min(rawTarget, size / 2) : rawTarget;
           const diffMult = botDifficultyRef.current === 'easy' ? 0.62 : 1.0;
           const inaccuracy = (1 - bot.botAccuracy) * 22 * (Math.random() - 0.5) * (botDifficultyRef.current === 'easy' ? 2.2 : 1.0);
           const adj = target + inaccuracy;
@@ -675,10 +694,33 @@ export function GameArena({
           const diff = adj - bot.paddleCenter;
           const move = Math.sign(diff) * Math.min(Math.abs(diff), spd);
           bot.prevPaddleCenter = bot.paddleCenter;
-          bot.paddleCenter     = clampPaddle(bot.paddleCenter + move, getPaddleLen(bot), size);
+          if (sixPlayerRef.current && pid === TOP) {
+            bot.paddleCenter = clampPaddleRange(bot.paddleCenter + move, getPaddleLen(bot), WALL_MARGIN, size / 2);
+          } else {
+            bot.paddleCenter = clampPaddle(bot.paddleCenter + move, getPaddleLen(bot), size);
+          }
           paddleAnims[pid].setValue(bot.paddleCenter);
           if (bot.speedBoostFrames > 0) bot.speedBoostFrames -= 3;
           if (bot.shrunkFrames > 0)     bot.shrunkFrames     -= 3;
+        }
+        // Six-player extra bots: BOTTOM_R (right half of bottom) and TOP_R (right half of top)
+        if (sixPlayerRef.current) {
+          for (const [pid, side] of [[BOTTOM_R, 'bottom'], [TOP_R, 'top']] as [number, 'bottom'|'top'][]) {
+            const bot = gs.players[pid];
+            if (bot.isEliminated || !bot.isBot) continue;
+            const rawTarget = getBotTarget(side, gs.balls, size);
+            const target    = Math.max(rawTarget, size / 2); // clamp to right half
+            const inaccuracy = (1 - bot.botAccuracy) * 22 * (Math.random() - 0.5);
+            const adj  = target + inaccuracy;
+            const spd  = bot.speedBoostFrames > 0 ? bot.botSpeed * 1.5 : bot.botSpeed;
+            const diff = adj - bot.paddleCenter;
+            const move = Math.sign(diff) * Math.min(Math.abs(diff), spd);
+            bot.prevPaddleCenter = bot.paddleCenter;
+            bot.paddleCenter     = clampPaddleRange(bot.paddleCenter + move, getPaddleLen(bot), size / 2, size - WALL_MARGIN);
+            paddleAnims[pid].setValue(bot.paddleCenter);
+            if (bot.speedBoostFrames > 0) bot.speedBoostFrames -= 3;
+            if (bot.shrunkFrames > 0)     bot.shrunkFrames     -= 3;
+          }
         }
       }
     }
@@ -728,8 +770,12 @@ export function GameArena({
         const p0  = gs.players[BOTTOM];
         if (p0.isEliminated || gs.phase !== 'playing') return;
         p0.prevPaddleCenter = p0.paddleCenter;
-        const cx = szRef.current / 2;
-        p0.paddleCenter = clampPaddle(cx + (x - cx) * sensitivityRef.current, getPaddleLen(p0), szRef.current);
+        const sz = szRef.current;
+        const cx = sz / 2;
+        const raw = cx + (x - cx) * sensitivityRef.current;
+        p0.paddleCenter = sixPlayerRef.current
+          ? clampPaddleRange(raw, getPaddleLen(p0), WALL_MARGIN, sz / 2)
+          : clampPaddle(raw, getPaddleLen(p0), sz);
         paddleAnims[BOTTOM].setValue(p0.paddleCenter);
       },
       onPanResponderMove: (evt) => {
@@ -738,8 +784,12 @@ export function GameArena({
         const p0  = gs.players[BOTTOM];
         if (p0.isEliminated || gs.phase !== 'playing') return;
         p0.prevPaddleCenter = p0.paddleCenter;
-        const cx = szRef.current / 2;
-        p0.paddleCenter = clampPaddle(cx + (x - cx) * sensitivityRef.current, getPaddleLen(p0), szRef.current);
+        const sz = szRef.current;
+        const cx = sz / 2;
+        const raw = cx + (x - cx) * sensitivityRef.current;
+        p0.paddleCenter = sixPlayerRef.current
+          ? clampPaddleRange(raw, getPaddleLen(p0), WALL_MARGIN, sz / 2)
+          : clampPaddle(raw, getPaddleLen(p0), sz);
         paddleAnims[BOTTOM].setValue(p0.paddleCenter);
       },
     })
@@ -844,14 +894,25 @@ export function GameArena({
         {/* Duel divider */}
         {isDuel && <Line x1={0} y1={CY} x2={arenaSize} y2={CY} stroke="#FF475555" strokeWidth={2} strokeDasharray="12,6" />}
         {/* Active player wall strips */}
-        {!eliminatedState[BOTTOM] && <Line x1={WALL_MARGIN} y1={arenaSize-WALL_MARGIN+2} x2={arenaSize-WALL_MARGIN} y2={arenaSize-WALL_MARGIN+2} stroke={PLAYER_COLORS[BOTTOM]} strokeWidth={3} strokeOpacity={0.65} />}
-        {/* Top wall: in duel show duelTop player's color */}
+        {/* Bottom wall — split in sixPlayer mode */}
+        {!eliminatedState[BOTTOM] && !sixPlayer && <Line x1={WALL_MARGIN} y1={arenaSize-WALL_MARGIN+2} x2={arenaSize-WALL_MARGIN} y2={arenaSize-WALL_MARGIN+2} stroke={PLAYER_COLORS[BOTTOM]} strokeWidth={3} strokeOpacity={0.65} />}
+        {sixPlayer && !eliminatedState[BOTTOM]   && <Line x1={WALL_MARGIN} y1={arenaSize-WALL_MARGIN+2} x2={CX} y2={arenaSize-WALL_MARGIN+2} stroke={PLAYER_COLORS[BOTTOM]} strokeWidth={3} strokeOpacity={0.65} />}
+        {sixPlayer && !eliminatedState[BOTTOM_R] && <Line x1={CX} y1={arenaSize-WALL_MARGIN+2} x2={arenaSize-WALL_MARGIN} y2={arenaSize-WALL_MARGIN+2} stroke={PLAYER_COLORS[BOTTOM_R]} strokeWidth={3} strokeOpacity={0.65} />}
+        {/* Top wall: in duel show duelTop player's color; in sixPlayer split */}
         {isDuel
           ? <Line x1={WALL_MARGIN} y1={WALL_MARGIN-2} x2={arenaSize-WALL_MARGIN} y2={WALL_MARGIN-2} stroke={duelTopPlayer.color} strokeWidth={3} strokeOpacity={0.65} />
-          : !eliminatedState[TOP]   && <Line x1={WALL_MARGIN} y1={WALL_MARGIN-2} x2={arenaSize-WALL_MARGIN} y2={WALL_MARGIN-2} stroke={PLAYER_COLORS[TOP]} strokeWidth={3} strokeOpacity={0.65} />
+          : sixPlayer
+            ? <>
+                {!eliminatedState[TOP]   && <Line x1={WALL_MARGIN} y1={WALL_MARGIN-2} x2={CX} y2={WALL_MARGIN-2} stroke={PLAYER_COLORS[TOP]}   strokeWidth={3} strokeOpacity={0.65} />}
+                {!eliminatedState[TOP_R] && <Line x1={CX} y1={WALL_MARGIN-2} x2={arenaSize-WALL_MARGIN} y2={WALL_MARGIN-2} stroke={PLAYER_COLORS[TOP_R]} strokeWidth={3} strokeOpacity={0.65} />}
+              </>
+            : !eliminatedState[TOP] && <Line x1={WALL_MARGIN} y1={WALL_MARGIN-2} x2={arenaSize-WALL_MARGIN} y2={WALL_MARGIN-2} stroke={PLAYER_COLORS[TOP]} strokeWidth={3} strokeOpacity={0.65} />
         }
         {!isDuel && !eliminatedState[LEFT]  && <Line x1={WALL_MARGIN-2} y1={WALL_MARGIN} x2={WALL_MARGIN-2} y2={arenaSize-WALL_MARGIN} stroke={PLAYER_COLORS[LEFT]} strokeWidth={3} strokeOpacity={0.65} />}
         {!isDuel && !eliminatedState[RIGHT] && <Line x1={arenaSize-WALL_MARGIN+2} y1={WALL_MARGIN} x2={arenaSize-WALL_MARGIN+2} y2={arenaSize-WALL_MARGIN} stroke={PLAYER_COLORS[RIGHT]} strokeWidth={3} strokeOpacity={0.65} />}
+        {/* SixPlayer midline dividers on top/bottom */}
+        {sixPlayer && <Line x1={CX} y1={arenaSize-WALL_MARGIN} x2={CX} y2={arenaSize-WALL_MARGIN+5} stroke="#FFFFFF44" strokeWidth={2} />}
+        {sixPlayer && <Line x1={CX} y1={WALL_MARGIN-5} x2={CX} y2={WALL_MARGIN} stroke="#FFFFFF44" strokeWidth={2} />}
         {/* Duel side walls (solid bounce markers) */}
         {isDuel && <Line x1={WALL_MARGIN-2} y1={WALL_MARGIN} x2={WALL_MARGIN-2} y2={arenaSize-WALL_MARGIN} stroke="#FFFFFF22" strokeWidth={2} strokeDasharray="8,8" />}
         {isDuel && <Line x1={arenaSize-WALL_MARGIN+2} y1={WALL_MARGIN} x2={arenaSize-WALL_MARGIN+2} y2={arenaSize-WALL_MARGIN} stroke="#FFFFFF22" strokeWidth={2} strokeDasharray="8,8" />}
@@ -862,12 +923,14 @@ export function GameArena({
         if (player.isEliminated) return null;
         if (isDuel && idx !== BOTTOM && idx !== TOP) return null;
         const t = WALL_MARGIN + 2;
-        let s: object = {};
-        if (idx === BOTTOM) s = { position:'absolute' as const, bottom:0, left:0, right:0, height:t };
-        else if (idx === TOP) s = { position:'absolute' as const, top:0, left:0, right:0, height:t };
-        else if (idx === LEFT)  s = { position:'absolute' as const, left:0, top:0, bottom:0, width:t };
-        else s = { position:'absolute' as const, right:0, top:0, bottom:0, width:t };
-        return <View key={idx} style={[s, { backgroundColor: player.color+'44' }]} />;
+        let wallStyle: object = {};
+        if (idx === BOTTOM)   wallStyle = sixPlayer ? { position:'absolute' as const, bottom:0, left:0, width:'50%' as const, height:t } : { position:'absolute' as const, bottom:0, left:0, right:0, height:t };
+        else if (idx === BOTTOM_R) wallStyle = { position:'absolute' as const, bottom:0, right:0, width:'50%' as const, height:t };
+        else if (idx === TOP)      wallStyle = sixPlayer ? { position:'absolute' as const, top:0, left:0, width:'50%' as const, height:t } : { position:'absolute' as const, top:0, left:0, right:0, height:t };
+        else if (idx === TOP_R)    wallStyle = { position:'absolute' as const, top:0, right:0, width:'50%' as const, height:t };
+        else if (idx === LEFT)     wallStyle = { position:'absolute' as const, left:0, top:0, bottom:0, width:t };
+        else                       wallStyle = { position:'absolute' as const, right:0, top:0, bottom:0, width:t };
+        return <View key={idx} style={[wallStyle, { backgroundColor: player.color+'44' }]} />;
       })}
 
       <View style={{ width: arenaSize, height: arenaSize, position:'absolute' }} {...panResponder.panHandlers}>
@@ -907,6 +970,26 @@ export function GameArena({
             transform:[{ translateX:Animated.subtract(paddleAnims[TOP], getPaddleLen(isDuel ? duelTopPlayer : gs.players[TOP])/2) }],
           }]} />
         )}
+        {/* BOTTOM_R paddle (right half of bottom, six-player only) */}
+        {sixPlayer && !gs.players[BOTTOM_R].isEliminated && (
+          <Animated.View style={[s.paddle, {
+            width:getPaddleLen(gs.players[BOTTOM_R]), height:PADDLE_THICKNESS,
+            bottom:WALL_MARGIN-PADDLE_THICKNESS/2, left:0,
+            backgroundColor: shieldActive[BOTTOM_R] ? '#FFD700' : gs.players[BOTTOM_R].color,
+            shadowColor: gs.players[BOTTOM_R].color,
+            transform:[{ translateX:Animated.subtract(paddleAnims[BOTTOM_R], getPaddleLen(gs.players[BOTTOM_R])/2) }],
+          }]} />
+        )}
+        {/* TOP_R paddle (right half of top, six-player only) */}
+        {sixPlayer && !gs.players[TOP_R].isEliminated && (
+          <Animated.View style={[s.paddle, {
+            width:getPaddleLen(gs.players[TOP_R]), height:PADDLE_THICKNESS,
+            top:WALL_MARGIN-PADDLE_THICKNESS/2, left:0,
+            backgroundColor: isDuel ? duelTopPlayer.color : gs.players[TOP_R].color,
+            shadowColor: gs.players[TOP_R].color,
+            transform:[{ translateX:Animated.subtract(paddleAnims[TOP_R], getPaddleLen(gs.players[TOP_R])/2) }],
+          }]} />
+        )}
         {/* Left (hidden in duel) */}
         {!isDuel && !gs.players[LEFT].isEliminated && (
           <Animated.View style={[s.paddleV, {
@@ -941,15 +1024,17 @@ export function GameArena({
             </View>
           </>
         ) : (
-          [BOTTOM,TOP,LEFT,RIGHT].map(pid => {
+          (sixPlayer ? [BOTTOM,TOP,LEFT,RIGHT,BOTTOM_R,TOP_R] : [BOTTOM,TOP,LEFT,RIGHT]).map(pid => {
             const player = gs.players[pid];
             const lives  = livesState[pid] ?? INITIAL_LIVES;
             const isV    = pid === LEFT || pid === RIGHT;
-            const posStyle =
-              pid === BOTTOM ? { bottom:4, left:CX-30 } :
-              pid === TOP    ? { top:4,    left:CX-30 } :
-              pid === LEFT   ? { left:4,   top:CY-14 } :
-                               { right:4,  top:CY-14 };
+            let posStyle: object;
+            if      (pid === BOTTOM)   posStyle = sixPlayer ? { bottom:4, left:4 }        : { bottom:4, left:CX-30 };
+            else if (pid === BOTTOM_R) posStyle = { bottom:4, right:4 };
+            else if (pid === TOP)      posStyle = sixPlayer ? { top:4, left:4 }            : { top:4,    left:CX-30 };
+            else if (pid === TOP_R)    posStyle = { top:4, right:4 };
+            else if (pid === LEFT)     posStyle = { left:4, top:CY-14 };
+            else                       posStyle = { right:4, top:CY-14 };
             return (
               <View key={pid} style={[{position:'absolute'}, posStyle, isV ? s.livesV : s.livesH]}>
                 {Array.from({length:Math.max(0,lives)}).map((_,i)=>(
@@ -971,9 +1056,14 @@ export function GameArena({
         )}
 
         {/* Mode badge */}
-        {(gameMode === 'triangle' || isDuel) && (
-          <View style={[s.modeBadge, { backgroundColor:isDuel?'#FF475733':'#00FF8833', borderColor:isDuel?'#FF4757':'#00FF88' }]}>
-            <Text style={[s.modeBadgeText, { color:isDuel?'#FF4757':'#00FF88' }]}>{isDuel?'⚔ 1v1':'▲ 3P'}</Text>
+        {(gameMode === 'triangle' || isDuel || sixPlayer) && (
+          <View style={[s.modeBadge, {
+            backgroundColor: sixPlayer ? '#FF950033' : isDuel ? '#FF475733' : '#00FF8833',
+            borderColor:     sixPlayer ? '#FF9500'   : isDuel ? '#FF4757'   : '#00FF88',
+          }]}>
+            <Text style={[s.modeBadgeText, { color: sixPlayer ? '#FF9500' : isDuel ? '#FF4757' : '#00FF88' }]}>
+              {sixPlayer ? '6️⃣ 6P' : isDuel ? '⚔ 1v1' : '▲ 3P'}
+            </Text>
           </View>
         )}
 

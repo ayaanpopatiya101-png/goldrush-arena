@@ -11,9 +11,9 @@ import { usePlayer } from '@/context/PlayerContext';
 import { getGameConfig } from '@/store/gameSession';
 import { useSettings } from '@/hooks/useSettings';
 
-const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X'];
-const BOT_RANKS  = ['Platinum', 'Diamond', 'Master'];
-const BOT_COLORS = ['#FF4757',  '#00BFFF',  '#00FF88'];
+const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
+const BOT_RANKS  = ['Platinum', 'Diamond',  'Master',  'Legend',    'Grandmaster'];
+const BOT_COLORS = ['#FF4757',  '#00BFFF',  '#00FF88', '#FF9500',   '#BF5FFF'];
 
 const VARIANT_PROPS: Record<string, {
   initialLives?: number;
@@ -22,6 +22,7 @@ const VARIANT_PROPS: Record<string, {
   noPowerups?: boolean;
   startSpeedMult?: number;
   duoMode?: boolean;
+  sixPlayer?: boolean;
 }> = {
   classic:      {},
   duos:         { duoMode: true },
@@ -31,6 +32,7 @@ const VARIANT_PROPS: Record<string, {
   sudden_death: { initialLives: 1, startingBallCount: 3, ballSpawnFrames: 240, noPowerups: true, startSpeedMult: 2.0 },
   turbo:        { ballSpawnFrames: 480, startSpeedMult: 1.8 },
   pinball:      { ballSpawnFrames: 180 },
+  six_player:   { sixPlayer: true, initialLives: 4, ballSpawnFrames: 600 },
 };
 
 const MODE_LABELS: Record<GameMode, string> = { square:'4-PLAYER', triangle:'3-PLAYER', duel:'1v1' };

@@ -306,6 +306,7 @@ export default function HomeScreen() {
               { id: 'sudden_death', emoji: '💀', name: 'SUDDEN DEATH', sub: '1 Life · 3 Balls', color: '#FF4757', desc: 'Zero margin.\nMax chaos' },
               { id: 'turbo',        emoji: '🚀', name: 'TURBO',        sub: '1.8× Speed',       color: '#BF5FFF', desc: 'Warp speed\nfrom second 1' },
               { id: 'pinball',      emoji: '🎰', name: 'PINBALL',      sub: 'Ball Every 3s',    color: '#FF69B4', desc: 'Up to 8 balls\nin play at once' },
+              { id: 'six_player',   emoji: '6️⃣', name: '6-PLAYER',     sub: '6 Zones · Split',  color: '#FF9500', desc: 'Split walls,\n6 fighters' },
             ] as const).map(m => (
               <Pressable
                 key={m.id}
