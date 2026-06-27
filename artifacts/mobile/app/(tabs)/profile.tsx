@@ -53,6 +53,10 @@ export default function ProfileScreen() {
   }
 
   function handleLogout() {
+    if (Platform.OS === 'web') {
+      if (window.confirm('Sign out? You will be returned to the login screen.')) logout();
+      return;
+    }
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign Out', style: 'destructive', onPress: () => logout() },

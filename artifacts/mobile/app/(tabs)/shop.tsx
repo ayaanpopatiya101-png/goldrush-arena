@@ -42,6 +42,19 @@ export default function ShopScreen() {
 
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
+  // Cross-platform helpers (Alert callbacks don't fire on Expo Web)
+  function xAlert(title: string, msg?: string) {
+    if (Platform.OS === 'web') { window.alert(msg ? `${title}\n\n${msg}` : title); return; }
+    Alert.alert(title, msg);
+  }
+  function xConfirm(title: string, msg: string, onYes: () => void, yesLabel = 'OK') {
+    if (Platform.OS === 'web') {
+      if (window.confirm(`${title}\n\n${msg}`)) onYes();
+      return;
+    }
+    Alert.alert(title, msg, [{ text: 'Cancel', style: 'cancel' }, { text: yesLabel, onPress: onYes }]);
+  }
+
   async function handleBuySkin(skinId: string, price: number, skinName: string) {
     if (profile.ownedSkins.includes(skinId)) {
       await equipSkin(skinId);
@@ -49,51 +62,37 @@ export default function ShopScreen() {
       return;
     }
     if (profile.coins < price) {
-      Alert.alert('Not enough coins', `You need ${price - profile.coins} more coins.`);
+      xAlert('Not enough coins', `You need ${price - profile.coins} more coins.`);
       return;
     }
-    Alert.alert(`Buy ${skinName}?`, `Cost: ${price} coins`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Buy', onPress: async () => {
-          setPurchasing(skinId);
-          const ok = await purchaseSkin(skinId);
-          setPurchasing(null);
-          if (ok) {
-            await equipSkin(skinId);
-            if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Alert.alert('Purchased!', `${skinName} equipped.`);
-          }
-        }
-      },
-    ]);
+    xConfirm(`Buy ${skinName}?`, `Cost: ${price} coins`, async () => {
+      setPurchasing(skinId);
+      const ok = await purchaseSkin(skinId);
+      setPurchasing(null);
+      if (ok) {
+        await equipSkin(skinId);
+        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        xAlert('Purchased!', `${skinName} equipped.`);
+      }
+    }, 'Buy');
   }
 
   async function handleBuyBundle(item: { id: string; name: string; price: number }) {
     if (profile.coins < item.price) {
-      Alert.alert('Not enough coins', `You need ${item.price - profile.coins} more coins.`);
+      xAlert('Not enough coins', `You need ${item.price - profile.coins} more coins.`);
       return;
     }
-    Alert.alert(`Buy ${item.name}?`, `Cost: ${item.price} coins`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Buy', onPress: async () => {
-          const ok = await spendCoins(item.price);
-          if (ok) {
-            if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Alert.alert('Purchased!', `${item.name} added to your inventory!`);
-          }
-        },
-      },
-    ]);
+    xConfirm(`Buy ${item.name}?`, `Cost: ${item.price} coins`, async () => {
+      const ok = await spendCoins(item.price);
+      if (ok) {
+        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        xAlert('Purchased!', `${item.name} added to your inventory!`);
+      }
+    }, 'Buy');
   }
 
   function handleExtraLife(item: { id: string; name: string; price: number }) {
-    Alert.alert(
-      item.name,
-      `This would purchase "${item.name}" as an in-app purchase.\n\nIn-app purchases coming soon!`,
-      [{ text: 'OK' }]
-    );
+    xAlert(item.name, `In-app purchases coming soon!`);
   }
 
   return (
@@ -209,23 +208,20 @@ export default function ShopScreen() {
                   onPress={async () => {
                     if (equipped) return;
                     if (owned) {
-                      Alert.alert('Theme Equipped', `${theme.name} is now your arena theme!`);
+                      xAlert('Theme Equipped', `${theme.name} is now your arena theme!`);
                       return;
                     }
                     if (profile.coins < theme.price) {
-                      Alert.alert('Not enough coins', `You need ${theme.price - profile.coins} more coins.`);
+                      xAlert('Not enough coins', `You need ${theme.price - profile.coins} more coins.`);
                       return;
                     }
-                    Alert.alert(`Buy ${theme.name}?`, `Cost: ${theme.price} coins`, [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Buy', onPress: async () => {
-                        const ok = await spendCoins(theme.price);
-                        if (ok) {
-                          if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                          Alert.alert('Purchased!', `${theme.name} is now your arena theme!`);
-                        }
-                      }},
-                    ]);
+                    xConfirm(`Buy ${theme.name}?`, `Cost: ${theme.price} coins`, async () => {
+                      const ok = await spendCoins(theme.price);
+                      if (ok) {
+                        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        xAlert('Purchased!', `${theme.name} is now your arena theme!`);
+                      }
+                    }, 'Buy');
                   }}
                   style={({ pressed }) => [styles.bundleCard, {
                     backgroundColor: equipped ? theme.color + '22' : colors.card,

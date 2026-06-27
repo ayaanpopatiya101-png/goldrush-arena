@@ -37,6 +37,10 @@ export default function SettingsScreen() {
   const topPad = Platform.OS === 'web' ? Math.max(safe.top, 44) : safe.top;
 
   function handleLogout() {
+    if (Platform.OS === 'web') {
+      if (window.confirm('Sign out? You will be returned to the login screen.')) logout();
+      return;
+    }
     Alert.alert('Sign Out', 'You will be returned to the login screen.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign Out', style: 'destructive', onPress: () => logout() },
