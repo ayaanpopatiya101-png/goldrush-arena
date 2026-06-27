@@ -4,7 +4,7 @@ import { Animated, Dimensions, Easing, StyleSheet, View } from 'react-native';
 const { width: SW, height: SH } = Dimensions.get('window');
 
 const CONFETTI_EMOJIS = ['🏆','⭐','✨','🎉','💫','🪙','🔥','💥','⚡','🎊'];
-const CONFETTI_COLORS = ['#FFD700','#FF4757','#00BFFF','#00FF88','#FF6B35','#FF00FF','#FFFFFF'];
+const CONFETTI_COLORS = ['#C8820A','#C03820','#1E8AAA','#4A8A38','#D07018','#7A50A0','#FFFFFF'];
 
 interface PieceConfig {
   x: number; delay: number; dur: number;

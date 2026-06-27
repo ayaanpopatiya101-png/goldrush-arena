@@ -67,15 +67,15 @@ export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props)
                 <View key={i} style={s.dayCol}>
                   <View style={[
                     s.dayCircle,
-                    claimed  && { backgroundColor: '#FFD70033', borderColor: '#FFD700' },
-                    isToday  && { backgroundColor: '#FFD700',   borderColor: '#FFD700' },
+                    claimed  && { backgroundColor: '#C8820A33', borderColor: '#C8820A' },
+                    isToday  && { backgroundColor: '#C8820A',   borderColor: '#C8820A' },
                     upcoming && { backgroundColor: '#FFFFFF08', borderColor: '#FFFFFF22' },
                   ]}>
-                    <Text style={[s.dayIcon, { color: isToday ? '#080814' : claimed ? '#FFD700' : '#FFFFFF44' }]}>
+                    <Text style={[s.dayIcon, { color: isToday ? '#080814' : claimed ? '#C8820A' : '#FFFFFF44' }]}>
                       {claimed ? '✓' : isToday ? '★' : label}
                     </Text>
                   </View>
-                  <Text style={[s.dayReward, { color: isToday ? '#FFD700' : upcoming ? '#FFFFFF33' : '#FFFFFF66' }]}>
+                  <Text style={[s.dayReward, { color: isToday ? '#C8820A' : upcoming ? '#FFFFFF33' : '#FFFFFF66' }]}>
                     {WEEK_REWARDS[i]}
                   </Text>
                 </View>
@@ -111,21 +111,21 @@ export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props)
 const s = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: '#000000BB', alignItems: 'center', justifyContent: 'center', padding: 24 },
   container: { width: '100%', maxWidth: 360, borderRadius: 24, overflow: 'hidden', padding: 24, alignItems: 'center', gap: 12 },
-  border: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 24, borderWidth: 1.5, borderColor: '#FFD70033' },
+  border: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 24, borderWidth: 1.5, borderColor: '#C8820A33' },
   flame: { fontSize: 56, marginBottom: 4 },
-  streakMsg: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 22, letterSpacing: 2, textAlign: 'center', textShadowColor: '#FFD700', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 16 },
+  streakMsg: { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 22, letterSpacing: 2, textAlign: 'center', textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 16 },
   streakSub: { color: '#FFFFFF88', fontFamily: 'Inter_500Medium', fontSize: 13, marginBottom: 4 },
   calendar: { flexDirection: 'row', gap: 6, marginVertical: 4 },
   dayCol: { alignItems: 'center', gap: 4, flex: 1 },
   dayCircle: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   dayIcon: { fontFamily: 'Inter_700Bold', fontSize: 12 },
   dayReward: { fontFamily: 'Inter_500Medium', fontSize: 8 },
-  rewardBox: { backgroundColor: '#FFD70015', borderRadius: 14, borderWidth: 1, borderColor: '#FFD70033', padding: 16, width: '100%', alignItems: 'center', gap: 6 },
-  rewardLabel: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2 },
+  rewardBox: { backgroundColor: '#C8820A15', borderRadius: 14, borderWidth: 1, borderColor: '#C8820A33', padding: 16, width: '100%', alignItems: 'center', gap: 6 },
+  rewardLabel: { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2 },
   rewardCoins: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   coinEmoji: { fontSize: 28 },
-  coinAmount: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 28 },
-  claimBtn: { width: '100%', borderRadius: 14, overflow: 'hidden', shadowColor: '#FFD700', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 14 },
+  coinAmount: { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 28 },
+  claimBtn: { width: '100%', borderRadius: 14, overflow: 'hidden', shadowColor: '#C8820A', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 14 },
   claimGrad: { paddingVertical: 16, alignItems: 'center' },
   claimText: { color: '#080814', fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 1.5 },
   skipBtn: { paddingVertical: 6 },

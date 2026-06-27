@@ -8,7 +8,7 @@ import { RANKS, usePlayer } from '@/context/PlayerContext';
 import { useColors } from '@/hooks/useColors';
 
 const GLOBAL_LEADERS = [
-  { name: 'NightViper', rank: 'Legend', wins: 2847, xp: 52000, level: 48, color: '#FFD700' },
+  { name: 'NightViper', rank: 'Legend', wins: 2847, xp: 52000, level: 48, color: '#C8820A' },
   { name: 'CrystalX',   rank: 'Legend', wins: 2614, xp: 48500, level: 46, color: '#B9F2FF' },
   { name: 'Inferno_K',  rank: 'Master', wins: 1990, xp: 38200, level: 41, color: '#FF4757' },
   { name: 'ZeroGravity',rank: 'Master', wins: 1823, xp: 34700, level: 39, color: '#FF6B35' },
@@ -22,11 +22,11 @@ const GLOBAL_LEADERS = [
 
 const REGIONAL_LEADERS: Record<string, Array<{name:string;rank:string;wins:number;level:number;color:string}>> = {
   NA: [
-    { name: 'NightViper',  rank: 'Legend',   wins: 2847, level: 48, color: '#FFD700' },
+    { name: 'NightViper',  rank: 'Legend',   wins: 2847, level: 48, color: '#C8820A' },
     { name: 'Blaze_99',    rank: 'Platinum', wins: 1450, level: 33, color: '#FF4757' },
     { name: 'Venom_X',     rank: 'Master',   wins: 1270, level: 27, color: '#00FF88' },
     { name: 'DarkRift',    rank: 'Diamond',  wins: 940,  level: 22, color: '#8B8B8B' },
-    { name: 'StormBreaker',rank: 'Gold',     wins: 620,  level: 14, color: '#FFD700' },
+    { name: 'StormBreaker',rank: 'Gold',     wins: 620,  level: 14, color: '#C8820A' },
   ],
   EU: [
     { name: 'CrystalX',   rank: 'Legend',   wins: 2614, level: 46, color: '#B9F2FF' },
@@ -39,20 +39,20 @@ const REGIONAL_LEADERS: Record<string, Array<{name:string;rank:string;wins:numbe
     { name: 'Inferno_K',  rank: 'Master',   wins: 1990, level: 41, color: '#FF4757' },
     { name: 'PulseWave',  rank: 'Diamond',  wins: 980,  level: 21, color: '#FF00FF' },
     { name: 'PixelHawk',  rank: 'Platinum', wins: 810,  level: 19, color: '#00E5FF' },
-    { name: 'NeonSword',  rank: 'Gold',     wins: 540,  level: 12, color: '#FFD700' },
+    { name: 'NeonSword',  rank: 'Gold',     wins: 540,  level: 12, color: '#C8820A' },
     { name: 'AstroKid',   rank: 'Silver',   wins: 280,  level: 7,  color: '#C0C0C0' },
   ],
   LATAM: [
     { name: 'ZeroGravity',rank: 'Master',   wins: 1823, level: 39, color: '#FF6B35' },
     { name: 'NeonBlitz',  rank: 'Platinum', wins: 870,  level: 18, color: '#FF6B35' },
-    { name: 'TigerKing',  rank: 'Gold',     wins: 620,  level: 15, color: '#FFD700' },
+    { name: 'TigerKing',  rank: 'Gold',     wins: 620,  level: 15, color: '#C8820A' },
     { name: 'LatinFury',  rank: 'Silver',   wins: 390,  level: 9,  color: '#C0C0C0' },
     { name: 'DragonX',    rank: 'Bronze',   wins: 180,  level: 4,  color: '#CD7F32' },
   ],
 };
 
 const SEASON_LEADERS = [
-  { name: 'NightViper',  rank: 'Legend',   wins: 187, level: 48, color: '#FFD700' },
+  { name: 'NightViper',  rank: 'Legend',   wins: 187, level: 48, color: '#C8820A' },
   { name: 'ZeroGravity', rank: 'Master',   wins: 164, level: 39, color: '#FF6B35' },
   { name: 'CrystalX',   rank: 'Legend',   wins: 159, level: 46, color: '#B9F2FF' },
   { name: 'Blaze_99',   rank: 'Platinum', wins: 143, level: 33, color: '#FF4757' },
@@ -76,7 +76,7 @@ export default function LeaderboardScreen() {
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
   function findPlayerRank(): number {
-    const sorted = [...GLOBAL_LEADERS, { name: profile.name, rank: profile.rank, wins: profile.wins, xp: profile.xp, level: profile.competitiveLevel ?? 1, color: '#FFD700' }]
+    const sorted = [...GLOBAL_LEADERS, { name: profile.name, rank: profile.rank, wins: profile.wins, xp: profile.xp, level: profile.competitiveLevel ?? 1, color: '#C8820A' }]
       .sort((a, b) => b.xp - a.xp);
     return sorted.findIndex(p => p.name === profile.name) + 1;
   }
@@ -162,13 +162,13 @@ export default function LeaderboardScreen() {
               {REGIONS.map(r => (
                 <Pressable key={r} onPress={() => setRegion(r)}
                   style={[styles.regionBtn, region === r && styles.regionBtnActive]}>
-                  <Text style={[styles.regionBtnText, region === r && { color: '#FFD700' }]}>{r}</Text>
+                  <Text style={[styles.regionBtnText, region === r && { color: '#C8820A' }]}>{r}</Text>
                 </Pressable>
               ))}
             </View>
             {(REGIONAL_LEADERS[region] ?? []).map((p, i) => (
               <View key={p.name} style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Text style={[styles.rowPos, { color: i < 3 ? '#FFD700' : colors.mutedForeground }]}>{i + 1}</Text>
+                <Text style={[styles.rowPos, { color: i < 3 ? '#C8820A' : colors.mutedForeground }]}>{i + 1}</Text>
                 <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
                   <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
                 </View>
@@ -195,7 +195,7 @@ export default function LeaderboardScreen() {
             </View>
             {SEASON_LEADERS.map((p, i) => (
               <View key={p.name} style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Text style={[styles.rowPos, { color: i < 3 ? '#FFD700' : colors.mutedForeground }]}>{i + 1}</Text>
+                <Text style={[styles.rowPos, { color: i < 3 ? '#C8820A' : colors.mutedForeground }]}>{i + 1}</Text>
                 <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
                   <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
                 </View>
@@ -242,7 +242,7 @@ export default function LeaderboardScreen() {
             <View style={[styles.lvlCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={styles.lvlHeader}>
                 <Text style={[styles.lvlTitle, { color: colors.foreground }]}>Competitive Level</Text>
-                <Text style={[styles.lvlNum, { color: '#FFD700' }]}>{profile.competitiveLevel ?? 1} / 50</Text>
+                <Text style={[styles.lvlNum, { color: '#C8820A' }]}>{profile.competitiveLevel ?? 1} / 50</Text>
               </View>
               <View style={[styles.lvlTrack, { backgroundColor: colors.muted }]}>
                 <View style={[styles.lvlFill, { width: `${((profile.competitiveLevel ?? 1) / 50) * 100}%` }]} />
@@ -263,7 +263,7 @@ export default function LeaderboardScreen() {
                   <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
                 </View>
                 <Text style={[styles.rowName, { color: colors.foreground, flex: 1 }]}>{p.name}</Text>
-                <Text style={[styles.rowSub, { color: '#FFD700', marginRight: 4 }]}>LVL {p.level}</Text>
+                <Text style={[styles.rowSub, { color: '#C8820A', marginRight: 4 }]}>LVL {p.level}</Text>
                 <Text style={[styles.rowWins, { color: colors.mutedForeground }]}>{p.xp} XP</Text>
               </View>
             ))}
@@ -278,8 +278,8 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 10 },
   headerTitle: { fontFamily: 'Inter_700Bold', fontSize: 22, letterSpacing: 2 },
-  levelPill: { backgroundColor: '#FFD70022', borderRadius: 10, borderWidth: 1, borderColor: '#FFD70055', paddingHorizontal: 10, paddingVertical: 4 },
-  levelPillText: { fontFamily: 'Inter_700Bold', fontSize: 12, color: '#FFD700', letterSpacing: 1 },
+  levelPill: { backgroundColor: '#C8820A22', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A55', paddingHorizontal: 10, paddingVertical: 4 },
+  levelPillText: { fontFamily: 'Inter_700Bold', fontSize: 12, color: '#C8820A', letterSpacing: 1 },
   seasonBanner: { marginHorizontal: 16, borderRadius: 10, borderWidth: 1, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
   seasonText: { fontFamily: 'Inter_500Medium', fontSize: 12, flex: 1 },
   rewardBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   tabText: { fontFamily: 'Inter_600SemiBold', fontSize: 11, letterSpacing: 1 },
   regionRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
   regionBtn: { flex: 1, borderRadius: 10, borderWidth: 1, borderColor: '#FFFFFF22', backgroundColor: '#FFFFFF08', paddingVertical: 8, alignItems: 'center' },
-  regionBtnActive: { borderColor: '#FFD700', backgroundColor: '#FFD70015' },
+  regionBtnActive: { borderColor: '#C8820A', backgroundColor: '#C8820A15' },
   regionBtnText: { fontFamily: 'Inter_700Bold', fontSize: 12, color: '#FFFFFF55' },
   podium: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4, gap: 4 },
   podiumSpot: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', gap: 2 },
@@ -311,8 +311,8 @@ const styles = StyleSheet.create({
   rowName: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
   rowSub: { fontFamily: 'Inter_400Regular', fontSize: 10 },
   rowWins: { fontFamily: 'Inter_700Bold', fontSize: 13, width: 48, textAlign: 'right' },
-  levelBadge: { borderRadius: 6, borderWidth: 1, borderColor: '#FFD70044', backgroundColor: '#FFD70011', paddingHorizontal: 6, paddingVertical: 2 },
-  levelBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFD700' },
+  levelBadge: { borderRadius: 6, borderWidth: 1, borderColor: '#C8820A44', backgroundColor: '#C8820A11', paddingHorizontal: 6, paddingVertical: 2 },
+  levelBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 10, color: '#C8820A' },
   yourRank: { paddingHorizontal: 16, paddingTop: 12, gap: 10 },
   playerRankCard: { borderRadius: 18, borderWidth: 1.5, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 16, overflow: 'hidden' },
   rankStats: { flex: 1, gap: 4 },
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   lvlTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
   lvlNum: { fontFamily: 'Inter_700Bold', fontSize: 18 },
   lvlTrack: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  lvlFill: { height: '100%', borderRadius: 4, backgroundColor: '#FFD700' },
+  lvlFill: { height: '100%', borderRadius: 4, backgroundColor: '#C8820A' },
   lvlSub: { fontFamily: 'Inter_400Regular', fontSize: 11 },
   nearbyTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 11, letterSpacing: 1.5, paddingTop: 4 },
 });

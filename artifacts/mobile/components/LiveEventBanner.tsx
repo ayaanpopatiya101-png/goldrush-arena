@@ -112,7 +112,7 @@ export function LiveEventBanner() {
             <Text style={styles.eventTitle}>Gold Rush Championship</Text>
             <Text style={styles.eventSub}>Play 10 matches to unlock exclusive Summer Skin</Text>
           </View>
-          <Feather name="zap" size={32} color="#FFD700" style={{ opacity: 0.9 }} />
+          <Feather name="zap" size={32} color="#C8820A" style={{ opacity: 0.9 }} />
         </View>
 
         {/* Countdown */}
@@ -135,9 +135,9 @@ export function LiveEventBanner() {
 
 const cd = StyleSheet.create({
   unit:  { alignItems: 'center', minWidth: 28 },
-  value: { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#FFD700', lineHeight: 20 },
+  value: { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#C8820A', lineHeight: 20 },
   label: { fontFamily: 'Inter_500Medium', fontSize: 8, color: '#FFFFFF66', letterSpacing: 0.5 },
-  sep:   { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#FFD70066', lineHeight: 20, marginBottom: 10 },
+  sep:   { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#C8820A66', lineHeight: 20, marginBottom: 10 },
 });
 
 const tk = StyleSheet.create({
@@ -151,10 +151,10 @@ const tk = StyleSheet.create({
 const styles = StyleSheet.create({
   container:    { paddingHorizontal: 16, marginBottom: 14, gap: 0 },
   card:         { borderRadius: 18, overflow: 'hidden', padding: 16, borderWidth: 1, borderColor: '#6600FF55', gap: 10 },
-  cornerGlow:   { position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: 50, backgroundColor: '#FFD70018' },
+  cornerGlow:   { position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: 50, backgroundColor: '#C8820A18' },
   topRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  eventBadge:   { backgroundColor: '#FFD70022', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: '#FFD70044' },
-  eventBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#FFD700', letterSpacing: 1 },
+  eventBadge:   { backgroundColor: '#C8820A22', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: '#C8820A44' },
+  eventBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#C8820A', letterSpacing: 1 },
   rewardBadge:  { backgroundColor: '#00FF8822', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: '#00FF8844' },
   rewardText:   { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#00FF88', letterSpacing: 0.5 },
   midRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },

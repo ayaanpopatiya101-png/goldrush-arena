@@ -89,17 +89,17 @@ interface GameArenaProps {
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
-const POWERUP_COLORS:  Record<PowerUpType, string> = { shield:'#FFD700', speed:'#00FF88', shrink:'#FF4757', extralife:'#FF69B4', multiball:'#00E5FF' };
+const POWERUP_COLORS:  Record<PowerUpType, string> = { shield:'#C8820A', speed:'#4A8A38', shrink:'#C03820', extralife:'#D07018', multiball:'#1E8AAA' };
 const POWERUP_LABELS:  Record<PowerUpType, string> = { shield:'SHD', speed:'SPD', shrink:'SHK', extralife:'+1', multiball:'MLB' };
 const ARENA_BG:        Record<GameMode, [string,string,string]> = {
-  square:   ['#05000F','#0D0038','#05000F'],
-  triangle: ['#000E04','#002C12','#000E04'],
-  duel:     ['#120000','#3A0008','#120000'],
+  square:   ['#0A0804','#1A1008','#0A0804'],
+  triangle: ['#070A04','#0E1608','#070A04'],
+  duel:     ['#0E0604','#1C0C06','#0E0604'],
 };
-const PLAYER_COLORS = ['#FFD700','#FF4757','#00BFFF','#00FF88','#FF9500','#BF5FFF'];
-const PLAYER_GLOW   = ['#FFD70088','#FF475788','#00BFFF88','#00FF8888','#FF950088','#BF5FFF88'];
+const PLAYER_COLORS = ['#C8820A','#C03820','#1E8AAA','#4A8A38','#D07018','#7A50A0'];
+const PLAYER_GLOW   = ['#C8820A88','#C0382088','#1E8AAA88','#4A8A3888','#D0701888','#7A50A088'];
 const GOAL_EMOJIS   = ['💥','🎯','⚡','🔥','😱','💫','🚀'];
-const COMBO_COLORS  = ['#FFD700','#FF6B35','#FF4757','#FF00FF'];
+const COMBO_COLORS  = ['#C8820A','#D07018','#C03820','#7A50A0'];
 
 function clampPaddle(v: number, len: number, sz: number) {
   return Math.max(len/2+2, Math.min(sz-len/2-2, v));
@@ -1061,7 +1061,7 @@ export function GameArena({
         <Animated.View style={[s.paddle, {
           width:getPaddleLen(gs.players[BOTTOM]), height:PADDLE_THICKNESS,
           bottom:WALL_MARGIN-PADDLE_THICKNESS/2, left:0,
-          backgroundColor: shieldActive[0] ? '#FFD700' : (isDuel ? duelBottomPlayer.color : gs.players[BOTTOM].color),
+          backgroundColor: shieldActive[0] ? '#C8820A' : (isDuel ? duelBottomPlayer.color : gs.players[BOTTOM].color),
           shadowColor: isDuel ? duelBottomPlayer.color : gs.players[BOTTOM].color,
           transform:[{ translateX:Animated.subtract(paddleAnims[BOTTOM], getPaddleLen(gs.players[BOTTOM])/2) }],
         }]} />
@@ -1081,7 +1081,7 @@ export function GameArena({
           <Animated.View style={[s.paddle, {
             width:getPaddleLen(gs.players[BOTTOM_R]), height:PADDLE_THICKNESS,
             bottom:WALL_MARGIN-PADDLE_THICKNESS/2, left:0,
-            backgroundColor: shieldActive[BOTTOM_R] ? '#FFD700' : gs.players[BOTTOM_R].color,
+            backgroundColor: shieldActive[BOTTOM_R] ? '#C8820A' : gs.players[BOTTOM_R].color,
             shadowColor: gs.players[BOTTOM_R].color,
             transform:[{ translateX:Animated.subtract(paddleAnims[BOTTOM_R], getPaddleLen(gs.players[BOTTOM_R])/2) }],
           }]} />
@@ -1238,8 +1238,8 @@ export function GameArena({
             <Animated.Text style={[s.countdownText, {
               opacity: countdownOpacityAnim,
               transform: [{ scale: countdownScaleAnim }],
-              color: countdown === 0 ? '#00FF88' : '#FFD700',
-              textShadowColor: countdown === 0 ? '#00FF88' : '#FFD700',
+              color: countdown === 0 ? '#00FF88' : '#C8820A',
+              textShadowColor: countdown === 0 ? '#00FF88' : '#C8820A',
             }]}>
               {countdown > 0 ? String(countdown) : 'GO!'}
             </Animated.Text>
@@ -1277,12 +1277,12 @@ const s = StyleSheet.create({
   duelTimer: { position:'absolute', top:6, left:0, right:0, alignItems:'center' },
   duelTimerText: { fontFamily:'Inter_700Bold', fontSize:11, letterSpacing:1 },
   announcerWrap: { position:'absolute', top:'42%', left:0, right:0, alignItems:'center' },
-  announcerText: { color:'#FFD700', fontSize:19, fontFamily:'Inter_700Bold', letterSpacing:1.5, textShadowColor:'#FFD700', textShadowOffset:{width:0,height:0}, textShadowRadius:14 },
+  announcerText: { color:'#C8820A', fontSize:19, fontFamily:'Inter_700Bold', letterSpacing:1.5, textShadowColor:'#C8820A', textShadowOffset:{width:0,height:0}, textShadowRadius:14 },
   comboWrap: { position:'absolute', top:'30%', left:0, right:0, alignItems:'center' },
   comboText: { fontFamily:'Inter_700Bold', fontSize:22, letterSpacing:2, textShadowColor:'#FF6B35', textShadowOffset:{width:0,height:0}, textShadowRadius:18 },
   floatEmoji: { position:'absolute', bottom:60, fontSize:28 },
   countdownOverlay: { position:'absolute', top:0,left:0,right:0,bottom:0, backgroundColor:'#000000AA', alignItems:'center', justifyContent:'center', gap:10 },
-  countdownText: { color:'#FFD700', fontSize:78, fontFamily:'Inter_700Bold', textShadowColor:'#FFD700', textShadowOffset:{width:0,height:0}, textShadowRadius:28 },
+  countdownText: { color:'#C8820A', fontSize:78, fontFamily:'Inter_700Bold', textShadowColor:'#C8820A', textShadowOffset:{width:0,height:0}, textShadowRadius:28 },
   countdownSub:  { color:'#FFFFFF88', fontFamily:'Inter_500Medium', fontSize:13, letterSpacing:1 },
   border: { position:'absolute', top:0, left:0, borderWidth:2, borderColor:'#FFFFFF25', borderRadius:6 },
 
@@ -1292,8 +1292,8 @@ const s = StyleSheet.create({
   spectatorTitle: { color:'#FF4757', fontFamily:'Inter_700Bold', fontSize:22, letterSpacing:2 },
   spectatorSub:   { color:'#FFFFFF88', fontFamily:'Inter_400Regular', fontSize:12, textAlign:'center', lineHeight:17 },
   spectatorRewards: { flexDirection:'row', gap:20, marginVertical:4 },
-  rewardItem: { color:'#FFD700', fontFamily:'Inter_700Bold', fontSize:16 },
-  collectBtn: { backgroundColor:'#FFD700', borderRadius:12, paddingHorizontal:28, paddingVertical:13, width:'100%', alignItems:'center' },
+  rewardItem: { color:'#C8820A', fontFamily:'Inter_700Bold', fontSize:16 },
+  collectBtn: { backgroundColor:'#C8820A', borderRadius:12, paddingHorizontal:28, paddingVertical:13, width:'100%', alignItems:'center' },
   collectBtnText: { color:'#080814', fontFamily:'Inter_700Bold', fontSize:16, letterSpacing:1 },
   keepWatchBtn: { paddingVertical:6 },
   keepWatchText: { color:'#FFFFFF55', fontFamily:'Inter_500Medium', fontSize:12 },

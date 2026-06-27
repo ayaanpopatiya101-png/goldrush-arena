@@ -88,7 +88,7 @@ export default function PostGameScreen() {
   }, []);
 
   const positionLabels = ['', '1ST', '2ND', '3RD', '4TH'];
-  const positionColors = ['', '#FFD700', '#C0C0C0', '#CD7F32', '#8B8B8B'];
+  const positionColors = ['', '#C8820A', '#C0C0C0', '#CD7F32', '#8B8B8B'];
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -102,7 +102,7 @@ export default function PostGameScreen() {
       {won && Array.from({ length: 8 }).map((_, i) => (
         <View key={i} style={[styles.star, {
           top: `${10 + i * 11}%` as never, left: `${5 + i * 12}%` as never,
-          backgroundColor: '#FFD700', opacity: 0.15 + i * 0.05,
+          backgroundColor: '#C8820A', opacity: 0.15 + i * 0.05,
         }]} />
       ))}
 
@@ -110,13 +110,13 @@ export default function PostGameScreen() {
         {/* Result banner */}
         <Animated.View style={[styles.resultBanner, { transform: [{ scale: scaleAnim }] }]}>
           <LinearGradient
-            colors={won ? ['#FFD70033', '#FFD70011'] : ['#FF475733', '#FF475711']}
+            colors={won ? ['#C8820A33', '#C8820A11'] : ['#FF475733', '#FF475711']}
             style={styles.bannerGrad}
           >
             <Text style={[styles.positionText, { color: positionColors[position] ?? '#8B8B8B' }]}>
               {positionLabels[position] ?? '4TH'}
             </Text>
-            <Text style={[styles.resultText, { color: won ? '#FFD700' : '#FF4757' }]}>
+            <Text style={[styles.resultText, { color: won ? '#C8820A' : '#FF4757' }]}>
               {won ? 'VICTORY!' : position === 2 ? 'RUNNER-UP' : position === 3 ? 'THIRD PLACE' : 'ELIMINATED'}
             </Text>
             {won && <Text style={styles.victoryEmoji}>🏆</Text>}
@@ -131,7 +131,7 @@ export default function PostGameScreen() {
               { label: 'Deflections', value: String(deflections), color: '#00FF88' },
               { label: 'Goals Against', value: String(goalsAgainst), color: '#FF4757' },
               { label: 'XP Earned', value: `+${xpEarned}`, color: rankData.color },
-              { label: 'Coins', value: `+${coinsEarned}`, color: '#FFD700' },
+              { label: 'Coins', value: `+${coinsEarned}`, color: '#C8820A' },
             ].map(stat => (
               <View key={stat.label} style={styles.statItem}>
                 <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
@@ -198,12 +198,12 @@ export default function PostGameScreen() {
 
         {/* Achievement unlock */}
         {newAchievement && (
-          <View style={[styles.achieveCard, { borderColor: '#FFD700' }]}>
-            <LinearGradient colors={['#FFD70022', '#FFD70008']} style={StyleSheet.absoluteFill} />
-            <Feather name="award" size={20} color="#FFD700" />
+          <View style={[styles.achieveCard, { borderColor: '#C8820A' }]}>
+            <LinearGradient colors={['#C8820A22', '#C8820A08']} style={StyleSheet.absoluteFill} />
+            <Feather name="award" size={20} color="#C8820A" />
             <View style={{ flex: 1 }}>
               <Text style={styles.achieveTitle}>Achievement Unlocked!</Text>
-              <Text style={[styles.achieveName, { color: '#FFD700' }]}>{newAchievement}</Text>
+              <Text style={[styles.achieveName, { color: '#C8820A' }]}>{newAchievement}</Text>
             </View>
           </View>
         )}
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   lvlStable: { fontFamily: 'Inter_400Regular', fontSize: 13 },
   lvlSuffix: { fontFamily: 'Inter_400Regular', fontSize: 12 },
   buttons: { flexDirection: 'row', gap: 10 },
-  playAgainBtn: { flex: 1, borderRadius: 14, overflow: 'hidden', elevation: 4, shadowColor: '#FFD700', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.4, shadowRadius: 10 },
+  playAgainBtn: { flex: 1, borderRadius: 14, overflow: 'hidden', elevation: 4, shadowColor: '#C8820A', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.4, shadowRadius: 10 },
   playAgainGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 8 },
   playAgainText: { color: '#080814', fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 1 },
   homeBtn: { width: 54, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },

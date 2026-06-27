@@ -52,15 +52,15 @@ function MiniArena() {
 
   return (
     <View style={mini.arena}>
-      <LinearGradient colors={['#0D0035', '#1A0060', '#0D0035']} style={StyleSheet.absoluteFill} />
-      <View style={[mini.wallH, { bottom: 0, backgroundColor: '#FFD70088' }]} />
-      <View style={[mini.wallH, { top:    0, backgroundColor: '#FF475788' }]} />
-      <View style={[mini.wallV, { left:   0, backgroundColor: '#00BFFF88' }]} />
-      <View style={[mini.wallV, { right:  0, backgroundColor: '#00FF8888' }]} />
-      <View style={[mini.paddleH, { bottom: 10, left: 30, backgroundColor: '#FFD700' }]} />
-      <View style={[mini.paddleH, { top:    10, left: 50, backgroundColor: '#FF4757' }]} />
-      <View style={[mini.paddleV, { left:   10, top:  35, backgroundColor: '#00BFFF' }]} />
-      <View style={[mini.paddleV, { right:  10, top:  50, backgroundColor: '#00FF88' }]} />
+      <LinearGradient colors={['#0C0804', '#1A1008', '#0C0804']} style={StyleSheet.absoluteFill} />
+      <View style={[mini.wallH, { bottom: 0, backgroundColor: '#C8820A88' }]} />
+      <View style={[mini.wallH, { top:    0, backgroundColor: '#C0382088' }]} />
+      <View style={[mini.wallV, { left:   0, backgroundColor: '#1E8AAA88' }]} />
+      <View style={[mini.wallV, { right:  0, backgroundColor: '#4A8A3888' }]} />
+      <View style={[mini.paddleH, { bottom: 10, left: 30, backgroundColor: '#C8820A' }]} />
+      <View style={[mini.paddleH, { top:    10, left: 50, backgroundColor: '#C03820' }]} />
+      <View style={[mini.paddleV, { left:   10, top:  35, backgroundColor: '#1E8AAA' }]} />
+      <View style={[mini.paddleV, { right:  10, top:  50, backgroundColor: '#4A8A38' }]} />
       <Animated.View style={[mini.ball, { transform: [{ translateX: ballX }, { translateY: ballY }] }]} />
       <View style={mini.border} />
     </View>
@@ -78,12 +78,12 @@ function TierCard({ tier, index, totalGames, claimed, onClaim }: {
   return (
     <View style={[
       st.tierCard,
-      isCurrent && { borderColor: '#FFD70066', backgroundColor: '#FFD70011' },
+      isCurrent && { borderColor: '#C8820A66', backgroundColor: '#C8820A11' },
       !isUnlocked && { opacity: 0.45 },
     ]}>
       {/* Tier icon */}
       <Text style={st.tierIcon}>{tier.icon}</Text>
-      <Text style={[st.tierName, { color: isCurrent ? '#FFD700' : '#FFFFFF88' }]}>{tier.name}</Text>
+      <Text style={[st.tierName, { color: isCurrent ? '#C8820A' : '#FFFFFF88' }]}>{tier.name}</Text>
       <Text style={st.tierGames}>{tier.games}+ games</Text>
       <Text style={st.tierReward}>{tier.reward}</Text>
 
@@ -173,17 +173,17 @@ export default function HomeScreen() {
   const topPad   = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
   const winRate  = profile.totalGames > 0 ? Math.round((profile.wins / profile.totalGames) * 100) : 0;
 
-  if (!isLoaded) return <View style={{ flex: 1, backgroundColor: '#0D0035' }} />;
+  if (!isLoaded) return <View style={{ flex: 1, backgroundColor: '#0D0A06' }} />;
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={['#04000D', '#0A0030', '#04000D']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0D0A06', '#181208', '#0D0A06']} style={StyleSheet.absoluteFill} />
       <AmbientParticles />
       <Svg style={StyleSheet.absoluteFill as never} pointerEvents="none">
         <Defs>
           <RadialGradient id="bg" cx="50%" cy="40%" r="55%">
-            <Stop offset="0%"   stopColor="#6600FF" stopOpacity="0.18" />
-            <Stop offset="100%" stopColor="#6600FF" stopOpacity="0" />
+            <Stop offset="0%"   stopColor="#C8820A" stopOpacity="0.12" />
+            <Stop offset="100%" stopColor="#C8820A" stopOpacity="0" />
           </RadialGradient>
         </Defs>
         <Circle cx="50%" cy="40%" r="100%" fill="url(#bg)" />
@@ -266,7 +266,7 @@ export default function HomeScreen() {
           <Animated.View style={[styles.playBtnRow, { transform: [{ scale: pulseAnim }] }]}>
             {/* Ranked */}
             <Pressable onPress={() => handlePlay('ranked')} style={({ pressed }) => [styles.playBtn, styles.playBtnRanked, pressed && { opacity: 0.85, transform:[{scale:0.97}] }]}>
-              <LinearGradient colors={['#FFE840', '#FFB300', '#FF8C00']} style={styles.playBtnGrad}>
+              <LinearGradient colors={['#E09620', '#C8820A', '#A86008']} style={styles.playBtnGrad}>
                 <Text style={styles.playBtnIcon}>⚔️</Text>
                 <View>
                   <Text style={styles.playBtnText}>RANKED</Text>
@@ -282,7 +282,7 @@ export default function HomeScreen() {
             </Pressable>
             {/* Casual */}
             <Pressable onPress={() => handlePlay('casual')} style={({ pressed }) => [styles.playBtn, styles.playBtnCasual, pressed && { opacity: 0.85, transform:[{scale:0.97}] }]}>
-              <LinearGradient colors={['#6644FF', '#9922FF', '#CC00FF']} style={styles.playBtnGrad}>
+              <LinearGradient colors={['#1A6888', '#1E8AAA', '#147898']} style={styles.playBtnGrad}>
                 <Text style={styles.playBtnIcon}>🎮</Text>
                 <View>
                   <Text style={[styles.playBtnText, { color: '#FFFFFF' }]}>CASUAL</Text>
@@ -302,7 +302,7 @@ export default function HomeScreen() {
         {/* Mode info cards */}
         <View style={styles.modeRow}>
           {[
-            { icon: 'grid',     label: '4-PLAYER', desc: 'All 4 sides active',          color: '#FFD700' },
+            { icon: 'grid',     label: '4-PLAYER', desc: 'All 4 sides active',          color: '#C8820A' },
             { icon: 'triangle', label: 'TRIANGLE',  desc: '3 survive → new shape',       color: '#00FF88' },
             { icon: 'zap',      label: '1v1 DUEL',  desc: 'Final 2 go head-to-head',    color: '#FF4757' },
           ].map(m => (
@@ -327,7 +327,7 @@ export default function HomeScreen() {
           >
             {([
               { id: 'duos',         emoji: '👥', name: 'DUOS',         sub: '2v2 Teams',       color: '#00E5FF', desc: 'Bottom+Right vs\nTop+Left' },
-              { id: 'blitz',        emoji: '⚡', name: 'BLITZ',        sub: '1 Life · Fast',   color: '#FFD700', desc: '1 hit = out.\nLightning fast' },
+              { id: 'blitz',        emoji: '⚡', name: 'BLITZ',        sub: '1 Life · Fast',   color: '#C8820A', desc: '1 hit = out.\nLightning fast' },
               { id: 'chaos',        emoji: '🌪️', name: 'CHAOS',        sub: '5 Balls · No PUs',color: '#FF6B35', desc: 'Pure mayhem,\nno mercy' },
               { id: 'survival',     emoji: '🛡️', name: 'SURVIVAL',     sub: '12 Lives',         color: '#00FF88', desc: 'Outlast the\nendless storm' },
               { id: 'sudden_death', emoji: '💀', name: 'SUDDEN DEATH', sub: '1 Life · 3 Balls', color: '#FF4757', desc: 'Zero margin.\nMax chaos' },
@@ -403,16 +403,16 @@ export default function HomeScreen() {
         </View>
 
         {/* Daily challenge */}
-        <View style={[styles.challengeCard, { backgroundColor: '#FFD70015', borderColor: '#FFD70044' }]}>
+        <View style={[styles.challengeCard, { backgroundColor: '#C8820A15', borderColor: '#C8820A44' }]}>
           <View style={styles.challengeHeader}>
-            <Feather name="sun" size={15} color="#FFD700" />
+            <Feather name="sun" size={15} color="#C8820A" />
             <Text style={styles.challengeTitle}>DAILY CHALLENGE</Text>
           </View>
           <Text style={styles.challengeDesc}>Win 3 matches today</Text>
           <View style={styles.challengeProgress}>
             {[0, 1, 2].map(i => (
               <View key={i} style={[styles.challengeDot, {
-                backgroundColor: i < (profile.wins % 3) ? '#FFD700' : '#FFFFFF22',
+                backgroundColor: i < (profile.wins % 3) ? '#C8820A' : '#FFFFFF22',
               }]} />
             ))}
             <Text style={[styles.challengeReward, { color: colors.mutedForeground }]}>+100 coins reward</Text>
@@ -421,7 +421,7 @@ export default function HomeScreen() {
 
         {/* Login streak card */}
         <Pressable onPress={() => dismissStreakModal()} style={styles.streakCard}>
-          <LinearGradient colors={['#2A0060', '#180040']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['#1A1008', '#251808']} style={StyleSheet.absoluteFill} />
           <View style={styles.streakCardLeft}>
             <Text style={styles.streakCardIcon}>{profile.loginStreak >= 7 ? '💎' : profile.loginStreak >= 5 ? '🔥' : '⚡'}</Text>
             <View>
@@ -432,7 +432,7 @@ export default function HomeScreen() {
           <View style={styles.streakCalendar}>
             {[...Array(7)].map((_, i) => (
               <View key={i} style={[styles.streakDot, {
-                backgroundColor: i < Math.min(profile.loginStreak, 7) ? '#FFD700' : '#FFFFFF22',
+                backgroundColor: i < Math.min(profile.loginStreak, 7) ? '#C8820A' : '#FFFFFF22',
               }]} />
             ))}
           </View>
@@ -458,11 +458,11 @@ const st = StyleSheet.create({
   tierIcon:     { fontSize: 26 },
   tierName:     { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1 },
   tierGames:    { color: '#FFFFFF55', fontFamily: 'Inter_400Regular', fontSize: 8 },
-  tierReward:   { color: '#FFD700', fontFamily: 'Inter_600SemiBold', fontSize: 9, textAlign: 'center' },
-  claimedBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#00FF8822', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
-  claimedText:  { color: '#00FF88', fontFamily: 'Inter_700Bold', fontSize: 8 },
-  claimTierBtn: { backgroundColor: '#FFD700', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  claimTierText: { color: '#080814', fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
+  tierReward:   { color: '#C8820A', fontFamily: 'Inter_600SemiBold', fontSize: 9, textAlign: 'center' },
+  claimedBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#4A8A3822', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
+  claimedText:  { color: '#4A8A38', fontFamily: 'Inter_700Bold', fontSize: 8 },
+  claimTierBtn: { backgroundColor: '#C8820A', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  claimTierText: { color: '#0D0A06', fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
   lockedBadge:  { width: 22, height: 22, borderRadius: 11, backgroundColor: '#FFFFFF08', alignItems: 'center', justifyContent: 'center' },
 });
 
@@ -479,27 +479,27 @@ const styles = StyleSheet.create({
   streakIcon: { fontSize: 9 },
   streakCount: { color: '#FF6B35', fontFamily: 'Inter_700Bold', fontSize: 10 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  coinBadge:  { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#FFD70022', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 5 },
+  coinBadge:  { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#C8820A22', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 5 },
   coinEmoji:  { fontSize: 11 },
-  coinText:   { color: '#FFD700', fontFamily: 'Inter_600SemiBold', fontSize: 13 },
+  coinText:   { color: '#C8820A', fontFamily: 'Inter_600SemiBold', fontSize: 13 },
   xpBar:      { paddingHorizontal: 20, marginBottom: 16, gap: 4 },
   xpTrack:    { height: 5, borderRadius: 3, overflow: 'hidden' },
   xpFill:     { height: '100%', borderRadius: 3 },
   xpText:     { fontFamily: 'Inter_400Regular', fontSize: 10 },
   arenaWrap:  { alignItems: 'center', marginBottom: 12 },
   titleWrap:  { alignItems: 'center', gap: 4, marginBottom: 20, paddingHorizontal: 20 },
-  gameTitle:  { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 27, letterSpacing: 3.5, textShadowColor: '#FFD700', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 18, textAlign: 'center' },
+  gameTitle:  { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 27, letterSpacing: 3.5, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 18, textAlign: 'center' },
   gameSubtitle: { color: '#FFFFFF66', fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 1.5, textAlign: 'center' },
   playWrap:   { paddingHorizontal: 24, marginBottom: 20 },
   settingsBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   playBtnRow:  { flexDirection: 'row', gap: 10 },
   playBtn:     { flex: 1, borderRadius: 18, overflow: 'hidden', elevation: 8 },
-  playBtnRanked: { shadowColor: '#FFD700', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.55, shadowRadius: 20 },
-  playBtnCasual: { shadowColor: '#7744FF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.55, shadowRadius: 20 },
+  playBtnRanked: { shadowColor: '#C8820A', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.55, shadowRadius: 20 },
+  playBtnCasual: { shadowColor: '#1E8AAA', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.55, shadowRadius: 20 },
   playBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, paddingHorizontal: 10, gap: 8 },
   playBtnIcon: { fontSize: 20 },
-  playBtnText: { color: '#080814', fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 1.5 },
-  playBtnSub:  { color: '#08081488', fontFamily: 'Inter_500Medium', fontSize: 10, letterSpacing: 0.5 },
+  playBtnText: { color: '#0D0A06', fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 1.5 },
+  playBtnSub:  { color: '#0D0A0688', fontFamily: 'Inter_500Medium', fontSize: 10, letterSpacing: 0.5 },
   modesSection: { gap: 8, marginBottom: 16 },
   modesSectionHeader: { paddingHorizontal: 20, gap: 2 },
   modesSectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#F0F0FF', letterSpacing: 1.5 },
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
   // Season pass
   passSection: { paddingHorizontal: 16, marginBottom: 14, gap: 6 },
   passHeader:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  passTitle:   { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 1.5, flex: 1 },
+  passTitle:   { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 1.5, flex: 1 },
   passSub:     { fontFamily: 'Inter_400Regular', fontSize: 11 },
   activeBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
   activeBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1 },
@@ -530,17 +530,17 @@ const styles = StyleSheet.create({
   // Daily challenge
   challengeCard: { marginHorizontal: 16, borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 10, gap: 7 },
   challengeHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  challengeTitle: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.5 },
+  challengeTitle: { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.5 },
   challengeDesc:  { color: '#F0F0FF', fontFamily: 'Inter_600SemiBold', fontSize: 14 },
   challengeProgress: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   challengeDot:   { width: 10, height: 10, borderRadius: 5 },
   challengeReward: { fontFamily: 'Inter_500Medium', fontSize: 11, marginLeft: 4 },
   // Login streak card
-  streakCard: { marginHorizontal: 16, marginBottom: 12, borderRadius: 14, borderWidth: 1, borderColor: '#6600FF44', padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, overflow: 'hidden' },
+  streakCard: { marginHorizontal: 16, marginBottom: 12, borderRadius: 14, borderWidth: 1, borderColor: '#C8820A44', padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, overflow: 'hidden' },
   streakCardLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   streakCardIcon: { fontSize: 28 },
   streakCardTitle: { color: '#FFFFFF88', fontFamily: 'Inter_600SemiBold', fontSize: 9, letterSpacing: 1.5 },
-  streakCardDay:   { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 16 },
+  streakCardDay:   { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 16 },
   streakCalendar:  { flexDirection: 'row', gap: 4 },
   streakDot:       { width: 8, height: 8, borderRadius: 4 },
 });

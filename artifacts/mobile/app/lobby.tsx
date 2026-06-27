@@ -36,14 +36,14 @@ const MAPS = [
 ];
 
 const VARIANT_META: Record<string, { emoji: string; name: string; color: string }> = {
-  duos:         { emoji: '👥', name: 'DUOS',         color: '#00E5FF' },
-  blitz:        { emoji: '⚡', name: 'BLITZ',        color: '#FFD700' },
-  chaos:        { emoji: '🌪️', name: 'CHAOS',        color: '#FF6B35' },
-  survival:     { emoji: '🛡️', name: 'SURVIVAL',     color: '#00FF88' },
-  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', color: '#FF4757' },
-  turbo:        { emoji: '🚀', name: 'TURBO',        color: '#BF5FFF' },
-  pinball:      { emoji: '🎰', name: 'PINBALL',      color: '#FF69B4' },
-  six_player:   { emoji: '6️⃣', name: '6-PLAYER',     color: '#FF9500' },
+  duos:         { emoji: '👥', name: 'DUOS',         color: '#1E8AAA' },
+  blitz:        { emoji: '⚡', name: 'BLITZ',        color: '#C8820A' },
+  chaos:        { emoji: '🌪️', name: 'CHAOS',        color: '#D04818' },
+  survival:     { emoji: '🛡️', name: 'SURVIVAL',     color: '#4A8A38' },
+  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', color: '#C03820' },
+  turbo:        { emoji: '🚀', name: 'TURBO',        color: '#7A50A0' },
+  pinball:      { emoji: '🎰', name: 'PINBALL',      color: '#D07018' },
+  six_player:   { emoji: '6️⃣', name: '6-PLAYER',     color: '#D07018' },
 };
 
 const VARIANT_RULES: Record<string, string[]> = {
@@ -187,12 +187,12 @@ export default function LobbyScreen() {
             <View style={[
               styles.modeBadge,
               config.matchType === 'ranked'
-                ? { backgroundColor: '#FFD70022', borderColor: '#FFD70066' }
-                : { backgroundColor: '#7744FF22', borderColor: '#7744FF66' },
+                ? { backgroundColor: '#C8820A22', borderColor: '#C8820A66' }
+                : { backgroundColor: '#1E8AAA22', borderColor: '#1E8AAA66' },
             ]}>
               <Text style={[
                 styles.modeBadgeText,
-                { color: config.matchType === 'ranked' ? '#FFD700' : '#AA88FF' },
+                { color: config.matchType === 'ranked' ? '#C8820A' : '#1E8AAA' },
               ]}>
                 {config.matchType === 'ranked' ? '⚔️ RANKED' : '🎮 CASUAL'}
               </Text>
@@ -218,7 +218,7 @@ export default function LobbyScreen() {
         <View style={styles.statusRow}>
           {searching ? (
             <>
-              <Animated.View style={[styles.dot, { opacity: pulseAnim, backgroundColor: '#FFD700' }]} />
+              <Animated.View style={[styles.dot, { opacity: pulseAnim, backgroundColor: '#C8820A' }]} />
               <Text style={[styles.statusText, { color: colors.mutedForeground }]}>Finding opponents...</Text>
             </>
           ) : countdown !== null ? (
@@ -280,11 +280,11 @@ export default function LobbyScreen() {
                 key={map.id}
                 onPress={() => setSelectedMap(map.id)}
                 style={[styles.mapCard, {
-                  backgroundColor: selectedMap === map.id ? '#FFD70022' : colors.card,
-                  borderColor: selectedMap === map.id ? '#FFD700' : colors.border,
+                  backgroundColor: selectedMap === map.id ? '#C8820A22' : colors.card,
+                  borderColor: selectedMap === map.id ? '#C8820A' : colors.border,
                 }]}
               >
-                <Text style={[styles.mapName, { color: selectedMap === map.id ? '#FFD700' : colors.foreground }]}>
+                <Text style={[styles.mapName, { color: selectedMap === map.id ? '#C8820A' : colors.foreground }]}>
                   {map.name}
                 </Text>
                 <Text style={[styles.mapDesc, { color: colors.mutedForeground }]}>{map.desc}</Text>
@@ -348,5 +348,5 @@ const styles = StyleSheet.create({
   ruleDot: { width: 6, height: 6, borderRadius: 3, marginTop: 5 },
   ruleText: { fontFamily: 'Inter_400Regular', fontSize: 12, flex: 1, lineHeight: 18 },
   countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#00000099', alignItems: 'center', justifyContent: 'center' },
-  countdownText: { color: '#FFD700', fontSize: 96, fontFamily: 'Inter_700Bold', textShadowColor: '#FFD700', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 30 },
+  countdownText: { color: '#C8820A', fontSize: 96, fontFamily: 'Inter_700Bold', textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 30 },
 });

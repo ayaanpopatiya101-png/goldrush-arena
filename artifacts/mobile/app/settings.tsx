@@ -19,7 +19,7 @@ function SettingRow({ icon, title, subtitle, right }: {
   return (
     <View style={s.row}>
       <View style={s.rowIcon}>
-        <Feather name={icon as never} size={18} color="#FFD700" />
+        <Feather name={icon as never} size={18} color="#C8820A" />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={s.rowTitle}>{title}</Text>
@@ -111,8 +111,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={settings.musicEnabled}
                   onValueChange={v => updateSetting('musicEnabled', v)}
-                  trackColor={{ false: '#FFFFFF22', true: '#FFD70055' }}
-                  thumbColor={settings.musicEnabled ? '#FFD700' : '#888'}
+                  trackColor={{ false: '#FFFFFF22', true: '#C8820A55' }}
+                  thumbColor={settings.musicEnabled ? '#C8820A' : '#888'}
                 />
               }
             />
@@ -125,8 +125,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={settings.soundEnabled}
                   onValueChange={v => updateSetting('soundEnabled', v)}
-                  trackColor={{ false: '#FFFFFF22', true: '#FFD70055' }}
-                  thumbColor={settings.soundEnabled ? '#FFD700' : '#888'}
+                  trackColor={{ false: '#FFFFFF22', true: '#C8820A55' }}
+                  thumbColor={settings.soundEnabled ? '#C8820A' : '#888'}
                 />
               }
             />
@@ -145,8 +145,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={settings.colorBoard}
                   onValueChange={v => updateSetting('colorBoard', v)}
-                  trackColor={{ false: '#FFFFFF22', true: '#FFD70055' }}
-                  thumbColor={settings.colorBoard ? '#FFD700' : '#888'}
+                  trackColor={{ false: '#FFFFFF22', true: '#C8820A55' }}
+                  thumbColor={settings.colorBoard ? '#C8820A' : '#888'}
                 />
               }
             />
@@ -166,10 +166,10 @@ export default function SettingsScreen() {
                   onPress={() => updateSetting('sensitivity', opt.value)}
                   style={[s.sensBtn, settings.sensitivity === opt.value && s.sensBtnActive]}
                 >
-                  <Text style={[s.sensBtnLabel, settings.sensitivity === opt.value && { color: '#FFD700' }]}>
+                  <Text style={[s.sensBtnLabel, settings.sensitivity === opt.value && { color: '#C8820A' }]}>
                     {opt.label}
                   </Text>
-                  <Text style={[s.sensBtnDesc, settings.sensitivity === opt.value && { color: '#FFD70099' }]}>
+                  <Text style={[s.sensBtnDesc, settings.sensitivity === opt.value && { color: '#C8820A99' }]}>
                     {opt.desc}
                   </Text>
                 </Pressable>
@@ -212,7 +212,7 @@ const s = StyleSheet.create({
   card:      { borderRadius: 16, borderWidth: 1, borderColor: '#FFFFFF14', backgroundColor: '#FFFFFF07', overflow: 'hidden' },
   divider:   { height: 1, backgroundColor: '#FFFFFF0E', marginHorizontal: 14 },
   row:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 14, gap: 12 },
-  rowIcon:   { width: 32, height: 32, borderRadius: 10, backgroundColor: '#FFD70015', alignItems: 'center', justifyContent: 'center' },
+  rowIcon:   { width: 32, height: 32, borderRadius: 10, backgroundColor: '#C8820A15', alignItems: 'center', justifyContent: 'center' },
   rowTitle:  { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: '#F0F0FF' },
   rowSub:    { fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF55', marginTop: 2 },
   accountCard: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
@@ -221,11 +221,11 @@ const s = StyleSheet.create({
   accountName: { fontFamily: 'Inter_700Bold', fontSize: 15, color: '#F0F0FF' },
   accountSub:  { fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF55', marginTop: 2 },
   accountStats: { alignItems: 'center', gap: 2, minWidth: 38 },
-  accountStatVal: { fontFamily: 'Inter_700Bold', fontSize: 15, color: '#FFD700' },
+  accountStatVal: { fontFamily: 'Inter_700Bold', fontSize: 15, color: '#C8820A' },
   accountStatLbl: { fontFamily: 'Inter_400Regular', fontSize: 9, color: '#FFFFFF44', letterSpacing: 0.5 },
   sensitivityRow: { flexDirection: 'row', padding: 12, gap: 8 },
   sensBtn:   { flex: 1, borderRadius: 12, borderWidth: 1, borderColor: '#FFFFFF18', backgroundColor: '#FFFFFF08', padding: 10, alignItems: 'center', gap: 3 },
-  sensBtnActive: { borderColor: '#FFD700', backgroundColor: '#FFD70015' },
+  sensBtnActive: { borderColor: '#C8820A', backgroundColor: '#C8820A15' },
   sensBtnLabel: { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#FFFFFF66' },
   sensBtnDesc:  { fontFamily: 'Inter_400Regular', fontSize: 9, color: '#FFFFFF33', textAlign: 'center' },
   aboutRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },

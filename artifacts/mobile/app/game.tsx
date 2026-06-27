@@ -13,7 +13,7 @@ import { useSettings } from '@/hooks/useSettings';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
 const BOT_RANKS  = ['Platinum', 'Diamond',  'Master',  'Legend',    'Grandmaster'];
-const BOT_COLORS = ['#FF4757',  '#00BFFF',  '#00FF88', '#FF9500',   '#BF5FFF'];
+const BOT_COLORS = ['#C03820',  '#1E8AAA',  '#4A8A38', '#D07018',   '#7A50A0'];
 
 const VARIANT_PROPS: Record<string, {
   initialLives?: number;
@@ -36,7 +36,7 @@ const VARIANT_PROPS: Record<string, {
 };
 
 const MODE_LABELS: Record<GameMode, string> = { square:'4-PLAYER', triangle:'3-PLAYER', duel:'1v1' };
-const MODE_COLORS: Record<GameMode, string> = { square:'#FFD700', triangle:'#00FF88', duel:'#FF4757' };
+const MODE_COLORS: Record<GameMode, string> = { square:'#C8820A', triangle:'#4A8A38', duel:'#C03820' };
 
 function fmtTime(secs: number) {
   const m = Math.floor(secs / 60);
@@ -192,7 +192,7 @@ export default function GameScreen() {
         </View>
         <View style={{ flex: 1 }} />
         <View style={styles.ballsBadge}>
-          <View style={[styles.ballDot, { backgroundColor: activeBalls > 3 ? '#FF4757' : activeBalls > 1 ? '#FFD700' : '#FFFFFF55' }]} />
+          <View style={[styles.ballDot, { backgroundColor: activeBalls > 3 ? '#FF4757' : activeBalls > 1 ? '#C8820A' : '#FFFFFF55' }]} />
           <Text style={styles.ballsText}>{activeBalls} {activeBalls === 1 ? 'BALL' : 'BALLS'}</Text>
         </View>
       </View>
@@ -261,7 +261,7 @@ export default function GameScreen() {
 
         <View style={styles.puRow}>
           {[
-            { c:'#FFD700', l:'SHD' }, { c:'#00FF88', l:'SPD' }, { c:'#FF4757', l:'SHK' },
+            { c:'#C8820A', l:'SHD' }, { c:'#00FF88', l:'SPD' }, { c:'#FF4757', l:'SHK' },
             { c:'#FF69B4', l:'+3L' }, { c:'#00E5FF', l:'MLB' },
           ].map(pu => (
             <View key={pu.l} style={styles.puLegend}>

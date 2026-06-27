@@ -12,7 +12,7 @@ import { AVATAR_COLORS, AVATAR_EMOJIS, SavedAccountMeta, getSavedAccounts, login
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
-const PLAYER_COLORS = ['#FFD700', '#FF4757', '#00BFFF', '#00FF88'] as const;
+const PLAYER_COLORS = ['#C8820A', '#C03820', '#1E8AAA', '#4A8A38'] as const;
 const PLAYER_EMOJIS = ['⚔️', '🛡️', '🔮', '🏹'] as const;
 const PARTICLE_CHARS = ['✨', '💫', '⭐', '🪙', '⚡', '🔥'];
 
@@ -62,7 +62,7 @@ function Shockwave({ anim }: { anim: Animated.Value }) {
     <Animated.View pointerEvents="none" style={{
       position: 'absolute',
       width: 120, height: 120, borderRadius: 60,
-      borderWidth: 3, borderColor: '#FFD700',
+      borderWidth: 3, borderColor: '#C8820A',
       opacity: anim.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 0.9, 0] }),
       transform: [{ scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.4, 3.5] }) }],
     }} />
@@ -150,14 +150,14 @@ function ArenaScene({ w1, w2, w3, w4, ballGlowAnim, ballEnter, ringRotate }: {
       <Svg width={S} height={S} style={StyleSheet.absoluteFill} pointerEvents="none">
         <Defs>
           <SvgRadialGradient id="floor3" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%"   stopColor="#6600EE" stopOpacity="0.45" />
-            <Stop offset="55%"  stopColor="#1A0070" stopOpacity="0.60" />
-            <Stop offset="100%" stopColor="#04000E" stopOpacity="0.90" />
+            <Stop offset="0%"   stopColor="#3A1A00" stopOpacity="0.45" />
+            <Stop offset="55%"  stopColor="#1A0C00" stopOpacity="0.60" />
+            <Stop offset="100%" stopColor="#0A0604" stopOpacity="0.90" />
           </SvgRadialGradient>
-          <SvgRadialGradient id="zG" cx="50%" cy="100%" r="60%"><Stop offset="0%" stopColor="#FFD700" stopOpacity="0.28" /><Stop offset="100%" stopColor="#FFD700" stopOpacity="0" /></SvgRadialGradient>
-          <SvgRadialGradient id="zR" cx="50%" cy="0%"   r="60%"><Stop offset="0%" stopColor="#FF4757" stopOpacity="0.28" /><Stop offset="100%" stopColor="#FF4757" stopOpacity="0" /></SvgRadialGradient>
-          <SvgRadialGradient id="zB" cx="0%"   cy="50%" r="60%"><Stop offset="0%" stopColor="#00BFFF" stopOpacity="0.22" /><Stop offset="100%" stopColor="#00BFFF" stopOpacity="0" /></SvgRadialGradient>
-          <SvgRadialGradient id="zGn" cx="100%" cy="50%" r="60%"><Stop offset="0%" stopColor="#00FF88" stopOpacity="0.22" /><Stop offset="100%" stopColor="#00FF88" stopOpacity="0" /></SvgRadialGradient>
+          <SvgRadialGradient id="zG" cx="50%" cy="100%" r="60%"><Stop offset="0%" stopColor="#C8820A" stopOpacity="0.28" /><Stop offset="100%" stopColor="#C8820A" stopOpacity="0" /></SvgRadialGradient>
+          <SvgRadialGradient id="zR" cx="50%" cy="0%"   r="60%"><Stop offset="0%" stopColor="#C03820" stopOpacity="0.28" /><Stop offset="100%" stopColor="#C03820" stopOpacity="0" /></SvgRadialGradient>
+          <SvgRadialGradient id="zB" cx="0%"   cy="50%" r="60%"><Stop offset="0%" stopColor="#1E8AAA" stopOpacity="0.22" /><Stop offset="100%" stopColor="#1E8AAA" stopOpacity="0" /></SvgRadialGradient>
+          <SvgRadialGradient id="zGn" cx="100%" cy="50%" r="60%"><Stop offset="0%" stopColor="#4A8A38" stopOpacity="0.22" /><Stop offset="100%" stopColor="#4A8A38" stopOpacity="0" /></SvgRadialGradient>
         </Defs>
         <Circle cx={AC} cy={AC} r={AR} fill="url(#floor3)" />
         <Circle cx={AC} cy={AC} r={AR} fill="url(#zG)" />
@@ -166,7 +166,7 @@ function ArenaScene({ w1, w2, w3, w4, ballGlowAnim, ballEnter, ringRotate }: {
         <Circle cx={AC} cy={AC} r={AR} fill="url(#zGn)" />
         <Circle cx={AC} cy={AC} r={AR}        fill="none" stroke="#FFFFFF30" strokeWidth={2} />
         <Circle cx={AC} cy={AC} r={AR * 0.55} fill="none" stroke="#FFFFFF14" strokeWidth={1} />
-        <Circle cx={AC} cy={AC} r={AR * 0.17} fill="none" stroke="#FFD70055" strokeWidth={1.5} />
+        <Circle cx={AC} cy={AC} r={AR * 0.17} fill="none" stroke="#C8820A55" strokeWidth={1.5} />
         <Line x1={AC} y1={SCENE_PAD} x2={AC} y2={S - SCENE_PAD} stroke="#FFFFFF0C" strokeWidth={1} />
         <Line x1={SCENE_PAD} y1={AC} x2={S - SCENE_PAD} y2={AC} stroke="#FFFFFF0C" strokeWidth={1} />
       </Svg>
@@ -176,8 +176,8 @@ function ArenaScene({ w1, w2, w3, w4, ballGlowAnim, ballEnter, ringRotate }: {
         position: 'absolute', width: AR * 2 + 6, height: AR * 2 + 6,
         borderRadius: AR + 3, borderWidth: 1.5,
         borderColor: 'transparent',
-        borderTopColor: '#FFD70055',
-        borderRightColor: '#FF475733',
+        borderTopColor: '#C8820A55',
+        borderRightColor: '#C0382033',
         transform: [{ rotate: ringRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }],
       }} />
 
@@ -209,16 +209,16 @@ function ArenaScene({ w1, w2, w3, w4, ballGlowAnim, ballEnter, ringRotate }: {
       <Shockwave anim={ballEnter} />
       <Animated.View style={{
         position: 'absolute', width: 30, height: 30, borderRadius: 15,
-        backgroundColor: '#FFD700',
+        backgroundColor: '#C8820A',
         top: AC - 15, left: AC - 15,
         opacity: ballEnter,
         transform: [{ scale: ballEnter.interpolate({ inputRange: [0, 0.4, 0.7, 1], outputRange: [0.1, 1.5, 0.9, 1.1] }) }],
-        shadowColor: '#FFD700', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 22,
+        shadowColor: '#C8820A', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 22,
       }} />
       {/* Ball outer glow ring */}
       <Animated.View style={{
         position: 'absolute', width: 66, height: 66, borderRadius: 33,
-        borderWidth: 2, borderColor: '#FFD70060',
+        borderWidth: 2, borderColor: '#C8820A60',
         top: AC - 33, left: AC - 33,
         opacity: ballEnter,
         transform: [{ scale: ballGlowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.25] }) }],
@@ -241,7 +241,7 @@ function ShimmerButton({ onPress, loading, label, icon }: {
   }, []);
   return (
     <Pressable onPress={onPress} disabled={loading} style={({ pressed }) => [s.ctaBtn, pressed && { opacity: 0.85 }]}>
-      <LinearGradient colors={['#FFE94D', '#FFAA00', '#FF8800']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.ctaGrad}>
+      <LinearGradient colors={['#E09620', '#C8820A', '#A86008']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.ctaGrad}>
         {icon ? <Feather name={icon as never} size={22} color="#1A0800" /> : null}
         <Text style={s.ctaText}>{loading ? 'ENTERING...' : label}</Text>
       </LinearGradient>
@@ -443,7 +443,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
 
       {/* ── Deep space background ── */}
       <LinearGradient
-        colors={['#02000C', '#0A0030', '#160050', '#04000F']}
+        colors={['#0D0A06', '#181208', '#201808', '#0A0604']}
         locations={[0, 0.3, 0.65, 1]}
         style={StyleSheet.absoluteFill}
       />
@@ -456,7 +456,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
         opacity: bgGlow.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.55] }),
       }]}>
         <LinearGradient
-          colors={['#FF880066', '#AA00FF44', '#00000000']}
+          colors={['#C8820A44', '#80400A22', '#00000000']}
           style={{ height: SH * 0.6, width: '100%' }}
         />
       </Animated.View>
@@ -665,15 +665,15 @@ const s = StyleSheet.create({
   // Logo
   crown:        { fontSize: 50, textAlign: 'center', textShadowColor: '#FF8800', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24 },
   titleWrap:    { position: 'relative', alignItems: 'center', justifyContent: 'center', height: 62, width: SW - 24, alignSelf: 'center', marginTop: 2 },
-  titleMain:    { position: 'absolute', fontFamily: 'Inter_700Bold', fontSize: 48, letterSpacing: 4, color: '#FFD700', textShadowColor: '#FFAA00', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 22 },
+  titleMain:    { position: 'absolute', fontFamily: 'Inter_700Bold', fontSize: 48, letterSpacing: 4, color: '#C8820A', textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 22 },
   titleShadow1: { position: 'absolute', fontFamily: 'Inter_700Bold', fontSize: 48, letterSpacing: 4, color: '#FF4400', opacity: 0.5, transform: [{ translateX: 3 }, { translateY: 4 }] },
   titleShadow2: { position: 'absolute', fontFamily: 'Inter_700Bold', fontSize: 48, letterSpacing: 4, color: '#880022', opacity: 0.3, transform: [{ translateX: 6 }, { translateY: 8 }] },
-  titleArena:   { fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 12, color: '#FFFFFFCC', marginTop: 4, textShadowColor: '#AA00FF', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 16 },
+  titleArena:   { fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 12, color: '#FFFFFFCC', marginTop: 4, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 16 },
   divider:      { width: 80, height: 1.5, backgroundColor: '#FFFFFF18', borderRadius: 1, marginTop: 10, marginBottom: 6 },
   tagline:      { color: '#FFFFFF55', fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 0.8 },
 
   // Enter Arena button
-  enterBtn:     { borderRadius: 20, overflow: 'hidden', shadowColor: '#FFD700', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.75, shadowRadius: 20, elevation: 14, width: '100%' },
+  enterBtn:     { borderRadius: 20, overflow: 'hidden', shadowColor: '#C8820A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.75, shadowRadius: 20, elevation: 14, width: '100%' },
   enterGrad:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 19, gap: 12 },
   enterText:    { color: '#160800', fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 2 },
   enterShimmer: { position: 'absolute', top: 0, bottom: 0, width: 100, backgroundColor: '#FFFFFF44' },
@@ -682,7 +682,7 @@ const s = StyleSheet.create({
   // Form sheet
   formSheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: '#08001AF8',
+    backgroundColor: '#100C06F8',
     borderTopLeftRadius: 32, borderTopRightRadius: 32,
     borderTopWidth: 1.5, borderLeftWidth: 1, borderRightWidth: 1,
     borderColor: '#FFFFFF20',
@@ -699,9 +699,9 @@ const s = StyleSheet.create({
   // Tabs
   tabRow:        { flexDirection: 'row', marginHorizontal: 20, backgroundColor: '#FFFFFF0C', borderRadius: 16, padding: 4, marginBottom: 16 },
   tabBtn:        { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 13 },
-  tabBtnActive:  { backgroundColor: '#2A0060' },
+  tabBtnActive:  { backgroundColor: '#1A1008' },
   tabText:       { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.2, color: '#FFFFFF44' },
-  tabTextActive: { color: '#FFD700' },
+  tabTextActive: { color: '#E09620' },
 
   // Fields
   field:     { gap: 8 },
@@ -725,7 +725,7 @@ const s = StyleSheet.create({
   previewBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1.5 },
 
   // CTA (form submit)
-  ctaBtn:  { borderRadius: 16, overflow: 'hidden', shadowColor: '#FFD700', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.55, shadowRadius: 16, elevation: 10 },
+  ctaBtn:  { borderRadius: 16, overflow: 'hidden', shadowColor: '#C8820A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.55, shadowRadius: 16, elevation: 10 },
   ctaGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 17, gap: 10 },
   ctaText: { color: '#1A0800', fontFamily: 'Inter_700Bold', fontSize: 17, letterSpacing: 1.5 },
   shimmer: { position: 'absolute', top: 0, bottom: 0, width: 80, backgroundColor: '#FFFFFF40' },
