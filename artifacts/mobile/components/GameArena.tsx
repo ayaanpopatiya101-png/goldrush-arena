@@ -70,6 +70,18 @@ interface GameArenaProps {
   botDifficulty?: 'easy' | 'normal';
   /** Called once the countdown finishes and gameplay begins */
   onGameStart?: () => void;
+  /** Lives each player starts with (default 5) */
+  initialLives?: number;
+  /** Extra balls spawned immediately at game start in addition to the first (default 0) */
+  startingBallCount?: number;
+  /** Frames between automatic ball spawns (default 900 = 15 s at 60 fps) */
+  ballSpawnFrames?: number;
+  /** When true, power-up pickups never spawn */
+  noPowerups?: boolean;
+  /** Speed multiplier applied to the very first ball (default 1.0) */
+  startSpeedMult?: number;
+  /** Team 2v2: [BOTTOM,RIGHT] vs [TOP,LEFT]. Skip triangle/duel transitions; team elimination wins. */
+  duoMode?: boolean;
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
@@ -103,10 +115,18 @@ export function GameArena({
   onPlayerLivesChange, grantExtraLifeRef, onEliminatedSpectating,
   colorBoard = true, soundEnabled = true,
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
+  initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult, duoMode,
 }: GameArenaProps) {
 
   const szRef = useRef(arenaSize);
   szRef.current = arenaSize;
+
+  const ballSpawnFramesRef   = useRef(ballSpawnFrames   ?? BALL_SPAWN_FRAMES);
+  const noPowerupsRef        = useRef(noPowerups        ?? false);
+  const startingBallCountRef = useRef(startingBallCount ?? 1);
+  const duoModeRef           = useRef(duoMode           ?? false);
+  const initialLivesVal      = initialLives ?? INITIAL_LIVES;
+  const startSpeedMultVal    = startSpeedMult ?? 1.0;
 
   const paddleAnims = useRef([
     new Animated.Value(arenaSize/2),
@@ -123,7 +143,7 @@ export function GameArena({
   const shakeX     = useRef(new Animated.Value(0)).current;
   const shakeY     = useRef(new Animated.Value(0)).current;
   const [flashColor, setFlashColor]           = useState('#FF4757');
-  const [livesState, setLivesState]           = useState<number[]>([INITIAL_LIVES,INITIAL_LIVES,INITIAL_LIVES,INITIAL_LIVES]);
+  const [livesState, setLivesState]           = useState<number[]>([initialLivesVal,initialLivesVal,initialLivesVal,initialLivesVal]);
   const [eliminatedState, setEliminatedState] = useState<boolean[]>([false,false,false,false]);
   const [gamePhase, setGamePhase]             = useState<'countdown'|'playing'|'gameover'>('countdown');
   const [gameMode, setGameMode]               = useState<GameMode>('square');
@@ -231,13 +251,13 @@ export function GameArena({
   const gsRef = useRef<GameStateRef>({
     balls: [], powerups: [], frame: 0,
     nextBallFrame: 8, nextPowerupFrame: POWERUP_SPAWN_FRAMES,
-    speedMultiplier: 1.0, winner: null, phase: 'countdown', gameMode: 'square',
+    speedMultiplier: startSpeedMultVal, winner: null, phase: 'countdown', gameMode: 'square',
     duelTopId: TOP, duelBottomId: BOTTOM, duelFrames: 0,
     players: [
-      { id:BOTTOM, name:playerName, paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:INITIAL_LIVES, isBot:false, isEliminated:false, score:0, color:playerColor, glowColor:playerGlowColor, rank:'Gold', botSpeed:0, botAccuracy:1, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
-      { id:TOP,    name:botNames[0]??'Blaze_99',  paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:INITIAL_LIVES, isBot:true,  isEliminated:false, score:0, color:PLAYER_COLORS[1], glowColor:PLAYER_GLOW[1], rank:botRanks[0]??'Platinum', botSpeed:4.8, botAccuracy:0.86, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
-      { id:LEFT,   name:botNames[1]??'IceQueen',  paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:INITIAL_LIVES, isBot:true,  isEliminated:false, score:0, color:PLAYER_COLORS[2], glowColor:PLAYER_GLOW[2], rank:botRanks[1]??'Diamond',  botSpeed:5.2, botAccuracy:0.88, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
-      { id:RIGHT,  name:botNames[2]??'Venom_X',   paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:INITIAL_LIVES, isBot:true,  isEliminated:false, score:0, color:PLAYER_COLORS[3], glowColor:PLAYER_GLOW[3], rank:botRanks[2]??'Master',   botSpeed:5.6, botAccuracy:0.91, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
+      { id:BOTTOM, name:playerName, paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:initialLivesVal, isBot:false, isEliminated:false, score:0, color:playerColor, glowColor:playerGlowColor, rank:'Gold', botSpeed:0, botAccuracy:1, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
+      { id:TOP,    name:botNames[0]??'Blaze_99',  paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:initialLivesVal, isBot:true,  isEliminated:false, score:0, color:PLAYER_COLORS[1], glowColor:PLAYER_GLOW[1], rank:botRanks[0]??'Platinum', botSpeed:4.8, botAccuracy:0.86, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
+      { id:LEFT,   name:botNames[1]??'IceQueen',  paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:initialLivesVal, isBot:true,  isEliminated:false, score:0, color:PLAYER_COLORS[2], glowColor:PLAYER_GLOW[2], rank:botRanks[1]??'Diamond',  botSpeed:5.2, botAccuracy:0.88, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
+      { id:RIGHT,  name:botNames[2]??'Venom_X',   paddleCenter:arenaSize/2, prevPaddleCenter:arenaSize/2, lives:initialLivesVal, isBot:true,  isEliminated:false, score:0, color:PLAYER_COLORS[3], glowColor:PLAYER_GLOW[3], rank:botRanks[2]??'Master',   botSpeed:5.6, botAccuracy:0.91, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
     ],
   });
 
@@ -455,10 +475,21 @@ export function GameArena({
       }
       setEliminatedState(gs.players.map(p => p.isEliminated));
       showAnnouncer(playerId === BOTTOM ? '💀 YOU\'RE OUT! SPECTATING...' : `${player.name} OUT!`);
-      updateGameMode(gs);
+
+      if (!duoModeRef.current) updateGameMode(gs);
 
       const alive = gs.players.filter(p => !p.isEliminated);
-      if (alive.length === 1) {
+      if (duoModeRef.current) {
+        const aAlive = !gs.players[BOTTOM].isEliminated || !gs.players[RIGHT].isEliminated;
+        const bAlive = !gs.players[TOP].isEliminated   || !gs.players[LEFT].isEliminated;
+        if (!aAlive) {
+          const w = alive.find(p => p.id === TOP || p.id === LEFT);
+          if (w) forceWin(gs, w.id);
+        } else if (!bAlive) {
+          const w = alive.find(p => p.id === BOTTOM || p.id === RIGHT);
+          if (w) forceWin(gs, w.id);
+        }
+      } else if (alive.length === 1) {
         forceWin(gs, alive[0].id);
       }
     }
@@ -659,12 +690,12 @@ export function GameArena({
     // ── Spawn new ball every 15 s ──
     if (gs.frame >= gs.nextBallFrame && gs.balls.filter(b => b.active).length < MAX_BALLS) {
       spawnBall(gs, size);
-      gs.nextBallFrame    = gs.frame + BALL_SPAWN_FRAMES;
+      gs.nextBallFrame    = gs.frame + ballSpawnFramesRef.current;
       gs.speedMultiplier  = Math.min(gs.speedMultiplier + 0.07, 2.0);
     }
 
     // ── Spawn power-up ──
-    if (gs.frame >= gs.nextPowerupFrame && gs.powerups.filter(p => p.active).length < 3) {
+    if (!noPowerupsRef.current && gs.frame >= gs.nextPowerupFrame && gs.powerups.filter(p => p.active).length < 3) {
       spawnPowerup(gs, size);
       gs.nextPowerupFrame = gs.frame + POWERUP_SPAWN_FRAMES + Math.floor(Math.random() * 120);
     }
@@ -726,8 +757,9 @@ export function GameArena({
         const gs   = gsRef.current;
         const size = szRef.current;
         spawnBall(gs, size);
-        gs.phase        = 'playing';
-        gs.nextBallFrame = BALL_SPAWN_FRAMES;
+        for (let i = 1; i < startingBallCountRef.current; i++) spawnBall(gs, size);
+        gs.phase         = 'playing';
+        gs.nextBallFrame = ballSpawnFramesRef.current;
         setGamePhase('playing');
         isRunningRef.current = true;
         lastTimeRef.current  = performance.now();

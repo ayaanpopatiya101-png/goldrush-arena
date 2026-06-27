@@ -15,6 +15,24 @@ const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X'];
 const BOT_RANKS  = ['Platinum', 'Diamond', 'Master'];
 const BOT_COLORS = ['#FF4757',  '#00BFFF',  '#00FF88'];
 
+const VARIANT_PROPS: Record<string, {
+  initialLives?: number;
+  startingBallCount?: number;
+  ballSpawnFrames?: number;
+  noPowerups?: boolean;
+  startSpeedMult?: number;
+  duoMode?: boolean;
+}> = {
+  classic:      {},
+  duos:         { duoMode: true },
+  blitz:        { initialLives: 1, startingBallCount: 2, ballSpawnFrames: 600, startSpeedMult: 1.5 },
+  chaos:        { initialLives: 3, startingBallCount: 5, ballSpawnFrames: 300, noPowerups: true, startSpeedMult: 1.2 },
+  survival:     { initialLives: 12, ballSpawnFrames: 300 },
+  sudden_death: { initialLives: 1, startingBallCount: 3, ballSpawnFrames: 240, noPowerups: true, startSpeedMult: 2.0 },
+  turbo:        { ballSpawnFrames: 480, startSpeedMult: 1.8 },
+  pinball:      { ballSpawnFrames: 180 },
+};
+
 const MODE_LABELS: Record<GameMode, string> = { square:'4-PLAYER', triangle:'3-PLAYER', duel:'1v1' };
 const MODE_COLORS: Record<GameMode, string> = { square:'#FFD700', triangle:'#00FF88', duel:'#FF4757' };
 
@@ -37,9 +55,11 @@ export default function GameScreen() {
   const hudHeight = 48 + 24 + 14 + 54 + bottomPad + 10;
   const arenaSize = Math.max(260, Math.min(width - 8, height - topPad - hudHeight, 410));
 
+  const variantCfg = VARIANT_PROPS[config.variant ?? 'classic'] ?? {};
+
   const [gameOver,     setGameOver]     = useState(false);
   const [gameMode,     setGameMode]     = useState<GameMode>('square');
-  const [playerLives,  setPlayerLives]  = useState(5);
+  const [playerLives,  setPlayerLives]  = useState(variantCfg.initialLives ?? 5);
   const [activeBalls,  setActiveBalls]  = useState(1);
   const [paused,       setPaused]       = useState(false);
   const [timerSecs,    setTimerSecs]    = useState(0);
@@ -208,6 +228,7 @@ export default function GameScreen() {
             onActiveBallsChange={setActiveBalls}
             botDifficulty={botDifficulty}
             onGameStart={handleGameStart}
+            {...variantCfg}
           />
         )}
 

@@ -17,7 +17,7 @@ import {
   RANKS, SEASON_TIERS, SKINS, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
 import { setGameConfig } from '@/store/gameSession';
-import type { MatchType } from '@/store/gameSession';
+import type { MatchType, GameVariant } from '@/store/gameSession';
 import { useColors } from '@/hooks/useColors';
 
 // ─── Mini arena preview ──────────────────────────────────────────────────────
@@ -135,7 +135,17 @@ export default function HomeScreen() {
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
       playerColor: profile.avatarFrameColor, playerGlowColor: profile.avatarFrameColor + '55',
-      matchType,
+      matchType, variant: 'classic',
+    });
+    router.push('/lobby');
+  }
+
+  function handlePlayMode(variant: GameVariant) {
+    const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
+    setGameConfig({
+      playerName: profile.name, playerSkinId: skin.id,
+      playerColor: profile.avatarFrameColor, playerGlowColor: profile.avatarFrameColor + '55',
+      matchType: 'casual', variant,
     });
     router.push('/lobby');
   }
@@ -277,6 +287,52 @@ export default function HomeScreen() {
           ))}
         </View>
 
+        {/* ── Extra Game Modes ── */}
+        <View style={styles.modesSection}>
+          <View style={styles.modesSectionHeader}>
+            <Text style={styles.modesSectionTitle}>🎮  EXTRA GAME MODES</Text>
+            <Text style={[styles.modesSectionSub, { color: colors.mutedForeground }]}>Tap a mode to jump in</Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 10, paddingHorizontal: 20, paddingVertical: 4 }}
+          >
+            {([
+              { id: 'duos',         emoji: '👥', name: 'DUOS',         sub: '2v2 Teams',       color: '#00E5FF', desc: 'Bottom+Right vs\nTop+Left' },
+              { id: 'blitz',        emoji: '⚡', name: 'BLITZ',        sub: '1 Life · Fast',   color: '#FFD700', desc: '1 hit = out.\nLightning fast' },
+              { id: 'chaos',        emoji: '🌪️', name: 'CHAOS',        sub: '5 Balls · No PUs',color: '#FF6B35', desc: 'Pure mayhem,\nno mercy' },
+              { id: 'survival',     emoji: '🛡️', name: 'SURVIVAL',     sub: '12 Lives',         color: '#00FF88', desc: 'Outlast the\nendless storm' },
+              { id: 'sudden_death', emoji: '💀', name: 'SUDDEN DEATH', sub: '1 Life · 3 Balls', color: '#FF4757', desc: 'Zero margin.\nMax chaos' },
+              { id: 'turbo',        emoji: '🚀', name: 'TURBO',        sub: '1.8× Speed',       color: '#BF5FFF', desc: 'Warp speed\nfrom second 1' },
+              { id: 'pinball',      emoji: '🎰', name: 'PINBALL',      sub: 'Ball Every 3s',    color: '#FF69B4', desc: 'Up to 8 balls\nin play at once' },
+            ] as const).map(m => (
+              <Pressable
+                key={m.id}
+                onPress={() => handlePlayMode(m.id)}
+                style={({ pressed }) => [styles.modePickCard, {
+                  borderColor: m.color + '55',
+                  backgroundColor: m.color + '10',
+                  opacity: pressed ? 0.75 : 1,
+                }]}
+              >
+                <LinearGradient
+                  colors={[m.color + '22', m.color + '08', '#00000000']}
+                  style={StyleSheet.absoluteFill}
+                />
+                <Text style={styles.modePickEmoji}>{m.emoji}</Text>
+                <Text style={[styles.modePickName, { color: m.color }]}>{m.name}</Text>
+                <Text style={[styles.modePickSub, { color: colors.mutedForeground }]}>{m.sub}</Text>
+                <Text style={[styles.modePickDesc, { color: m.color + 'BB' }]}>{m.desc}</Text>
+                <View style={[styles.modePlayChip, { backgroundColor: m.color + '22', borderColor: m.color + '55' }]}>
+                  <Feather name="play" size={8} color={m.color} />
+                  <Text style={[styles.modePlayChipText, { color: m.color }]}>PLAY</Text>
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+
         {/* Stats */}
         <View style={styles.statsRow}>
           {[
@@ -416,6 +472,17 @@ const styles = StyleSheet.create({
   playBtnIcon: { fontSize: 20 },
   playBtnText: { color: '#080814', fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 1.5 },
   playBtnSub:  { color: '#08081488', fontFamily: 'Inter_500Medium', fontSize: 10, letterSpacing: 0.5 },
+  modesSection: { gap: 8, marginBottom: 16 },
+  modesSectionHeader: { paddingHorizontal: 20, gap: 2 },
+  modesSectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#F0F0FF', letterSpacing: 1.5 },
+  modesSectionSub: { fontFamily: 'Inter_400Regular', fontSize: 11 },
+  modePickCard: { width: 132, borderRadius: 16, borderWidth: 1.5, padding: 14, gap: 5, overflow: 'hidden' },
+  modePickEmoji: { fontSize: 28 },
+  modePickName: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.2 },
+  modePickSub: { fontFamily: 'Inter_600SemiBold', fontSize: 9, letterSpacing: 0.3 },
+  modePickDesc: { fontFamily: 'Inter_400Regular', fontSize: 10, lineHeight: 14 },
+  modePlayChip: { flexDirection: 'row', alignItems: 'center', gap: 3, borderRadius: 6, borderWidth: 1, paddingHorizontal: 7, paddingVertical: 3, alignSelf: 'flex-start', marginTop: 2 },
+  modePlayChipText: { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 1 },
   modeRow:    { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 16 },
   modeCard:   { flex: 1, alignItems: 'center', padding: 10, borderRadius: 12, borderWidth: 1, gap: 4 },
   modeLabel:  { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1 },

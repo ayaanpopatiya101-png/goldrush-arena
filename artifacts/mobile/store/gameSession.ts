@@ -1,4 +1,13 @@
-export type MatchType = 'ranked' | 'casual';
+export type MatchType   = 'ranked' | 'casual';
+export type GameVariant =
+  | 'classic'
+  | 'duos'
+  | 'blitz'
+  | 'chaos'
+  | 'survival'
+  | 'sudden_death'
+  | 'turbo'
+  | 'pinball';
 
 export interface GameSessionConfig {
   playerName:      string;
@@ -6,6 +15,7 @@ export interface GameSessionConfig {
   playerColor:     string;
   playerGlowColor: string;
   matchType:       MatchType;
+  variant:         GameVariant;
 }
 
 let _config: GameSessionConfig = {
@@ -14,6 +24,7 @@ let _config: GameSessionConfig = {
   playerColor:     '#FFD700',
   playerGlowColor: '#FFD70055',
   matchType:       'ranked',
+  variant:         'classic',
 };
 
 export function setGameConfig(config: GameSessionConfig) {
