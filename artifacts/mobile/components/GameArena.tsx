@@ -120,6 +120,8 @@ export function GameArena({
   ).current;
 
   const flashAnim  = useRef(new Animated.Value(0)).current;
+  const shakeX     = useRef(new Animated.Value(0)).current;
+  const shakeY     = useRef(new Animated.Value(0)).current;
   const [flashColor, setFlashColor]           = useState('#FF4757');
   const [livesState, setLivesState]           = useState<number[]>([INITIAL_LIVES,INITIAL_LIVES,INITIAL_LIVES,INITIAL_LIVES]);
   const [eliminatedState, setEliminatedState] = useState<boolean[]>([false,false,false,false]);
@@ -250,6 +252,31 @@ export function GameArena({
     setFlashColor(color);
     flashAnim.setValue(0.45);
     Animated.timing(flashAnim, { toValue: 0, duration: 700, useNativeDriver: true }).start();
+  }
+
+  function triggerShake() {
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(shakeX, { toValue: -9, duration: 40, useNativeDriver: true }),
+        Animated.timing(shakeY, { toValue: -5, duration: 40, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(shakeX, { toValue: 9, duration: 40, useNativeDriver: true }),
+        Animated.timing(shakeY, { toValue: 5, duration: 40, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(shakeX, { toValue: -6, duration: 35, useNativeDriver: true }),
+        Animated.timing(shakeY, { toValue: 3, duration: 35, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(shakeX, { toValue: 4, duration: 35, useNativeDriver: true }),
+        Animated.timing(shakeY, { toValue: -3, duration: 35, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(shakeX, { toValue: 0, duration: 30, useNativeDriver: true }),
+        Animated.timing(shakeY, { toValue: 0, duration: 30, useNativeDriver: true }),
+      ]),
+    ]).start();
   }
 
   function addEmoji(x: number) {
@@ -412,6 +439,7 @@ export function GameArena({
     if (playerId === BOTTOM) { goalsAgainstRef.current++; onPlayerLivesChange?.(player.lives); }
     setLivesState(gs.players.map(p => p.lives));
     triggerFlash(player.color);
+    triggerShake();
     addEmoji(szRef.current * (0.25 + Math.random() * 0.5));
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
@@ -744,7 +772,7 @@ export function GameArena({
   const spectatorCoins = Math.max(10, Math.floor(spectatorXP / 6));
 
   return (
-    <View style={{ width: arenaSize, height: arenaSize, overflow: 'hidden', borderRadius: 6 }}>
+    <Animated.View style={{ width: arenaSize, height: arenaSize, overflow: 'hidden', borderRadius: 6, transform: [{ translateX: shakeX }, { translateY: shakeY }] }}>
       {/* Background */}
       <LinearGradient colors={bgColors} style={StyleSheet.absoluteFill} />
 
@@ -986,7 +1014,7 @@ export function GameArena({
 
         <View style={[s.border, { width:arenaSize, height:arenaSize, pointerEvents:'none' } as never]} />
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

@@ -11,6 +11,8 @@ import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 
 import { DailyStreakModal } from '@/components/DailyStreakModal';
 import { RankBadge } from '@/components/RankBadge';
+import { AmbientParticles } from '@/components/AmbientParticles';
+import { LiveEventBanner } from '@/components/LiveEventBanner';
 import {
   RANKS, SEASON_TIERS, SKINS, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
@@ -153,6 +155,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.root}>
       <LinearGradient colors={['#0A0028', '#150050', '#0A0028']} style={StyleSheet.absoluteFill} />
+      <AmbientParticles />
       <Svg style={StyleSheet.absoluteFill as never} pointerEvents="none">
         <Defs>
           <RadialGradient id="bg" cx="50%" cy="40%" r="55%">
@@ -288,6 +291,9 @@ export default function HomeScreen() {
             </View>
           ))}
         </View>
+
+        {/* ── Live Event Banner ── */}
+        <LiveEventBanner />
 
         {/* ── Season Pass ── */}
         <View style={styles.passSection}>

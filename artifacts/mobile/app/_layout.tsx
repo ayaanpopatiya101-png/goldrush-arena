@@ -16,6 +16,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { PlayerProvider, getSavedAccounts, getLoggedInUser } from '@/context/PlayerContext';
 import OnboardingScreen from '@/app/onboarding';
+import { CinematicSplash, cinemaHasShown } from '@/components/CinematicSplash';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,6 +42,7 @@ export default function RootLayout() {
   });
   const [authState, setAuthState] = useState<'loading' | 'in' | 'out'>('loading');
   const [authUser,  setAuthUser]  = useState<AuthUser | null>(null);
+  const [showCinematic, setShowCinematic] = useState(!cinemaHasShown());
 
   useEffect(() => {
     if (!fontsLoaded && !fontError) return;
@@ -86,6 +88,9 @@ export default function RootLayout() {
             <GestureHandlerRootView style={{ flex: 1 }}>
               <KeyboardProvider>
                 <RootLayoutNav />
+                {showCinematic && (
+                  <CinematicSplash onDone={() => setShowCinematic(false)} />
+                )}
               </KeyboardProvider>
             </GestureHandlerRootView>
           </PlayerProvider>

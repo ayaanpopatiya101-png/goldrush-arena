@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
+import { ConfettiRain } from '@/components/ConfettiRain';
 import { ACHIEVEMENTS, RANKS, usePlayer, xpForNextRank, xpToLevel } from '@/context/PlayerContext';
 import { useColors } from '@/hooks/useColors';
 
@@ -95,6 +96,7 @@ export default function PostGameScreen() {
         colors={won ? ['#0A140A', '#0A1A0A', '#0A0A14'] : ['#140A0A', '#1A0A0A', '#0A0A14']}
         style={StyleSheet.absoluteFill}
       />
+      <ConfettiRain active={won} />
 
       {/* Stars/particles background */}
       {won && Array.from({ length: 8 }).map((_, i) => (
