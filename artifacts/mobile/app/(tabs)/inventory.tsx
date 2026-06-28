@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SKINS, usePlayer } from '@/context/PlayerContext';
+import { SKINS, RELICS, RANKS, getRankIndex, usePlayer } from '@/context/PlayerContext';
 import { useColors } from '@/hooks/useColors';
 
 const ARENA_THEMES = [
@@ -16,18 +16,20 @@ const ARENA_THEMES = [
   { id: 'golden',  name: 'Gold Rush',      desc: 'Prestige golden arena',       color: '#C8820A', preview: ['#1A1200', '#2A2000'] as [string,string] },
 ];
 
-type Tab = 'skins' | 'themes';
+type Tab = 'skins' | 'themes' | 'relics';
 
 export default function InventoryScreen() {
   const colors  = useColors();
   const insets  = useSafeAreaInsets();
-  const { profile, equipSkin, equipTheme } = usePlayer();
+  const { profile, equipSkin, equipTheme, equipRelic } = usePlayer();
   const [activeTab, setActiveTab] = useState<Tab>('skins');
 
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
   const ownedSkins  = SKINS.filter(s => profile.ownedSkins.includes(s.id));
   const ownedThemes = ARENA_THEMES.filter(t => profile.ownedThemes.includes(t.id));
+  const playerRankIdx  = getRankIndex(profile.rank);
+  const unlockedRelics = RELICS.filter(r => playerRankIdx >= r.unlockRankIndex);
 
   async function handleEquipSkin(skinId: string) {
     await equipSkin(skinId);
@@ -39,6 +41,11 @@ export default function InventoryScreen() {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 
+  async function handleEquipRelic(relicId: string) {
+    await equipRelic(relicId);
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <LinearGradient colors={['#0D0A06', '#181208', '#0D0A06']} style={StyleSheet.absoluteFill} />
@@ -47,13 +54,13 @@ export default function InventoryScreen() {
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
         <Text style={[s.title, { color: colors.foreground }]}>INVENTORY</Text>
         <View style={s.countBadge}>
-          <Text style={s.countText}>{ownedSkins.length + ownedThemes.length} items</Text>
+          <Text style={s.countText}>{ownedSkins.length + ownedThemes.length + unlockedRelics.length} items</Text>
         </View>
       </View>
 
       {/* Tabs */}
       <View style={[s.tabRow, { borderBottomColor: colors.border }]}>
-        {(['skins', 'themes'] as Tab[]).map(tab => (
+        {(['skins', 'themes', 'relics'] as Tab[]).map(tab => (
           <Pressable
             key={tab}
             onPress={() => setActiveTab(tab)}
@@ -62,7 +69,9 @@ export default function InventoryScreen() {
             <Text style={[s.tabText, { color: activeTab === tab ? colors.primary : colors.mutedForeground }]}>
               {tab === 'skins'
                 ? `SKINS (${ownedSkins.length})`
-                : `THEMES (${ownedThemes.length})`}
+                : tab === 'themes'
+                ? `THEMES (${ownedThemes.length})`
+                : `RELICS (${unlockedRelics.length})`}
             </Text>
           </Pressable>
         ))}
@@ -183,6 +192,76 @@ export default function InventoryScreen() {
             )}
           </>
         )}
+
+        {/* ── Relics tab ── */}
+        {activeTab === 'relics' && (
+          <>
+            <View style={[s.relicInfo, { borderColor: colors.border, backgroundColor: colors.card }]}>
+              <Feather name="award" size={15} color="#C8820A" />
+              <Text style={[s.hintText, { color: colors.mutedForeground }]}>
+                Relics are battle artifacts unlocked by climbing ranks. Equip one for a passive edge in every match.
+              </Text>
+            </View>
+
+            {/* No relic */}
+            <Pressable
+              onPress={() => handleEquipRelic('none')}
+              style={({ pressed }) => [s.relicCard, {
+                backgroundColor: profile.currentRelic === 'none' ? '#FFFFFF12' : colors.card,
+                borderColor: profile.currentRelic === 'none' ? colors.foreground : colors.border,
+                opacity: pressed ? 0.8 : 1,
+              }]}
+            >
+              <View style={[s.relicIconWrap, { backgroundColor: '#FFFFFF0A', borderColor: colors.border }]}>
+                <Feather name="slash" size={20} color={colors.mutedForeground} />
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text style={[s.relicName, { color: colors.foreground }]}>No Relic</Text>
+                <Text style={[s.relicDesc, { color: colors.mutedForeground }]}>Play with no passive ability equipped.</Text>
+              </View>
+              {profile.currentRelic === 'none'
+                ? <View style={[s.equippedBadge, { backgroundColor: colors.foreground }]}><Feather name="check" size={10} color="#0D0A06" /><Text style={s.equippedText}>ON</Text></View>
+                : <View style={[s.equipBtn, { borderColor: colors.border }]}><Text style={[s.equipBtnText, { color: colors.mutedForeground }]}>EQUIP</Text></View>}
+            </Pressable>
+
+            {RELICS.map(relic => {
+              const unlocked = playerRankIdx >= relic.unlockRankIndex;
+              const equipped = profile.currentRelic === relic.id;
+              const reqRank  = RANKS[relic.unlockRankIndex];
+              return (
+                <Pressable
+                  key={relic.id}
+                  disabled={!unlocked}
+                  onPress={() => handleEquipRelic(relic.id)}
+                  style={({ pressed }) => [s.relicCard, {
+                    backgroundColor: equipped ? relic.color + '18' : colors.card,
+                    borderColor: equipped ? relic.color : colors.border,
+                    opacity: !unlocked ? 0.5 : pressed ? 0.8 : 1,
+                  }]}
+                >
+                  <View style={[s.relicIconWrap, { backgroundColor: relic.color + '1A', borderColor: relic.color + '55' }]}>
+                    <Text style={s.relicIcon}>{relic.icon}</Text>
+                  </View>
+                  <View style={{ flex: 1, gap: 3 }}>
+                    <Text style={[s.relicName, { color: equipped ? relic.color : colors.foreground }]}>{relic.name}</Text>
+                    <Text style={[s.relicDesc, { color: colors.mutedForeground }]}>{relic.desc}</Text>
+                    {!unlocked && (
+                      <View style={s.relicLockRow}>
+                        <Feather name="lock" size={10} color={reqRank.color} />
+                        <Text style={[s.relicLockText, { color: reqRank.color }]}>Unlocks at {reqRank.name}</Text>
+                      </View>
+                    )}
+                  </View>
+                  {unlocked
+                    ? (equipped
+                        ? <View style={[s.equippedBadge, { backgroundColor: relic.color }]}><Feather name="check" size={10} color="#0D0A06" /><Text style={s.equippedText}>ON</Text></View>
+                        : <View style={[s.equipBtn, { borderColor: relic.color }]}><Text style={[s.equipBtnText, { color: relic.color }]}>EQUIP</Text></View>)
+                    : <Feather name="lock" size={16} color={colors.mutedForeground} />}
+                </Pressable>
+              );
+            })}
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -228,6 +307,16 @@ const s = StyleSheet.create({
   equipBtnText:{ fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 0.5 },
   hintCard:    { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 12, borderWidth: 1, padding: 12 },
   hintText:    { fontFamily: 'Inter_400Regular', fontSize: 12, flex: 1 },
+
+  // Relics
+  relicInfo:    { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 12, borderWidth: 1, padding: 12 },
+  relicCard:    { flexDirection: 'row', alignItems: 'center', borderRadius: 16, borderWidth: 1.5, padding: 12, gap: 12 },
+  relicIconWrap:{ width: 48, height: 48, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  relicIcon:    { fontSize: 24 },
+  relicName:    { fontFamily: 'Inter_700Bold', fontSize: 14 },
+  relicDesc:    { fontFamily: 'Inter_400Regular', fontSize: 11, lineHeight: 15 },
+  relicLockRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  relicLockText:{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 0.3 },
 
   emptyState:  { alignItems: 'center', paddingVertical: 60, gap: 10 },
   emptyTitle:  { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#FFFFFF44' },

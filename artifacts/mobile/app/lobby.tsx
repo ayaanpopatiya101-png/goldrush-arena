@@ -14,8 +14,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerCard } from '@/components/PlayerCard';
-import { RANKS, SKINS, usePlayer } from '@/context/PlayerContext';
-import { getGameConfig } from '@/store/gameSession';
+import { RANKS, SKINS, MAPS, getRankIndex, getRelic, usePlayer } from '@/context/PlayerContext';
+import { getGameConfig, updateGameConfig } from '@/store/gameSession';
 import { useColors } from '@/hooks/useColors';
 
 const BOT_POOL = [
@@ -27,12 +27,6 @@ const BOT_POOL = [
   { name: 'DarkMatter', rank: 'Silver', color: '#C0C0C0' },
   { name: 'PulseWave', rank: 'Diamond', color: '#FF00FF' },
   { name: 'GhostPing', rank: 'Bronze', color: '#CD7F32' },
-];
-
-const MAPS = [
-  { id: 'classic', name: 'Classic', desc: 'Standard arena' },
-  { id: 'narrow', name: 'Danger Zone', desc: 'Narrow arena, faster action' },
-  { id: 'power', name: 'Power Surge', desc: 'Extra power-ups spawn' },
 ];
 
 const VARIANT_META: Record<string, { emoji: string; name: string; color: string }> = {
@@ -120,10 +114,17 @@ export default function LobbyScreen() {
   const { profile } = usePlayer();
   const config = getGameConfig();
 
+  const playerRankIdx = getRankIndex(profile.rank);
+  const unlockedMaps  = MAPS.filter(m => playerRankIdx >= m.unlockRankIndex);
+  const defaultMapId  = unlockedMaps.length ? unlockedMaps[unlockedMaps.length - 1].id : MAPS[0].id;
+  const equippedRelic = getRelic(config.playerRelicId);
+
   const [bots, setBots] = useState<typeof BOT_POOL>([]);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [searching, setSearching] = useState(true);
-  const [selectedMap, setSelectedMap] = useState('classic');
+  const [selectedMap, setSelectedMap] = useState(defaultMapId);
+  const selectedMapRef = useRef(selectedMap);
+  selectedMapRef.current = selectedMap;
   const pulseAnim = useRef(new Animated.Value(0.5)).current;
 
   useEffect(() => {
@@ -157,6 +158,7 @@ export default function LobbyScreen() {
         if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         if (c <= 0) {
           clearInterval(cTimer);
+          updateGameConfig({ mapId: selectedMapRef.current });
           router.replace('/game');
         }
       }, 1000);
@@ -273,24 +275,50 @@ export default function LobbyScreen() {
 
         {/* Map select */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>MAP</Text>
-          <View style={styles.mapRow}>
-            {MAPS.map(map => (
-              <Pressable
-                key={map.id}
-                onPress={() => setSelectedMap(map.id)}
-                style={[styles.mapCard, {
-                  backgroundColor: selectedMap === map.id ? '#C8820A22' : colors.card,
-                  borderColor: selectedMap === map.id ? '#C8820A' : colors.border,
-                }]}
-              >
-                <Text style={[styles.mapName, { color: selectedMap === map.id ? '#C8820A' : colors.foreground }]}>
-                  {map.name}
-                </Text>
-                <Text style={[styles.mapDesc, { color: colors.mutedForeground }]}>{map.desc}</Text>
-              </Pressable>
-            ))}
+          <View style={styles.sectionHead}>
+            <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>ARENA</Text>
+            {equippedRelic && (
+              <View style={[styles.relicChip, { borderColor: equippedRelic.color + '66', backgroundColor: equippedRelic.color + '1A' }]}>
+                <Text style={{ fontSize: 11 }}>{equippedRelic.icon}</Text>
+                <Text style={[styles.relicChipText, { color: equippedRelic.color }]}>{equippedRelic.name}</Text>
+              </View>
+            )}
           </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 10, paddingVertical: 2, paddingRight: 8 }}
+          >
+            {MAPS.map(map => {
+              const unlocked = playerRankIdx >= map.unlockRankIndex;
+              const selected = selectedMap === map.id;
+              const reqRank  = RANKS[map.unlockRankIndex];
+              return (
+                <Pressable
+                  key={map.id}
+                  disabled={!unlocked}
+                  onPress={() => {
+                    setSelectedMap(map.id);
+                    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                  style={[styles.mapCard, {
+                    borderColor: selected ? map.accent : colors.border,
+                    opacity: unlocked ? 1 : 0.55,
+                  }]}
+                >
+                  <LinearGradient colors={map.arenaBg} style={StyleSheet.absoluteFill} />
+                  <Text style={styles.mapIcon}>{map.icon}</Text>
+                  <Text style={[styles.mapName, { color: selected ? map.accent : colors.foreground }]} numberOfLines={1}>{map.name}</Text>
+                  <Text style={[styles.mapDesc, { color: colors.mutedForeground }]} numberOfLines={3}>{map.desc}</Text>
+                  {unlocked
+                    ? (selected
+                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#0D0A06" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
+                        : <View style={[styles.mapBadge, { backgroundColor: '#FFFFFF14' }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
+                    : <View style={[styles.mapLockBadge, { borderColor: reqRank.color + '66' }]}><Feather name="lock" size={9} color={reqRank.color} /><Text style={[styles.mapLockText, { color: reqRank.color }]}>{reqRank.name}</Text></View>}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
         </View>
 
         {/* Game rules */}
@@ -333,14 +361,21 @@ const styles = StyleSheet.create({
   dot: { width: 8, height: 8, borderRadius: 4 },
   statusText: { fontFamily: 'Inter_500Medium', fontSize: 13 },
   section: { gap: 10 },
+  sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 11, letterSpacing: 1.5 },
   playersList: { gap: 8 },
   emptySlot: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 14, borderWidth: 1, borderStyle: 'dashed' },
   emptyText: { fontFamily: 'Inter_500Medium', fontSize: 13 },
-  mapRow: { flexDirection: 'row', gap: 8 },
-  mapCard: { flex: 1, padding: 10, borderRadius: 10, borderWidth: 1, gap: 2 },
-  mapName: { fontFamily: 'Inter_700Bold', fontSize: 12 },
-  mapDesc: { fontFamily: 'Inter_400Regular', fontSize: 10 },
+  mapCard: { width: 132, padding: 12, borderRadius: 14, borderWidth: 1.5, gap: 5, overflow: 'hidden' },
+  mapIcon: { fontSize: 26 },
+  mapName: { fontFamily: 'Inter_700Bold', fontSize: 13 },
+  mapDesc: { fontFamily: 'Inter_400Regular', fontSize: 10, lineHeight: 13, minHeight: 39 },
+  mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
+  mapBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#0D0A06', letterSpacing: 0.5 },
+  mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 6, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
+  mapLockText: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
+  relicChip: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
+  relicChipText: { fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 0.3 },
   rulesCard: { borderRadius: 14, borderWidth: 1, padding: 14, gap: 10 },
   rulesTitle: { fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1 },
   rulesList: { gap: 6 },

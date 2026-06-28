@@ -24,6 +24,88 @@ export const SKINS = [
   { id: 'cosmic',  name: 'Cosmic',   color: '#FF00FF', glowColor: '#FF00FF55', price: 500 },
 ];
 
+// ─── Rank helpers ─────────────────────────────────────────────────────────────
+/** Index of a rank name into RANKS. Unknown ranks (e.g. bot "Grandmaster") map to the top tier. */
+export function getRankIndex(rankName: string): number {
+  const i = RANKS.findIndex(r => r.name === rankName);
+  return i >= 0 ? i : RANKS.length - 1;
+}
+export const MAX_RANK_INDEX = RANKS.length - 1;
+
+// ─── Relics ───────────────────────────────────────────────────────────────────
+// Relics are battle artifacts unearthed in the GoldRush. Unlocked by RANK (not bought).
+// Each grants one passive ability that applies in-match to the player who equips it —
+// and to bots, who are assigned a relic appropriate to their own rank.
+export interface RelicEffect {
+  startShield?: boolean;       // begin the match with a shield active
+  paddleLenMult?: number;      // multiply paddle length
+  paddleSpeedMult?: number;    // multiply paddle movement speed
+  bonusLives?: number;         // extra starting lives
+  magnet?: boolean;            // power-ups drift toward the player's zone (human only)
+  deflectBoost?: number;       // multiply rebound speed on deflection
+  slowStartFrames?: number;    // slow ALL balls for the first N frames (human only)
+  revive?: number;             // revive once with this many lives when eliminated
+  shrinkImmune?: boolean;      // immune to the shrink trap
+}
+
+export interface Relic {
+  id: string;
+  name: string;
+  desc: string;
+  icon: string;
+  color: string;
+  unlockRankIndex: number;     // index into RANKS
+  effect: RelicEffect;
+}
+
+export const RELICS: Relic[] = [
+  { id: 'ironhide',    name: 'Ironhide',     icon: '🛡️', color: '#9AA0A6', unlockRankIndex: 0, desc: 'Begin every match with a shield already active.',                   effect: { startShield: true } },
+  { id: 'longarm',     name: 'Longarm',      icon: '📐', color: '#CD7F32', unlockRankIndex: 1, desc: 'Your paddle is 18% longer.',                                        effect: { paddleLenMult: 1.18 } },
+  { id: 'quicksilver', name: 'Quicksilver',  icon: '💨', color: '#C0C0C0', unlockRankIndex: 2, desc: 'Your paddle moves 18% faster.',                                     effect: { paddleSpeedMult: 1.18 } },
+  { id: 'secondwind',  name: 'Second Wind',  icon: '❤️', color: '#C8820A', unlockRankIndex: 3, desc: 'Start each match with +1 extra life.',                              effect: { bonusLives: 1 } },
+  { id: 'prospector',  name: 'Prospector',   icon: '🧲', color: '#D9A441', unlockRankIndex: 3, desc: 'Power-ups drift toward your zone.',                                 effect: { magnet: true } },
+  { id: 'aftershock',  name: 'Aftershock',   icon: '💥', color: '#1E8AAA', unlockRankIndex: 4, desc: 'Balls you deflect rebound 25% faster.',                             effect: { deflectBoost: 1.25 } },
+  { id: 'timewarp',    name: 'Time Warp',    icon: '⏳', color: '#B9F2FF', unlockRankIndex: 5, desc: 'All balls move 35% slower for the first 6 seconds.',                effect: { slowStartFrames: 360 } },
+  { id: 'bulwark',     name: 'Bulwark',      icon: '🪨', color: '#C03820', unlockRankIndex: 6, desc: 'Start with a shield and total immunity to shrink traps.',           effect: { startShield: true, shrinkImmune: true } },
+  { id: 'phoenix',     name: 'Phoenix',      icon: '🔥', color: '#FF6B35', unlockRankIndex: 6, desc: 'Revive once with 2 lives the first time you are eliminated.',       effect: { revive: 2 } },
+  { id: 'midas',       name: 'Midas Touch',  icon: '👑', color: '#FFD700', unlockRankIndex: 7, desc: 'Start with a shield, +1 life, and a 12% larger paddle.',            effect: { startShield: true, bonusLives: 1, paddleLenMult: 1.12 } },
+];
+
+export function getRelic(id: string | undefined | null): Relic | null {
+  if (!id || id === 'none') return null;
+  return RELICS.find(r => r.id === id) ?? null;
+}
+
+// ─── Maps (rank-unlocked arenas) ──────────────────────────────────────────────
+// Each map is a distinct arena with its own atmosphere. Higher ranks unlock more.
+// Maps drive the in-match background/atmosphere and apply light gameplay modifiers.
+export interface ArenaMap {
+  id: string;
+  name: string;
+  desc: string;
+  icon: string;
+  unlockRankIndex: number;
+  bg: [string, string, string];       // outer screen gradient
+  arenaBg: [string, string, string];  // inner arena gradient
+  accent: string;
+  mods?: { startSpeedMult?: number; ballSpawnFrames?: number; noPowerups?: boolean };
+}
+
+export const MAPS: ArenaMap[] = [
+  { id: 'dustbowl',     name: 'Dust Bowl',       icon: '🏜️', unlockRankIndex: 0, accent: '#C8820A', bg: ['#0D0A06','#181208','#0D0A06'], arenaBg: ['#0A0804','#1A1008','#0A0804'], desc: 'Sun-baked prospector flats where every legend begins.' },
+  { id: 'coppercanyon', name: 'Copper Canyon',   icon: '🪨', unlockRankIndex: 1, accent: '#D07018', bg: ['#120A04','#221206','#120A04'], arenaBg: ['#140A04','#241408','#140A04'], desc: 'Burnished canyon walls glowing in the dusk light.' },
+  { id: 'ironfoundry',  name: 'Iron Foundry',    icon: '⚙️', unlockRankIndex: 2, accent: '#C0C0C0', bg: ['#0A0A0C','#16161A','#0A0A0C'], arenaBg: ['#0C0C0E','#1A1A20','#0C0C0E'], desc: 'Molten steel runs hot — and the ball runs hotter.', mods: { startSpeedMult: 1.1 } },
+  { id: 'emeraldmire',  name: 'Emerald Mire',    icon: '☣️', unlockRankIndex: 3, accent: '#4A8A38', bg: ['#04120A','#08240F','#04120A'], arenaBg: ['#04140A','#082810','#04140A'], desc: 'A toxic swamp thick with salvage and danger.', mods: { ballSpawnFrames: 660 } },
+  { id: 'cobaltdepths', name: 'Cobalt Depths',   icon: '🔷', unlockRankIndex: 4, accent: '#1E8AAA', bg: ['#04101A','#06203A','#04101A'], arenaBg: ['#04121E','#063050','#04121E'], desc: 'Deep steel-blue caverns. Cold, fast, merciless.', mods: { startSpeedMult: 1.15 } },
+  { id: 'crimsonforge', name: 'Crimson Forge',   icon: '🔥', unlockRankIndex: 5, accent: '#C03820', bg: ['#1A0402','#300806','#1A0402'], arenaBg: ['#1E0604','#380A06','#1E0604'], desc: 'The anvil of champions, lit by iron-red flame.', mods: { ballSpawnFrames: 660, startSpeedMult: 1.1 } },
+  { id: 'obsidianspire',name: 'Obsidian Spire',  icon: '🌑', unlockRankIndex: 6, accent: '#7A50A0', bg: ['#0A0414','#160A28','#0A0414'], arenaBg: ['#0C0618','#1A0C30','#0C0618'], desc: 'A blackglass tower where only masters tread.', mods: { startSpeedMult: 1.2 } },
+  { id: 'motherlode',   name: 'The Mother Lode', icon: '👑', unlockRankIndex: 7, accent: '#FFD700', bg: ['#1A1200','#2A2000','#1A1200'], arenaBg: ['#1E1500','#322600','#1E1500'], desc: 'The legendary golden vault — winner takes everything.', mods: { startSpeedMult: 1.15, ballSpawnFrames: 720 } },
+];
+
+export function getMap(id: string | undefined | null): ArenaMap {
+  return MAPS.find(m => m.id === id) ?? MAPS[0];
+}
+
 export const ACHIEVEMENTS = [
   { id: 'first_win',  name: 'First Blood',    desc: 'Win your first match'           },
   { id: 'hat_trick',  name: 'Hat Trick',       desc: 'Deflect 10 balls in one match'  },
@@ -138,6 +220,8 @@ export interface PlayerProfile {
   // Arena theme
   ownedThemes: string[];
   currentArenaTheme: string;
+  // Equipped relic (rank-unlocked battle artifact); 'none' = no relic
+  currentRelic: string;
 }
 
 export interface MatchResult {
@@ -157,6 +241,7 @@ const DEFAULT_PROFILE: PlayerProfile = {
   seasonPassClaimed: [],
   competitiveLevel: 1, highestLevel: 1,
   ownedThemes: ['default'], currentArenaTheme: 'default',
+  currentRelic: 'none',
 };
 
 // ─── Halo-style level change calculator ───────────────────────────────────────
@@ -201,6 +286,7 @@ interface PlayerContextType {
   purchaseSkin: (skinId: string) => Promise<boolean>;
   equipSkin: (skinId: string) => Promise<void>;
   equipTheme: (themeId: string) => Promise<void>;
+  equipRelic: (relicId: string) => Promise<void>;
   addCoins: (amount: number) => Promise<void>;
   spendCoins: (amount: number) => Promise<boolean>;
   setAvatar: (emoji: string, color: string) => Promise<void>;
@@ -318,6 +404,14 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({ ...profile, currentArenaTheme: themeId });
   }, [profile, save]);
 
+  const equipRelic = useCallback(async (relicId: string) => {
+    if (relicId === 'none') { await save({ ...profile, currentRelic: 'none' }); return; }
+    const relic = RELICS.find(r => r.id === relicId);
+    if (!relic) return;
+    if (getRankIndex(profile.rank) < relic.unlockRankIndex) return; // not yet unlocked
+    await save({ ...profile, currentRelic: relicId });
+  }, [profile, save]);
+
   const addCoins  = useCallback(async (amount: number) => { await save({ ...profile, coins: profile.coins + amount }); }, [profile, save]);
   const spendCoins = useCallback(async (amount: number): Promise<boolean> => {
     if (profile.coins < amount) return false;
@@ -354,7 +448,7 @@ export function PlayerProvider({ username, onLogout, children }: {
   return (
     <PlayerContext.Provider value={{
       profile, isLoaded, currentUsername: username, showStreakModal, dismissStreakModal,
-      updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme,
+      updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic,
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, logout,
     }}>
       {children}

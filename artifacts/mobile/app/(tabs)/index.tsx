@@ -148,6 +148,7 @@ export default function HomeScreen() {
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
       playerColor: skin.color, playerGlowColor: skin.glowColor,
+      playerRelicId: profile.currentRelic,
       matchType, variant: 'classic',
     });
     router.push('/lobby');
@@ -158,6 +159,7 @@ export default function HomeScreen() {
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
       playerColor: skin.color, playerGlowColor: skin.glowColor,
+      playerRelicId: profile.currentRelic,
       matchType: 'casual', variant,
     });
     router.push('/lobby');

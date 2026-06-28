@@ -39,3 +39,12 @@ The `colors as Record<...>` cast must use `as unknown as Record<...>` due to the
 
 ## Extra lives (once per match)
 `extraLifeUsed` is a `useRef<boolean>` in `game.tsx`. When triggered it calls `grantExtraLifeRef.current?.()` three times (not once). The ref is never reset between mounts because the game screen is replaced on game-over.
+
+## Expo web preview: no direct URL deep-linking
+Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Expo web preview falls back to the home screen — expo-router routes here are only reachable via in-app navigation (on-screen buttons + bottom tab bar). When e2e-testing or screenshotting, drive the real UI flow (tap play → lobby → start); don't rely on deep links.
+
+## Relics / Maps / bot-scaling (rank-gated game modifiers)
+- `RelicEffect` is applied to a `PlayerRef` at mount via `applyRelicToPlayer`; bots get a rank-appropriate relic via `relicForRank(rank, botId)` (pool indexed by `botId % pool.length`, so it's an unlock bound, not escalating power).
+- **Defense-in-depth:** `game.tsx` re-validates `unlockRankIndex <= playerRankIdx` for both relic and map before passing into `GameArena` — UI gates aren't trusted alone. Any new rank-gated modifier should do the same final check.
+- Caps that exist for balance: paddle length 1.25×, `deflectBoost` 1.3×, `botAccuracy` 0.97, bot speed `0.7+0.4*skill`. Don't remove these silently.
+- Duel-mode rendering must reference `duelBottomPlayer`/`duelTopPlayer` (not `gs.players[BOTTOM/TOP]`) for paddle width/transform/shield, or a spectated bot-vs-bot duel shows the wrong paddle length/shield.

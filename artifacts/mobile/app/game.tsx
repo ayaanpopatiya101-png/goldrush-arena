@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
-import { usePlayer } from '@/context/PlayerContext';
+import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, MAPS } from '@/context/PlayerContext';
 import { getGameConfig } from '@/store/gameSession';
 import { useSettings } from '@/hooks/useSettings';
 
@@ -58,6 +58,24 @@ export default function GameScreen() {
   const arenaSize = Math.max(260, Math.min(width - 8, height - topPad - hudHeight, 410));
 
   const variantCfg = VARIANT_PROPS[config.variant ?? 'classic'] ?? {};
+
+  // Resolve the equipped relic, selected map, and rank-based bot skill.
+  // Final rank-gate (defense-in-depth): never honor a relic/map the player's rank
+  // hasn't unlocked, even if a stale/corrupt session id slips through the UI gates.
+  const playerRankIdx = getRankIndex(profile.rank);
+  const rawRelic = getRelic(config.playerRelicId);
+  const relic    = rawRelic && rawRelic.unlockRankIndex <= playerRankIdx ? rawRelic : null;
+  const rawMap   = getMap(config.mapId);
+  const map      = rawMap.unlockRankIndex <= playerRankIdx ? rawMap : MAPS[0];
+  const botSkill = playerRankIdx / MAX_RANK_INDEX;
+  const mapMods  = map.mods ?? {};
+  // Merge variant + map modifiers — variant rules always win over map mods.
+  const mergedCfg = {
+    ...variantCfg,
+    startSpeedMult:  variantCfg.startSpeedMult  ?? mapMods.startSpeedMult,
+    ballSpawnFrames: variantCfg.ballSpawnFrames ?? mapMods.ballSpawnFrames,
+    noPowerups:      variantCfg.noPowerups      ?? mapMods.noPowerups,
+  };
 
   const [gameOver,     setGameOver]     = useState(false);
   const [gameMode,     setGameMode]     = useState<GameMode>('square');
@@ -165,7 +183,7 @@ export default function GameScreen() {
   return (
     <View style={[styles.root, { paddingTop: topPad }]} onTouchStart={ensureMusic}>
       <LinearGradient
-        colors={gameMode === 'duel' ? ['#1A0000','#2A0010'] : gameMode === 'triangle' ? ['#001A05','#002A10'] : ['#04040E','#08081A']}
+        colors={map.bg}
         style={StyleSheet.absoluteFill}
       />
 
@@ -230,7 +248,10 @@ export default function GameScreen() {
             onActiveBallsChange={setActiveBalls}
             botDifficulty={botDifficulty}
             onGameStart={handleGameStart}
-            {...variantCfg}
+            playerRelic={relic?.effect}
+            botSkill={botSkill}
+            arenaBg={map.arenaBg}
+            {...mergedCfg}
           />
         )}
 

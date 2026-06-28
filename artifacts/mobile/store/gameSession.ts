@@ -17,6 +17,10 @@ export interface GameSessionConfig {
   playerGlowColor: string;
   matchType:       MatchType;
   variant:         GameVariant;
+  /** Equipped relic id (rank-unlocked battle artifact). 'none' = no relic. */
+  playerRelicId?:  string;
+  /** Selected arena map id (chosen in the lobby). */
+  mapId?:          string;
 }
 
 let _config: GameSessionConfig = {
@@ -26,10 +30,17 @@ let _config: GameSessionConfig = {
   playerGlowColor: '#FFD70055',
   matchType:       'ranked',
   variant:         'classic',
+  playerRelicId:   'none',
+  mapId:           'dustbowl',
 };
 
 export function setGameConfig(config: GameSessionConfig) {
   _config = { ...config };
+}
+
+/** Merge a partial update into the current config without clobbering other fields. */
+export function updateGameConfig(partial: Partial<GameSessionConfig>) {
+  _config = { ..._config, ...partial };
 }
 
 export function getGameConfig(): GameSessionConfig {

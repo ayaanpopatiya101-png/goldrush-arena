@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, Line, Polygon, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { getSettings } from '@/hooks/useSettings';
+import { RELICS, getRankIndex, type RelicEffect } from '@/context/PlayerContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const WALL_MARGIN = 24;
@@ -26,7 +27,7 @@ export type GameMode = 'square' | 'triangle' | 'duel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface BallRef   { id:number; x:number; y:number; vx:number; vy:number; radius:number; type:BallType; color:string; active:boolean }
-interface PlayerRef { id:number; name:string; paddleCenter:number; prevPaddleCenter:number; lives:number; isBot:boolean; isEliminated:boolean; score:number; color:string; glowColor:string; rank:string; botSpeed:number; botAccuracy:number; hasShield:boolean; speedBoostFrames:number; shrunkFrames:number }
+interface PlayerRef { id:number; name:string; paddleCenter:number; prevPaddleCenter:number; lives:number; isBot:boolean; isEliminated:boolean; score:number; color:string; glowColor:string; rank:string; botSpeed:number; botAccuracy:number; hasShield:boolean; speedBoostFrames:number; shrunkFrames:number; relicEffect:RelicEffect; paddleLenMult:number; paddleSpeedMult:number; reviveLives:number; shrinkImmune:boolean }
 interface PowerUpRef { id:number; x:number; y:number; type:PowerUpType; active:boolean }
 interface FloatingEmoji { id:number; emoji:string; x:number; anim:Animated.Value }
 interface Spark { id:number; x:number; y:number; color:string; dx:number; dy:number; anim:Animated.Value; tAnim:Animated.Value }
@@ -87,6 +88,12 @@ interface GameArenaProps {
   duoMode?: boolean;
   /** 6-player mode: top & bottom walls each split into left/right halves, giving 6 independent zones. */
   sixPlayer?: boolean;
+  /** Relic effect equipped by the human player (applied in-match). */
+  playerRelic?: RelicEffect;
+  /** 0..1 skill scalar from the human's rank; scales bot speed & accuracy. */
+  botSkill?: number;
+  /** Inner arena gradient from the selected map; falls back to mode-based. */
+  arenaBg?: [string, string, string];
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
@@ -108,7 +115,30 @@ function clampPaddle(v: number, len: number, sz: number) {
 function clampPaddleRange(v: number, len: number, minX: number, maxX: number) {
   return Math.max(minX + len/2 + 2, Math.min(maxX - len/2 - 2, v));
 }
-function getPaddleLen(p: PlayerRef) { return p.shrunkFrames > 0 ? PADDLE_LENGTH * 0.52 : PADDLE_LENGTH; }
+function getPaddleLen(p: PlayerRef) {
+  const mult = Math.min(p.paddleLenMult ?? 1, 1.25);
+  return (p.shrunkFrames > 0 ? PADDLE_LENGTH * 0.52 : PADDLE_LENGTH) * mult;
+}
+
+// ── Relic application (shared by human & bots) ──
+function applyRelicToPlayer(p: PlayerRef, effect: RelicEffect | null | undefined) {
+  if (!effect) return;
+  p.relicEffect = effect;
+  if (effect.startShield)     p.hasShield       = true;
+  if (effect.bonusLives)      p.lives          += effect.bonusLives;
+  if (effect.paddleLenMult)   p.paddleLenMult   = Math.min(effect.paddleLenMult, 1.25);
+  if (effect.paddleSpeedMult) p.paddleSpeedMult = Math.min(effect.paddleSpeedMult, 1.25);
+  if (effect.revive)          p.reviveLives     = effect.revive;
+  if (effect.shrinkImmune)    p.shrinkImmune    = true;
+}
+
+// Pick a rank-appropriate relic for a bot (variety via bot id).
+function relicForRank(rankName: string, botId: number): RelicEffect | null {
+  const idx  = getRankIndex(rankName);
+  const pool = RELICS.filter(r => r.unlockRankIndex <= idx);
+  if (!pool.length) return null;
+  return pool[botId % pool.length].effect;
+}
 
 // ─── Colour-board base hues (opacity applied dynamically in render) ────────────
 const COLOR_BOARD_COLORS = [
@@ -124,6 +154,7 @@ export function GameArena({
   colorBoard = true, soundEnabled = true,
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
   initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult, duoMode, sixPlayer,
+  playerRelic, botSkill, arenaBg,
 }: GameArenaProps) {
 
   const szRef = useRef(arenaSize);
@@ -312,14 +343,35 @@ export function GameArena({
     speedMultiplier: startSpeedMultVal, winner: null, phase: 'countdown', gameMode: 'square',
     duelTopId: TOP, duelBottomId: BOTTOM, duelFrames: 0,
     players: [
-      { id:BOTTOM,   name:playerName,              paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:false, isEliminated:false,              score:0, color:playerColor,      glowColor:playerGlowColor, rank:'Gold',              botSpeed:0,   botAccuracy:1,    hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
-      { id:TOP,      name:botNames[0]??'Blaze_99',  paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[1], glowColor:PLAYER_GLOW[1],  rank:botRanks[0]??'Platinum',     botSpeed:4.8, botAccuracy:0.86, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
-      { id:LEFT,     name:botNames[1]??'IceQueen',  paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[2], glowColor:PLAYER_GLOW[2],  rank:botRanks[1]??'Diamond',      botSpeed:5.2, botAccuracy:0.88, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
-      { id:RIGHT,    name:botNames[2]??'Venom_X',   paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[3], glowColor:PLAYER_GLOW[3],  rank:botRanks[2]??'Master',       botSpeed:5.6, botAccuracy:0.91, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
-      { id:BOTTOM_R, name:botNames[3]??'ShadowFox', paddleCenter:arenaSize*3/4,                                prevPaddleCenter:arenaSize*3/4,                                lives:initialLivesVal, isBot:true,  isEliminated:!(sixPlayer??false), score:0, color:PLAYER_COLORS[4], glowColor:PLAYER_GLOW[4],  rank:botRanks[3]??'Legend',       botSpeed:4.6, botAccuracy:0.84, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
-      { id:TOP_R,    name:botNames[4]??'CyberWolf',  paddleCenter:arenaSize*3/4,                                prevPaddleCenter:arenaSize*3/4,                                lives:initialLivesVal, isBot:true,  isEliminated:!(sixPlayer??false), score:0, color:PLAYER_COLORS[5], glowColor:PLAYER_GLOW[5],  rank:botRanks[4]??'Grandmaster', botSpeed:5.0, botAccuracy:0.87, hasShield:false, speedBoostFrames:0, shrunkFrames:0 },
+      { id:BOTTOM,   name:playerName,              paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:false, isEliminated:false,              score:0, color:playerColor,      glowColor:playerGlowColor, rank:'Gold',              botSpeed:0,   botAccuracy:1,    hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      { id:TOP,      name:botNames[0]??'Blaze_99',  paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[1], glowColor:PLAYER_GLOW[1],  rank:botRanks[0]??'Platinum',     botSpeed:4.8, botAccuracy:0.86, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      { id:LEFT,     name:botNames[1]??'IceQueen',  paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[2], glowColor:PLAYER_GLOW[2],  rank:botRanks[1]??'Diamond',      botSpeed:5.2, botAccuracy:0.88, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      { id:RIGHT,    name:botNames[2]??'Venom_X',   paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[3], glowColor:PLAYER_GLOW[3],  rank:botRanks[2]??'Master',       botSpeed:5.6, botAccuracy:0.91, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      { id:BOTTOM_R, name:botNames[3]??'ShadowFox', paddleCenter:arenaSize*3/4,                                prevPaddleCenter:arenaSize*3/4,                                lives:initialLivesVal, isBot:true,  isEliminated:!(sixPlayer??false), score:0, color:PLAYER_COLORS[4], glowColor:PLAYER_GLOW[4],  rank:botRanks[3]??'Legend',       botSpeed:4.6, botAccuracy:0.84, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      { id:TOP_R,    name:botNames[4]??'CyberWolf',  paddleCenter:arenaSize*3/4,                                prevPaddleCenter:arenaSize*3/4,                                lives:initialLivesVal, isBot:true,  isEliminated:!(sixPlayer??false), score:0, color:PLAYER_COLORS[5], glowColor:PLAYER_GLOW[5],  rank:botRanks[4]??'Grandmaster', botSpeed:5.0, botAccuracy:0.87, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
     ],
   });
+
+  // ── Apply relics & bot-skill scaling on mount ──
+  const slowStartFramesRef = useRef(0);
+  useEffect(() => {
+    const gs = gsRef.current;
+    // Human relic (from props) + Time-Warp slow-start window.
+    applyRelicToPlayer(gs.players[BOTTOM], playerRelic);
+    slowStartFramesRef.current = playerRelic?.slowStartFrames ?? 0;
+    // Bots: rank-appropriate relic + difficulty scaled by the human's rank.
+    const skill = Math.max(0, Math.min(1, botSkill ?? 0));
+    for (const pid of [TOP, LEFT, RIGHT, BOTTOM_R, TOP_R]) {
+      const bot = gs.players[pid];
+      applyRelicToPlayer(bot, relicForRank(bot.rank, bot.id));
+      bot.botSpeed    = bot.botSpeed * (0.7 + 0.4 * skill);
+      bot.botAccuracy = Math.min(0.97, bot.botAccuracy * (0.85 + 0.2 * skill));
+    }
+    // Reflect starting shields / bonus lives in the UI.
+    setShieldActive(gs.players.map(p => p.hasShield));
+    setLivesState(gs.players.map(p => p.lives));
+    onPlayerLivesChange?.(gs.players[BOTTOM].lives);
+  }, []);
 
   // ── Helpers ──
   function showAnnouncer(text: string) {
@@ -547,6 +599,17 @@ export function GameArena({
     showAnnouncer(msgs[Math.floor(Math.random() * msgs.length)]);
 
     if (player.lives <= 0) {
+      // Phoenix relic: revive once instead of being eliminated.
+      if (player.reviveLives > 0) {
+        player.lives = player.reviveLives;
+        player.reviveLives = 0;
+        player.hasShield = true;
+        setLivesState(gs.players.map(p => p.lives));
+        setShieldActive(prev => { const n = [...prev]; n[player.id] = true; return n; });
+        if (playerId === BOTTOM) onPlayerLivesChange?.(player.lives);
+        showAnnouncer(playerId === BOTTOM ? '🔥 PHOENIX REVIVE!' : `${player.name} REVIVED!`);
+        return;
+      }
       player.isEliminated = true;
       if (playerId !== BOTTOM) finishPositionRef.current = Math.max(2, finishPositionRef.current - 1);
       else {
@@ -582,7 +645,7 @@ export function GameArena({
     switch (type) {
       case 'shield':     player.hasShield = true; setShieldActive(prev=>{const n=[...prev];n[player.id]=true;return n;}); showAnnouncer('🛡 SHIELD ACTIVATED!'); break;
       case 'speed':      player.speedBoostFrames = 360; showAnnouncer('⚡ SPEED BOOST!'); break;
-      case 'shrink':     for (const p of gs.players) { if (p.id !== player.id) p.shrunkFrames = 420; } showAnnouncer('⬇ OPPONENTS SHRUNK!'); break;
+      case 'shrink':     for (const p of gs.players) { if (p.id !== player.id && !p.shrinkImmune) p.shrunkFrames = 420; } showAnnouncer('⬇ OPPONENTS SHRUNK!'); break;
       case 'extralife':  player.lives = Math.min(player.lives+1,9); setLivesState(gs.players.map(p=>p.lives)); onPlayerLivesChange?.(player.lives); showAnnouncer('❤ EXTRA LIFE!'); break;
       case 'multiball':  spawnBall(gs, size); showAnnouncer('⚽ MULTIBALL!'); break;
     }
@@ -639,10 +702,12 @@ export function GameArena({
     const duelHuman = isDuel ? gs.players[gs.duelBottomId] : gs.players[BOTTOM];
 
     // ── Ball physics ──
+    // Time-Warp relic slows all balls during the opening window.
+    const slowF = gs.frame < slowStartFramesRef.current ? 0.65 : 1;
     for (let i = 0; i < gs.balls.length; i++) {
       const ball = gs.balls[i];
       if (!ball.active) continue;
-      ball.x += ball.vx; ball.y += ball.vy;
+      ball.x += ball.vx * slowF; ball.y += ball.vy * slowF;
 
       // ─ BOTTOM wall ─
       if (ball.y + ball.radius >= GYB) {
@@ -654,7 +719,8 @@ export function GameArena({
         const hit  = !defender.isEliminated && ball.x >= pc - pLen/2 && ball.x <= pc + pLen/2;
         if (hit) {
           const pv = defender.paddleCenter - defender.prevPaddleCenter;
-          ball.vy  = -(Math.abs(ball.vy) + 0.12);
+          const boost = Math.min(defender.relicEffect.deflectBoost ?? 1, 1.3);
+          ball.vy  = -(Math.abs(ball.vy) + 0.12) * boost;
           ball.vx += pv * 0.4;
           defender.score++; deflectionsRef.current++;
           if (defender.id === BOTTOM) recordCombo();
@@ -675,7 +741,8 @@ export function GameArena({
         const hit  = !defender.isEliminated && ball.x >= pc - pLen/2 && ball.x <= pc + pLen/2;
         if (hit) {
           const pv = defender.paddleCenter - defender.prevPaddleCenter;
-          ball.vy  = Math.abs(ball.vy) + 0.12;
+          const boost = Math.min(defender.relicEffect.deflectBoost ?? 1, 1.3);
+          ball.vy  = (Math.abs(ball.vy) + 0.12) * boost;
           ball.vx += pv * 0.4;
           defender.score++;
         } else {
@@ -691,7 +758,7 @@ export function GameArena({
           const p    = gs.players[LEFT];
           const pLen = getPaddleLen(p);
           const hit  = ball.y >= p.paddleCenter - pLen/2 && ball.y <= p.paddleCenter + pLen/2;
-          if (hit) { const pv = p.paddleCenter - p.prevPaddleCenter; ball.vx = Math.abs(ball.vx)+0.12; ball.vy += pv*0.4; p.score++; }
+          if (hit) { const pv = p.paddleCenter - p.prevPaddleCenter; const boost = Math.min(p.relicEffect.deflectBoost ?? 1, 1.3); ball.vx = (Math.abs(ball.vx)+0.12)*boost; ball.vy += pv*0.4; p.score++; }
           else     { ball.vx = Math.abs(ball.vx); handleGoal(gs, LEFT); }
         } else {
           ball.vx = Math.abs(ball.vx); // bounce — duel side wall
@@ -705,7 +772,7 @@ export function GameArena({
           const p    = gs.players[RIGHT];
           const pLen = getPaddleLen(p);
           const hit  = ball.y >= p.paddleCenter - pLen/2 && ball.y <= p.paddleCenter + pLen/2;
-          if (hit) { const pv = p.paddleCenter - p.prevPaddleCenter; ball.vx = -(Math.abs(ball.vx)+0.12); ball.vy += pv*0.4; p.score++; }
+          if (hit) { const pv = p.paddleCenter - p.prevPaddleCenter; const boost = Math.min(p.relicEffect.deflectBoost ?? 1, 1.3); ball.vx = -(Math.abs(ball.vx)+0.12)*boost; ball.vy += pv*0.4; p.score++; }
           else     { ball.vx = -Math.abs(ball.vx); handleGoal(gs, RIGHT); }
         } else {
           ball.vx = -Math.abs(ball.vx);
@@ -734,7 +801,7 @@ export function GameArena({
           const target    = getBotTarget('top', gs.balls, size);
           const inaccuracy = (1 - duelBot.botAccuracy) * 24 * (Math.random() - 0.5);
           const adj = target + inaccuracy;
-          const spd = duelBot.speedBoostFrames > 0 ? duelBot.botSpeed * 1.5 : duelBot.botSpeed;
+          const spd = (duelBot.speedBoostFrames > 0 ? duelBot.botSpeed * 1.5 : duelBot.botSpeed) * duelBot.paddleSpeedMult;
           const diff = adj - duelBot.paddleCenter;
           const move = Math.sign(diff) * Math.min(Math.abs(diff), spd);
           duelBot.prevPaddleCenter = duelBot.paddleCenter;
@@ -746,7 +813,7 @@ export function GameArena({
           const target    = getBotTarget('bottom', gs.balls, size);
           const inaccuracy = (1 - duelHuman.botAccuracy) * 24 * (Math.random() - 0.5);
           const adj = target + inaccuracy;
-          const spd = duelHuman.botSpeed;
+          const spd = duelHuman.botSpeed * duelHuman.paddleSpeedMult;
           const diff = adj - duelHuman.paddleCenter;
           const move = Math.sign(diff) * Math.min(Math.abs(diff), spd);
           duelHuman.prevPaddleCenter = duelHuman.paddleCenter;
@@ -765,7 +832,7 @@ export function GameArena({
           const diffMult = botDifficultyRef.current === 'easy' ? 0.62 : 1.0;
           const inaccuracy = (1 - bot.botAccuracy) * 22 * (Math.random() - 0.5) * (botDifficultyRef.current === 'easy' ? 2.2 : 1.0);
           const adj = target + inaccuracy;
-          const spd = (bot.speedBoostFrames > 0 ? bot.botSpeed * 1.5 : bot.botSpeed) * diffMult;
+          const spd = (bot.speedBoostFrames > 0 ? bot.botSpeed * 1.5 : bot.botSpeed) * diffMult * bot.paddleSpeedMult;
           const diff = adj - bot.paddleCenter;
           const move = Math.sign(diff) * Math.min(Math.abs(diff), spd);
           bot.prevPaddleCenter = bot.paddleCenter;
@@ -787,7 +854,7 @@ export function GameArena({
             const target    = Math.max(rawTarget, size / 2); // clamp to right half
             const inaccuracy = (1 - bot.botAccuracy) * 22 * (Math.random() - 0.5);
             const adj  = target + inaccuracy;
-            const spd  = bot.speedBoostFrames > 0 ? bot.botSpeed * 1.5 : bot.botSpeed;
+            const spd  = (bot.speedBoostFrames > 0 ? bot.botSpeed * 1.5 : bot.botSpeed) * bot.paddleSpeedMult;
             const diff = adj - bot.paddleCenter;
             const move = Math.sign(diff) * Math.min(Math.abs(diff), spd);
             bot.prevPaddleCenter = bot.paddleCenter;
@@ -815,6 +882,20 @@ export function GameArena({
     if (!noPowerupsRef.current && gs.frame >= gs.nextPowerupFrame && gs.powerups.filter(p => p.active).length < 3) {
       spawnPowerup(gs, size);
       gs.nextPowerupFrame = gs.frame + POWERUP_SPAWN_FRAMES + Math.floor(Math.random() * 120);
+    }
+
+    // ── Magnet relic (human only): pull power-ups toward the paddle ──
+    if (!p0.isEliminated && p0.relicEffect.magnet) {
+      const tx = p0.paddleCenter;
+      const ty = size - WALL_MARGIN - 40;
+      let moved = false;
+      for (const pu of gs.powerups) {
+        if (!pu.active) continue;
+        pu.x += (tx - pu.x) * 0.05;
+        pu.y += (ty - pu.y) * 0.05;
+        moved = true;
+      }
+      if (moved && gs.frame % 3 === 0) setPowerUpsUI([...gs.powerups]);
     }
 
     // ── Human collects power-ups ──
@@ -847,7 +928,7 @@ export function GameArena({
         p0.prevPaddleCenter = p0.paddleCenter;
         const sz = szRef.current;
         const cx = sz / 2;
-        const raw = cx + (x - cx) * sensitivityRef.current;
+        const raw = cx + (x - cx) * sensitivityRef.current * p0.paddleSpeedMult;
         p0.paddleCenter = sixPlayerRef.current
           ? clampPaddleRange(raw, getPaddleLen(p0), WALL_MARGIN, sz / 2)
           : clampPaddle(raw, getPaddleLen(p0), sz);
@@ -861,7 +942,7 @@ export function GameArena({
         p0.prevPaddleCenter = p0.paddleCenter;
         const sz = szRef.current;
         const cx = sz / 2;
-        const raw = cx + (x - cx) * sensitivityRef.current;
+        const raw = cx + (x - cx) * sensitivityRef.current * p0.paddleSpeedMult;
         p0.paddleCenter = sixPlayerRef.current
           ? clampPaddleRange(raw, getPaddleLen(p0), WALL_MARGIN, sz / 2)
           : clampPaddle(raw, getPaddleLen(p0), sz);
@@ -906,7 +987,7 @@ export function GameArena({
 
   // ─── Derived display values ──────────────────────────────────────────────────
   const gs         = gsRef.current;
-  const bgColors   = ARENA_BG[gameMode];
+  const bgColors   = arenaBg ?? ARENA_BG[gameMode];
   const CX         = arenaSize / 2;
   const CY         = arenaSize / 2;
   const isDuel     = gameMode === 'duel';
@@ -1060,11 +1141,11 @@ export function GameArena({
         {/* Paddles */}
         {/* Bottom */}
         <Animated.View style={[s.paddle, {
-          width:getPaddleLen(gs.players[BOTTOM]), height:PADDLE_THICKNESS,
+          width:getPaddleLen(isDuel ? duelBottomPlayer : gs.players[BOTTOM]), height:PADDLE_THICKNESS,
           bottom:WALL_MARGIN-PADDLE_THICKNESS/2, left:0,
-          backgroundColor: shieldActive[0] ? '#C8820A' : (isDuel ? duelBottomPlayer.color : gs.players[BOTTOM].color),
+          backgroundColor: (isDuel ? shieldActive[duelBottomPlayer.id] : shieldActive[0]) ? '#C8820A' : (isDuel ? duelBottomPlayer.color : gs.players[BOTTOM].color),
           shadowColor: isDuel ? duelBottomPlayer.color : gs.players[BOTTOM].color,
-          transform:[{ translateX:Animated.subtract(paddleAnims[BOTTOM], getPaddleLen(gs.players[BOTTOM])/2) }],
+          transform:[{ translateX:Animated.subtract(paddleAnims[BOTTOM], getPaddleLen(isDuel ? duelBottomPlayer : gs.players[BOTTOM])/2) }],
         }]} />
         {/* Top — in duel, uses duelTopPlayer's color; always shown in duel */}
         {(isDuel || !gs.players[TOP].isEliminated) && (
