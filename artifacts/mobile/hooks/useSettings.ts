@@ -8,6 +8,8 @@ export interface AppSettings {
   soundEnabled:  boolean;
   sensitivity:   number;    // 0.5 | 1.0 | 1.5
   colorBoard:    boolean;   // color-shifting board
+  showEmojis:    boolean;   // floating goal emojis
+  screenShake:   boolean;   // arena shake on goal
 }
 
 const DEFAULTS: AppSettings = {
@@ -15,6 +17,8 @@ const DEFAULTS: AppSettings = {
   soundEnabled: true,
   sensitivity:  1.0,
   colorBoard:   true,
+  showEmojis:   true,
+  screenShake:  true,
 };
 
 let _cached: AppSettings = { ...DEFAULTS };

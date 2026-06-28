@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, Line, Polygon, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { getSettings } from '@/hooks/useSettings';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const WALL_MARGIN = 24;
@@ -535,8 +536,8 @@ export function GameArena({
     if (playerId === BOTTOM) { goalsAgainstRef.current++; onPlayerLivesChange?.(player.lives); }
     setLivesState(gs.players.map(p => p.lives));
     triggerFlash(player.color);
-    triggerShake();
-    addEmoji(szRef.current * (0.25 + Math.random() * 0.5));
+    if (getSettings().screenShake) triggerShake();
+    if (getSettings().showEmojis)  addEmoji(szRef.current * (0.25 + Math.random() * 0.5));
     // Spark burst at the ball's current position
     const hitBall = gs.balls.find(b => b.active);
     if (hitBall) spawnSparks(hitBall.x, hitBall.y, player.color);

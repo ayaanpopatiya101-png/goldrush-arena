@@ -150,6 +150,34 @@ export default function SettingsScreen() {
                 />
               }
             />
+            <View style={s.divider} />
+            <SettingRow
+              icon="smile"
+              title="Goal Emojis"
+              subtitle="Floating emojis when a goal is scored"
+              right={
+                <Switch
+                  value={settings.showEmojis}
+                  onValueChange={v => updateSetting('showEmojis', v)}
+                  trackColor={{ false: '#FFFFFF22', true: '#C8820A55' }}
+                  thumbColor={settings.showEmojis ? '#C8820A' : '#888'}
+                />
+              }
+            />
+            <View style={s.divider} />
+            <SettingRow
+              icon="zap"
+              title="Screen Shake"
+              subtitle="Arena shakes on every goal"
+              right={
+                <Switch
+                  value={settings.screenShake}
+                  onValueChange={v => updateSetting('screenShake', v)}
+                  trackColor={{ false: '#FFFFFF22', true: '#C8820A55' }}
+                  thumbColor={settings.screenShake ? '#C8820A' : '#888'}
+                />
+              }
+            />
           </View>
         </View>
 
