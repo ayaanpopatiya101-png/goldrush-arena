@@ -118,6 +118,30 @@ export function getRelicUpgradeCost(currentLevel: number): number {
   return RELIC_UPGRADE_COSTS[currentLevel - 1] ?? 0;
 }
 
+// ─── Reward multipliers ─────────────────────────────────────────────────────
+// Streak bonus: each consecutive win pumps up XP & coins earned (wins only).
+// Streak is the count BEFORE this match is recorded (0 = first win).
+export function getStreakMultiplier(winStreak: number, won: boolean): number {
+  if (!won) return 1.0;
+  if (winStreak <= 0) return 1.0;
+  if (winStreak === 1) return 1.25;
+  if (winStreak === 2) return 1.5;
+  if (winStreak === 3) return 1.75;
+  return 2.0; // 4+ streak
+}
+
+// Difficulty bonus: harder mode = bigger reward. Casual is discounted.
+// variant is the game-mode key ('classic', 'rumble', 'chaos', 'six_player').
+export function getDifficultyMultiplier(variant: string | undefined, matchType: string): number {
+  if (matchType === 'casual') return 0.8;
+  switch (variant) {
+    case 'six_player': return 1.75;
+    case 'chaos':      return 1.5;
+    case 'rumble':     return 1.2;
+    default:           return 1.0;  // classic ranked
+  }
+}
+
 function lerpR(a: number, b: number, level: number): number {
   const t = (Math.max(1, Math.min(RELIC_MAX_LEVEL, level)) - 1) / (RELIC_MAX_LEVEL - 1);
   return a + (b - a) * t;

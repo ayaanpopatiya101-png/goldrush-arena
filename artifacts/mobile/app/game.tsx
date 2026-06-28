@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
-import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, MAPS, getScaledRelicEffect, getRelicLevel } from '@/context/PlayerContext';
+import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, MAPS, getScaledRelicEffect, getRelicLevel, getStreakMultiplier, getDifficultyMultiplier } from '@/context/PlayerContext';
 import { getGameConfig } from '@/store/gameSession';
 import { useSettings } from '@/hooks/useSettings';
 
@@ -147,9 +147,15 @@ export default function GameScreen() {
     setGameOver(true);
     setTimerRunning(false);
     music.stop();
-    const mt = (config.matchType as 'ranked' | 'casual') ?? 'casual';
+    const mt          = (config.matchType as 'ranked' | 'casual') ?? 'casual';
+    const variant     = config.variant ?? 'classic';
+    const streakMult  = getStreakMultiplier(profile.winStreak, result.won);
+    const diffMult    = getDifficultyMultiplier(variant, mt);
+    const totalMult   = streakMult * diffMult;
+    const finalXP     = Math.round(result.xpEarned * totalMult);
+    const finalCoins  = Math.round(result.coinsEarned * totalMult);
     addMatchResult({
-      won: result.won, xpEarned: result.xpEarned, coinsEarned: result.coinsEarned,
+      won: result.won, xpEarned: finalXP, coinsEarned: finalCoins,
       deflections: result.deflections, goalsAgainst: result.goalsAgainst,
       position: result.position, matchType: mt,
     });
@@ -160,10 +166,14 @@ export default function GameScreen() {
         position: String(result.position),
         deflections: String(result.deflections),
         goalsAgainst: String(result.goalsAgainst),
-        xpEarned: String(result.xpEarned),
-        coinsEarned: String(result.coinsEarned),
+        xpEarned: String(finalXP),
+        coinsEarned: String(finalCoins),
         matchType: mt,
         levelBefore: String(profile.competitiveLevel),
+        streakMult: String(streakMult),
+        diffMult: String(diffMult),
+        winStreak: String(profile.winStreak),
+        variant,
       },
     });
   }

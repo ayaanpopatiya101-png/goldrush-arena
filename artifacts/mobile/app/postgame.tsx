@@ -17,6 +17,7 @@ export default function PostGameScreen() {
     won: string; position: string; deflections: string;
     goalsAgainst: string; xpEarned: string; coinsEarned: string;
     matchType: string; levelBefore: string;
+    streakMult: string; diffMult: string; winStreak: string; variant: string;
   }>();
   const { profile, unlockAchievement } = usePlayer();
 
@@ -26,8 +27,13 @@ export default function PostGameScreen() {
   const goalsAgainst = parseInt(params.goalsAgainst ?? '0', 10);
   const xpEarned = parseInt(params.xpEarned ?? '50', 10);
   const coinsEarned = parseInt(params.coinsEarned ?? '15', 10);
-  const matchType = params.matchType ?? 'casual';
+  const matchType   = params.matchType ?? 'casual';
   const levelBefore = parseInt(params.levelBefore ?? String(profile.competitiveLevel ?? 1), 10);
+  const streakMult  = parseFloat(params.streakMult ?? '1');
+  const diffMult    = parseFloat(params.diffMult ?? '1');
+  const winStreak   = parseInt(params.winStreak ?? '0', 10);
+  const variant     = params.variant ?? 'classic';
+  const hasBonus    = streakMult > 1.0 || diffMult !== 1.0;
   const levelAfter  = profile.competitiveLevel ?? 1;
   const levelDelta  = levelAfter - levelBefore;
 
@@ -140,6 +146,51 @@ export default function PostGameScreen() {
             ))}
           </View>
         </View>
+
+        {/* Reward multiplier breakdown */}
+        {hasBonus && (
+          <View style={[styles.bonusCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.bonusTitle, { color: colors.mutedForeground }]}>REWARD MULTIPLIERS</Text>
+            <View style={styles.bonusRows}>
+              {/* Difficulty multiplier */}
+              {(() => {
+                const label = matchType === 'casual' ? 'Casual Mode'
+                  : variant === 'six_player' ? '6-Player'
+                  : variant === 'chaos'      ? 'Chaos Mode'
+                  : variant === 'rumble'     ? 'Rumble Mode'
+                  : 'Ranked Classic';
+                const color = diffMult >= 1.5 ? '#FF4757' : diffMult >= 1.2 ? '#FF6B35' : diffMult >= 1.0 ? '#C8820A' : '#8B8B8B';
+                const icon  = diffMult >= 1.5 ? '🔴' : diffMult >= 1.2 ? '🟠' : diffMult >= 1.0 ? '🟡' : '⚪';
+                return (
+                  <View style={styles.bonusRow}>
+                    <Text style={styles.bonusIcon}>{icon}</Text>
+                    <Text style={[styles.bonusLabel, { color: colors.foreground }]}>{label}</Text>
+                    <Text style={[styles.bonusMult, { color }]}>{diffMult < 1 ? '−' : ''}{Math.round(Math.abs(diffMult - 1) * 100)}%</Text>
+                  </View>
+                );
+              })()}
+              {/* Streak multiplier */}
+              {streakMult > 1.0 && (
+                <View style={styles.bonusRow}>
+                  <Text style={styles.bonusIcon}>🔥</Text>
+                  <Text style={[styles.bonusLabel, { color: colors.foreground }]}>
+                    {winStreak + 1}-Win Streak
+                  </Text>
+                  <Text style={[styles.bonusMult, { color: '#FF6B35' }]}>
+                    +{Math.round((streakMult - 1) * 100)}%
+                  </Text>
+                </View>
+              )}
+              {/* Total */}
+              <View style={[styles.bonusTotalRow, { borderTopColor: colors.border }]}>
+                <Text style={[styles.bonusTotalLabel, { color: colors.mutedForeground }]}>Total multiplier</Text>
+                <Text style={[styles.bonusTotalMult, { color: '#C8820A' }]}>
+                  {(streakMult * diffMult).toFixed(2)}×
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* XP Progress */}
         {showXP && (
@@ -277,5 +328,15 @@ const styles = StyleSheet.create({
   playAgainGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 8 },
   playAgainText: { color: '#080814', fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 1 },
   homeBtn: { width: 54, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  bonusCard:      { borderRadius: 16, borderWidth: 1, padding: 14, gap: 10 },
+  bonusTitle:     { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.2 },
+  bonusRows:      { gap: 8 },
+  bonusRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  bonusIcon:      { fontSize: 16, width: 22, textAlign: 'center' },
+  bonusLabel:     { flex: 1, fontFamily: 'Inter_400Regular', fontSize: 13 },
+  bonusMult:      { fontFamily: 'Inter_700Bold', fontSize: 13 },
+  bonusTotalRow:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, paddingTop: 8, marginTop: 2 },
+  bonusTotalLabel:{ fontFamily: 'Inter_600SemiBold', fontSize: 12 },
+  bonusTotalMult: { fontFamily: 'Inter_700Bold', fontSize: 15 },
   streakText: { textAlign: 'center', fontFamily: 'Inter_600SemiBold', fontSize: 14 },
 });
