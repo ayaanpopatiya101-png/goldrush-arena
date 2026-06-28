@@ -147,7 +147,7 @@ export default function HomeScreen() {
     const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
-      playerColor: profile.avatarFrameColor, playerGlowColor: profile.avatarFrameColor + '55',
+      playerColor: skin.color, playerGlowColor: skin.glowColor,
       matchType, variant: 'classic',
     });
     router.push('/lobby');
@@ -157,7 +157,7 @@ export default function HomeScreen() {
     const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
-      playerColor: profile.avatarFrameColor, playerGlowColor: profile.avatarFrameColor + '55',
+      playerColor: skin.color, playerGlowColor: skin.glowColor,
       matchType: 'casual', variant,
     });
     router.push('/lobby');

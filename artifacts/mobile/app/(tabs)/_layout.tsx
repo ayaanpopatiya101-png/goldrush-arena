@@ -58,6 +58,12 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Feather name="shopping-bag" size={size ?? 22} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="inventory"
+        options={{
+          tabBarIcon: ({ color, size }) => <Feather name="archive" size={size ?? 22} color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

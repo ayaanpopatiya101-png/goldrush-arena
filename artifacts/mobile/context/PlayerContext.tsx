@@ -200,6 +200,7 @@ interface PlayerContextType {
   unlockAchievement: (id: string) => Promise<string | null>;
   purchaseSkin: (skinId: string) => Promise<boolean>;
   equipSkin: (skinId: string) => Promise<void>;
+  equipTheme: (themeId: string) => Promise<void>;
   addCoins: (amount: number) => Promise<void>;
   spendCoins: (amount: number) => Promise<boolean>;
   setAvatar: (emoji: string, color: string) => Promise<void>;
@@ -312,6 +313,11 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({ ...profile, currentSkin: skinId });
   }, [profile, save]);
 
+  const equipTheme = useCallback(async (themeId: string) => {
+    if (!profile.ownedThemes.includes(themeId)) return;
+    await save({ ...profile, currentArenaTheme: themeId });
+  }, [profile, save]);
+
   const addCoins  = useCallback(async (amount: number) => { await save({ ...profile, coins: profile.coins + amount }); }, [profile, save]);
   const spendCoins = useCallback(async (amount: number): Promise<boolean> => {
     if (profile.coins < amount) return false;
@@ -348,7 +354,7 @@ export function PlayerProvider({ username, onLogout, children }: {
   return (
     <PlayerContext.Provider value={{
       profile, isLoaded, currentUsername: username, showStreakModal, dismissStreakModal,
-      updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin,
+      updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme,
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, logout,
     }}>
       {children}
