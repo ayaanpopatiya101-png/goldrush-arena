@@ -133,6 +133,7 @@ export function getStreakMultiplier(winStreak: number, won: boolean): number {
 // Difficulty bonus: harder mode = bigger reward. Casual is discounted.
 // variant is the game-mode key ('classic', 'rumble', 'chaos', 'six_player').
 export function getDifficultyMultiplier(variant: string | undefined, matchType: string): number {
+  if (matchType === 'gauntlet') return 3.0;
   if (matchType === 'casual') return 0.8;
   switch (variant) {
     case 'six_player': return 1.75;

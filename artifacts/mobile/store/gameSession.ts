@@ -1,4 +1,4 @@
-export type MatchType   = 'ranked' | 'casual';
+export type MatchType   = 'ranked' | 'casual' | 'gauntlet';
 export type GameVariant =
   | 'classic'
   | 'duos'

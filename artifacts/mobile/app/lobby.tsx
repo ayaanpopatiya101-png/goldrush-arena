@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerCard } from '@/components/PlayerCard';
 import { RANKS, SKINS, MAPS, getRankIndex, getRelic, usePlayer } from '@/context/PlayerContext';
 import { getGameConfig, updateGameConfig } from '@/store/gameSession';
+import { getGauntletState } from '@/store/gauntletSession';
 import { useColors } from '@/hooks/useColors';
 
 const BOT_POOL = [
@@ -186,19 +187,19 @@ export default function LobbyScreen() {
         <View style={{ alignItems: 'center', gap: 4 }}>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>MATCHMAKING</Text>
           <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
-            <View style={[
-              styles.modeBadge,
-              config.matchType === 'ranked'
-                ? { backgroundColor: '#C8820A22', borderColor: '#C8820A66' }
-                : { backgroundColor: '#1E8AAA22', borderColor: '#1E8AAA66' },
-            ]}>
-              <Text style={[
-                styles.modeBadgeText,
-                { color: config.matchType === 'ranked' ? '#C8820A' : '#1E8AAA' },
-              ]}>
-                {config.matchType === 'ranked' ? '⚔️ RANKED' : '🎮 CASUAL'}
-              </Text>
-            </View>
+            {(() => {
+              const isGauntlet = config.matchType === 'gauntlet';
+              const isRanked   = config.matchType === 'ranked';
+              const c = isGauntlet ? '#FFD700' : isRanked ? '#C8820A' : '#1E8AAA';
+              const label = isGauntlet
+                ? `⚔️ GAUNTLET · Round ${getGauntletState().roundNumber}`
+                : isRanked ? '⚔️ RANKED' : '🎮 CASUAL';
+              return (
+                <View style={[styles.modeBadge, { backgroundColor: c + '22', borderColor: c + '66' }]}>
+                  <Text style={[styles.modeBadgeText, { color: c }]}>{label}</Text>
+                </View>
+              );
+            })()}
             {config.variant !== 'classic' && (() => {
               const vm = VARIANT_META[config.variant];
               const c  = vm?.color ?? '#FFFFFF';

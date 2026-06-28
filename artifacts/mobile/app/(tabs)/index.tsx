@@ -14,10 +14,11 @@ import { RankBadge } from '@/components/RankBadge';
 import { AmbientParticles } from '@/components/AmbientParticles';
 import { LiveEventBanner } from '@/components/LiveEventBanner';
 import {
-  RANKS, SEASON_TIERS, SKINS, usePlayer, xpForNextRank, xpToLevel,
+  RANKS, getRankIndex, SEASON_TIERS, SKINS, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
 import { setGameConfig } from '@/store/gameSession';
 import type { MatchType, GameVariant } from '@/store/gameSession';
+import { startGauntlet } from '@/store/gauntletSession';
 import { useColors } from '@/hooks/useColors';
 
 // ─── Mini arena preview ──────────────────────────────────────────────────────
@@ -165,13 +166,26 @@ export default function HomeScreen() {
     router.push('/lobby');
   }
 
+  function handleStartGauntlet() {
+    const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
+    const firstVariant = startGauntlet();
+    setGameConfig({
+      playerName: profile.name, playerSkinId: skin.id,
+      playerColor: skin.color, playerGlowColor: skin.glowColor,
+      playerRelicId: profile.currentRelic,
+      matchType: 'gauntlet', variant: firstVariant,
+    });
+    router.push('/lobby');
+  }
+
   async function handleClaimStreak() {
     await claimDailyStreak();
     dismissStreakModal();
   }
 
-  const rankInfo = xpForNextRank(profile.xp);
-  const rankData = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
+  const rankInfo     = xpForNextRank(profile.xp);
+  const rankData     = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
+  const playerRankIdx = getRankIndex(profile.rank);
   const topPad   = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
   const winRate  = profile.totalGames > 0 ? Math.round((profile.wins / profile.totalGames) * 100) : 0;
 
@@ -315,6 +329,98 @@ export default function HomeScreen() {
             </View>
           ))}
         </View>
+
+        {/* ── Champion's Gauntlet ── */}
+        {(() => {
+          const locked = playerRankIdx < 5;
+          return (
+            <Pressable
+              onPress={locked ? undefined : handleStartGauntlet}
+              style={({ pressed }) => [
+                {
+                  marginHorizontal: 0, marginBottom: 16, borderRadius: 20,
+                  borderWidth: 1.5, overflow: 'hidden',
+                  borderColor: locked ? '#FFFFFF1A' : '#C8820A66',
+                  opacity: locked ? 0.85 : (pressed ? 0.88 : 1),
+                },
+              ]}
+            >
+              <LinearGradient
+                colors={locked ? ['#141008', '#0E0C06'] : ['#2A1800', '#1A1000', '#0E0A04']}
+                style={{ padding: 20 }}
+              >
+                {/* Top row: title + diamond badge */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+                  <View>
+                    <Text style={{ fontSize: 10, letterSpacing: 3, color: '#C8820A', fontWeight: '700', marginBottom: 4 }}>
+                      EXCLUSIVE MODE
+                    </Text>
+                    <Text style={{ fontSize: 22, fontWeight: '900', color: locked ? '#FFFFFF55' : '#FFD700', letterSpacing: 0.5 }}>
+                      ⚔️ CHAMPION'S{'\n'}GAUNTLET
+                    </Text>
+                  </View>
+                  <View style={{
+                    backgroundColor: locked ? '#FFFFFF10' : '#B9F2FF22',
+                    borderColor: locked ? '#FFFFFF28' : '#B9F2FF66',
+                    borderWidth: 1, borderRadius: 8,
+                    paddingHorizontal: 10, paddingVertical: 5,
+                  }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: locked ? '#FFFFFF55' : '#B9F2FF' }}>
+                      💎 DIAMOND+
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Feature chips */}
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: 16 }}>
+                  {[
+                    { label: '🏆 First to 5 wins', color: '#FFD700' },
+                    { label: '🎲 Rotating variants', color: '#BF5FFF' },
+                    { label: '4 Players', color: '#00E5FF' },
+                    { label: '3× XP bonus', color: '#00FF88' },
+                  ].map(f => (
+                    <View key={f.label} style={{
+                      backgroundColor: locked ? '#FFFFFF08' : f.color + '18',
+                      borderColor: locked ? '#FFFFFF18' : f.color + '44',
+                      borderWidth: 1, borderRadius: 8,
+                      paddingHorizontal: 10, paddingVertical: 5,
+                    }}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: locked ? '#FFFFFF44' : f.color }}>
+                        {f.label}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Action area */}
+                {locked ? (
+                  <View style={{
+                    flexDirection: 'row', alignItems: 'center', gap: 8,
+                    backgroundColor: '#FFFFFF0A', borderRadius: 10,
+                    paddingVertical: 10, paddingHorizontal: 14,
+                  }}>
+                    <Text style={{ fontSize: 16 }}>🔒</Text>
+                    <Text style={{ color: '#FFFFFF55', fontSize: 13, fontWeight: '600' }}>
+                      Reach Diamond rank to unlock this mode
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={{
+                    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+                    backgroundColor: '#C8820A22', borderColor: '#C8820A66',
+                    borderWidth: 1, borderRadius: 12,
+                    paddingVertical: 12,
+                  }}>
+                    <Text style={{ color: '#FFD700', fontSize: 15, fontWeight: '900', letterSpacing: 1.5 }}>
+                      ENTER THE GAUNTLET
+                    </Text>
+                    <Text style={{ fontSize: 18 }}>⚔️</Text>
+                  </View>
+                )}
+              </LinearGradient>
+            </Pressable>
+          );
+        })()}
 
         {/* ── Extra Game Modes ── */}
         <View style={styles.modesSection}>

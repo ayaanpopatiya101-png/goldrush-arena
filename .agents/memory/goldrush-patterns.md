@@ -43,6 +43,14 @@ The `colors as Record<...>` cast must use `as unknown as Record<...>` due to the
 ## Expo web preview: no direct URL deep-linking
 Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Expo web preview falls back to the home screen — expo-router routes here are only reachable via in-app navigation (on-screen buttons + bottom tab bar). When e2e-testing or screenshotting, drive the real UI flow (tap play → lobby → start); don't rely on deep links.
 
+## Champion's Gauntlet mode
+- `gauntletSession.ts` — module-level store (same pattern as gameSession.ts). `startGauntlet()` shuffles 7 variants + 3 bots, returns first variant. `recordRoundResult(won, xp, coins)` increments wins/roundNumber, returns `{gauntletWon, gauntletOver}`. Call `getGauntletState()` AFTER `recordRoundResult` to get updated roundNumber.
+- MatchType `'gauntlet'` added to `gameSession.ts`. `getDifficultyMultiplier` returns 3.0× for gauntlet.
+- `handleGameOver` in `game.tsx` has a gauntlet branch: calls `recordRoundResult`, awards +1500 XP/+300 coins champion bonus if gauntletWon, routes to `/gauntlet` screen with params.
+- `/gauntlet` hub screen shows: round result banner, scoreboard (player + 3 bots with win dots), next variant card or champion/defeat end state.
+- Diamond+ lock: `playerRankIdx < 5` (Diamond = index 5) on home screen card; locked card shows lock UI.
+- Lobby badge handles 'gauntlet' matchType: shows "⚔️ GAUNTLET · Round N" in gold.
+
 ## Bot difficulty curve (training → rank-based)
 - `NEW_PLAYER_GAMES = 5`, `RAMP_GAMES = 10` constants in `game.tsx`.
 - Games 0–4: `botSkill = 0`, `botDifficulty = 'easy'` always (training window).

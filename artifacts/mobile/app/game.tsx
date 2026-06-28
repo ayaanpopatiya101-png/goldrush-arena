@@ -9,6 +9,7 @@ import { GameArena, type GameMode, type GameResult } from '@/components/GameAren
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
 import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, MAPS, getScaledRelicEffect, getRelicLevel, getStreakMultiplier, getDifficultyMultiplier } from '@/context/PlayerContext';
 import { getGameConfig } from '@/store/gameSession';
+import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
@@ -162,13 +163,41 @@ export default function GameScreen() {
     setGameOver(true);
     setTimerRunning(false);
     music.stop();
-    const mt          = (config.matchType as 'ranked' | 'casual') ?? 'casual';
+    const matchType   = config.matchType ?? 'casual';
     const variant     = config.variant ?? 'classic';
     const streakMult  = getStreakMultiplier(profile.winStreak, result.won);
-    const diffMult    = getDifficultyMultiplier(variant, mt);
+    const diffMult    = getDifficultyMultiplier(variant, matchType);
     const totalMult   = streakMult * diffMult;
-    const finalXP     = Math.round(result.xpEarned * totalMult);
-    const finalCoins  = Math.round(result.coinsEarned * totalMult);
+    let finalXP       = Math.round(result.xpEarned * totalMult);
+    let finalCoins    = Math.round(result.coinsEarned * totalMult);
+
+    // ── Gauntlet round completion ─────────────────────────────────────────────
+    if (matchType === 'gauntlet') {
+      const { gauntletWon, gauntletOver } = recordRoundResult(result.won, finalXP, finalCoins);
+      // One-time champion bonus on the winning round
+      if (gauntletWon) { finalXP += 1500; finalCoins += 300; }
+      addMatchResult({
+        won: result.won, xpEarned: finalXP, coinsEarned: finalCoins,
+        deflections: result.deflections, goalsAgainst: result.goalsAgainst,
+        position: result.position, matchType: 'ranked',
+      });
+      const gs = getGauntletState();
+      router.replace({
+        pathname: '/gauntlet',
+        params: {
+          roundWon:     result.won ? '1' : '0',
+          gauntletWon:  gauntletWon  ? '1' : '0',
+          gauntletOver: gauntletOver ? '1' : '0',
+          xpEarned:     String(finalXP),
+          coinsEarned:  String(finalCoins),
+          completedRound: String(gs.roundNumber - 1),
+        },
+      });
+      return;
+    }
+
+    // ── Normal match completion ───────────────────────────────────────────────
+    const mt = matchType as 'ranked' | 'casual';
     addMatchResult({
       won: result.won, xpEarned: finalXP, coinsEarned: finalCoins,
       deflections: result.deflections, goalsAgainst: result.goalsAgainst,
