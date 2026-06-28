@@ -43,6 +43,14 @@ The `colors as Record<...>` cast must use `as unknown as Record<...>` due to the
 ## Expo web preview: no direct URL deep-linking
 Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Expo web preview falls back to the home screen — expo-router routes here are only reachable via in-app navigation (on-screen buttons + bottom tab bar). When e2e-testing or screenshotting, drive the real UI flow (tap play → lobby → start); don't rely on deep links.
 
+## Relic character leveling system (Brawl-Stars style)
+- `RELIC_MAX_LEVEL = 10`. Upgrade costs: [50, 100, 200, 400, 800, 1500, 2500, 4000, 6000] (L1→L2 through L9→L10).
+- `getRelicLevel(profile, relicId)` reads `profile.relicLevels?.[relicId] ?? 1` — optional field, migration-safe.
+- `getScaledRelicEffect(relicId, level)` returns leveled-up `RelicEffect` via `lerpR(a, b, level)`. Binary bonuses unlock at L5/L10.
+- `upgradeRelic(relicId)` in PlayerContext deducts coins + increments `relicLevels[id]`. Returns `false` if insufficient coins or already maxed.
+- `game.tsx` passes `getScaledRelicEffect(relic.id, getRelicLevel(profile, relic.id))` to GameArena — level-scaling is applied at the game entry point, not inside GameArena.
+- Character SVG art lives in `components/RelicCharacter.tsx`. Each character drawn in a 100×120 viewBox with `react-native-svg`. Inventory shows 2-column grid with portrait (130px tall), level badge, 10-segment power bar, and UPGRADE button.
+
 ## Relics / Maps / bot-scaling (rank-gated game modifiers)
 - `RelicEffect` is applied to a `PlayerRef` at mount via `applyRelicToPlayer`; bots get a rank-appropriate relic via `relicForRank(rank, botId)` (pool indexed by `botId % pool.length`, so it's an unlock bound, not escalating power).
 - **Defense-in-depth:** `game.tsx` re-validates `unlockRankIndex <= playerRankIdx` for both relic and map before passing into `GameArena` — UI gates aren't trusted alone. Any new rank-gated modifier should do the same final check.

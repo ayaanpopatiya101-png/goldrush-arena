@@ -106,6 +106,52 @@ export function getMap(id: string | undefined | null): ArenaMap {
   return MAPS.find(m => m.id === id) ?? MAPS[0];
 }
 
+// ─── Relic level system (1–10, Clash-Royale / Brawl-Stars style) ─────────────
+export const RELIC_MAX_LEVEL = 10;
+const RELIC_UPGRADE_COSTS = [50, 100, 200, 400, 800, 1500, 2500, 4000, 6000];
+
+export function getRelicLevel(profile: PlayerProfile, relicId: string): number {
+  return profile.relicLevels?.[relicId] ?? 1;
+}
+export function getRelicUpgradeCost(currentLevel: number): number {
+  if (currentLevel >= RELIC_MAX_LEVEL) return 0;
+  return RELIC_UPGRADE_COSTS[currentLevel - 1] ?? 0;
+}
+
+function lerpR(a: number, b: number, level: number): number {
+  const t = (Math.max(1, Math.min(RELIC_MAX_LEVEL, level)) - 1) / (RELIC_MAX_LEVEL - 1);
+  return a + (b - a) * t;
+}
+
+// Returns the RelicEffect for a given relic at its current power level.
+// Numeric stats scale linearly L1→L10; binary bonuses unlock at L5 and L10.
+export function getScaledRelicEffect(relicId: string, level: number): RelicEffect {
+  switch (relicId) {
+    case 'ironhide':
+      return { startShield: true, ...(level >= 5 && { shrinkImmune: true }), ...(level >= 10 && { bonusLives: 1 }) };
+    case 'longarm':
+      return { paddleLenMult: lerpR(1.08, 1.28, level) };
+    case 'quicksilver':
+      return { paddleSpeedMult: lerpR(1.08, 1.28, level) };
+    case 'secondwind':
+      return { bonusLives: level >= 7 ? 2 : 1, ...(level >= 10 && { startShield: true }) };
+    case 'prospector':
+      return { magnet: true, ...(level >= 5 && { bonusLives: 1 }) };
+    case 'aftershock':
+      return { deflectBoost: lerpR(1.10, 1.35, level) };
+    case 'timewarp':
+      return { slowStartFrames: Math.round(lerpR(180, 480, level)) };
+    case 'bulwark':
+      return { startShield: true, shrinkImmune: true, ...(level >= 5 && { bonusLives: 1 }), ...(level >= 10 && { paddleLenMult: 1.10 }) };
+    case 'phoenix':
+      return { revive: level >= 7 ? 3 : level >= 4 ? 2 : 1 };
+    case 'midas':
+      return { startShield: true, bonusLives: level >= 7 ? 2 : 1, paddleLenMult: lerpR(1.06, 1.22, level) };
+    default:
+      return {};
+  }
+}
+
 export const ACHIEVEMENTS = [
   { id: 'first_win',  name: 'First Blood',    desc: 'Win your first match'           },
   { id: 'hat_trick',  name: 'Hat Trick',       desc: 'Deflect 10 balls in one match'  },
@@ -222,6 +268,8 @@ export interface PlayerProfile {
   currentArenaTheme: string;
   // Equipped relic (rank-unlocked battle artifact); 'none' = no relic
   currentRelic: string;
+  // Per-relic power levels (1–10). Missing key = level 1.
+  relicLevels?: Record<string, number>;
 }
 
 export interface MatchResult {
@@ -242,6 +290,7 @@ const DEFAULT_PROFILE: PlayerProfile = {
   competitiveLevel: 1, highestLevel: 1,
   ownedThemes: ['default'], currentArenaTheme: 'default',
   currentRelic: 'none',
+  relicLevels: {},
 };
 
 // ─── Halo-style level change calculator ───────────────────────────────────────
@@ -287,6 +336,7 @@ interface PlayerContextType {
   equipSkin: (skinId: string) => Promise<void>;
   equipTheme: (themeId: string) => Promise<void>;
   equipRelic: (relicId: string) => Promise<void>;
+  upgradeRelic: (relicId: string) => Promise<boolean>;
   addCoins: (amount: number) => Promise<void>;
   spendCoins: (amount: number) => Promise<boolean>;
   setAvatar: (emoji: string, color: string) => Promise<void>;
@@ -412,6 +462,21 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({ ...profile, currentRelic: relicId });
   }, [profile, save]);
 
+  const upgradeRelic = useCallback(async (relicId: string): Promise<boolean> => {
+    const relic = RELICS.find(r => r.id === relicId);
+    if (!relic || getRankIndex(profile.rank) < relic.unlockRankIndex) return false;
+    const currentLevel = profile.relicLevels?.[relicId] ?? 1;
+    if (currentLevel >= RELIC_MAX_LEVEL) return false;
+    const cost = getRelicUpgradeCost(currentLevel);
+    if (profile.coins < cost) return false;
+    await save({
+      ...profile,
+      coins: profile.coins - cost,
+      relicLevels: { ...(profile.relicLevels ?? {}), [relicId]: currentLevel + 1 },
+    });
+    return true;
+  }, [profile, save]);
+
   const addCoins  = useCallback(async (amount: number) => { await save({ ...profile, coins: profile.coins + amount }); }, [profile, save]);
   const spendCoins = useCallback(async (amount: number): Promise<boolean> => {
     if (profile.coins < amount) return false;
@@ -448,7 +513,7 @@ export function PlayerProvider({ username, onLogout, children }: {
   return (
     <PlayerContext.Provider value={{
       profile, isLoaded, currentUsername: username, showStreakModal, dismissStreakModal,
-      updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic,
+      updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic, upgradeRelic,
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, logout,
     }}>
       {children}

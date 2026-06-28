@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
-import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, MAPS } from '@/context/PlayerContext';
+import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, MAPS, getScaledRelicEffect, getRelicLevel } from '@/context/PlayerContext';
 import { getGameConfig } from '@/store/gameSession';
 import { useSettings } from '@/hooks/useSettings';
 
@@ -248,7 +248,7 @@ export default function GameScreen() {
             onActiveBallsChange={setActiveBalls}
             botDifficulty={botDifficulty}
             onGameStart={handleGameStart}
-            playerRelic={relic?.effect}
+            playerRelic={relic ? getScaledRelicEffect(relic.id, getRelicLevel(profile, relic.id)) : undefined}
             botSkill={botSkill}
             arenaBg={map.arenaBg}
             {...mergedCfg}
