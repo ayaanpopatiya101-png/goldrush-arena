@@ -298,7 +298,7 @@ function EnterButton({ onPress, anim }: { onPress: () => void; anim: Animated.Va
 }
 
 // ─── Main onboarding ──────────────────────────────────────────────────────────
-interface Props { onSuccess: (username: string, emoji: string, color: string) => void }
+interface Props { onSuccess: (username: string, emoji: string, color: string, isNew?: boolean) => void }
 
 export default function OnboardingScreen({ onSuccess }: Props) {
   const insets = useSafeAreaInsets();
@@ -417,7 +417,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
     setError(''); setLoading(true);
     try {
       await loginAccount(name, selectedEmoji, selectedColor);
-      onSuccess(name, selectedEmoji, selectedColor);
+      onSuccess(name, selectedEmoji, selectedColor, true);
     } catch { setError('Something went wrong. Try again.'); }
     finally   { setLoading(false); }
   }

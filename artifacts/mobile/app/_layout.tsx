@@ -17,6 +17,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { PlayerProvider, getSavedAccounts, getLoggedInUser } from '@/context/PlayerContext';
 import OnboardingScreen from '@/app/onboarding';
 import { CinematicSplash, cinemaHasShown } from '@/components/CinematicSplash';
+import { TutorialOverlay } from '@/components/TutorialOverlay';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -43,6 +44,7 @@ export default function RootLayout() {
   const [authState, setAuthState] = useState<'loading' | 'in' | 'out'>('loading');
   const [authUser,  setAuthUser]  = useState<AuthUser | null>(null);
   const [showCinematic, setShowCinematic] = useState(!cinemaHasShown());
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     if (!fontsLoaded && !fontError) return;
@@ -59,9 +61,10 @@ export default function RootLayout() {
     });
   }, [fontsLoaded, fontError]);
 
-  function handleLogin(username: string, emoji: string, color: string) {
+  function handleLogin(username: string, emoji: string, color: string, isNew = false) {
     setAuthUser({ username, emoji, color });
     setAuthState('in');
+    if (isNew) setShowTutorial(true);
   }
 
   function handleLogout() {
@@ -90,6 +93,9 @@ export default function RootLayout() {
                 <RootLayoutNav />
                 {showCinematic && (
                   <CinematicSplash onDone={() => setShowCinematic(false)} />
+                )}
+                {showTutorial && (
+                  <TutorialOverlay onComplete={() => setShowTutorial(false)} />
                 )}
               </KeyboardProvider>
             </GestureHandlerRootView>

@@ -294,6 +294,8 @@ export interface PlayerProfile {
   currentRelic: string;
   // Per-relic power levels (1–10). Missing key = level 1.
   relicLevels?: Record<string, number>;
+  // Onboarding: false = never shown tutorial, true = completed
+  tutorialComplete?: boolean;
 }
 
 export interface MatchResult {
@@ -315,6 +317,7 @@ const DEFAULT_PROFILE: PlayerProfile = {
   ownedThemes: ['default'], currentArenaTheme: 'default',
   currentRelic: 'none',
   relicLevels: {},
+  tutorialComplete: false,
 };
 
 // ─── Halo-style level change calculator ───────────────────────────────────────
@@ -366,6 +369,7 @@ interface PlayerContextType {
   setAvatar: (emoji: string, color: string) => Promise<void>;
   claimDailyStreak: () => Promise<number>;
   claimSeasonTier: (tierIdx: number) => Promise<void>;
+  completeTutorial: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -532,13 +536,17 @@ export function PlayerProvider({ username, onLogout, children }: {
     onLogout();
   }, [onLogout]);
 
+  const completeTutorial = useCallback(async () => {
+    await save({ ...profile, tutorialComplete: true });
+  }, [profile, save]);
+
   const dismissStreakModal = useCallback(() => setShowStreakModal(false), []);
 
   return (
     <PlayerContext.Provider value={{
       profile, isLoaded, currentUsername: username, showStreakModal, dismissStreakModal,
       updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic, upgradeRelic,
-      addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, logout,
+      addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, completeTutorial, logout,
     }}>
       {children}
     </PlayerContext.Provider>
