@@ -67,7 +67,21 @@ export default function GameScreen() {
   const relic    = rawRelic && rawRelic.unlockRankIndex <= playerRankIdx ? rawRelic : null;
   const rawMap   = getMap(config.mapId);
   const map      = rawMap.unlockRankIndex <= playerRankIdx ? rawMap : MAPS[0];
-  const botSkill = playerRankIdx / MAX_RANK_INDEX;
+
+  // ── Bot difficulty curve ──────────────────────────────────────────────────
+  // Training window (first 5 games): always easy, skill locked at 0.
+  // Ramp window (games 5–14): skill climbs smoothly from 0 → full rank value.
+  // After 15 games: full rank-based skill, matchType determines easy/normal.
+  const NEW_PLAYER_GAMES = 5;
+  const RAMP_GAMES       = 10;
+  const isTraining  = profile.totalGames < NEW_PLAYER_GAMES;
+  const rankSkill   = playerRankIdx / MAX_RANK_INDEX;
+  const botSkill    = (() => {
+    if (isTraining) return 0;
+    const ramp = Math.min(1, (profile.totalGames - NEW_PLAYER_GAMES) / RAMP_GAMES);
+    return rankSkill * ramp;
+  })();
+
   const mapMods  = map.mods ?? {};
   // Merge variant + map modifiers — variant rules always win over map mods.
   const mergedCfg = {
@@ -91,7 +105,8 @@ export default function GameScreen() {
   const extraLifeUsed     = useRef(false);
   const timerRef          = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const botDifficulty: 'easy' | 'normal' = config.matchType === 'casual' ? 'easy' : 'normal';
+  // Training period always forces easy bots; after that matchType decides.
+  const botDifficulty: 'easy' | 'normal' = isTraining || config.matchType === 'casual' ? 'easy' : 'normal';
 
   useEffect(() => {
     music.setMuted(!settings.musicEnabled);

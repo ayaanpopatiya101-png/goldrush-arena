@@ -43,6 +43,13 @@ The `colors as Record<...>` cast must use `as unknown as Record<...>` due to the
 ## Expo web preview: no direct URL deep-linking
 Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Expo web preview falls back to the home screen — expo-router routes here are only reachable via in-app navigation (on-screen buttons + bottom tab bar). When e2e-testing or screenshotting, drive the real UI flow (tap play → lobby → start); don't rely on deep links.
 
+## Bot difficulty curve (training → rank-based)
+- `NEW_PLAYER_GAMES = 5`, `RAMP_GAMES = 10` constants in `game.tsx`.
+- Games 0–4: `botSkill = 0`, `botDifficulty = 'easy'` always (training window).
+- Games 5–14: `botSkill = rankSkill * ramp` where `ramp = (totalGames - 5) / 10`. Smooth climb, not a cliff.
+- Games 15+: `botSkill = playerRankIdx / MAX_RANK_INDEX` (full rank-based); `botDifficulty` = casual→easy, ranked→normal.
+- Lobby shows green "🎓 TRAINING · N left" badge when `totalGames < 5`.
+
 ## Relic character leveling system (Brawl-Stars style)
 - `RELIC_MAX_LEVEL = 10`. Upgrade costs: [50, 100, 200, 400, 800, 1500, 2500, 4000, 6000] (L1→L2 through L9→L10).
 - `getRelicLevel(profile, relicId)` reads `profile.relicLevels?.[relicId] ?? 1` — optional field, migration-safe.

@@ -210,6 +210,13 @@ export default function LobbyScreen() {
                 </View>
               );
             })()}
+            {profile.totalGames < 5 && (
+              <View style={[styles.modeBadge, { backgroundColor: '#00FF8820', borderColor: '#00FF8855' }]}>
+                <Text style={[styles.modeBadgeText, { color: '#00FF88' }]}>
+                  🎓 TRAINING · {5 - profile.totalGames} left
+                </Text>
+              </View>
+            )}
           </View>
         </View>
         <View style={{ width: 40 }} />
