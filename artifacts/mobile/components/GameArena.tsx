@@ -686,6 +686,9 @@ export function GameArena({
     const delta = ts - lastTimeRef.current;
     lastTimeRef.current = ts;
     if (delta > 100) { rafRef.current = requestAnimationFrame(gameLoop); return; }
+    // Normalize to 60 fps so physics is frame-rate independent.
+    // Cap at 2× to prevent ball tunneling through walls on a very slow frame.
+    const dtScale = Math.min(delta / 16.667, 2.0);
 
     const gs   = gsRef.current;
     const size = szRef.current;
@@ -707,7 +710,7 @@ export function GameArena({
     for (let i = 0; i < gs.balls.length; i++) {
       const ball = gs.balls[i];
       if (!ball.active) continue;
-      ball.x += ball.vx * slowF; ball.y += ball.vy * slowF;
+      ball.x += ball.vx * slowF * dtScale; ball.y += ball.vy * slowF * dtScale;
 
       // ─ BOTTOM wall ─
       if (ball.y + ball.radius >= GYB) {
@@ -803,7 +806,7 @@ export function GameArena({
           const adj = target + inaccuracy;
           const spd = (duelBot.speedBoostFrames > 0 ? duelBot.botSpeed * 1.5 : duelBot.botSpeed) * duelBot.paddleSpeedMult;
           const diff = adj - duelBot.paddleCenter;
-          const move = Math.sign(diff) * Math.min(Math.abs(diff), spd);
+          const move = Math.sign(diff) * Math.min(Math.abs(diff), spd * dtScale);
           duelBot.prevPaddleCenter = duelBot.paddleCenter;
           duelBot.paddleCenter     = clampPaddle(duelBot.paddleCenter + move, getPaddleLen(duelBot), size);
           paddleAnims[TOP].setValue(duelBot.paddleCenter);
@@ -815,7 +818,7 @@ export function GameArena({
           const adj = target + inaccuracy;
           const spd = duelHuman.botSpeed * duelHuman.paddleSpeedMult;
           const diff = adj - duelHuman.paddleCenter;
-          const move = Math.sign(diff) * Math.min(Math.abs(diff), spd);
+          const move = Math.sign(diff) * Math.min(Math.abs(diff), spd * dtScale);
           duelHuman.prevPaddleCenter = duelHuman.paddleCenter;
           duelHuman.paddleCenter     = clampPaddle(duelHuman.paddleCenter + move, getPaddleLen(duelHuman), size);
           paddleAnims[BOTTOM].setValue(duelHuman.paddleCenter);
@@ -834,7 +837,7 @@ export function GameArena({
           const adj = target + inaccuracy;
           const spd = (bot.speedBoostFrames > 0 ? bot.botSpeed * 1.5 : bot.botSpeed) * diffMult * bot.paddleSpeedMult;
           const diff = adj - bot.paddleCenter;
-          const move = Math.sign(diff) * Math.min(Math.abs(diff), spd);
+          const move = Math.sign(diff) * Math.min(Math.abs(diff), spd * dtScale);
           bot.prevPaddleCenter = bot.paddleCenter;
           if (sixPlayerRef.current && pid === TOP) {
             bot.paddleCenter = clampPaddleRange(bot.paddleCenter + move, getPaddleLen(bot), WALL_MARGIN, size / 2);
@@ -856,7 +859,7 @@ export function GameArena({
             const adj  = target + inaccuracy;
             const spd  = (bot.speedBoostFrames > 0 ? bot.botSpeed * 1.5 : bot.botSpeed) * bot.paddleSpeedMult;
             const diff = adj - bot.paddleCenter;
-            const move = Math.sign(diff) * Math.min(Math.abs(diff), spd);
+            const move = Math.sign(diff) * Math.min(Math.abs(diff), spd * dtScale);
             bot.prevPaddleCenter = bot.paddleCenter;
             bot.paddleCenter     = clampPaddleRange(bot.paddleCenter + move, getPaddleLen(bot), size / 2, size - WALL_MARGIN);
             paddleAnims[pid].setValue(bot.paddleCenter);
