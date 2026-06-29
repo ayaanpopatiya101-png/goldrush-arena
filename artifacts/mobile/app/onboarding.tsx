@@ -3,12 +3,12 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Animated, Dimensions, Easing, KeyboardAvoidingView,
+  Alert, Animated, Dimensions, Easing, KeyboardAvoidingView,
   Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, Line, Path, RadialGradient as SvgRadialGradient, Stop } from 'react-native-svg';
-import { AVATAR_COLORS, AVATAR_EMOJIS, SavedAccountMeta, getSavedAccounts, loginAccount } from '@/context/PlayerContext';
+import { AVATAR_COLORS, AVATAR_EMOJIS, SavedAccountMeta, deleteAccount, getSavedAccounts, loginAccount } from '@/context/PlayerContext';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -422,6 +422,23 @@ export default function OnboardingScreen({ onSuccess }: Props) {
     finally   { setLoading(false); }
   }
 
+  function handleDeleteAccount(acct: SavedAccountMeta) {
+    Alert.alert(
+      'Delete Account',
+      `Permanently delete "${acct.username}"? All progress will be lost.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete', style: 'destructive',
+          onPress: async () => {
+            await deleteAccount(acct.username);
+            setSavedAccounts(prev => prev.filter(a => a.username !== acct.username));
+          },
+        },
+      ]
+    );
+  }
+
   async function handleLogin(acct?: SavedAccountMeta) {
     const name  = acct ? acct.username : loginInput.trim();
     if (!name)  { setError('Enter a username.'); return; }
@@ -608,21 +625,25 @@ export default function OnboardingScreen({ onSuccess }: Props) {
                 <View style={s.field}>
                   <Text style={s.label}>🏆  YOUR HEROES</Text>
                   {savedAccounts.map(acct => (
-                    <Pressable key={acct.username} onPress={() => handleLogin(acct)}
-                      style={[s.savedRow, { borderColor: acct.avatarColor + '44' }]}>
+                    <View key={acct.username} style={[s.savedRow, { borderColor: acct.avatarColor + '44' }]}>
                       <LinearGradient colors={[acct.avatarColor + '14', acct.avatarColor + '06']} style={StyleSheet.absoluteFill} />
-                      <View style={[s.savedAvatar, { borderColor: acct.avatarColor, backgroundColor: acct.avatarColor + '33' }]}>
-                        <Text style={s.savedEmoji}>{acct.avatarEmoji}</Text>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={s.savedName}>{acct.username}</Text>
-                        <Text style={[s.savedRank, { color: acct.avatarColor }]}>{acct.rank}</Text>
-                      </View>
-                      <View style={[s.playBtn, { backgroundColor: acct.avatarColor + '22', borderColor: acct.avatarColor + '66' }]}>
-                        <Feather name="play" size={14} color={acct.avatarColor} />
-                        <Text style={[s.playBtnText, { color: acct.avatarColor }]}>PLAY</Text>
-                      </View>
-                    </Pressable>
+                      <Pressable style={s.savedRowMain} onPress={() => handleLogin(acct)}>
+                        <View style={[s.savedAvatar, { borderColor: acct.avatarColor, backgroundColor: acct.avatarColor + '33' }]}>
+                          <Text style={s.savedEmoji}>{acct.avatarEmoji}</Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={s.savedName}>{acct.username}</Text>
+                          <Text style={[s.savedRank, { color: acct.avatarColor }]}>{acct.rank}</Text>
+                        </View>
+                        <View style={[s.playBtn, { backgroundColor: acct.avatarColor + '22', borderColor: acct.avatarColor + '66' }]}>
+                          <Feather name="play" size={14} color={acct.avatarColor} />
+                          <Text style={[s.playBtnText, { color: acct.avatarColor }]}>PLAY</Text>
+                        </View>
+                      </Pressable>
+                      <Pressable onPress={() => handleDeleteAccount(acct)} style={s.deleteBtn} hitSlop={8}>
+                        <Feather name="trash-2" size={16} color="#FF4444" />
+                      </Pressable>
+                    </View>
                   ))}
                 </View>
               )}
@@ -734,7 +755,9 @@ const s = StyleSheet.create({
   terms: { color: '#FFFFFF28', fontFamily: 'Inter_400Regular', fontSize: 10, textAlign: 'center' },
 
   // Saved accounts
-  savedRow:    { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 14, borderWidth: 1, padding: 12, overflow: 'hidden' },
+  savedRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
+  savedRowMain:{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, padding: 12 },
+  deleteBtn:   { paddingHorizontal: 14, paddingVertical: 12, justifyContent: 'center', alignItems: 'center' },
   savedAvatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   savedEmoji:  { fontSize: 24 },
   savedName:   { color: '#F0F0FF', fontFamily: 'Inter_700Bold', fontSize: 16 },

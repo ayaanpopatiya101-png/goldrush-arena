@@ -257,6 +257,16 @@ export async function logoutAccount(): Promise<void> {
   await AsyncStorage.removeItem(CURRENT_KEY);
 }
 
+export async function deleteAccount(username: string): Promise<void> {
+  const accounts = await getSavedAccounts();
+  const filtered = accounts.filter(a => a.username !== username);
+  await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(filtered));
+  const current = await AsyncStorage.getItem(CURRENT_KEY);
+  if (current === username) await AsyncStorage.removeItem(CURRENT_KEY);
+  const KEY = `@goldrush_player_${username}`;
+  await AsyncStorage.removeItem(KEY);
+}
+
 export async function getLoggedInUser(): Promise<string | null> {
   return AsyncStorage.getItem(CURRENT_KEY);
 }
