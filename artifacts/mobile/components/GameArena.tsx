@@ -11,7 +11,9 @@ const WALL_MARGIN = 24;
 const PADDLE_LENGTH = 88;
 const PADDLE_THICKNESS = 14;
 const MAX_BALLS = 8;
-const BALL_SPAWN_FRAMES = 900;   // 15 s × 60 fps
+const BALL_SPAWN_FRAMES = 300;   // 5 s × 60 fps
+const SUPER_MAX_CHARGE      = 10;
+const SUPER_DURATION_FRAMES = 180; // 3 s @ 60 fps
 const POWERUP_SPAWN_FRAMES = 420;
 const INITIAL_LIVES = 5;
 const INITIAL_SPEED = 5.2;
@@ -94,6 +96,8 @@ interface GameArenaProps {
   botSkill?: number;
   /** Inner arena gradient from the selected map; falls back to mode-based. */
   arenaBg?: [string, string, string];
+  /** Player's chosen super ability: 1=Iron Wall, 2=Slow Field, 3=Banish */
+  playerSuperType?: 1 | 2 | 3;
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
@@ -153,8 +157,8 @@ export function GameArena({
   onPlayerLivesChange, grantExtraLifeRef, onEliminatedSpectating,
   colorBoard = true, soundEnabled = true,
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
-  initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult, duoMode, sixPlayer,
-  playerRelic, botSkill, arenaBg,
+  initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.7, duoMode, sixPlayer,
+  playerRelic, botSkill, arenaBg, playerSuperType = 1,
 }: GameArenaProps) {
 
   const szRef = useRef(arenaSize);
@@ -194,6 +198,8 @@ export function GameArena({
   const [ballVisuals, setBallVisuals]         = useState<Array<{active:boolean;color:string;radius:number}>>([]);
   const [powerUpsUI, setPowerUpsUI]           = useState<PowerUpRef[]>([]);
   const [shieldActive, setShieldActive]       = useState<boolean[]>([false,false,false,false,false,false]);
+  const [superChargeUI,  setSuperChargeUI]  = useState(0);
+  const [superActiveUI,  setSuperActiveUI]  = useState(false);
   const [floatingEmojis, setFloatingEmojis]   = useState<FloatingEmoji[]>([]);
   const [comboCount, setComboCount]           = useState(0);
   const [duelSecondsLeft, setDuelSecondsLeft] = useState(DUEL_TIME_LIMIT);
@@ -226,6 +232,10 @@ export function GameArena({
   const finishPositionRef = useRef(4);
   const deflectionsRef    = useRef(0);
   const goalsAgainstRef   = useRef(0);
+  const superChargeRef       = useRef(0);
+  const superActiveFramesRef = useRef(0);
+  const superTypeRef         = useRef<1|2|3>((playerSuperType ?? 1) as 1|2|3);
+  const startSpeedMultRef    = useRef(startSpeedMult ?? 0.7);
   const comboTimestamps   = useRef<number[]>([]);
   const onGameOverRef     = useRef(onGameOver);
   const gameModeRef       = useRef<GameMode>('square');
@@ -544,12 +554,12 @@ export function GameArena({
   }
 
   // ── Spawn helpers ──
-  function spawnBall(gs: GameStateRef, size: number) {
+  function spawnBall(gs: GameStateRef, size: number, speedMult = 1.0) {
     let idx = gs.balls.findIndex(b => !b.active);
     if (idx === -1) { if (gs.balls.length >= MAX_BALLS) return; idx = gs.balls.length; }
     const types: BallType[] = ['normal','normal','normal','fire','heavy','tiny'];
     const type   = types[Math.floor(Math.random() * types.length)];
-    const spd    = INITIAL_SPEED * gs.speedMultiplier;
+    const spd    = INITIAL_SPEED * gs.speedMultiplier * speedMult;
     let radius   = 10, color = '#FFFFFF';
     if (type === 'fire')  { radius = 10; color = '#FF6B35'; }
     if (type === 'heavy') { radius = 15; color = '#BF5FFF'; }
@@ -652,6 +662,29 @@ export function GameArena({
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   }
 
+  // ── Super ability activation ──
+  function activateSuper() {
+    if (superChargeRef.current < SUPER_MAX_CHARGE) return;
+    if (superActiveFramesRef.current > 0) return;
+    superChargeRef.current = 0;
+    superActiveFramesRef.current = SUPER_DURATION_FRAMES;
+    setSuperChargeUI(0);
+    setSuperActiveUI(true);
+    const labels: Record<number, string> = {
+      1: '⚔️ IRON WALL!',
+      2: '🌀 SLOW FIELD!',
+      3: '💥 BANISH!',
+    };
+    showAnnouncer(labels[superTypeRef.current] ?? 'SUPER!');
+    // Super 2: immediately halve vy of all balls heading toward human goal
+    if (superTypeRef.current === 2) {
+      for (const ball of gsRef.current.balls) {
+        if (ball.active && ball.vy > 0) ball.vy *= 0.35;
+      }
+    }
+    if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }
+
   // ── Bot targeting ──
   function getBotTarget(side: 'top'|'bottom'|'left'|'right', balls: BallRef[], size: number): number {
     let best = size/2, highThreat = -Infinity;
@@ -712,6 +745,11 @@ export function GameArena({
       if (!ball.active) continue;
       ball.x += ball.vx * slowF * dtScale; ball.y += ball.vy * slowF * dtScale;
 
+      // Super 2 – Slow Field: cap vy of balls heading toward human's bottom goal
+      if (superActiveFramesRef.current > 0 && superTypeRef.current === 2 && ball.vy > 0) {
+        if (ball.vy > 2.5) ball.vy = Math.max(2.5, ball.vy * 0.975);
+      }
+
       // ─ BOTTOM wall ─
       if (ball.y + ball.radius >= GYB) {
         const isSix = sixPlayerRef.current;
@@ -726,10 +764,27 @@ export function GameArena({
           ball.vy  = -(Math.abs(ball.vy) + 0.12) * boost;
           ball.vx += pv * 0.4;
           defender.score++; deflectionsRef.current++;
-          if (defender.id === BOTTOM) recordCombo();
+          if (defender.id === BOTTOM) {
+            recordCombo();
+            // Charge super on each successful block
+            superChargeRef.current = Math.min(SUPER_MAX_CHARGE, superChargeRef.current + 1);
+            if (gs.frame % 2 === 0) setSuperChargeUI(superChargeRef.current);
+          }
         } else {
-          ball.vy = -Math.abs(ball.vy);
-          handleGoal(gs, isDuel ? duelHuman.id : defender.id);
+          const isHumanGoal = isDuel ? duelHuman.id === BOTTOM : defender.id === BOTTOM;
+          if (isHumanGoal && superActiveFramesRef.current > 0 && superTypeRef.current === 1) {
+            // Iron Wall: reflect ball, don't score
+            ball.vy = -Math.abs(ball.vy);
+            showAnnouncer('⚔️ IRON WALL!');
+          } else if (isHumanGoal && superActiveFramesRef.current > 0 && superTypeRef.current === 3) {
+            // Banish: remove the ball from play
+            ball.active = false;
+            setBallVisuals(gs.balls.map(b => ({ active: b.active, color: b.color, radius: b.radius })));
+            showAnnouncer('💥 BANISHED!');
+          } else {
+            ball.vy = -Math.abs(ball.vy);
+            handleGoal(gs, isDuel ? duelHuman.id : defender.id);
+          }
         }
         ball.y = GYB - ball.radius - 1;
       }
@@ -874,7 +929,16 @@ export function GameArena({
     if (p0.speedBoostFrames > 0) p0.speedBoostFrames--;
     if (p0.shrunkFrames > 0)     p0.shrunkFrames--;
 
-    // ── Spawn new ball every 15 s ──
+    // ── Super active countdown ──
+    if (superActiveFramesRef.current > 0) {
+      superActiveFramesRef.current--;
+      if (superActiveFramesRef.current === 0) {
+        setSuperActiveUI(false);
+        showAnnouncer('SUPER ENDED');
+      }
+    }
+
+    // ── Spawn new ball every 5 s ──
     if (gs.frame >= gs.nextBallFrame && gs.balls.filter(b => b.active).length < MAX_BALLS) {
       spawnBall(gs, size);
       gs.nextBallFrame    = gs.frame + ballSpawnFramesRef.current;
@@ -965,7 +1029,7 @@ export function GameArena({
         clearInterval(timer);
         const gs   = gsRef.current;
         const size = szRef.current;
-        spawnBall(gs, size);
+        spawnBall(gs, size, startSpeedMultRef.current);
         for (let i = 1; i < startingBallCountRef.current; i++) spawnBall(gs, size);
         gs.phase         = 'playing';
         gs.nextBallFrame = ballSpawnFramesRef.current;
@@ -1342,6 +1406,89 @@ export function GameArena({
           shadowRadius:10,
         } as never]} />
       </View>
+
+      {/* ── Super charge bar (outside panResponder so Pressable works cleanly) ── */}
+      {gamePhase === 'playing' && !isSpectating && !gs.players[BOTTOM].isEliminated && (
+        <View style={{
+          position: 'absolute',
+          bottom: WALL_MARGIN + 6,
+          left: 10, right: 10,
+          gap: 4,
+        }}>
+          {/* 10-segment Apex-style charge bar */}
+          <View style={{ flexDirection: 'row', gap: 3 }}>
+            {Array.from({ length: SUPER_MAX_CHARGE }).map((_, i) => (
+              <View key={i} style={{
+                flex: 1, height: 6, borderRadius: 3,
+                backgroundColor: i < superChargeUI
+                  ? (superActiveUI ? '#00FFAA' : '#FFD700')
+                  : '#FFFFFF1A',
+                shadowColor: i < superChargeUI ? '#FFD700' : 'transparent',
+                shadowOpacity: i < superChargeUI ? 0.9 : 0,
+                shadowRadius: 5,
+                shadowOffset: { width: 0, height: 0 },
+              }} />
+            ))}
+          </View>
+
+          {/* Active super: depleting timer bar */}
+          {superActiveUI && (
+            <View style={{ height: 3, borderRadius: 1.5, backgroundColor: '#FFFFFF15', overflow: 'hidden' }}>
+              <View style={{
+                height: 3,
+                width: `${(superActiveFramesRef.current / SUPER_DURATION_FRAMES) * 100}%`,
+                backgroundColor: '#00FFAA',
+                borderRadius: 1.5,
+              } as never} />
+            </View>
+          )}
+
+          {/* SUPER ready tap-to-activate button */}
+          {superChargeUI >= SUPER_MAX_CHARGE && !superActiveUI && (
+            <Pressable
+              onPress={activateSuper}
+              style={({ pressed }) => ({
+                alignSelf: 'center',
+                backgroundColor: pressed ? '#FFD70055' : '#FFD70033',
+                borderWidth: 1,
+                borderColor: '#FFD700',
+                borderRadius: 8,
+                paddingHorizontal: 14,
+                paddingVertical: 4,
+              })}
+            >
+              <Text style={{
+                color: '#FFD700',
+                fontFamily: 'Inter_700Bold',
+                fontSize: 11,
+                letterSpacing: 1.5,
+                textShadowColor: '#FFD700',
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 8,
+              }}>
+                {superTypeRef.current === 1 ? '⚔️ IRON WALL' : superTypeRef.current === 2 ? '🌀 SLOW FIELD' : '💥 BANISH'} · TAP!
+              </Text>
+            </Pressable>
+          )}
+
+          {/* Active label */}
+          {superActiveUI && (
+            <View style={{ alignSelf: 'center' }}>
+              <Text style={{
+                color: '#00FFAA',
+                fontFamily: 'Inter_700Bold',
+                fontSize: 10,
+                letterSpacing: 1.5,
+                textShadowColor: '#00FFAA',
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 6,
+              }}>
+                {superTypeRef.current === 1 ? '⚔️ IRON WALL ACTIVE' : superTypeRef.current === 2 ? '🌀 SLOW FIELD ACTIVE' : '💥 BANISH ACTIVE'}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
     </Animated.View>
   );
 }

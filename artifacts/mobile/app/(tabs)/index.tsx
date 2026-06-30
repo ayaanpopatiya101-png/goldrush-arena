@@ -16,6 +16,7 @@ import { LiveEventBanner } from '@/components/LiveEventBanner';
 import {
   RANKS, getRankIndex, SEASON_TIERS, SKINS, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
+type SuperType = 1 | 2 | 3;
 import { setGameConfig } from '@/store/gameSession';
 import type { MatchType, GameVariant } from '@/store/gameSession';
 import { startGauntlet } from '@/store/gauntletSession';
@@ -113,7 +114,7 @@ export default function HomeScreen() {
   const insets   = useSafeAreaInsets();
   const {
     profile, isLoaded, showStreakModal, dismissStreakModal,
-    claimDailyStreak, claimSeasonTier,
+    claimDailyStreak, claimSeasonTier, setSelectedSuper,
   } = usePlayer();
   const pulseAnim   = useRef(new Animated.Value(1)).current;
   const glowAnim    = useRef(new Animated.Value(0)).current;
@@ -313,6 +314,42 @@ export default function HomeScreen() {
               }} />
             </Pressable>
           </Animated.View>
+        </View>
+
+        {/* ── Super Ability Selector ── */}
+        <View style={styles.superSection}>
+          <Text style={styles.superTitle}>⚡ YOUR SUPER ABILITY</Text>
+          <Text style={styles.superSubtitle}>Block 10 balls to charge — then tap to unleash</Text>
+          <View style={styles.superRow}>
+            {([
+              { id: 1 as SuperType, icon: '⚔️', name: 'IRON WALL', desc: 'Goal blocked\n3 seconds' },
+              { id: 2 as SuperType, icon: '🌀', name: 'SLOW FIELD', desc: 'Incoming balls\nmove at crawl speed' },
+              { id: 3 as SuperType, icon: '💥', name: 'BANISH',     desc: 'Ball that scores\ndisappears from play' },
+            ] as { id: SuperType; icon: string; name: string; desc: string }[]).map(sup => {
+              const active = (profile.selectedSuper ?? 1) === sup.id;
+              return (
+                <Pressable
+                  key={sup.id}
+                  onPress={() => setSelectedSuper(sup.id)}
+                  style={({ pressed }) => [styles.superCard, {
+                    borderColor: active ? '#FFD700' : '#FFFFFF1A',
+                    backgroundColor: active ? '#FFD70018' : '#FFFFFF06',
+                    opacity: pressed ? 0.8 : 1,
+                    transform: [{ scale: pressed ? 0.97 : 1 }],
+                  }]}
+                >
+                  <Text style={styles.superIcon}>{sup.icon}</Text>
+                  <Text style={[styles.superName, { color: active ? '#FFD700' : '#FFFFFF99' }]}>{sup.name}</Text>
+                  <Text style={[styles.superDesc, { color: active ? '#FFD70088' : '#FFFFFF44' }]}>{sup.desc}</Text>
+                  {active && (
+                    <View style={styles.superActiveBadge}>
+                      <Text style={styles.superActiveTxt}>EQUIPPED</Text>
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
         {/* Mode info cards */}
@@ -623,6 +660,17 @@ const styles = StyleSheet.create({
   modeCard:   { flex: 1, alignItems: 'center', padding: 10, borderRadius: 12, borderWidth: 1, gap: 4 },
   modeLabel:  { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1 },
   modeDesc:   { fontFamily: 'Inter_400Regular', fontSize: 9, textAlign: 'center', lineHeight: 13 },
+  // Super selector
+  superSection:    { paddingHorizontal: 16, marginBottom: 16, gap: 6 },
+  superTitle:      { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2 },
+  superSubtitle:   { color: '#FFFFFF55', fontFamily: 'Inter_400Regular', fontSize: 10 },
+  superRow:        { flexDirection: 'row', gap: 8 },
+  superCard:       { flex: 1, alignItems: 'center', padding: 10, borderRadius: 14, borderWidth: 1.5, gap: 3 },
+  superIcon:       { fontSize: 22 },
+  superName:       { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1, textAlign: 'center' },
+  superDesc:       { fontFamily: 'Inter_400Regular', fontSize: 8, textAlign: 'center', lineHeight: 12 },
+  superActiveBadge:{ backgroundColor: '#FFD70033', borderRadius: 5, borderWidth: 1, borderColor: '#FFD700', paddingHorizontal: 5, paddingVertical: 1, marginTop: 2 },
+  superActiveTxt:  { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 7, letterSpacing: 1 },
   statsRow:   { flexDirection: 'row', paddingHorizontal: 16, gap: 10, marginBottom: 14 },
   statCard:   { flex: 1, alignItems: 'center', padding: 12, borderRadius: 12, borderWidth: 1, gap: 4 },
   statValue:  { fontFamily: 'Inter_700Bold', fontSize: 18 },

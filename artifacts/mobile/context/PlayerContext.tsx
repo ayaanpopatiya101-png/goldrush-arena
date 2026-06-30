@@ -307,6 +307,8 @@ export interface PlayerProfile {
   relicLevels?: Record<string, number>;
   // Onboarding: false = never shown tutorial, true = completed
   tutorialComplete?: boolean;
+  // Super ability equipped for matches: 1=Iron Wall, 2=Slow Field, 3=Banish
+  selectedSuper?: 1 | 2 | 3;
 }
 
 export interface MatchResult {
@@ -329,6 +331,7 @@ const DEFAULT_PROFILE: PlayerProfile = {
   currentRelic: 'none',
   relicLevels: {},
   tutorialComplete: false,
+  selectedSuper: 1,
 };
 
 // ─── Halo-style level change calculator ───────────────────────────────────────
@@ -381,6 +384,7 @@ interface PlayerContextType {
   claimDailyStreak: () => Promise<number>;
   claimSeasonTier: (tierIdx: number) => Promise<void>;
   completeTutorial: () => Promise<void>;
+  setSelectedSuper: (type: 1 | 2 | 3) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -551,13 +555,17 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({ ...profile, tutorialComplete: true });
   }, [profile, save]);
 
+  const setSelectedSuper = useCallback(async (type: 1 | 2 | 3) => {
+    await save({ ...profile, selectedSuper: type });
+  }, [profile, save]);
+
   const dismissStreakModal = useCallback(() => setShowStreakModal(false), []);
 
   return (
     <PlayerContext.Provider value={{
       profile, isLoaded, currentUsername: username, showStreakModal, dismissStreakModal,
       updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic, upgradeRelic,
-      addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, completeTutorial, logout,
+      addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, completeTutorial, setSelectedSuper, logout,
     }}>
       {children}
     </PlayerContext.Provider>

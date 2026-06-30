@@ -305,6 +305,7 @@ export default function GameScreen() {
             playerRelic={relic ? getScaledRelicEffect(relic.id, getRelicLevel(profile, relic.id)) : undefined}
             botSkill={botSkill}
             arenaBg={map.arenaBg}
+            playerSuperType={profile.selectedSuper ?? 1}
             {...mergedCfg}
           />
         )}
