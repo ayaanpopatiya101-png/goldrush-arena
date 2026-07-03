@@ -200,6 +200,8 @@ export function GameArena({
   const [shieldActive, setShieldActive]       = useState<boolean[]>([false,false,false,false,false,false]);
   const [superChargeUI,  setSuperChargeUI]  = useState(0);
   const [superActiveUI,  setSuperActiveUI]  = useState(false);
+  const [botSuperActiveUI, setBotSuperActiveUI] = useState<boolean[]>([false,false,false,false,false,false]);
+  const [botSuperChargeUI, setBotSuperChargeUI] = useState<number[]>([0,0,0,0,0,0]);
   const [floatingEmojis, setFloatingEmojis]   = useState<FloatingEmoji[]>([]);
   const [comboCount, setComboCount]           = useState(0);
   const [duelSecondsLeft, setDuelSecondsLeft] = useState(DUEL_TIME_LIMIT);
@@ -236,6 +238,13 @@ export function GameArena({
   const superActiveFramesRef = useRef(0);
   const superTypeRef         = useRef<1|2|3>((playerSuperType ?? 1) as 1|2|3);
   const startSpeedMultRef    = useRef(startSpeedMult ?? 0.7);
+  // Bot supers (indexed by player id 0-5; only slots 1-5 are bots)
+  const botSuperChargesRef   = useRef<number[]>([0,0,0,0,0,0]);
+  const botSuperActiveRef    = useRef<number[]>([0,0,0,0,0,0]);
+  const botSuperPendingRef   = useRef<number[]>([-1,-1,-1,-1,-1,-1]);
+  const botSuperTypesRef     = useRef<(1|2|3)[]>(
+    Array.from({length:6}, () => (Math.floor(Math.random()*3)+1) as 1|2|3)
+  );
   const comboTimestamps   = useRef<number[]>([]);
   const onGameOverRef     = useRef(onGameOver);
   const gameModeRef       = useRef<GameMode>('square');
@@ -749,6 +758,16 @@ export function GameArena({
       if (superActiveFramesRef.current > 0 && superTypeRef.current === 2 && ball.vy > 0) {
         if (ball.vy > 2.5) ball.vy = Math.max(2.5, ball.vy * 0.975);
       }
+      // Bot Super 2 – Slow Field for each bot wall
+      if (botSuperActiveRef.current[TOP]   > 0 && botSuperTypesRef.current[TOP]   === 2 && ball.vy < 0) {
+        if (ball.vy < -2.5) ball.vy = Math.min(-2.5, ball.vy * 0.975);
+      }
+      if (!isDuel && botSuperActiveRef.current[LEFT]  > 0 && botSuperTypesRef.current[LEFT]  === 2 && ball.vx < 0) {
+        if (ball.vx < -2.5) ball.vx = Math.min(-2.5, ball.vx * 0.975);
+      }
+      if (!isDuel && botSuperActiveRef.current[RIGHT] > 0 && botSuperTypesRef.current[RIGHT] === 2 && ball.vx > 0) {
+        if (ball.vx > 2.5)  ball.vx = Math.max(2.5, ball.vx * 0.975);
+      }
 
       // ─ BOTTOM wall ─
       if (ball.y + ball.radius >= GYB) {
@@ -803,9 +822,25 @@ export function GameArena({
           ball.vy  = (Math.abs(ball.vy) + 0.12) * boost;
           ball.vx += pv * 0.4;
           defender.score++;
+          // Charge bot super on deflect
+          const cid = isDuel ? duelBot.id : defender.id;
+          botSuperChargesRef.current[cid] = Math.min(SUPER_MAX_CHARGE, botSuperChargesRef.current[cid] + 1);
+          if (gs.frame % 2 === 0) setBotSuperChargeUI(prev => { const n=[...prev]; n[cid]=botSuperChargesRef.current[cid]; return n; });
         } else {
-          ball.vy = Math.abs(ball.vy);
-          handleGoal(gs, isDuel ? duelBot.id : defender.id);
+          const goalId = isDuel ? duelBot.id : defender.id;
+          const bst    = botSuperTypesRef.current[goalId];
+          const bActive = botSuperActiveRef.current[goalId] > 0;
+          if (bActive && bst === 1) {
+            ball.vy = Math.abs(ball.vy);
+            showAnnouncer('⚔️ BOT IRON WALL!');
+          } else if (bActive && bst === 3) {
+            ball.active = false;
+            setBallVisuals(gs.balls.map(b=>({active:b.active,color:b.color,radius:b.radius})));
+            showAnnouncer('💥 BALL BANISHED!');
+          } else {
+            ball.vy = Math.abs(ball.vy);
+            handleGoal(gs, goalId);
+          }
         }
         ball.y = GYT + ball.radius + 1;
       }
@@ -816,8 +851,17 @@ export function GameArena({
           const p    = gs.players[LEFT];
           const pLen = getPaddleLen(p);
           const hit  = ball.y >= p.paddleCenter - pLen/2 && ball.y <= p.paddleCenter + pLen/2;
-          if (hit) { const pv = p.paddleCenter - p.prevPaddleCenter; const boost = Math.min(p.relicEffect.deflectBoost ?? 1, 1.3); ball.vx = (Math.abs(ball.vx)+0.12)*boost; ball.vy += pv*0.4; p.score++; }
-          else     { ball.vx = Math.abs(ball.vx); handleGoal(gs, LEFT); }
+          if (hit) {
+            const pv = p.paddleCenter - p.prevPaddleCenter; const boost = Math.min(p.relicEffect.deflectBoost ?? 1, 1.3);
+            ball.vx = (Math.abs(ball.vx)+0.12)*boost; ball.vy += pv*0.4; p.score++;
+            botSuperChargesRef.current[LEFT] = Math.min(SUPER_MAX_CHARGE, botSuperChargesRef.current[LEFT] + 1);
+            if (gs.frame % 2 === 0) setBotSuperChargeUI(prev => { const n=[...prev]; n[LEFT]=botSuperChargesRef.current[LEFT]; return n; });
+          } else {
+            const bst = botSuperTypesRef.current[LEFT]; const bActive = botSuperActiveRef.current[LEFT] > 0;
+            if (bActive && bst === 1) { ball.vx = Math.abs(ball.vx); showAnnouncer('⚔️ BOT IRON WALL!'); }
+            else if (bActive && bst === 3) { ball.active = false; setBallVisuals(gs.balls.map(b=>({active:b.active,color:b.color,radius:b.radius}))); showAnnouncer('💥 BALL BANISHED!'); }
+            else { ball.vx = Math.abs(ball.vx); handleGoal(gs, LEFT); }
+          }
         } else {
           ball.vx = Math.abs(ball.vx); // bounce — duel side wall
         }
@@ -830,8 +874,17 @@ export function GameArena({
           const p    = gs.players[RIGHT];
           const pLen = getPaddleLen(p);
           const hit  = ball.y >= p.paddleCenter - pLen/2 && ball.y <= p.paddleCenter + pLen/2;
-          if (hit) { const pv = p.paddleCenter - p.prevPaddleCenter; const boost = Math.min(p.relicEffect.deflectBoost ?? 1, 1.3); ball.vx = -(Math.abs(ball.vx)+0.12)*boost; ball.vy += pv*0.4; p.score++; }
-          else     { ball.vx = -Math.abs(ball.vx); handleGoal(gs, RIGHT); }
+          if (hit) {
+            const pv = p.paddleCenter - p.prevPaddleCenter; const boost = Math.min(p.relicEffect.deflectBoost ?? 1, 1.3);
+            ball.vx = -(Math.abs(ball.vx)+0.12)*boost; ball.vy += pv*0.4; p.score++;
+            botSuperChargesRef.current[RIGHT] = Math.min(SUPER_MAX_CHARGE, botSuperChargesRef.current[RIGHT] + 1);
+            if (gs.frame % 2 === 0) setBotSuperChargeUI(prev => { const n=[...prev]; n[RIGHT]=botSuperChargesRef.current[RIGHT]; return n; });
+          } else {
+            const bst = botSuperTypesRef.current[RIGHT]; const bActive = botSuperActiveRef.current[RIGHT] > 0;
+            if (bActive && bst === 1) { ball.vx = -Math.abs(ball.vx); showAnnouncer('⚔️ BOT IRON WALL!'); }
+            else if (bActive && bst === 3) { ball.active = false; setBallVisuals(gs.balls.map(b=>({active:b.active,color:b.color,radius:b.radius}))); showAnnouncer('💥 BALL BANISHED!'); }
+            else { ball.vx = -Math.abs(ball.vx); handleGoal(gs, RIGHT); }
+          }
         } else {
           ball.vx = -Math.abs(ball.vx);
         }
@@ -935,6 +988,41 @@ export function GameArena({
       if (superActiveFramesRef.current === 0) {
         setSuperActiveUI(false);
         showAnnouncer('SUPER ENDED');
+      }
+    }
+
+    // ── Bot super auto-activation + countdown ──
+    const BOT_IDS = [TOP, LEFT, RIGHT, TOP_R, BOTTOM_R] as const;
+    for (const bid of BOT_IDS) {
+      const player = gs.players[bid];
+      if (!player || player.isEliminated || !player.isBot) continue;
+      // If fully charged and not active, queue activation after random delay
+      if (botSuperChargesRef.current[bid] >= SUPER_MAX_CHARGE && botSuperActiveRef.current[bid] === 0) {
+        if (botSuperPendingRef.current[bid] < 0) {
+          botSuperPendingRef.current[bid] = 30 + Math.floor(Math.random() * 60);
+        }
+      }
+      // Count down pending activation
+      if (botSuperPendingRef.current[bid] > 0) {
+        botSuperPendingRef.current[bid]--;
+        if (botSuperPendingRef.current[bid] === 0) {
+          botSuperPendingRef.current[bid]    = -1;
+          botSuperChargesRef.current[bid]    = 0;
+          botSuperActiveRef.current[bid]     = SUPER_DURATION_FRAMES;
+          const bst = botSuperTypesRef.current[bid];
+          const botLabels: Record<number, string> = {1:'⚔️ BOT IRON WALL!', 2:'🌀 BOT SLOW FIELD!', 3:'💥 BOT BANISH!'};
+          showAnnouncer(botLabels[bst] ?? 'BOT SUPER!');
+          setBotSuperActiveUI(prev => { const n=[...prev]; n[bid]=true; return n; });
+          setBotSuperChargeUI(prev  => { const n=[...prev]; n[bid]=0; return n; });
+          if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        }
+      }
+      // Decrement active frames
+      if (botSuperActiveRef.current[bid] > 0) {
+        botSuperActiveRef.current[bid]--;
+        if (botSuperActiveRef.current[bid] === 0) {
+          setBotSuperActiveUI(prev => { const n=[...prev]; n[bid]=false; return n; });
+        }
       }
     }
 
@@ -1147,13 +1235,52 @@ export function GameArena({
         if (isDuel && idx !== BOTTOM && idx !== TOP) return null;
         const t = WALL_MARGIN + 2;
         let wallStyle: object = {};
-        if (idx === BOTTOM)   wallStyle = sixPlayer ? { position:'absolute' as const, bottom:0, left:0, width:'50%' as const, height:t } : { position:'absolute' as const, bottom:0, left:0, right:0, height:t };
+        if (idx === BOTTOM)        wallStyle = sixPlayer ? { position:'absolute' as const, bottom:0, left:0, width:'50%' as const, height:t } : { position:'absolute' as const, bottom:0, left:0, right:0, height:t };
         else if (idx === BOTTOM_R) wallStyle = { position:'absolute' as const, bottom:0, right:0, width:'50%' as const, height:t };
         else if (idx === TOP)      wallStyle = sixPlayer ? { position:'absolute' as const, top:0, left:0, width:'50%' as const, height:t } : { position:'absolute' as const, top:0, left:0, right:0, height:t };
         else if (idx === TOP_R)    wallStyle = { position:'absolute' as const, top:0, right:0, width:'50%' as const, height:t };
         else if (idx === LEFT)     wallStyle = { position:'absolute' as const, left:0, top:0, bottom:0, width:t };
         else                       wallStyle = { position:'absolute' as const, right:0, top:0, bottom:0, width:t };
-        return <View key={idx} style={[wallStyle, { backgroundColor: player.color+'44' }]} />;
+        const isBotActive = player.isBot && botSuperActiveUI[idx];
+        return <View key={idx} style={[wallStyle, { backgroundColor: isBotActive ? player.color+'88' : player.color+'44' }]} />;
+      })}
+
+      {/* Bot super charge bars — small pip strips near each bot wall */}
+      {gamePhase === 'playing' && gs.players.map((player, idx) => {
+        if (!player.isBot || player.isEliminated) return null;
+        if (isDuel && idx !== TOP) return null;
+        const charge = botSuperChargeUI[idx];
+        const active = botSuperActiveUI[idx];
+        const bst    = botSuperTypesRef.current[idx];
+        const icon   = bst === 1 ? '⚔️' : bst === 2 ? '🌀' : '💥';
+        const col    = active ? '#00FFAA' : player.color;
+        const pipW   = 14;
+        const gap    = 2;
+        const totalW = SUPER_MAX_CHARGE * pipW + (SUPER_MAX_CHARGE - 1) * gap;
+        let barStyle: object = {};
+        if (idx === TOP || idx === TOP_R)        barStyle = { position:'absolute' as const, top: WALL_MARGIN+4, left:'50%' as const, transform:[{translateX:-totalW/2}] };
+        else if (idx === LEFT)                   barStyle = { position:'absolute' as const, left: WALL_MARGIN+4, top:'30%' as const };
+        else if (idx === RIGHT)                  barStyle = { position:'absolute' as const, right: WALL_MARGIN+4, top:'30%' as const };
+        else                                     return null;
+        if (idx === TOP && sixPlayer)            barStyle = { position:'absolute' as const, top: WALL_MARGIN+4, left: arenaSize/4 - totalW/2 };
+        if (idx === TOP_R)                       barStyle = { position:'absolute' as const, top: WALL_MARGIN+4, left: arenaSize*3/4 - totalW/2 };
+        return (
+          <View key={`bsuper-${idx}`} pointerEvents="none" style={barStyle as never}>
+            <View style={{ flexDirection:'row', gap, alignItems:'center' }}>
+              <Text style={{ fontSize:7, marginRight:2 }}>{icon}</Text>
+              {Array.from({length: SUPER_MAX_CHARGE}).map((_,pi) => (
+                <View key={pi} style={{
+                  width:pipW, height:4, borderRadius:2,
+                  backgroundColor: active ? '#00FFAA' : (pi < charge ? col : '#FFFFFF1A'),
+                  shadowColor: pi < charge ? col : 'transparent',
+                  shadowOpacity: pi < charge ? 0.9 : 0,
+                  shadowRadius: 3,
+                  shadowOffset:{width:0,height:0},
+                }} />
+              ))}
+            </View>
+          </View>
+        );
       })}
 
       <View style={{ width: arenaSize, height: arenaSize, position:'absolute' }} {...panResponder.panHandlers}>
