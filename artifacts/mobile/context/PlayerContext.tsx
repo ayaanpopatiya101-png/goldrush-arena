@@ -212,6 +212,46 @@ export function getChallengeCode(username: string): string {
   return Math.abs(hash).toString(36).toUpperCase().padStart(6, '0').slice(0, 6);
 }
 
+// ─── Trophy Road ──────────────────────────────────────────────────────────────
+export type TrophyReward =
+  | { type: 'coins'; amount: number }
+  | { type: 'skin';  id: string }
+  | { type: 'relic'; id: string };
+
+export interface TrophyMilestone {
+  id: string;
+  xp: number;
+  reward: TrophyReward;
+}
+
+export const TROPHY_ROAD: TrophyMilestone[] = [
+  { id: 'tr_01', xp: 100,    reward: { type: 'coins', amount: 200  } },
+  { id: 'tr_02', xp: 300,    reward: { type: 'relic', id: 'ironhide'    } },
+  { id: 'tr_03', xp: 600,    reward: { type: 'coins', amount: 300  } },
+  { id: 'tr_04', xp: 1000,   reward: { type: 'skin',  id: 'plasma'      } },
+  { id: 'tr_05', xp: 1500,   reward: { type: 'coins', amount: 400  } },
+  { id: 'tr_06', xp: 2000,   reward: { type: 'relic', id: 'longarm'     } },
+  { id: 'tr_07', xp: 3000,   reward: { type: 'skin',  id: 'frost'       } },
+  { id: 'tr_08', xp: 4000,   reward: { type: 'coins', amount: 600  } },
+  { id: 'tr_09', xp: 6000,   reward: { type: 'relic', id: 'quicksilver' } },
+  { id: 'tr_10', xp: 8000,   reward: { type: 'skin',  id: 'toxic'       } },
+  { id: 'tr_11', xp: 10000,  reward: { type: 'coins', amount: 800  } },
+  { id: 'tr_12', xp: 12000,  reward: { type: 'relic', id: 'secondwind'  } },
+  { id: 'tr_13', xp: 15000,  reward: { type: 'skin',  id: 'void'        } },
+  { id: 'tr_14', xp: 20000,  reward: { type: 'coins', amount: 1000 } },
+  { id: 'tr_15', xp: 25000,  reward: { type: 'relic', id: 'aftershock'  } },
+  { id: 'tr_16', xp: 30000,  reward: { type: 'skin',  id: 'inferno'     } },
+  { id: 'tr_17', xp: 35000,  reward: { type: 'coins', amount: 1200 } },
+  { id: 'tr_18', xp: 40000,  reward: { type: 'relic', id: 'timewarp'    } },
+  { id: 'tr_19', xp: 50000,  reward: { type: 'skin',  id: 'chrome'      } },
+  { id: 'tr_20', xp: 60000,  reward: { type: 'coins', amount: 1500 } },
+  { id: 'tr_21', xp: 75000,  reward: { type: 'relic', id: 'bulwark'     } },
+  { id: 'tr_22', xp: 100000, reward: { type: 'skin',  id: 'cosmic'      } },
+  { id: 'tr_23', xp: 125000, reward: { type: 'coins', amount: 2000 } },
+  { id: 'tr_24', xp: 150000, reward: { type: 'relic', id: 'phoenix'     } },
+  { id: 'tr_25', xp: 200000, reward: { type: 'relic', id: 'midas'       } },
+];
+
 // ─── Season pass ──────────────────────────────────────────────────────────────
 export const SEASON_TIERS = [
   { games: 0,   reward: '50 coins',    icon: '🪙', name: 'Rookie',    coinReward: 50  },
@@ -309,6 +349,10 @@ export interface PlayerProfile {
   tutorialComplete?: boolean;
   // Super ability equipped for matches: 1=Iron Wall, 2=Slow Field, 3=Banish
   selectedSuper?: 1 | 2 | 3;
+  // Trophy Road claimed milestone IDs
+  trophyRoadClaimed?: string[];
+  // Relics unlocked via Trophy Road (bypass rank requirement)
+  trophyUnlockedRelics?: string[];
 }
 
 export interface MatchResult {
@@ -332,6 +376,8 @@ const DEFAULT_PROFILE: PlayerProfile = {
   relicLevels: {},
   tutorialComplete: false,
   selectedSuper: 1,
+  trophyRoadClaimed: [],
+  trophyUnlockedRelics: [],
 };
 
 // ─── Halo-style level change calculator ───────────────────────────────────────
@@ -383,6 +429,7 @@ interface PlayerContextType {
   setAvatar: (emoji: string, color: string) => Promise<void>;
   claimDailyStreak: () => Promise<number>;
   claimSeasonTier: (tierIdx: number) => Promise<void>;
+  claimTrophyRoad: (id: string) => Promise<void>;
   completeTutorial: () => Promise<void>;
   setSelectedSuper: (type: 1 | 2 | 3) => Promise<void>;
   logout: () => Promise<void>;
@@ -501,7 +548,8 @@ export function PlayerProvider({ username, onLogout, children }: {
     if (relicId === 'none') { await save({ ...profile, currentRelic: 'none' }); return; }
     const relic = RELICS.find(r => r.id === relicId);
     if (!relic) return;
-    if (getRankIndex(profile.rank) < relic.unlockRankIndex) return; // not yet unlocked
+    const trophyUnlocked = (profile.trophyUnlockedRelics ?? []).includes(relicId);
+    if (!trophyUnlocked && getRankIndex(profile.rank) < relic.unlockRankIndex) return;
     await save({ ...profile, currentRelic: relicId });
   }, [profile, save]);
 
@@ -555,6 +603,25 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({ ...profile, tutorialComplete: true });
   }, [profile, save]);
 
+  const claimTrophyRoad = useCallback(async (id: string) => {
+    if ((profile.trophyRoadClaimed ?? []).includes(id)) return;
+    const milestone = TROPHY_ROAD.find(m => m.id === id);
+    if (!milestone || profile.xp < milestone.xp) return;
+    let updated = { ...profile, trophyRoadClaimed: [...(profile.trophyRoadClaimed ?? []), id] };
+    const r = milestone.reward;
+    if (r.type === 'coins') {
+      updated = { ...updated, coins: updated.coins + r.amount };
+    } else if (r.type === 'skin') {
+      if (!updated.ownedSkins.includes(r.id))
+        updated = { ...updated, ownedSkins: [...updated.ownedSkins, r.id] };
+    } else if (r.type === 'relic') {
+      const prev = updated.trophyUnlockedRelics ?? [];
+      if (!prev.includes(r.id))
+        updated = { ...updated, trophyUnlockedRelics: [...prev, r.id] };
+    }
+    await save(updated);
+  }, [profile, save]);
+
   const setSelectedSuper = useCallback(async (type: 1 | 2 | 3) => {
     await save({ ...profile, selectedSuper: type });
   }, [profile, save]);
@@ -565,7 +632,7 @@ export function PlayerProvider({ username, onLogout, children }: {
     <PlayerContext.Provider value={{
       profile, isLoaded, currentUsername: username, showStreakModal, dismissStreakModal,
       updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic, upgradeRelic,
-      addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, completeTutorial, setSelectedSuper, logout,
+      addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial, setSelectedSuper, logout,
     }}>
       {children}
     </PlayerContext.Provider>
