@@ -1,384 +1,277 @@
-import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SKINS, RELICS, RANKS, getRankIndex, usePlayer, getRelicLevel, getRelicUpgradeCost, RELIC_MAX_LEVEL } from '@/context/PlayerContext';
 
-const ARENA_THEMES = [
-  { id: 'default', emoji: '🌌', name: 'Dark Void',      desc: 'Classic deep-space',   color: '#6655FF', preview: ['#0D0A06', '#181208'] as [string,string] },
-  { id: 'solar',   emoji: '☀️', name: 'Solar Flare',    desc: 'Scorching red arena',  color: '#FF6B35', preview: ['#350000', '#5A1000'] as [string,string] },
-  { id: 'arctic',  emoji: '❄️', name: 'Arctic Ice',     desc: 'Cool blue frost',      color: '#1E8AAA', preview: ['#001828', '#003050'] as [string,string] },
-  { id: 'toxic',   emoji: '☢️', name: 'Toxic Wasteland',desc: 'Neon hazard zone',     color: '#4A8A38', preview: ['#001A08', '#003020'] as [string,string] },
-  { id: 'cosmic',  emoji: '🌸', name: 'Cosmic Dream',   desc: 'Purple nebula',        color: '#7A50A0', preview: ['#180030', '#2A0060'] as [string,string] },
-  { id: 'golden',  emoji: '👑', name: 'Gold Rush',      desc: 'Prestige arena',       color: '#C8820A', preview: ['#1A1200', '#2A2000'] as [string,string] },
-];
+import {
+  usePlayer, SKINS, RELICS, MAPS,
+  getRelicLevel, getRankFromXP, getRankIndex,
+  type ArenaMap,
+} from '@/context/PlayerContext';
 
-type Tab = 'skins' | 'relics' | 'themes';
+const BG0  = '#08071A';
+const BG1  = '#0F0C24';
+const GOLD = '#F0B429';
+const WHITE= '#FFFFFF';
+const MUTED= '#FFFFFF55';
+const DIM  = '#FFFFFF18';
+const CARD = '#FFFFFF07';
+const BORDR= '#FFFFFF12';
 
-// ─── Skin card ────────────────────────────────────────────────────────────────
-function SkinCard({ skin, equipped, onEquip }: {
-  skin: typeof SKINS[0]; equipped: boolean; onEquip: () => void;
-}) {
-  return (
-    <Pressable onPress={onEquip} style={[INV.card, { borderColor: equipped ? skin.color : skin.color + '44', shadowColor: skin.color, shadowOpacity: equipped ? 0.6 : 0.1 }]}>
-      <LinearGradient colors={[skin.color + (equipped ? '44' : '22'), skin.color + '08', '#00000000']} style={StyleSheet.absoluteFill} />
-      {equipped && <View style={[INV.equippedBar, { backgroundColor: skin.color }]} />}
-      <Text style={INV.skinDot}>🎨</Text>
-      <View style={[INV.colorSwatch, { backgroundColor: skin.color, shadowColor: skin.color, shadowOpacity: 0.7, shadowRadius: 8, shadowOffset: { width: 0, height: 0 } }]} />
-      <Text style={[INV.cardName, { color: skin.color }]}>{skin.name}</Text>
-      {equipped ? (
-        <View style={[INV.equippedChip, { backgroundColor: skin.color + '33', borderColor: skin.color + '88' }]}>
-          <Feather name="check-circle" size={9} color={skin.color} />
-          <Text style={[INV.equippedTxt, { color: skin.color }]}>ON</Text>
-        </View>
-      ) : (
-        <View style={INV.equipChip}>
-          <Text style={INV.equipTxt}>EQUIP</Text>
-        </View>
-      )}
-    </Pressable>
-  );
-}
+const TABS = ['SKINS', 'RELICS', 'ARENAS'] as const;
+type Tab = typeof TABS[number];
 
-// ─── Relic card ───────────────────────────────────────────────────────────────
-function RelicCard({ relic, equipped, trophyUnlocked, playerRankIdx, relicLevel, upgradeCost, coinsAvail, onEquip, onUpgrade }: {
-  relic: typeof RELICS[0]; equipped: boolean; trophyUnlocked: boolean;
-  playerRankIdx: number; relicLevel: number; upgradeCost: number; coinsAvail: number;
-  onEquip: () => void; onUpgrade: () => void;
-}) {
-  const unlocked = playerRankIdx >= relic.unlockRankIndex || trophyUnlocked;
-  const pct = relicLevel / RELIC_MAX_LEVEL;
-  return (
-    <View style={[INV.relicCard, {
-      borderColor: equipped ? relic.color : (unlocked ? relic.color + '44' : '#FFFFFF15'),
-      opacity: unlocked ? 1 : 0.45,
-      shadowColor: relic.color, shadowOpacity: equipped ? 0.6 : 0.1,
-    }]}>
-      <LinearGradient colors={[relic.color + (equipped ? '44' : '18'), relic.color + '06']} style={StyleSheet.absoluteFill} />
-      {equipped && <View style={[INV.equippedBar, { backgroundColor: relic.color }]} />}
-
-      <View style={INV.relicTop}>
-        <Text style={INV.relicIcon}>{relic.icon}</Text>
-        <View style={{ flex: 1 }}>
-          <Text style={[INV.relicName, { color: equipped ? relic.color : '#FFFFFF' }]}>{relic.name}</Text>
-          <Text style={INV.relicDesc} numberOfLines={2}>{relic.desc}</Text>
-        </View>
-      </View>
-
-      {unlocked ? (
-        <>
-          {/* Level bar */}
-          <View style={INV.levelRow}>
-            <Text style={INV.levelTxt}>LV {relicLevel}/{RELIC_MAX_LEVEL}</Text>
-            <View style={INV.levelBar}>
-              <View style={[INV.levelFill, { width: `${pct * 100}%` as never, backgroundColor: relic.color }]} />
-            </View>
-          </View>
-          <View style={INV.relicBtns}>
-            <Pressable onPress={onEquip} style={[INV.relicBtn, { flex: 1, borderColor: equipped ? relic.color + '88' : '#FFFFFF22', backgroundColor: equipped ? relic.color + '22' : '#FFFFFF06' }]}>
-              <Text style={[INV.relicBtnTxt, { color: equipped ? relic.color : '#FFFFFF88' }]}>
-                {equipped ? '✓ ACTIVE' : 'EQUIP'}
-              </Text>
-            </Pressable>
-            {relicLevel < RELIC_MAX_LEVEL && (
-              <Pressable onPress={onUpgrade} style={[INV.relicBtn, { flex: 1, borderColor: coinsAvail >= upgradeCost ? '#FFD70066' : '#FFFFFF22', backgroundColor: '#FFD70011' }]}>
-                <Text style={INV.relicBtnTxt}>🪙{upgradeCost}</Text>
-              </Pressable>
-            )}
-          </View>
-        </>
-      ) : (
-        <View style={INV.lockRow}>
-          <Feather name="lock" size={12} color="#FFFFFF33" />
-          <Text style={INV.lockTxt}>Reach {RANKS[relic.unlockRankIndex]?.name ?? '?'}</Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
-// ─── Theme card ───────────────────────────────────────────────────────────────
-function ThemeCard({ theme, owned, equipped, onEquip }: {
-  theme: typeof ARENA_THEMES[0]; owned: boolean; equipped: boolean; onEquip: () => void;
-}) {
-  return (
-    <Pressable onPress={owned ? onEquip : undefined} style={{ width: '47%' }}>
-      <View style={[INV.themeCard, { borderColor: equipped ? theme.color : theme.color + '33', opacity: owned ? 1 : 0.5, shadowColor: theme.color, shadowOpacity: equipped ? 0.5 : 0.1 }]}>
-        <LinearGradient colors={theme.preview} style={INV.themePreview}>
-          <Text style={{ fontSize: 30 }}>{theme.emoji}</Text>
-          <View style={[INV.arenaWall, { top: 0 }]} />
-          <View style={[INV.arenaWall, { bottom: 0 }]} />
-        </LinearGradient>
-        <View style={INV.themeInfo}>
-          <Text style={[INV.themeName, { color: equipped ? theme.color : '#FFFFFF' }]}>{theme.name}</Text>
-          {equipped && (
-            <View style={[INV.equippedChip, { backgroundColor: theme.color + '33', borderColor: theme.color + '88' }]}>
-              <Text style={[INV.equippedTxt, { color: theme.color }]}>ACTIVE</Text>
-            </View>
-          )}
-          {!owned && <Text style={INV.lockedTxt}>🔒 LOCKED</Text>}
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-// ─── Inventory screen ─────────────────────────────────────────────────────────
 export default function InventoryScreen() {
   const insets = useSafeAreaInsets();
-  const { profile, equipSkin, equipTheme, equipRelic, upgradeRelic } = usePlayer();
-  const [activeTab, setActiveTab] = useState<Tab>('skins');
-  const topPad = Platform.OS === 'web' ? Math.max(insets.top, 56) : insets.top;
+  const { profile, equipSkin, equipRelic, upgradeRelic, equipTheme } = usePlayer();
+  const [tab, setTab] = useState<Tab>('SKINS');
 
-  const ownedSkins   = SKINS.filter(s => profile.ownedSkins.includes(s.id));
-  const ownedThemes  = ARENA_THEMES.filter(t => profile.ownedThemes?.includes(t.id));
-  const playerRankIdx = getRankIndex(profile.rank);
-  const unlockedRelics = RELICS.filter(r => playerRankIdx >= r.unlockRankIndex || (profile.trophyUnlockedRelics ?? []).includes(r.id));
-  const lockedRelics   = RELICS.filter(r => playerRankIdx < r.unlockRankIndex && !(profile.trophyUnlockedRelics ?? []).includes(r.id));
-
-  async function handleEquipSkin(skinId: string) {
-    await equipSkin(skinId); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-  async function handleEquipTheme(themeId: string) {
-    await equipTheme(themeId); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-  async function handleEquipRelic(relicId: string) {
-    await equipRelic(relicId); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-  async function handleUpgradeRelic(relicId: string) {
-    const ok = await upgradeRelic(relicId);
-    if (Platform.OS !== 'web') Haptics.notificationAsync(ok ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error);
+  function haptic() {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 
-  const equippedSkin  = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
-  const equippedTheme = ARENA_THEMES.find(t => t.id === profile.currentArenaTheme) ?? ARENA_THEMES[0];
-  const equippedRelic = RELICS.find(r => r.id === profile.currentRelic);
+  const myRankIndex  = getRankIndex(getRankFromXP(profile?.xp ?? 0));
+  const ownedSkins   = SKINS.filter(s => profile?.ownedSkins?.includes(s.id));
+  const lockedSkins  = SKINS.filter(s => !profile?.ownedSkins?.includes(s.id));
+  const unlockedRelics = RELICS.filter(r => myRankIndex >= r.unlockRankIndex);
+  const lockedRelics   = RELICS.filter(r => myRankIndex < r.unlockRankIndex);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#07051A' }}>
-      <LinearGradient colors={['#0E0B22', '#07051A']} style={StyleSheet.absoluteFill} />
+    <View style={[S.root, { paddingTop: insets.top }]}>
+      <LinearGradient colors={[BG1, BG0]} style={StyleSheet.absoluteFill} />
 
       {/* Header */}
-      <LinearGradient colors={['#1A1530', '#0E0B22']} style={[INV.header, { paddingTop: topPad + 6 }]}>
+      <View style={S.header}>
         <View>
-          <Text style={INV.title}>📦 GEAR</Text>
-          <Text style={INV.sub}>{ownedSkins.length} skins · {unlockedRelics.length} relics · {ownedThemes.length} arenas</Text>
+          <Text style={S.headerTitle}>GEAR</Text>
+          <Text style={S.headerSub}>Customize your loadout</Text>
         </View>
-        {/* Currently equipped mini display */}
-        <View style={INV.equipped}>
-          <View style={[INV.miniEquip, { borderColor: equippedSkin.color + '88' }]}>
-            <Text style={{ fontSize: 16 }}>🎨</Text>
-          </View>
-          {equippedRelic && (
-            <View style={[INV.miniEquip, { borderColor: equippedRelic.color + '88' }]}>
-              <Text style={{ fontSize: 16 }}>{equippedRelic.icon}</Text>
-            </View>
-          )}
-          <View style={[INV.miniEquip, { borderColor: '#6655FF88' }]}>
-            <Text style={{ fontSize: 14 }}>{equippedTheme.emoji}</Text>
-          </View>
+        <View style={S.coinChip}>
+          <Text style={{ fontSize: 13 }}>🪙</Text>
+          <Text style={S.chipVal}>{profile?.coins ?? 0}</Text>
         </View>
-      </LinearGradient>
+      </View>
 
-      {/* Tab bar */}
-      <View style={INV.tabRow}>
-        {([
-          { id: 'skins',  label: `🎨 SKINS (${ownedSkins.length})` },
-          { id: 'relics', label: `⚡ RELICS (${unlockedRelics.length})` },
-          { id: 'themes', label: `🌌 ARENAS (${ownedThemes.length})` },
-        ] as { id: Tab; label: string }[]).map(t => (
-          <Pressable key={t.id} onPress={() => setActiveTab(t.id)} style={[INV.tab, activeTab === t.id && INV.tabActive]}>
-            <Text style={[INV.tabTxt, activeTab === t.id && INV.tabTxtActive]}>{t.label}</Text>
+      {/* Tabs */}
+      <View style={S.tabBar}>
+        {TABS.map(t => (
+          <Pressable key={t} onPress={() => setTab(t)} style={[S.tabBtn, tab === t && S.tabBtnActive]}>
+            <Text style={[S.tabTxt, tab === t && S.tabTxtActive]}>{t}</Text>
           </Pressable>
         ))}
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 14, gap: 12, paddingBottom: insets.bottom + 90 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={S.scroll} showsVerticalScrollIndicator={false}>
 
-        {activeTab === 'skins' && (
+        {/* SKINS */}
+        {tab === 'SKINS' && (
           <>
-            {/* Currently equipped banner */}
-            <View style={[INV.equippedBanner, { borderColor: equippedSkin.color + '55' }]}>
-              <LinearGradient colors={[equippedSkin.color + '33', equippedSkin.color + '11']} style={StyleSheet.absoluteFill} />
-              <Text style={{ fontSize: 36 }}>🎨</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={INV.bannerSub}>EQUIPPED SKIN</Text>
-                <Text style={[INV.bannerName, { color: equippedSkin.color }]}>{equippedSkin.name}</Text>
+            <Text style={S.secTitle}>{`OWNED  ·  ${ownedSkins.length} / ${SKINS.length}`}</Text>
+            {ownedSkins.length === 0 && (
+              <View style={S.emptyBox}>
+                <Text style={{ fontSize: 32 }}>🛒</Text>
+                <Text style={S.emptyTxt}>Visit the Shop to get skins</Text>
               </View>
-              <View style={[INV.colorSwatch, { backgroundColor: equippedSkin.color, width: 32, height: 32, borderRadius: 8 }]} />
+            )}
+            <View style={S.grid}>
+              {ownedSkins.map(skin => {
+                const equipped = profile?.currentSkin === skin.id;
+                return (
+                  <Pressable key={skin.id} onPress={() => { haptic(); equipSkin(skin.id); }}
+                    style={[S.skinCard, { borderColor: equipped ? skin.color : BORDR }]}>
+                    {equipped && <View style={[S.activeBar, { backgroundColor: skin.color }]} />}
+                    <View style={[S.skinSwatch, { backgroundColor: skin.color }]} />
+                    <Text style={S.skinName}>{skin.name}</Text>
+                    <View style={[S.badge, equipped
+                      ? { backgroundColor: skin.color + '30', borderColor: skin.color + '70' }
+                      : { backgroundColor: DIM, borderColor: BORDR }]}>
+                      <Text style={[S.badgeTxt, equipped && { color: skin.color }]}>{equipped ? 'EQUIPPED' : 'EQUIP'}</Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
 
-            <View style={INV.grid}>
-              {ownedSkins.map(skin => (
-                <SkinCard key={skin.id} skin={skin} equipped={profile.currentSkin === skin.id} onEquip={() => handleEquipSkin(skin.id)} />
-              ))}
-            </View>
+            {lockedSkins.length > 0 && (
+              <>
+                <Text style={[S.secTitle, { marginTop: 20 }]}>LOCKED</Text>
+                <View style={S.grid}>
+                  {lockedSkins.map(skin => (
+                    <View key={skin.id} style={[S.skinCard, { borderColor: BORDR, opacity: 0.4 }]}>
+                      <View style={[S.skinSwatch, { backgroundColor: skin.color }]} />
+                      <Text style={S.skinName}>{skin.name}</Text>
+                      <View style={[S.badge, { backgroundColor: DIM, borderColor: BORDR }]}>
+                        <Text style={[S.badgeTxt, { color: MUTED }]}>🔒 {skin.price} 🪙</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
           </>
         )}
 
-        {activeTab === 'relics' && (
+        {/* RELICS */}
+        {tab === 'RELICS' && (
           <>
-            {equippedRelic && (
-              <View style={[INV.equippedBanner, { borderColor: equippedRelic.color + '55' }]}>
-                <LinearGradient colors={[equippedRelic.color + '33', equippedRelic.color + '11']} style={StyleSheet.absoluteFill} />
-                <Text style={{ fontSize: 32 }}>{equippedRelic.icon}</Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={INV.bannerSub}>EQUIPPED RELIC</Text>
-                  <Text style={[INV.bannerName, { color: equippedRelic.color }]}>{equippedRelic.name}</Text>
-                </View>
+            <Text style={S.secTitle}>{`UNLOCKED  ·  ${unlockedRelics.length} / ${RELICS.length}`}</Text>
+            {unlockedRelics.length === 0 && (
+              <View style={S.emptyBox}>
+                <Text style={{ fontSize: 32 }}>⬆️</Text>
+                <Text style={S.emptyTxt}>Rank up to unlock relics</Text>
               </View>
             )}
-
-            {/* Unequip option */}
-            {profile.currentRelic !== 'none' && (
-              <Pressable onPress={() => handleEquipRelic('none')} style={INV.unequipBtn}>
-                <Text style={INV.unequipTxt}>REMOVE RELIC</Text>
-              </Pressable>
-            )}
-
-            {unlockedRelics.map(relic => (
-              <RelicCard key={relic.id} relic={relic}
-                equipped={profile.currentRelic === relic.id}
-                trophyUnlocked={(profile.trophyUnlockedRelics ?? []).includes(relic.id)}
-                playerRankIdx={playerRankIdx}
-                relicLevel={getRelicLevel(profile, relic.id)}
-                upgradeCost={getRelicUpgradeCost(getRelicLevel(profile, relic.id))}
-                coinsAvail={profile.coins}
-                onEquip={() => handleEquipRelic(relic.id)}
-                onUpgrade={() => handleUpgradeRelic(relic.id)}
-              />
-            ))}
+            {unlockedRelics.map(relic => {
+              const equipped = profile?.currentRelic === relic.id;
+              const level    = profile ? getRelicLevel(profile, relic.id) : 1;
+              return (
+                <View key={relic.id} style={[S.relicCard, { borderColor: equipped ? relic.color + '70' : BORDR }]}>
+                  {equipped && <LinearGradient colors={[relic.color + '20', 'transparent']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />}
+                  <View style={[S.relicIcon, { borderColor: equipped ? relic.color + '55' : BORDR }]}>
+                    <Text style={{ fontSize: 26 }}>{relic.icon}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={S.relicName}>{relic.name}</Text>
+                    <Text style={S.relicDesc} numberOfLines={2}>{relic.desc}</Text>
+                    <View style={S.levelRow}>
+                      <Text style={S.levelTxt}>Lv.{level}</Text>
+                      <View style={S.levelBar}>
+                        {Array.from({ length: 10 }).map((_, i) => (
+                          <View key={i} style={[S.levelSeg, { backgroundColor: i < level ? relic.color : DIM }]} />
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                  <View style={{ gap: 6, alignItems: 'flex-end' }}>
+                    <Pressable onPress={() => { haptic(); equipRelic(relic.id); }}
+                      style={[S.relicBtn, equipped
+                        ? { backgroundColor: relic.color + '30', borderColor: relic.color + '70' }
+                        : { backgroundColor: DIM, borderColor: BORDR }]}>
+                      <Text style={[S.relicBtnTxt, equipped && { color: relic.color }]}>{equipped ? 'EQUIPPED' : 'EQUIP'}</Text>
+                    </Pressable>
+                    {level < 10 && (
+                      <Pressable onPress={() => {
+                        haptic();
+                        upgradeRelic(relic.id).then(ok => { if (!ok) Alert.alert('Not enough coins'); });
+                      }} style={[S.relicBtn, { backgroundColor: GOLD + '22', borderColor: GOLD + '55' }]}>
+                        <Text style={[S.relicBtnTxt, { color: GOLD }]}>UPGRADE</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
 
             {lockedRelics.length > 0 && (
               <>
-                <Text style={INV.lockedSectionTitle}>🔒 LOCKED RELICS ({lockedRelics.length})</Text>
-                {lockedRelics.slice(0, 3).map(relic => (
-                  <RelicCard key={relic.id} relic={relic}
-                    equipped={false} trophyUnlocked={false}
-                    playerRankIdx={playerRankIdx}
-                    relicLevel={1} upgradeCost={0} coinsAvail={0}
-                    onEquip={() => {}} onUpgrade={() => {}}
-                  />
+                <Text style={[S.secTitle, { marginTop: 20 }]}>LOCKED — RANK UP TO UNLOCK</Text>
+                {lockedRelics.map(relic => (
+                  <View key={relic.id} style={[S.relicCard, { opacity: 0.35 }]}>
+                    <View style={[S.relicIcon, { borderColor: BORDR }]}>
+                      <Text style={{ fontSize: 26 }}>{relic.icon}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={S.relicName}>{relic.name}</Text>
+                      <Text style={S.relicDesc} numberOfLines={1}>{relic.desc}</Text>
+                    </View>
+                    <Text style={S.lockTxt}>🔒</Text>
+                  </View>
                 ))}
               </>
             )}
           </>
         )}
 
-        {activeTab === 'themes' && (
+        {/* ARENAS */}
+        {tab === 'ARENAS' && (
           <>
-            <View style={[INV.equippedBanner, { borderColor: equippedTheme.color + '55' }]}>
-              <LinearGradient colors={[...equippedTheme.preview, '#00000000'] as [string,string,string]} style={StyleSheet.absoluteFill} />
-              <Text style={{ fontSize: 32 }}>{equippedTheme.emoji}</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={INV.bannerSub}>EQUIPPED ARENA</Text>
-                <Text style={[INV.bannerName, { color: equippedTheme.color }]}>{equippedTheme.name}</Text>
-              </View>
-            </View>
-            <View style={INV.themeGrid}>
-              {ARENA_THEMES.map(theme => (
-                <ThemeCard key={theme.id} theme={theme}
-                  owned={profile.ownedThemes?.includes(theme.id) ?? false}
-                  equipped={profile.currentArenaTheme === theme.id}
-                  onEquip={() => handleEquipTheme(theme.id)}
-                />
-              ))}
-            </View>
+            <Text style={S.secTitle}>ARENA THEMES</Text>
+            {MAPS.map((theme: ArenaMap) => {
+              const equipped = profile?.currentArenaTheme === theme.id;
+              const unlocked = myRankIndex >= theme.unlockRankIndex;
+              return (
+                <Pressable key={theme.id}
+                  onPress={() => { if (!unlocked) return; haptic(); equipTheme(theme.id); }}
+                  style={[S.arenaCard, { borderColor: equipped ? theme.accent + '70' : BORDR, opacity: unlocked ? 1 : 0.45 }]}>
+                  {equipped && <LinearGradient colors={[theme.accent + '20', 'transparent']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />}
+                  <View style={[S.arenaPreview, { backgroundColor: theme.arenaBg[0] }]}>
+                    <LinearGradient colors={theme.arenaBg} style={StyleSheet.absoluteFill} />
+                    <View style={[S.arenaWallTop, { backgroundColor: theme.accent }]} />
+                    <View style={[S.arenaPuck,    { backgroundColor: theme.accent }]} />
+                    <View style={[S.arenaWallBot, { backgroundColor: theme.accent }]} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={S.arenaName}>{theme.icon}  {theme.name}</Text>
+                    <Text style={S.arenaDesc} numberOfLines={1}>{theme.desc}</Text>
+                  </View>
+                  <View style={[S.badge,
+                    equipped
+                      ? { backgroundColor: theme.accent + '30', borderColor: theme.accent + '70' }
+                      : unlocked ? { backgroundColor: DIM, borderColor: BORDR }
+                      : { backgroundColor: DIM, borderColor: BORDR }]}>
+                    <Text style={[S.badgeTxt, equipped && { color: theme.accent }]}>
+                      {equipped ? 'ACTIVE' : unlocked ? 'USE' : '🔒'}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
           </>
         )}
+
+        <View style={{ height: 20 }} />
       </ScrollView>
     </View>
   );
 }
 
-const INV = StyleSheet.create({
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingBottom: 14,
-    borderBottomWidth: 1, borderBottomColor: '#FFFFFF0E',
-  },
-  title: { fontFamily: 'Inter_900Black', fontSize: 22, color: '#FFD700', letterSpacing: 1 },
-  sub:   { fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF44', marginTop: 2 },
-  equipped: { flexDirection: 'row', gap: 6 },
-  miniEquip: {
-    width: 38, height: 38, borderRadius: 10, borderWidth: 1.5,
-    backgroundColor: '#FFFFFF0A', alignItems: 'center', justifyContent: 'center',
-  },
+const S = StyleSheet.create({
+  root:   { flex: 1, backgroundColor: BG0 },
+  scroll: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 },
 
-  tabRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#FFFFFF0E', backgroundColor: '#0A0818' },
-  tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
-  tabActive: { borderBottomWidth: 2.5, borderBottomColor: '#E5A020' },
-  tabTxt: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 0.5 },
-  tabTxtActive: { color: '#E5A020' },
+  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: BORDR },
+  headerTitle: { fontFamily: 'Exo2_900Black', fontSize: 20, color: WHITE, letterSpacing: 2 },
+  headerSub:   { fontFamily: 'Exo2_400Regular', fontSize: 11, color: MUTED, marginTop: 2 },
+  coinChip:    { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: GOLD + '18', borderWidth: 1, borderColor: GOLD + '40', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 7 },
+  chipVal:     { fontFamily: 'Exo2_700Bold', fontSize: 14, color: GOLD },
 
-  equippedBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    borderRadius: 18, borderWidth: 1.5, padding: 14, overflow: 'hidden',
-  },
-  bannerSub:  { fontFamily: 'Inter_600SemiBold', fontSize: 8, color: '#FFFFFF55', letterSpacing: 1.5 },
-  bannerName: { fontFamily: 'Inter_700Bold', fontSize: 16 },
+  tabBar:      { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 10, gap: 8, borderBottomWidth: 1, borderBottomColor: BORDR },
+  tabBtn:      { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: DIM },
+  tabBtnActive:{ backgroundColor: GOLD + '22', borderWidth: 1, borderColor: GOLD + '60' },
+  tabTxt:      { fontFamily: 'Exo2_700Bold', fontSize: 11, color: MUTED, letterSpacing: 1 },
+  tabTxtActive:{ color: GOLD },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' },
-  card: {
-    width: '47%', borderRadius: 18, borderWidth: 1.5, padding: 12,
-    alignItems: 'center', gap: 5, overflow: 'hidden',
-    backgroundColor: '#FFFFFF06',
-    shadowRadius: 10, shadowOffset: { width: 0, height: 0 },
-  },
-  equippedBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 3, borderTopLeftRadius: 18, borderTopRightRadius: 18 },
-  skinDot:    { fontSize: 30 },
-  colorSwatch: { width: 26, height: 10, borderRadius: 5 },
-  cardName:   { fontFamily: 'Inter_700Bold', fontSize: 11, textAlign: 'center' },
-  equippedChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    borderWidth: 1, borderRadius: 7, paddingHorizontal: 7, paddingVertical: 3,
-  },
-  equippedTxt: { fontFamily: 'Inter_700Bold', fontSize: 8 },
-  equipChip: {
-    backgroundColor: '#FFFFFF0E', borderWidth: 1, borderColor: '#FFFFFF22',
-    borderRadius: 7, paddingHorizontal: 9, paddingVertical: 3,
-  },
-  equipTxt: { color: '#FFFFFF66', fontFamily: 'Inter_700Bold', fontSize: 8 },
+  secTitle: { fontFamily: 'Exo2_700Bold', fontSize: 10, color: MUTED, letterSpacing: 2, marginBottom: 10 },
 
-  relicCard: {
-    borderRadius: 18, borderWidth: 1.5, padding: 14, gap: 10, overflow: 'hidden',
-    backgroundColor: '#FFFFFF06',
-    shadowRadius: 10, shadowOffset: { width: 0, height: 0 },
-  },
-  relicTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  relicIcon: { fontSize: 32, width: 40, textAlign: 'center' },
-  relicName: { fontFamily: 'Inter_700Bold', fontSize: 14 },
-  relicDesc: { fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF66', marginTop: 2, lineHeight: 14 },
-  levelRow:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  levelTxt:  { fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFD700', width: 60 },
-  levelBar:  { flex: 1, height: 6, borderRadius: 3, backgroundColor: '#FFFFFF15', overflow: 'hidden' },
-  levelFill: { height: 6, borderRadius: 3 },
-  relicBtns: { flexDirection: 'row', gap: 8 },
-  relicBtn:  { borderWidth: 1.5, borderRadius: 10, padding: 8, alignItems: 'center' },
-  relicBtnTxt: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 10 },
-  lockRow:   { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  lockTxt:   { color: '#FFFFFF33', fontFamily: 'Inter_500Medium', fontSize: 11 },
+  emptyBox: { alignItems: 'center', paddingVertical: 32, gap: 10 },
+  emptyTxt: { fontFamily: 'Exo2_600SemiBold', fontSize: 13, color: MUTED },
 
-  lockedSectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFFFFF33', letterSpacing: 2, marginTop: 6 },
-  unequipBtn: {
-    borderWidth: 1, borderColor: '#FF475533', borderRadius: 10, padding: 8,
-    alignItems: 'center', backgroundColor: '#FF475511',
-  },
-  unequipTxt: { color: '#FF4757', fontFamily: 'Inter_700Bold', fontSize: 10 },
+  grid:          { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 4 },
+  skinCard:      { width: '47%', backgroundColor: CARD, borderWidth: 1, borderRadius: 14, padding: 14, gap: 8, alignItems: 'center', overflow: 'hidden' },
+  activeBar:     { position: 'absolute', top: 0, left: 0, right: 0, height: 2 },
+  skinSwatch:    { width: 52, height: 52, borderRadius: 26 },
+  skinName:      { fontFamily: 'Exo2_700Bold', fontSize: 13, color: WHITE, textAlign: 'center' },
+  badge:         { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1 },
+  badgeTxt:      { fontFamily: 'Exo2_700Bold', fontSize: 10, color: GOLD, letterSpacing: 0.5 },
 
-  themeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' },
-  themeCard: {
-    borderRadius: 18, borderWidth: 1.5, overflow: 'hidden',
-    backgroundColor: '#FFFFFF06',
-    shadowRadius: 8, shadowOffset: { width: 0, height: 0 },
-  },
-  themePreview: {
-    height: 90, alignItems: 'center', justifyContent: 'center', position: 'relative',
-  },
-  arenaWall: { position: 'absolute', left: 0, right: 0, height: 6, backgroundColor: '#C8820A44' },
-  themeInfo: { padding: 10, gap: 4 },
-  themeName: { fontFamily: 'Inter_700Bold', fontSize: 11 },
-  lockedTxt: { fontFamily: 'Inter_500Medium', fontSize: 9, color: '#FFFFFF33' },
+  relicCard:  { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: CARD, borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 10, overflow: 'hidden' },
+  relicIcon:  { width: 52, height: 52, borderRadius: 26, backgroundColor: DIM, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  relicName:  { fontFamily: 'Exo2_700Bold', fontSize: 14, color: WHITE },
+  relicDesc:  { fontFamily: 'Exo2_400Regular', fontSize: 10, color: MUTED, marginTop: 2 },
+  levelRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
+  levelTxt:   { fontFamily: 'Exo2_600SemiBold', fontSize: 10, color: MUTED, minWidth: 28 },
+  levelBar:   { flex: 1, flexDirection: 'row', gap: 2 },
+  levelSeg:   { flex: 1, height: 3, borderRadius: 2 },
+  relicBtn:   { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1 },
+  relicBtnTxt:{ fontFamily: 'Exo2_700Bold', fontSize: 10, color: MUTED },
+  lockTxt:    { fontFamily: 'Exo2_600SemiBold', fontSize: 14, color: MUTED },
+
+  arenaCard:    { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: CARD, borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 10, overflow: 'hidden' },
+  arenaPreview: { width: 56, height: 56, borderRadius: 10, overflow: 'hidden', position: 'relative', flexShrink: 0 },
+  arenaWallTop: { position: 'absolute', top: 0, left: 0, right: 0, height: 7 },
+  arenaWallBot: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 7 },
+  arenaPuck:    { position: 'absolute', width: 10, height: 10, borderRadius: 5, top: '50%', left: '50%', marginTop: -5, marginLeft: -5 },
+  arenaName:    { fontFamily: 'Exo2_700Bold', fontSize: 14, color: WHITE },
+  arenaDesc:    { fontFamily: 'Exo2_400Regular', fontSize: 10, color: MUTED, marginTop: 2 },
 });

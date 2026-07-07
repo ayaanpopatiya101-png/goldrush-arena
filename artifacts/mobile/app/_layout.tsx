@@ -1,10 +1,12 @@
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
+  Exo2_400Regular,
+  Exo2_500Medium,
+  Exo2_600SemiBold,
+  Exo2_700Bold,
+  Exo2_800ExtraBold,
+  Exo2_900Black,
   useFonts,
-} from '@expo-google-fonts/inter';
+} from '@expo-google-fonts/exo-2';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -39,7 +41,12 @@ interface AuthUser { username: string; emoji: string; color: string }
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold,
+    Exo2_400Regular,
+    Exo2_500Medium,
+    Exo2_600SemiBold,
+    Exo2_700Bold,
+    Exo2_800ExtraBold,
+    Exo2_900Black,
   });
   const [authState, setAuthState] = useState<'loading' | 'in' | 'out'>('loading');
   const [authUser,  setAuthUser]  = useState<AuthUser | null>(null);

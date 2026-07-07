@@ -66,11 +66,11 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   symbol: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Exo2_700Bold',
     letterSpacing: 0.5,
   },
   label: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Exo2_700Bold',
     letterSpacing: 1.5,
   },
 });

@@ -135,17 +135,17 @@ export function LiveEventBanner() {
 
 const cd = StyleSheet.create({
   unit:  { alignItems: 'center', minWidth: 28 },
-  value: { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#C8820A', lineHeight: 20 },
-  label: { fontFamily: 'Inter_500Medium', fontSize: 8, color: '#FFFFFF66', letterSpacing: 0.5 },
-  sep:   { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#C8820A66', lineHeight: 20, marginBottom: 10 },
+  value: { fontFamily: 'Exo2_700Bold', fontSize: 16, color: '#C8820A', lineHeight: 20 },
+  label: { fontFamily: 'Exo2_500Medium', fontSize: 8, color: '#FFFFFF66', letterSpacing: 0.5 },
+  sep:   { fontFamily: 'Exo2_700Bold', fontSize: 16, color: '#C8820A66', lineHeight: 20, marginBottom: 10 },
 });
 
 const tk = StyleSheet.create({
   wrap:     { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FFFFFF08', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10 },
   liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FF475722', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   liveDot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FF4757' },
-  liveText: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#FF4757', letterSpacing: 1 },
-  news:     { flex: 1, fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFFCC' },
+  liveText: { fontFamily: 'Exo2_700Bold', fontSize: 9, color: '#FF4757', letterSpacing: 1 },
+  news:     { flex: 1, fontFamily: 'Exo2_400Regular', fontSize: 11, color: '#FFFFFFCC' },
 });
 
 const styles = StyleSheet.create({
@@ -154,13 +154,13 @@ const styles = StyleSheet.create({
   cornerGlow:   { position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: 50, backgroundColor: '#C8820A18' },
   topRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
   eventBadge:   { backgroundColor: '#C8820A22', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: '#C8820A44' },
-  eventBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#C8820A', letterSpacing: 1 },
+  eventBadgeText: { fontFamily: 'Exo2_700Bold', fontSize: 9, color: '#C8820A', letterSpacing: 1 },
   rewardBadge:  { backgroundColor: '#00FF8822', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: '#00FF8844' },
-  rewardText:   { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#00FF88', letterSpacing: 0.5 },
+  rewardText:   { fontFamily: 'Exo2_700Bold', fontSize: 9, color: '#00FF88', letterSpacing: 0.5 },
   midRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  eventTitle:   { fontFamily: 'Inter_700Bold', fontSize: 15, color: '#FFFFFF', marginBottom: 3 },
-  eventSub:     { fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF88', lineHeight: 15 },
+  eventTitle:   { fontFamily: 'Exo2_700Bold', fontSize: 15, color: '#FFFFFF', marginBottom: 3 },
+  eventSub:     { fontFamily: 'Exo2_400Regular', fontSize: 11, color: '#FFFFFF88', lineHeight: 15 },
   countdownRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  endsIn:       { fontFamily: 'Inter_500Medium', fontSize: 9, color: '#FFFFFF66', letterSpacing: 1.5 },
+  endsIn:       { fontFamily: 'Exo2_500Medium', fontSize: 9, color: '#FFFFFF66', letterSpacing: 1.5 },
   countdown:    { flexDirection: 'row', alignItems: 'center', gap: 4 },
 });

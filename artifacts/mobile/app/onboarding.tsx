@@ -686,19 +686,19 @@ const s = StyleSheet.create({
   // Logo
   crown:        { fontSize: 50, textAlign: 'center', textShadowColor: '#FF8800', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24 },
   titleWrap:    { position: 'relative', alignItems: 'center', justifyContent: 'center', height: 62, width: SW - 24, alignSelf: 'center', marginTop: 2 },
-  titleMain:    { position: 'absolute', fontFamily: 'Inter_700Bold', fontSize: 48, letterSpacing: 4, color: '#C8820A', textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 22 },
-  titleShadow1: { position: 'absolute', fontFamily: 'Inter_700Bold', fontSize: 48, letterSpacing: 4, color: '#FF4400', opacity: 0.5, transform: [{ translateX: 3 }, { translateY: 4 }] },
-  titleShadow2: { position: 'absolute', fontFamily: 'Inter_700Bold', fontSize: 48, letterSpacing: 4, color: '#880022', opacity: 0.3, transform: [{ translateX: 6 }, { translateY: 8 }] },
-  titleArena:   { fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 12, color: '#FFFFFFCC', marginTop: 4, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 16 },
+  titleMain:    { position: 'absolute', fontFamily: 'Exo2_700Bold', fontSize: 48, letterSpacing: 4, color: '#C8820A', textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 22 },
+  titleShadow1: { position: 'absolute', fontFamily: 'Exo2_700Bold', fontSize: 48, letterSpacing: 4, color: '#FF4400', opacity: 0.5, transform: [{ translateX: 3 }, { translateY: 4 }] },
+  titleShadow2: { position: 'absolute', fontFamily: 'Exo2_700Bold', fontSize: 48, letterSpacing: 4, color: '#880022', opacity: 0.3, transform: [{ translateX: 6 }, { translateY: 8 }] },
+  titleArena:   { fontFamily: 'Exo2_700Bold', fontSize: 20, letterSpacing: 12, color: '#FFFFFFCC', marginTop: 4, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 16 },
   divider:      { width: 80, height: 1.5, backgroundColor: '#FFFFFF18', borderRadius: 1, marginTop: 10, marginBottom: 6 },
-  tagline:      { color: '#FFFFFF55', fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 0.8 },
+  tagline:      { color: '#FFFFFF55', fontFamily: 'Exo2_500Medium', fontSize: 11, letterSpacing: 0.8 },
 
   // Enter Arena button
   enterBtn:     { borderRadius: 20, overflow: 'hidden', shadowColor: '#C8820A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.75, shadowRadius: 20, elevation: 14, width: '100%' },
   enterGrad:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 19, gap: 12 },
-  enterText:    { color: '#160800', fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 2 },
+  enterText:    { color: '#160800', fontFamily: 'Exo2_700Bold', fontSize: 20, letterSpacing: 2 },
   enterShimmer: { position: 'absolute', top: 0, bottom: 0, width: 100, backgroundColor: '#FFFFFF44' },
-  tapHint:      { color: '#FFFFFF40', fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 2, textAlign: 'center', marginTop: 14 },
+  tapHint:      { color: '#FFFFFF40', fontFamily: 'Exo2_500Medium', fontSize: 11, letterSpacing: 2, textAlign: 'center', marginTop: 14 },
 
   // Form sheet
   formSheet: {
@@ -721,15 +721,15 @@ const s = StyleSheet.create({
   tabRow:        { flexDirection: 'row', marginHorizontal: 20, backgroundColor: '#FFFFFF0C', borderRadius: 16, padding: 4, marginBottom: 16 },
   tabBtn:        { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 13 },
   tabBtnActive:  { backgroundColor: '#1A1008' },
-  tabText:       { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.2, color: '#FFFFFF44' },
+  tabText:       { fontFamily: 'Exo2_700Bold', fontSize: 11, letterSpacing: 1.2, color: '#FFFFFF44' },
   tabTextActive: { color: '#E09620' },
 
   // Fields
   field:     { gap: 8 },
-  label:     { color: '#FFFFFF66', fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.5 },
+  label:     { color: '#FFFFFF66', fontFamily: 'Exo2_600SemiBold', fontSize: 10, letterSpacing: 1.5 },
   inputRow:  { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF0C', borderRadius: 14, borderWidth: 1, borderColor: '#FFFFFF20', height: 54 },
-  input:     { flex: 1, paddingHorizontal: 16, color: '#F0F0FF', fontFamily: 'Inter_600SemiBold', fontSize: 15 },
-  charCount: { paddingRight: 14, color: '#FFFFFF33', fontFamily: 'Inter_400Regular', fontSize: 11 },
+  input:     { flex: 1, paddingHorizontal: 16, color: '#F0F0FF', fontFamily: 'Exo2_600SemiBold', fontSize: 15 },
+  charCount: { paddingRight: 14, color: '#FFFFFF33', fontFamily: 'Exo2_400Regular', fontSize: 11 },
   emojiRow:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   emojiBtn:  { width: 46, height: 46, borderRadius: 13, borderWidth: 1.5, borderColor: '#FFFFFF18', backgroundColor: '#FFFFFF0A', alignItems: 'center', justifyContent: 'center' },
   emojiText: { fontSize: 24 },
@@ -740,19 +740,19 @@ const s = StyleSheet.create({
   preview:          { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1, padding: 14, overflow: 'hidden' },
   previewAvatar:    { width: 52, height: 52, borderRadius: 26, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
   previewEmoji:     { fontSize: 26 },
-  previewName:      { fontFamily: 'Inter_700Bold', fontSize: 17 },
-  previewRank:      { color: '#FFFFFF55', fontFamily: 'Inter_500Medium', fontSize: 11, marginTop: 2 },
+  previewName:      { fontFamily: 'Exo2_700Bold', fontSize: 17 },
+  previewRank:      { color: '#FFFFFF55', fontFamily: 'Exo2_500Medium', fontSize: 11, marginTop: 2 },
   previewBadge:     { borderRadius: 9, borderWidth: 1, paddingHorizontal: 9, paddingVertical: 5 },
-  previewBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1.5 },
+  previewBadgeText: { fontFamily: 'Exo2_700Bold', fontSize: 9, letterSpacing: 1.5 },
 
   // CTA (form submit)
   ctaBtn:  { borderRadius: 16, overflow: 'hidden', shadowColor: '#C8820A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.55, shadowRadius: 16, elevation: 10 },
   ctaGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 17, gap: 10 },
-  ctaText: { color: '#1A0800', fontFamily: 'Inter_700Bold', fontSize: 17, letterSpacing: 1.5 },
+  ctaText: { color: '#1A0800', fontFamily: 'Exo2_700Bold', fontSize: 17, letterSpacing: 1.5 },
   shimmer: { position: 'absolute', top: 0, bottom: 0, width: 80, backgroundColor: '#FFFFFF40' },
 
-  error: { color: '#FF4757', fontFamily: 'Inter_500Medium', fontSize: 13, textAlign: 'center' },
-  terms: { color: '#FFFFFF28', fontFamily: 'Inter_400Regular', fontSize: 10, textAlign: 'center' },
+  error: { color: '#FF4757', fontFamily: 'Exo2_500Medium', fontSize: 13, textAlign: 'center' },
+  terms: { color: '#FFFFFF28', fontFamily: 'Exo2_400Regular', fontSize: 10, textAlign: 'center' },
 
   // Saved accounts
   savedRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
@@ -760,8 +760,8 @@ const s = StyleSheet.create({
   deleteBtn:   { paddingHorizontal: 14, paddingVertical: 12, justifyContent: 'center', alignItems: 'center' },
   savedAvatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   savedEmoji:  { fontSize: 24 },
-  savedName:   { color: '#F0F0FF', fontFamily: 'Inter_700Bold', fontSize: 16 },
-  savedRank:   { fontFamily: 'Inter_600SemiBold', fontSize: 11, marginTop: 2 },
+  savedName:   { color: '#F0F0FF', fontFamily: 'Exo2_700Bold', fontSize: 16 },
+  savedRank:   { fontFamily: 'Exo2_600SemiBold', fontSize: 11, marginTop: 2 },
   playBtn:     { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 10, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 },
-  playBtnText: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 0.5 },
+  playBtnText: { fontFamily: 'Exo2_700Bold', fontSize: 11, letterSpacing: 0.5 },
 });
