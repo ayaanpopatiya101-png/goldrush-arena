@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RankBadge } from '@/components/RankBadge';
@@ -9,361 +9,421 @@ import {
   ACHIEVEMENTS, AVATAR_COLORS, AVATAR_EMOJIS, RANKS, SKINS,
   getChallengeCode, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
-import { useColors } from '@/hooks/useColors';
 
-export default function ProfileScreen() {
-  const colors    = useColors();
-  const insets    = useSafeAreaInsets();
-  const {
-    profile, logout, setAvatar,
-  } = usePlayer();
-
-  const [avatarEditing, setAvatarEditing] = useState(false);
-  const [tempEmoji, setTempEmoji]         = useState(profile.avatarEmoji);
-  const [tempColor, setTempColor]         = useState(profile.avatarFrameColor);
-
-  const rankInfo  = xpForNextRank(profile.xp);
-  const rankData  = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
-  const topPad    = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
-  const winRate   = profile.totalGames > 0 ? Math.round((profile.wins / profile.totalGames) * 100) : 0;
-  const code      = getChallengeCode(profile.name);
-
-  async function handleSaveAvatar() {
-    await setAvatar(tempEmoji, tempColor);
-    setAvatarEditing(false);
-  }
-
-  async function handleShare() {
-    try {
-      await Share.share({
-        message: [
-          '🏆 GOLDRUSH ARENA RANK CARD 🏆',
-          '━━━━━━━━━━━━━━━━━━━━',
-          `👤 ${profile.name}`,
-          `⭐ ${profile.rank} · Level ${xpToLevel(profile.xp)}`,
-          `🏅 ${profile.xp.toLocaleString()} Total XP`,
-          `🎯 ${profile.wins} Wins · ${winRate}% Win Rate`,
-          `⚡ Best Streak: ${profile.bestStreak}`,
-          '━━━━━━━━━━━━━━━━━━━━',
-          `🎮 Challenge Code: ${code}`,
-          'Download GoldRush Arena — Last One Standing Wins!',
-        ].join('\n'),
-      });
-    } catch { /* user dismissed */ }
-  }
-
-  function handleLogout() {
-    if (Platform.OS === 'web') {
-      if (window.confirm('Sign out? You will be returned to the login screen.')) logout();
-      return;
-    }
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: () => logout() },
-    ]);
-  }
-
+// ─── Stat tile ─────────────────────────────────────────────────────────────────
+function StatTile({ icon, value, label, color }: { icon: string; value: string; label: string; color: string }) {
+  const anim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    Animated.loop(Animated.sequence([
+      Animated.timing(anim, { toValue: 1.06, duration: 1800, useNativeDriver: true }),
+      Animated.timing(anim, { toValue: 1,    duration: 1800, useNativeDriver: true }),
+    ])).start();
+  }, []);
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#080814', '#0C0C22']} style={StyleSheet.absoluteFill} />
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: topPad + 8, paddingBottom: insets.bottom + 80, paddingHorizontal: 20, gap: 16 }}
-      >
-        {/* ── Profile card ── */}
-        <View style={[styles.profileCard, { borderColor: rankData.color + '44' }]}>
-          <LinearGradient colors={[rankData.color + '1A', rankData.color + '08']} style={StyleSheet.absoluteFill} />
-
-          {/* Avatar — tappable to edit */}
-          <Pressable onPress={() => { setTempEmoji(profile.avatarEmoji); setTempColor(profile.avatarFrameColor); setAvatarEditing(true); }}>
-            <View style={[styles.bigAvatar, { borderColor: profile.avatarFrameColor, backgroundColor: profile.avatarFrameColor + '33' }]}>
-              <Text style={styles.bigAvatarEmoji}>{profile.avatarEmoji}</Text>
-              <View style={styles.editBadge}>
-                <Feather name="edit-2" size={9} color="#000" />
-              </View>
-            </View>
-          </Pressable>
-
-          <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: colors.foreground }]}>{profile.name}</Text>
-            <Text style={[styles.levelBadge, { color: rankData.color }]}>Level {xpToLevel(profile.xp)} · {profile.rank}</Text>
-            <View style={styles.loginStreakRow}>
-              <Text style={styles.streakIcon}>🔥</Text>
-              <Text style={[styles.streakText, { color: '#FF6B35' }]}>{profile.loginStreak} day streak</Text>
-            </View>
-          </View>
-          <RankBadge rank={profile.rank} size="md" showLabel={false} />
-        </View>
-
-        {/* ── Avatar picker (expanded when editing) ── */}
-        {avatarEditing && (
-          <View style={[styles.section, { borderColor: tempColor + '55', backgroundColor: tempColor + '08' }]}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>CUSTOMIZE AVATAR</Text>
-            </View>
-
-            {/* Emoji row */}
-            <Text style={[styles.pickerLabel, { color: colors.mutedForeground }]}>PICK YOUR ICON</Text>
-            <View style={styles.emojiGrid}>
-              {AVATAR_EMOJIS.map(e => (
-                <Pressable key={e} onPress={() => setTempEmoji(e)}
-                  style={[styles.emojiBtn, tempEmoji === e && { borderColor: tempColor, backgroundColor: tempColor + '22', transform: [{ scale: 1.15 }] }]}>
-                  <Text style={styles.emojiBtnText}>{e}</Text>
-                </Pressable>
-              ))}
-            </View>
-
-            {/* Color row */}
-            <Text style={[styles.pickerLabel, { color: colors.mutedForeground }]}>PICK YOUR COLOR</Text>
-            <View style={styles.colorGrid}>
-              {AVATAR_COLORS.map(c => (
-                <Pressable key={c} onPress={() => setTempColor(c)}
-                  style={[styles.colorDot, { backgroundColor: c, borderColor: tempColor === c ? '#FFFFFF' : 'transparent', transform: [{ scale: tempColor === c ? 1.25 : 1 }] }]}>
-                  {tempColor === c && <Feather name="check" size={10} color="#000" />}
-                </Pressable>
-              ))}
-            </View>
-
-            {/* Preview */}
-            <View style={styles.avatarPreview}>
-              <View style={[styles.previewCircle, { borderColor: tempColor, backgroundColor: tempColor + '33' }]}>
-                <Text style={styles.previewEmoji}>{tempEmoji}</Text>
-              </View>
-              <Text style={[styles.previewName, { color: tempColor }]}>{profile.name}</Text>
-            </View>
-
-            <View style={styles.row}>
-              <Pressable onPress={handleSaveAvatar} style={[styles.saveBtn, { backgroundColor: colors.primary, flex: 1 }]}>
-                <Text style={[styles.saveBtnText, { color: colors.background }]}>SAVE</Text>
-              </Pressable>
-              <Pressable onPress={() => setAvatarEditing(false)} style={[styles.cancelBtn, { borderColor: colors.border, flex: 1 }]}>
-                <Text style={[styles.cancelBtnText, { color: colors.mutedForeground }]}>CANCEL</Text>
-              </Pressable>
-            </View>
-          </View>
-        )}
-
-        {/* ── XP bar ── */}
-        <View style={[styles.xpSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.xpHeader}>
-            <Text style={[styles.xpTitle, { color: colors.foreground }]}>{profile.rank}</Text>
-            <Text style={[styles.xpTotal, { color: colors.mutedForeground }]}>{profile.xp} XP total</Text>
-            {rankInfo.next && (
-              <Text style={[styles.xpRemaining, { color: rankData.color }]}>{rankInfo.remaining} to {rankInfo.next}</Text>
-            )}
-          </View>
-          <View style={[styles.xpTrack, { backgroundColor: colors.muted }]}>
-            <View style={[styles.xpFill, { width: `${rankInfo.progress * 100}%` as never, backgroundColor: rankData.color }]} />
-          </View>
-        </View>
-
-        {/* ── Share stats card ── */}
-        <Pressable onPress={handleShare} style={[styles.shareCard, { borderColor: '#00BFFF44', backgroundColor: '#00BFFF08' }]}>
-          <View style={styles.shareLeft}>
-            <Feather name="share-2" size={22} color="#00BFFF" />
-            <View>
-              <Text style={styles.shareTitle}>SHARE YOUR RANK</Text>
-              <Text style={[styles.shareSub, { color: colors.mutedForeground }]}>Show off your stats to friends</Text>
-            </View>
-          </View>
-          <View style={styles.shareMiniCard}>
-            <Text style={[styles.shareMiniRank, { color: rankData.color }]}>{profile.rank}</Text>
-            <Text style={[styles.shareMiniWins, { color: colors.mutedForeground }]}>{profile.wins}W</Text>
-          </View>
-        </Pressable>
-
-        {/* ── Challenge code ── */}
-        <View style={[styles.codeSection, { backgroundColor: '#BF5FFF11', borderColor: '#BF5FFF33' }]}>
-          <Feather name="zap" size={14} color="#BF5FFF" />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.codeLabel}>YOUR CHALLENGE CODE</Text>
-            <Text style={styles.codeSub}>Share with friends so they can find and challenge you!</Text>
-          </View>
-          <Pressable
-            onPress={handleShare}
-            style={styles.codeBox}
-          >
-            <Text style={styles.codeText}>{code}</Text>
-            <Feather name="share" size={12} color="#BF5FFF" />
-          </Pressable>
-        </View>
-
-        {/* ── Stats grid ── */}
-        <View style={styles.statsGrid}>
-          {[
-            { label: 'WINS',        value: String(profile.wins),             icon: 'award',   color: '#FFD700' },
-            { label: 'LOSSES',      value: String(profile.losses),           icon: 'x-circle',color: '#FF4757' },
-            { label: 'WIN RATE',    value: `${winRate}%`,                    icon: 'percent', color: '#00FF88' },
-            { label: 'BEST STREAK', value: String(profile.bestStreak),       icon: 'zap',     color: '#FF6B35' },
-            { label: 'DEFLECTIONS', value: String(profile.totalDeflections), icon: 'shield',  color: '#00BFFF' },
-            { label: 'GAMES',       value: String(profile.totalGames),       icon: 'grid',    color: '#9B59B6' },
-          ].map(stat => (
-            <View key={stat.label} style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Feather name={stat.icon as never} size={18} color={stat.color} />
-              <Text style={[styles.statValue, { color: colors.foreground }]}>{stat.value}</Text>
-              <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* ── Achievements ── */}
-        <View style={styles.sectionWrap}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>ACHIEVEMENTS</Text>
-            <Text style={[styles.sectionCount, { color: colors.mutedForeground }]}>
-              {profile.achievements.length}/{ACHIEVEMENTS.length}
-            </Text>
-          </View>
-          <View style={styles.achieveGrid}>
-            {ACHIEVEMENTS.map(ach => {
-              const unlocked = profile.achievements.includes(ach.id);
-              return (
-                <View key={ach.id} style={[styles.achCard, {
-                  backgroundColor: unlocked ? '#FFD70022' : colors.card,
-                  borderColor:     unlocked ? '#FFD70055' : colors.border,
-                  opacity:         unlocked ? 1 : 0.45,
-                }]}>
-                  <Feather name="award" size={18} color={unlocked ? '#FFD700' : colors.mutedForeground} />
-                  <Text style={[styles.achName, { color: unlocked ? colors.foreground : colors.mutedForeground }]} numberOfLines={1}>{ach.name}</Text>
-                  <Text style={[styles.achDesc, { color: colors.mutedForeground }]} numberOfLines={2}>{ach.desc}</Text>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* ── Match history ── */}
-        {profile.matchHistory.length > 0 && (
-          <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>RECENT MATCHES</Text>
-            <View style={styles.historyList}>
-              {profile.matchHistory.slice(0, 8).map(match => (
-                <View key={match.id} style={[styles.historyRow, { backgroundColor: colors.card, borderColor: match.won ? '#00FF8822' : colors.border }]}>
-                  <View style={[styles.histResult, { backgroundColor: match.won ? '#00FF8833' : '#FF475733' }]}>
-                    <Text style={[styles.histResultText, { color: match.won ? '#00FF88' : '#FF4757' }]}>
-                      {match.won ? 'W' : 'L'}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.histMain, { color: colors.foreground }]}>
-                      {match.won ? 'Victory' : `${match.position === 2 ? '2nd' : match.position === 3 ? '3rd' : '4th'} Place`}
-                    </Text>
-                    <Text style={[styles.histSub, { color: colors.mutedForeground }]}>
-                      {match.deflections} deflections · {match.goalsAgainst} goals against
-                    </Text>
-                  </View>
-                  <View style={{ alignItems: 'flex-end', gap: 2 }}>
-                    <Text style={[styles.histXP, { color: rankData.color }]}>+{match.xpEarned} XP</Text>
-                    <Text style={[styles.histTime, { color: colors.mutedForeground }]}>
-                      {new Date(match.timestamp).toLocaleDateString()}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* ── Sign out ── */}
-        <Pressable onPress={handleLogout} style={styles.logoutBtn}>
-          <Feather name="log-out" size={16} color="#FF475788" />
-          <Text style={styles.logoutText}>Sign Out</Text>
-        </Pressable>
-
-        <Text style={[styles.footer, { color: colors.mutedForeground }]}>
-          GoldRush Arena · Account saved on this device
-        </Text>
-      </ScrollView>
+    <View style={[ST.tile, { borderColor: color + '44', shadowColor: color }]}>
+      <LinearGradient colors={[color + '22', color + '08']} style={StyleSheet.absoluteFill} />
+      <Text style={{ fontSize: 24 }}>{icon}</Text>
+      <Animated.Text style={[ST.val, { color, transform: [{ scale: anim }] }]}>{value}</Animated.Text>
+      <Text style={ST.lbl}>{label}</Text>
     </View>
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  profileCard:    { borderRadius: 18, borderWidth: 1.5, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, overflow: 'hidden' },
-  bigAvatar:      { width: 68, height: 68, borderRadius: 34, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
-  bigAvatarEmoji: { fontSize: 32 },
-  editBadge:      { position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFD700', alignItems: 'center', justifyContent: 'center' },
-  profileInfo:    { flex: 1, gap: 4 },
-  profileName:    { fontFamily: 'Inter_700Bold', fontSize: 20 },
-  levelBadge:     { fontFamily: 'Inter_600SemiBold', fontSize: 12, letterSpacing: 0.5 },
-  loginStreakRow:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  streakIcon:     { fontSize: 11 },
-  streakText:     { fontFamily: 'Inter_600SemiBold', fontSize: 11 },
+const ST = StyleSheet.create({
+  tile: {
+    flex: 1, borderRadius: 18, borderWidth: 1.5, padding: 14,
+    alignItems: 'center', gap: 4, overflow: 'hidden',
+    shadowRadius: 10, shadowOpacity: 0.3, shadowOffset: { width: 0, height: 0 },
+  },
+  val:  { fontFamily: 'Inter_900Black', fontSize: 22 },
+  lbl:  { fontFamily: 'Inter_600SemiBold', fontSize: 8, letterSpacing: 1.5, color: '#FFFFFF44' },
+});
 
-  // Avatar editor
-  section:      { borderRadius: 16, borderWidth: 1, padding: 16, gap: 12 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionTitle:  { fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 1, flex: 1 },
-  sectionCount:  { fontFamily: 'Inter_500Medium', fontSize: 12 },
-  pickerLabel:   { fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.5 },
-  emojiGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  emojiBtn:      { width: 44, height: 44, borderRadius: 12, borderWidth: 1.5, borderColor: '#FFFFFF18', backgroundColor: '#FFFFFF08', alignItems: 'center', justifyContent: 'center' },
-  emojiBtnText:  { fontSize: 22 },
-  colorGrid:     { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
-  colorDot:      { width: 32, height: 32, borderRadius: 16, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
-  avatarPreview: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFFFFF08', borderRadius: 12, padding: 12 },
-  previewCircle: { width: 52, height: 52, borderRadius: 26, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  previewEmoji:  { fontSize: 26 },
-  previewName:   { fontFamily: 'Inter_700Bold', fontSize: 17 },
-  row:           { flexDirection: 'row', gap: 8 },
-  saveBtn:       { borderRadius: 10, paddingVertical: 11, alignItems: 'center' },
-  saveBtnText:   { fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 0.5 },
-  cancelBtn:     { borderRadius: 10, borderWidth: 1, paddingVertical: 11, alignItems: 'center' },
-  cancelBtnText: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
+// ─── Achievement badge ──────────────────────────────────────────────────────────
+const ACH_ICONS: Record<string, string> = {
+  first_win: '🏆', hat_trick: '🎩', survivor: '❤️', streak3: '🔥', streak5: '⚡',
+  level10: '⭐', level25: '💎', collector: '🎨', gold_rank: '🥇', century: '💯',
+  deflect100: '🛡️', powerup10: '💊',
+};
 
-  // XP
-  xpSection: { borderRadius: 14, borderWidth: 1, padding: 14, gap: 8 },
-  xpHeader:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  xpTitle:   { fontFamily: 'Inter_700Bold', fontSize: 14, flex: 1 },
-  xpTotal:   { fontFamily: 'Inter_400Regular', fontSize: 11 },
-  xpRemaining: { fontFamily: 'Inter_600SemiBold', fontSize: 11 },
-  xpTrack:   { height: 8, borderRadius: 4, overflow: 'hidden' },
-  xpFill:    { height: '100%', borderRadius: 4 },
+function AchBadge({ id, unlocked }: { id: string; unlocked: boolean }) {
+  const ach = ACHIEVEMENTS.find(a => a.id === id) ?? ACHIEVEMENTS[0];
+  return (
+    <View style={[AB.badge, !unlocked && AB.locked]}>
+      <Text style={{ fontSize: unlocked ? 22 : 18, opacity: unlocked ? 1 : 0.3 }}>{ACH_ICONS[ach.id] ?? '🎖️'}</Text>
+      {unlocked && (
+        <View style={AB.dot} />
+      )}
+    </View>
+  );
+}
 
-  // Share card
-  shareCard:  { borderRadius: 14, borderWidth: 1, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  shareLeft:  { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  shareTitle: { color: '#00BFFF', fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1 },
-  shareSub:   { fontFamily: 'Inter_400Regular', fontSize: 11, marginTop: 2 },
-  shareMiniCard: { backgroundColor: '#00BFFF11', borderRadius: 10, padding: 10, alignItems: 'center', gap: 2 },
-  shareMiniRank: { fontFamily: 'Inter_700Bold', fontSize: 13 },
-  shareMiniWins: { fontFamily: 'Inter_500Medium', fontSize: 10 },
+const AB = StyleSheet.create({
+  badge: {
+    width: 48, height: 48, borderRadius: 14, borderWidth: 1.5,
+    borderColor: '#C8820A55', backgroundColor: '#C8820A22',
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#C8820A', shadowRadius: 8, shadowOpacity: 0.4, shadowOffset: { width: 0, height: 0 },
+  },
+  locked: { borderColor: '#FFFFFF15', backgroundColor: '#FFFFFF08', shadowOpacity: 0 },
+  dot: {
+    position: 'absolute', bottom: 4, right: 4,
+    width: 6, height: 6, borderRadius: 3, backgroundColor: '#00FF88',
+  },
+});
 
-  // Challenge code
-  codeSection: { borderRadius: 14, borderWidth: 1, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  codeLabel:   { color: '#BF5FFF', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.5 },
-  codeSub:     { color: '#FFFFFF66', fontFamily: 'Inter_400Regular', fontSize: 11, marginTop: 2 },
-  codeBox:     { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#BF5FFF22', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: '#BF5FFF44' },
-  codeText:    { color: '#BF5FFF', fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 3 },
+// ─── Profile screen ──────────────────────────────────────────────────────────
+export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
+  const { profile, logout, setAvatar } = usePlayer();
 
-  // Stats
-  statsGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  statCard:   { width: '30%', flex: 1, minWidth: 90, alignItems: 'center', padding: 12, borderRadius: 12, borderWidth: 1, gap: 4 },
-  statValue:  { fontFamily: 'Inter_700Bold', fontSize: 20 },
-  statLabel:  { fontFamily: 'Inter_500Medium', fontSize: 9, letterSpacing: 1, textAlign: 'center' },
+  const [avatarEditing, setAvatarEditing] = useState(false);
+  const [tempEmoji, setTempEmoji] = useState(profile.avatarEmoji);
+  const [tempColor, setTempColor] = useState(profile.avatarFrameColor);
 
-  // Achievements
-  sectionWrap: { gap: 10 },
-  achieveGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  achCard:     { width: '47%', flex: 1, minWidth: 140, borderRadius: 12, borderWidth: 1, padding: 10, gap: 4 },
-  achName:     { fontFamily: 'Inter_600SemiBold', fontSize: 12 },
-  achDesc:     { fontFamily: 'Inter_400Regular', fontSize: 10, lineHeight: 14 },
+  const rankInfo = xpForNextRank(profile.xp);
+  const rankData = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
+  const topPad   = Platform.OS === 'web' ? Math.max(insets.top, 56) : insets.top;
+  const winRate  = profile.totalGames > 0 ? Math.round((profile.wins / profile.totalGames) * 100) : 0;
+  const code     = getChallengeCode(profile.name);
 
-  // History
-  historyList: { gap: 6 },
-  historyRow:  { flexDirection: 'row', alignItems: 'center', borderRadius: 10, borderWidth: 1, padding: 10, gap: 10 },
-  histResult:  { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  histResultText: { fontFamily: 'Inter_700Bold', fontSize: 13 },
-  histMain:    { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
-  histSub:     { fontFamily: 'Inter_400Regular', fontSize: 11 },
-  histXP:      { fontFamily: 'Inter_600SemiBold', fontSize: 12 },
-  histTime:    { fontFamily: 'Inter_400Regular', fontSize: 10 },
+  const xpAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(xpAnim, { toValue: rankInfo.progress, duration: 1400, useNativeDriver: false }).start();
+  }, [rankInfo.progress]);
 
-  // Logout
-  logoutBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: '#FF475722', backgroundColor: '#FF475708' },
-  logoutText: { color: '#FF475788', fontFamily: 'Inter_600SemiBold', fontSize: 14 },
-  footer:     { fontFamily: 'Inter_400Regular', fontSize: 10, textAlign: 'center' },
+  async function handleSaveAvatar() { await setAvatar(tempEmoji, tempColor); setAvatarEditing(false); }
+  async function handleShare() {
+    try {
+      await Share.share({ message: `🏆 ${profile.name} · ${profile.rank} · ${profile.wins} Wins · ${winRate}% WR\n🎮 Challenge Code: ${code}` });
+    } catch { /* dismissed */ }
+  }
+  function handleLogout() {
+    if (Platform.OS === 'web') { if (window.confirm('Sign out?')) logout(); return; }
+    Alert.alert('Sign Out', 'Are you sure?', [{ text: 'Cancel', style: 'cancel' }, { text: 'Sign Out', style: 'destructive', onPress: logout }]);
+  }
+
+  const xpBarW = xpAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+  const equippedSkin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
+
+  return (
+    <View style={{ flex: 1, backgroundColor: '#07051A' }}>
+      <LinearGradient colors={['#0E0B22', '#07051A']} style={StyleSheet.absoluteFill} />
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 90 }}>
+
+        {/* ── Hero Banner ── */}
+        <LinearGradient
+          colors={[rankData.color + '55', rankData.color + '22', '#07051A']}
+          style={[P.heroBanner, { paddingTop: topPad + 10 }]}
+        >
+          {/* Background pattern */}
+          {[...Array(5)].map((_, i) => (
+            <View key={i} style={[P.heroDot, {
+              width: 40 + i * 20, height: 40 + i * 20, borderRadius: 20 + i * 10,
+              borderColor: rankData.color + '22',
+              left: '50%', top: -10 + i * 5,
+            }]} />
+          ))}
+
+          {/* Avatar */}
+          <Pressable onPress={() => { setTempEmoji(profile.avatarEmoji); setTempColor(profile.avatarFrameColor); setAvatarEditing(true); }}>
+            <View style={[P.avatarRing, { borderColor: profile.avatarFrameColor, shadowColor: profile.avatarFrameColor }]}>
+              <Text style={P.avatarEmoji}>{profile.avatarEmoji}</Text>
+            </View>
+            <View style={P.editBadge}>
+              <Feather name="edit-2" size={10} color="#FFF" />
+            </View>
+          </Pressable>
+
+          <Text style={P.playerName}>{profile.name}</Text>
+          <View style={P.rankRow}>
+            <RankBadge rank={profile.rank} size="md" showLabel />
+            <View style={[P.levelBadge, { backgroundColor: rankData.color + '33', borderColor: rankData.color + '88' }]}>
+              <Text style={[P.levelTxt, { color: rankData.color }]}>LV {xpToLevel(profile.xp)}</Text>
+            </View>
+          </View>
+
+          {/* XP bar */}
+          <View style={P.xpSection}>
+            <View style={P.xpBarBg}>
+              <Animated.View style={[P.xpBarFill, { width: xpBarW as never, backgroundColor: rankData.color }]} />
+            </View>
+            <Text style={P.xpLabel}>
+              {profile.xp.toLocaleString()} XP{rankInfo.next ? ` · ${rankInfo.remaining.toLocaleString()} to ${rankInfo.next}` : ' · MAX RANK'}
+            </Text>
+          </View>
+
+          {/* Action buttons */}
+          <View style={P.actionRow}>
+            <Pressable onPress={handleShare} style={P.actionBtn}>
+              <Feather name="share-2" size={14} color="#FFFFFF88" />
+              <Text style={P.actionTxt}>SHARE CARD</Text>
+            </Pressable>
+            <View style={[P.codeChip, { borderColor: rankData.color + '66' }]}>
+              <Text style={P.codeTxt}>#{code}</Text>
+            </View>
+          </View>
+        </LinearGradient>
+
+        <View style={{ paddingHorizontal: 16, gap: 16 }}>
+          {/* ── Stats ── */}
+          <View>
+            <Text style={P.sectionTitle}>📊 STATS</Text>
+            <View style={P.statsGrid}>
+              <StatTile icon="🏆" value={String(profile.wins)}      label="WINS"      color="#FFD700" />
+              <StatTile icon="📈" value={`${winRate}%`}             label="WIN RATE"  color="#00FF88" />
+            </View>
+            <View style={[P.statsGrid, { marginTop: 10 }]}>
+              <StatTile icon="🔥" value={String(profile.bestStreak)} label="BEST STREAK" color="#FF4757" />
+              <StatTile icon="🎮" value={String(profile.totalGames)} label="TOTAL GAMES" color="#00E5FF" />
+            </View>
+          </View>
+
+          {/* ── Equipped loadout ── */}
+          <View>
+            <Text style={P.sectionTitle}>⚔️ LOADOUT</Text>
+            <View style={P.loadoutRow}>
+              <View style={[P.loadoutCard, { borderColor: equippedSkin.color + '66' }]}>
+                <LinearGradient colors={[equippedSkin.color + '33', equippedSkin.color + '11']} style={StyleSheet.absoluteFill} />
+                <Text style={{ fontSize: 28 }}>🎨</Text>
+                <Text style={[P.loadoutName, { color: equippedSkin.color }]}>{equippedSkin.name}</Text>
+                <Text style={P.loadoutLabel}>SKIN</Text>
+              </View>
+              {profile.currentRelic !== 'none' && (
+                <View style={[P.loadoutCard, { borderColor: '#C8820A66' }]}>
+                  <LinearGradient colors={['#C8820A33', '#C8820A11']} style={StyleSheet.absoluteFill} />
+                  <Text style={{ fontSize: 28 }}>⚡</Text>
+                  <Text style={[P.loadoutName, { color: '#FFD700' }]}>{profile.currentRelic}</Text>
+                  <Text style={P.loadoutLabel}>RELIC</Text>
+                </View>
+              )}
+              <View style={[P.loadoutCard, { borderColor: '#BF5FFF66' }]}>
+                <LinearGradient colors={['#BF5FFF33', '#BF5FFF11']} style={StyleSheet.absoluteFill} />
+                <Text style={{ fontSize: 28 }}>
+                  {(profile.selectedSuper ?? 1) === 1 ? '⚔️' : (profile.selectedSuper ?? 1) === 2 ? '🌀' : '💥'}
+                </Text>
+                <Text style={[P.loadoutName, { color: '#BF5FFF' }]}>
+                  {(profile.selectedSuper ?? 1) === 1 ? 'IRON WALL' : (profile.selectedSuper ?? 1) === 2 ? 'SLOW FIELD' : 'BANISH'}
+                </Text>
+                <Text style={P.loadoutLabel}>SUPER</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* ── Achievements ── */}
+          <View>
+            <View style={P.rowHeader}>
+              <Text style={P.sectionTitle}>🏅 ACHIEVEMENTS</Text>
+              <View style={P.countBadge}>
+                <Text style={P.countTxt}>{profile.achievements.length}/{ACHIEVEMENTS.length}</Text>
+              </View>
+            </View>
+            <View style={P.achGrid}>
+              {ACHIEVEMENTS.map(a => (
+                <AchBadge key={a.id} id={a.id} unlocked={profile.achievements.includes(a.id)} />
+              ))}
+            </View>
+          </View>
+
+          {/* ── Match history ── */}
+          {profile.matchHistory.length > 0 && (
+            <View>
+              <Text style={P.sectionTitle}>📋 RECENT MATCHES</Text>
+              {profile.matchHistory.slice(0, 5).map((m, i) => (
+                <View key={i} style={[P.matchRow, { borderLeftColor: m.won ? '#00FF88' : '#FF4757' }]}>
+                  <Text style={[P.matchResult, { color: m.won ? '#00FF88' : '#FF4757' }]}>
+                    {m.won ? '🏆 WIN' : '💀 OUT'}
+                  </Text>
+                  <Text style={P.matchXp}>+{m.xpEarned} XP</Text>
+                  <Text style={P.matchCoins}>+{m.coinsEarned} 🪙</Text>
+                  <Text style={P.matchTime}>{new Date(m.timestamp).toLocaleDateString()}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* ── Login streak ── */}
+          <View style={P.streakCard}>
+            <LinearGradient colors={['#1A1208', '#0E0A04']} style={StyleSheet.absoluteFill} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <Text style={{ fontSize: 28 }}>{profile.loginStreak >= 7 ? '💎' : '🔥'}</Text>
+              <View>
+                <Text style={P.streakTitle}>LOGIN STREAK</Text>
+                <Text style={P.streakDay}>Day {profile.loginStreak || 1}</Text>
+              </View>
+            </View>
+            <View style={P.streakDots}>
+              {[...Array(7)].map((_, i) => (
+                <View key={i} style={[P.streakDot, {
+                  backgroundColor: i < Math.min(profile.loginStreak, 7) ? '#C8820A' : '#FFFFFF15',
+                  shadowColor: '#C8820A', shadowOpacity: i < Math.min(profile.loginStreak, 7) ? 0.8 : 0,
+                  shadowRadius: 6, shadowOffset: { width: 0, height: 0 },
+                }]} />
+              ))}
+            </View>
+          </View>
+
+          {/* ── Sign out ── */}
+          <Pressable onPress={handleLogout} style={({ pressed }) => [P.logoutBtn, pressed && { opacity: 0.7 }]}>
+            <Feather name="log-out" size={16} color="#FF4757" />
+            <Text style={P.logoutTxt}>SIGN OUT</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+
+      {/* ── Avatar editor modal ── */}
+      {avatarEditing && (
+        <View style={P.modal}>
+          <LinearGradient colors={['#1A1630', '#0E0B22']} style={P.modalBox}>
+            <Text style={P.modalTitle}>CUSTOMIZE AVATAR</Text>
+            <View style={[P.modalPreview, { borderColor: tempColor }]}>
+              <Text style={{ fontSize: 42 }}>{tempEmoji}</Text>
+            </View>
+            <Text style={P.modalSubtitle}>EMOJI</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 4 }}>
+              {AVATAR_EMOJIS.map(e => (
+                <Pressable key={e} onPress={() => setTempEmoji(e)}
+                  style={[P.emojiPick, tempEmoji === e && { backgroundColor: '#E5A02044', borderColor: '#E5A020' }]}>
+                  <Text style={{ fontSize: 22 }}>{e}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+            <Text style={[P.modalSubtitle, { marginTop: 12 }]}>FRAME COLOR</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', paddingHorizontal: 4 }}>
+              {AVATAR_COLORS.map(c => (
+                <Pressable key={c} onPress={() => setTempColor(c)}
+                  style={[P.colorPick, { backgroundColor: c }, tempColor === c && P.colorPickActive]} />
+              ))}
+            </View>
+            <View style={P.modalBtns}>
+              <Pressable onPress={() => setAvatarEditing(false)} style={P.cancelBtn}>
+                <Text style={P.cancelTxt}>CANCEL</Text>
+              </Pressable>
+              <Pressable onPress={handleSaveAvatar} style={P.saveBtn}>
+                <Text style={P.saveTxt}>SAVE ✓</Text>
+              </Pressable>
+            </View>
+          </LinearGradient>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const P = StyleSheet.create({
+  heroBanner: { alignItems: 'center', paddingHorizontal: 20, paddingBottom: 24, gap: 10, overflow: 'hidden', position: 'relative' },
+  heroDot: { position: 'absolute', borderWidth: 1, aspectRatio: 1 },
+  avatarRing: {
+    width: 90, height: 90, borderRadius: 45, borderWidth: 3,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#FFFFFF0A',
+    shadowRadius: 20, shadowOpacity: 0.7, shadowOffset: { width: 0, height: 0 },
+    zIndex: 1,
+  },
+  avatarEmoji: { fontSize: 48 },
+  editBadge: {
+    position: 'absolute', bottom: 0, right: 0,
+    width: 22, height: 22, borderRadius: 11, backgroundColor: '#E5A020',
+    alignItems: 'center', justifyContent: 'center', zIndex: 2,
+  },
+  playerName: { fontFamily: 'Inter_900Black', fontSize: 24, color: '#FFFFFF', letterSpacing: 0.5 },
+  rankRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  levelBadge: {
+    borderRadius: 8, borderWidth: 1.5, paddingHorizontal: 10, paddingVertical: 4,
+  },
+  levelTxt: { fontFamily: 'Inter_700Bold', fontSize: 12 },
+  xpSection: { width: '100%', gap: 4 },
+  xpBarBg: { height: 8, borderRadius: 4, backgroundColor: '#FFFFFF18', overflow: 'hidden' },
+  xpBarFill: { height: 8, borderRadius: 4 },
+  xpLabel: { fontFamily: 'Inter_500Medium', fontSize: 10, color: '#FFFFFF55', textAlign: 'center' },
+  actionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  actionBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: '#FFFFFF0E', borderWidth: 1, borderColor: '#FFFFFF22',
+    borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8,
+  },
+  actionTxt: { color: '#FFFFFF88', fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 0.5 },
+  codeChip: {
+    backgroundColor: '#FFFFFF0A', borderWidth: 1, borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 8,
+  },
+  codeTxt: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 12 },
+
+  sectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 11, color: '#FFFFFF55', letterSpacing: 2, marginBottom: 10 },
+  statsGrid: { flexDirection: 'row', gap: 10 },
+
+  loadoutRow: { flexDirection: 'row', gap: 10 },
+  loadoutCard: {
+    flex: 1, borderRadius: 16, borderWidth: 1.5, padding: 12,
+    alignItems: 'center', gap: 4, overflow: 'hidden', backgroundColor: '#FFFFFF05',
+  },
+  loadoutName: { fontFamily: 'Inter_700Bold', fontSize: 9, textAlign: 'center' },
+  loadoutLabel: { fontFamily: 'Inter_500Medium', fontSize: 7, color: '#FFFFFF44', letterSpacing: 1 },
+
+  rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  countBadge: {
+    backgroundColor: '#E5A02022', borderWidth: 1, borderColor: '#E5A02055',
+    borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3,
+  },
+  countTxt: { color: '#E5A020', fontFamily: 'Inter_700Bold', fontSize: 10 },
+  achGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+
+  matchRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    borderLeftWidth: 3, paddingLeft: 10, paddingVertical: 8,
+    borderBottomWidth: 1, borderBottomColor: '#FFFFFF08',
+  },
+  matchResult: { fontFamily: 'Inter_700Bold', fontSize: 11, width: 60 },
+  matchXp:    { color: '#00E5FF', fontFamily: 'Inter_600SemiBold', fontSize: 10, flex: 1 },
+  matchCoins: { color: '#FFD700', fontFamily: 'Inter_600SemiBold', fontSize: 10 },
+  matchTime:  { color: '#FFFFFF33', fontFamily: 'Inter_400Regular', fontSize: 9 },
+
+  streakCard: {
+    borderRadius: 18, borderWidth: 1.5, borderColor: '#C8820A33', padding: 14, overflow: 'hidden',
+  },
+  streakTitle: { fontFamily: 'Inter_700Bold', fontSize: 10, color: '#C8820A', letterSpacing: 2 },
+  streakDay: { fontFamily: 'Inter_900Black', fontSize: 20, color: '#FFD700' },
+  streakDots: { flexDirection: 'row', gap: 8 },
+  streakDot: { width: 28, height: 28, borderRadius: 8 },
+
+  logoutBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'center',
+    borderWidth: 1.5, borderColor: '#FF475533', borderRadius: 14, padding: 14,
+    backgroundColor: '#FF475511',
+  },
+  logoutTxt: { color: '#FF4757', fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1 },
+
+  modal: {
+    position: 'absolute', inset: 0, backgroundColor: '#00000088',
+    alignItems: 'center', justifyContent: 'center', padding: 20,
+  },
+  modalBox: {
+    width: '100%', borderRadius: 24, borderWidth: 1.5, borderColor: '#E5A02044',
+    padding: 20, gap: 10,
+  },
+  modalTitle: { fontFamily: 'Inter_700Bold', fontSize: 14, color: '#FFD700', letterSpacing: 2, textAlign: 'center' },
+  modalPreview: {
+    width: 70, height: 70, borderRadius: 35, borderWidth: 3,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#FFFFFF0A', alignSelf: 'center',
+  },
+  modalSubtitle: { fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF55', letterSpacing: 1.5 },
+  emojiPick: {
+    width: 42, height: 42, borderRadius: 10, borderWidth: 1, borderColor: '#FFFFFF22',
+    alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF06',
+  },
+  colorPick: { width: 32, height: 32, borderRadius: 8, borderWidth: 1.5, borderColor: '#FFFFFF22' },
+  colorPickActive: { borderColor: '#FFFFFF', borderWidth: 2.5 },
+  modalBtns: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  cancelBtn: {
+    flex: 1, padding: 12, borderRadius: 12, backgroundColor: '#FFFFFF0A',
+    borderWidth: 1, borderColor: '#FFFFFF22', alignItems: 'center',
+  },
+  cancelTxt: { color: '#FFFFFF66', fontFamily: 'Inter_700Bold', fontSize: 11 },
+  saveBtn: {
+    flex: 1, padding: 12, borderRadius: 12, backgroundColor: '#E5A02033',
+    borderWidth: 1.5, borderColor: '#E5A020', alignItems: 'center',
+  },
+  saveTxt: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 11 },
 });

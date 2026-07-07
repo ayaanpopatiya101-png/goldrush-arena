@@ -1,353 +1,281 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Alert, Animated, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SKINS, usePlayer } from '@/context/PlayerContext';
-import { useColors } from '@/hooks/useColors';
 
-const POWERUP_BUNDLES = [
-  { id: 'shield3', name: 'Shield Pack', desc: '3x Shield Power-ups', icon: 'shield', price: 80, color: '#FFD700' },
-  { id: 'speed3', name: 'Speed Pack', desc: '3x Speed Boosts', icon: 'zap', price: 80, color: '#00FF88' },
-  { id: 'mixed5', name: 'Mixed Bundle', desc: '5x Random Power-ups', icon: 'gift', price: 100, color: '#00E5FF' },
-];
-
-const EXTRA_LIVES = [
-  { id: 'life1', name: '1 Extra Life', desc: 'Start with 4 lives', icon: 'heart', price: 60, color: '#FF69B4' },
-  { id: 'life2', name: '2 Extra Lives', desc: 'Start with 5 lives', icon: 'heart', price: 100, color: '#FF69B4' },
-];
-
-const BALL_TRAILS = [
-  { id: 'trail_fire', name: 'Fire Trail', desc: 'Balls leave fire trails', price: 200, color: '#FF6B35' },
-  { id: 'trail_ice',  name: 'Ice Trail',  desc: 'Balls leave ice trails', price: 200, color: '#00BFFF' },
-  { id: 'trail_neon', name: 'Neon Trail', desc: 'Rainbow neon trails',   price: 300, color: '#FF00FF' },
+const BUNDLES = [
+  { id: 'shield3', emoji: '🛡️', name: 'Shield Pack',   desc: '3× Shield Power-ups',  price: 80,  color: '#FFD700', hot: false },
+  { id: 'speed3',  emoji: '⚡', name: 'Speed Pack',    desc: '3× Speed Boosts',       price: 80,  color: '#00FF88', hot: false },
+  { id: 'mixed5',  emoji: '🎁', name: 'Mixed Bundle',  desc: '5× Random Power-ups',   price: 100, color: '#00E5FF', hot: true  },
+  { id: 'life1',   emoji: '❤️', name: '1 Extra Life',  desc: 'Start with 4 lives',    price: 60,  color: '#FF69B4', hot: false },
+  { id: 'life2',   emoji: '💖', name: '2 Extra Lives', desc: 'Start with 5 lives',    price: 100, color: '#FF69B4', hot: false },
 ];
 
 const ARENA_THEMES = [
-  { id: 'default',   name: 'Dark Void',       desc: 'Classic deep-space arena',     price: 0,   color: '#6655FF', preview: ['#0D0035','#16005A'] },
-  { id: 'solar',     name: 'Solar Flare',      desc: 'Scorching red-orange arena',   price: 300, color: '#FF6B35', preview: ['#350000','#5A1000'] },
-  { id: 'arctic',    name: 'Arctic Ice',       desc: 'Cool blue frost arena',        price: 300, color: '#00BFFF', preview: ['#001828','#003050'] },
-  { id: 'toxic',     name: 'Toxic Wasteland',  desc: 'Neon green hazard zone',       price: 350, color: '#00FF88', preview: ['#001A08','#003020'] },
-  { id: 'cosmic',    name: 'Cosmic Dream',     desc: 'Purple nebula atmosphere',     price: 400, color: '#BF5FFF', preview: ['#180030','#2A0060'] },
-  { id: 'golden',    name: 'Gold Rush',        desc: 'Prestige golden arena',        price: 500, color: '#FFD700', preview: ['#1A1200','#2A2000'] },
+  { id: 'default', emoji: '🌌', name: 'Dark Void',      desc: 'Classic deep-space',   price: 0,   color: '#6655FF', preview: ['#0D0035','#16005A'] as [string,string] },
+  { id: 'solar',   emoji: '☀️', name: 'Solar Flare',    desc: 'Scorching red arena',  price: 300, color: '#FF6B35', preview: ['#350000','#5A1000'] as [string,string] },
+  { id: 'arctic',  emoji: '❄️', name: 'Arctic Ice',     desc: 'Cool blue frost',      price: 300, color: '#00BFFF', preview: ['#001828','#003050'] as [string,string] },
+  { id: 'toxic',   emoji: '☢️', name: 'Toxic Wasteland',desc: 'Neon hazard zone',     price: 350, color: '#00FF88', preview: ['#001A08','#003020'] as [string,string] },
+  { id: 'cosmic',  emoji: '🌸', name: 'Cosmic Dream',   desc: 'Purple nebula',        price: 400, color: '#BF5FFF', preview: ['#180030','#2A0060'] as [string,string] },
+  { id: 'golden',  emoji: '👑', name: 'Gold Rush',      desc: 'Prestige arena',       price: 500, color: '#FFD700', preview: ['#1A1200','#2A2000'] as [string,string] },
 ];
 
+type Tab = 'skins' | 'themes' | 'bundles';
+
+// ─── Item card ─────────────────────────────────────────────────────────────────
+function ItemCard({ emoji, name, desc, price, color, owned, equipped, hot, sale, onPress, loading }: {
+  emoji: string; name: string; desc: string; price: number; color: string;
+  owned?: boolean; equipped?: boolean; hot?: boolean; sale?: boolean;
+  onPress: () => void; loading?: boolean;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+  function press() {
+    Animated.sequence([
+      Animated.timing(scale, { toValue: 0.92, duration: 80, useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
+    ]).start();
+    onPress();
+  }
+  return (
+    <Pressable onPress={press} style={{ width: '47%' }}>
+      <Animated.View style={[IC.card, { borderColor: equipped ? color : (owned ? color + '55' : color + '33'), transform: [{ scale }] }]}>
+        {equipped && <View style={[IC.equippedStripe, { backgroundColor: color }]} />}
+        {hot && <View style={IC.hotBadge}><Text style={IC.hotTxt}>🔥 HOT</Text></View>}
+        {sale && <View style={IC.saleBadge}><Text style={IC.saleTxt}>SALE</Text></View>}
+
+        <LinearGradient colors={[color + '28', color + '10', '#00000000']} style={StyleSheet.absoluteFill} />
+
+        <Text style={IC.emoji}>{emoji}</Text>
+        <Text style={[IC.name, { color: owned ? color : '#FFFFFF' }]}>{name}</Text>
+        <Text style={IC.desc} numberOfLines={1}>{desc}</Text>
+
+        {equipped ? (
+          <View style={[IC.ownedBadge, { backgroundColor: color + '33', borderColor: color + '88' }]}>
+            <Feather name="check-circle" size={10} color={color} />
+            <Text style={[IC.ownedTxt, { color }]}>EQUIPPED</Text>
+          </View>
+        ) : owned ? (
+          <View style={[IC.ownedBadge, { backgroundColor: '#00FF8822', borderColor: '#00FF8866' }]}>
+            <Text style={[IC.ownedTxt, { color: '#00FF88' }]}>EQUIP</Text>
+          </View>
+        ) : (
+          <View style={[IC.priceChip, { backgroundColor: '#FFD70022', borderColor: '#FFD70066' }]}>
+            <Text style={{ fontSize: 10 }}>🪙</Text>
+            <Text style={IC.priceTxt}>{price === 0 ? 'FREE' : price.toLocaleString()}</Text>
+          </View>
+        )}
+
+        {loading && (
+          <View style={IC.loadingOverlay}>
+            <Text style={{ color: '#FFD700', fontSize: 12 }}>...</Text>
+          </View>
+        )}
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+const IC = StyleSheet.create({
+  card: {
+    borderRadius: 18, borderWidth: 1.5, padding: 14, gap: 6,
+    alignItems: 'center', overflow: 'hidden', backgroundColor: '#FFFFFF06',
+    shadowRadius: 8, shadowOpacity: 0.3, shadowOffset: { width: 0, height: 2 },
+  },
+  equippedStripe: { position: 'absolute', top: 0, left: 0, right: 0, height: 3, borderTopLeftRadius: 18, borderTopRightRadius: 18 },
+  hotBadge: {
+    position: 'absolute', top: 8, right: 8,
+    backgroundColor: '#FF4757', borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2,
+  },
+  hotTxt: { color: '#FFF', fontFamily: 'Inter_700Bold', fontSize: 7 },
+  saleBadge: {
+    position: 'absolute', top: 8, left: 8,
+    backgroundColor: '#00FF88', borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2,
+  },
+  saleTxt: { color: '#001A00', fontFamily: 'Inter_700Bold', fontSize: 7 },
+  emoji:   { fontSize: 38, marginTop: 4 },
+  name:    { fontFamily: 'Inter_700Bold', fontSize: 12, textAlign: 'center' },
+  desc:    { fontFamily: 'Inter_400Regular', fontSize: 9, color: '#FFFFFF55', textAlign: 'center' },
+  ownedBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    borderWidth: 1, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, marginTop: 2,
+  },
+  ownedTxt: { fontFamily: 'Inter_700Bold', fontSize: 9 },
+  priceChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, marginTop: 2,
+  },
+  priceTxt: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 11 },
+  loadingOverlay: {
+    position: 'absolute', inset: 0, backgroundColor: '#00000066',
+    alignItems: 'center', justifyContent: 'center', borderRadius: 18,
+  },
+});
+
+// ─── Shop screen ──────────────────────────────────────────────────────────────
 export default function ShopScreen() {
-  const colors = useColors();
   const insets = useSafeAreaInsets();
   const { profile, purchaseSkin, equipSkin, spendCoins } = usePlayer();
-  const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras'>('skins');
+  const [activeTab, setActiveTab] = useState<Tab>('skins');
   const [purchasing, setPurchasing] = useState<string | null>(null);
+  const topPad = Platform.OS === 'web' ? Math.max(insets.top, 56) : insets.top;
 
-  const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
-
-  // Cross-platform helpers (Alert callbacks don't fire on Expo Web)
   function xAlert(title: string, msg?: string) {
     if (Platform.OS === 'web') { window.alert(msg ? `${title}\n\n${msg}` : title); return; }
     Alert.alert(title, msg);
   }
   function xConfirm(title: string, msg: string, onYes: () => void, yesLabel = 'OK') {
-    if (Platform.OS === 'web') {
-      if (window.confirm(`${title}\n\n${msg}`)) onYes();
-      return;
-    }
+    if (Platform.OS === 'web') { if (window.confirm(`${title}\n\n${msg}`)) onYes(); return; }
     Alert.alert(title, msg, [{ text: 'Cancel', style: 'cancel' }, { text: yesLabel, onPress: onYes }]);
   }
 
   async function handleBuySkin(skinId: string, price: number, skinName: string) {
-    if (profile.ownedSkins.includes(skinId)) {
-      await equipSkin(skinId);
-      if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      return;
-    }
-    if (profile.coins < price) {
-      xAlert('Not enough coins', `You need ${price - profile.coins} more coins.`);
-      return;
-    }
-    xConfirm(`Buy ${skinName}?`, `Cost: ${price} coins`, async () => {
+    if (profile.ownedSkins.includes(skinId)) { await equipSkin(skinId); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); return; }
+    if (profile.coins < price) { xAlert('Not enough coins 🪙', `You need ${price - profile.coins} more.`); return; }
+    xConfirm(`Buy ${skinName}?`, `Cost: ${price} 🪙`, async () => {
       setPurchasing(skinId);
       const ok = await purchaseSkin(skinId);
       setPurchasing(null);
-      if (ok) {
-        await equipSkin(skinId);
-        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        xAlert('Purchased!', `${skinName} equipped.`);
-      }
+      if (ok) { await equipSkin(skinId); if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); xAlert('🎉 Purchased!', `${skinName} equipped!`); }
     }, 'Buy');
   }
 
-  async function handleBuyBundle(item: { id: string; name: string; price: number }) {
-    if (profile.coins < item.price) {
-      xAlert('Not enough coins', `You need ${item.price - profile.coins} more coins.`);
-      return;
-    }
-    xConfirm(`Buy ${item.name}?`, `Cost: ${item.price} coins`, async () => {
-      const ok = await spendCoins(item.price);
-      if (ok) {
-        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        xAlert('Purchased!', `${item.name} added to your inventory!`);
-      }
+  async function handleBuyTheme(item: typeof ARENA_THEMES[0]) {
+    if (profile.ownedThemes?.includes(item.id)) return;
+    if (item.price === 0) return;
+    if (profile.coins < item.price) { xAlert('Not enough coins 🪙', `Need ${item.price - profile.coins} more.`); return; }
+    xConfirm(`Buy ${item.name}?`, `Cost: ${item.price} 🪙`, async () => {
+      await spendCoins(item.price);
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      xAlert('🎉 Unlocked!', `${item.name} added to your collection!`);
     }, 'Buy');
   }
 
-  function handleExtraLife(item: { id: string; name: string; price: number }) {
-    xAlert(item.name, `In-app purchases coming soon!`);
+  async function handleBuyBundle(bundle: typeof BUNDLES[0]) {
+    if (profile.coins < bundle.price) { xAlert('Not enough coins 🪙', `Need ${bundle.price - profile.coins} more.`); return; }
+    xConfirm(`Buy ${bundle.name}?`, `Cost: ${bundle.price} 🪙`, async () => {
+      await spendCoins(bundle.price);
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      xAlert('🎉 Purchased!', `${bundle.name} added to your inventory!`);
+    }, 'Buy');
   }
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#080814', '#0C0C22']} style={StyleSheet.absoluteFill} />
+    <View style={{ flex: 1, backgroundColor: '#07051A' }}>
+      <LinearGradient colors={['#0E0B22', '#07051A', '#0A0715']} style={StyleSheet.absoluteFill} />
 
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</Text>
-        <View style={styles.coinDisplay}>
-          <Feather name="circle" size={14} color="#FFD700" />
-          <Text style={styles.coinAmount}>{profile.coins}</Text>
+      {/* ── Header ── */}
+      <LinearGradient colors={['#1A1530', '#0E0B22']} style={[SH2.header, { paddingTop: topPad + 6 }]}>
+        <View style={SH2.headerLeft}>
+          <Text style={SH2.title}>🛒 SHOP</Text>
+          <Text style={SH2.sub}>Upgrade your arsenal</Text>
         </View>
-      </View>
+        <View style={SH2.coinDisplay}>
+          <Text style={{ fontSize: 22 }}>🪙</Text>
+          <View>
+            <Text style={SH2.coinAmt}>{profile.coins.toLocaleString()}</Text>
+            <Text style={SH2.coinLbl}>COINS</Text>
+          </View>
+        </View>
+      </LinearGradient>
 
-      {/* Tabs */}
-      <View style={[styles.tabRow, { borderBottomColor: colors.border }]}>
-        {(['skins', 'themes', 'powerups', 'extras'] as const).map(t => (
-          <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: colors.primary }]}>
-            <Text style={[styles.tabText, { color: activeTab === t ? colors.primary : colors.mutedForeground }]}>
-              {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : 'EXTRAS'}
+      {/* ── Tab bar ── */}
+      <View style={SH2.tabRow}>
+        {(['skins', 'themes', 'bundles'] as Tab[]).map(t => (
+          <Pressable key={t} onPress={() => setActiveTab(t)} style={[SH2.tab, activeTab === t && SH2.tabActive]}>
+            <Text style={[SH2.tabTxt, activeTab === t && SH2.tabTxtActive]}>
+              {t === 'skins' ? '🎨 SKINS' : t === 'themes' ? '🌌 ARENAS' : '📦 BUNDLES'}
             </Text>
           </Pressable>
         ))}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: insets.bottom + 80, gap: 10 }}>
+      {/* ── Content ── */}
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 90 }} showsVerticalScrollIndicator={false}>
+
         {activeTab === 'skins' && (
           <>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
-              Customize your paddle skin. Tap to equip owned skins or purchase new ones.
-            </Text>
-            <View style={styles.skinGrid}>
-              {SKINS.map(skin => {
-                const owned = profile.ownedSkins.includes(skin.id);
-                const equipped = profile.currentSkin === skin.id;
-                return (
-                  <Pressable
-                    key={skin.id}
-                    onPress={() => handleBuySkin(skin.id, skin.price, skin.name)}
-                    disabled={purchasing === skin.id}
-                    style={({ pressed }) => [styles.skinCard, {
-                      backgroundColor: equipped ? skin.color + '22' : colors.card,
-                      borderColor: equipped ? skin.color : owned ? skin.color + '55' : colors.border,
-                      opacity: pressed ? 0.8 : 1,
-                    }]}
-                  >
-                    <LinearGradient colors={[skin.color + '33', skin.color + '11']} style={styles.skinPreview}>
-                      <View style={[styles.paddlePreview, { backgroundColor: skin.color, shadowColor: skin.glowColor }]} />
-                      {owned && !equipped && (
-                        <View style={[styles.ownedBadge, { backgroundColor: skin.color + '44' }]}>
-                          <Text style={[styles.ownedText, { color: skin.color }]}>OWNED</Text>
-                        </View>
-                      )}
-                      {equipped && (
-                        <View style={[styles.equippedBadge, { backgroundColor: skin.color }]}>
-                          <Text style={styles.equippedText}>ON</Text>
-                        </View>
-                      )}
-                    </LinearGradient>
-                    <View style={styles.skinInfo}>
-                      <Text style={[styles.skinName, { color: equipped ? skin.color : colors.foreground }]}>{skin.name}</Text>
-                      {!owned ? (
-                        <View style={styles.priceRow}>
-                          <Feather name="circle" size={10} color="#FFD700" />
-                          <Text style={styles.priceText}>{skin.price}</Text>
-                        </View>
-                      ) : (
-                        <Text style={[styles.ownedLabel, { color: skin.color }]}>
-                          {equipped ? '● EQUIPPED' : 'TAP TO EQUIP'}
-                        </Text>
-                      )}
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Ball Trails */}
-            <Text style={[styles.subsectionTitle, { color: colors.foreground }]}>BALL TRAILS</Text>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>Cosmetic effects for balls (coming soon).</Text>
-            {BALL_TRAILS.map(trail => (
-              <Pressable
-                key={trail.id}
-                onPress={() => Alert.alert('Coming Soon', 'Ball trails are coming in a future update!')}
-                style={[styles.itemRow, { backgroundColor: colors.card, borderColor: colors.border, opacity: 0.6 }]}
-              >
-                <View style={[styles.trailDot, { backgroundColor: trail.color, shadowColor: trail.color }]} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.itemName, { color: colors.foreground }]}>{trail.name}</Text>
-                  <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{trail.desc}</Text>
-                </View>
-                <View style={styles.priceRow}>
-                  <Feather name="circle" size={12} color="#FFD700" />
-                  <Text style={styles.priceText}>{trail.price}</Text>
-                </View>
-              </Pressable>
-            ))}
-          </>
-        )}
-
-        {activeTab === 'themes' && (
-          <>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
-              Arena color themes change the board's background during gameplay. No gameplay effect.
-            </Text>
-            {ARENA_THEMES.map(theme => {
-              const owned = (profile.ownedThemes ?? ['default']).includes(theme.id);
-              const equipped = (profile.currentArenaTheme ?? 'default') === theme.id;
+            {/* Featured skin */}
+            {(() => {
+              const feat = SKINS.find(s => s.id === 'plasma') ?? SKINS[1];
+              const owned = profile.ownedSkins.includes(feat.id);
               return (
-                <Pressable
-                  key={theme.id}
-                  onPress={async () => {
-                    if (equipped) return;
-                    if (owned) {
-                      xAlert('Theme Equipped', `${theme.name} is now your arena theme!`);
-                      return;
-                    }
-                    if (profile.coins < theme.price) {
-                      xAlert('Not enough coins', `You need ${theme.price - profile.coins} more coins.`);
-                      return;
-                    }
-                    xConfirm(`Buy ${theme.name}?`, `Cost: ${theme.price} coins`, async () => {
-                      const ok = await spendCoins(theme.price);
-                      if (ok) {
-                        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                        xAlert('Purchased!', `${theme.name} is now your arena theme!`);
-                      }
-                    }, 'Buy');
-                  }}
-                  style={({ pressed }) => [styles.bundleCard, {
-                    backgroundColor: equipped ? theme.color + '22' : colors.card,
-                    borderColor: equipped ? theme.color : owned ? theme.color + '55' : colors.border,
-                    opacity: pressed ? 0.8 : 1,
-                  }]}
-                >
-                  <LinearGradient colors={theme.preview as [string,string]} style={styles.themePreview}>
-                    <View style={[styles.themeArena, { borderColor: theme.color + '66' }]}>
-                      <View style={[styles.themePaddle, { backgroundColor: theme.color }]} />
-                    </View>
-                  </LinearGradient>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.itemName, { color: equipped ? theme.color : colors.foreground }]}>{theme.name}</Text>
-                    <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{theme.desc}</Text>
-                    {equipped && <Text style={[styles.ownedLabel, { color: theme.color }]}>● EQUIPPED</Text>}
-                    {owned && !equipped && <Text style={[styles.ownedLabel, { color: theme.color + '88' }]}>OWNED — TAP TO EQUIP</Text>}
+                <Pressable onPress={() => handleBuySkin(feat.id, feat.price, feat.name)} style={SH2.featured}>
+                  <LinearGradient colors={[feat.color + '44', feat.color + '22', '#00000000']} style={StyleSheet.absoluteFill} />
+                  <View style={[SH2.featuredBanner, { backgroundColor: '#FF4757' }]}>
+                    <Text style={SH2.featuredBannerTxt}>⭐ FEATURED</Text>
                   </View>
-                  {!owned && theme.price > 0 && (
-                    <View style={[styles.buyBtn, { backgroundColor: theme.color + '22', borderColor: theme.color + '55' }]}>
-                      <Feather name="circle" size={10} color="#FFD700" />
-                      <Text style={[styles.buyBtnText, { color: theme.color }]}>{theme.price}</Text>
+                  <Text style={{ fontSize: 52 }}>🎨</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[SH2.featName, { color: feat.color }]}>{feat.name}</Text>
+                    <Text style={SH2.featDesc}>Limited edition paddle skin</Text>
+                  </View>
+                  {owned ? (
+                    <View style={[SH2.featBtn, { backgroundColor: feat.color + '33', borderColor: feat.color }]}>
+                      <Text style={[SH2.featBtnTxt, { color: feat.color }]}>EQUIP ▶</Text>
                     </View>
-                  )}
-                  {!owned && theme.price === 0 && (
-                    <View style={[styles.buyBtn, { backgroundColor: '#FFFFFF11', borderColor: '#FFFFFF22' }]}>
-                      <Text style={[styles.buyBtnText, { color: '#FFFFFF55' }]}>FREE</Text>
+                  ) : (
+                    <View style={SH2.featPriceBtn}>
+                      <Text style={{ fontSize: 14 }}>🪙</Text>
+                      <Text style={SH2.featBtnTxt2}>{feat.price}</Text>
                     </View>
                   )}
                 </Pressable>
               );
-            })}
-          </>
-        )}
+            })()}
 
-        {activeTab === 'powerups' && (
-          <>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
-              Stock up on power-up bundles for your next match.
-            </Text>
-            {POWERUP_BUNDLES.map(bundle => (
-              <Pressable
-                key={bundle.id}
-                onPress={() => handleBuyBundle(bundle)}
-                style={({ pressed }) => [styles.bundleCard, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.8 : 1 }]}
-              >
-                <LinearGradient colors={[bundle.color + '22', bundle.color + '08']} style={StyleSheet.absoluteFill} />
-                <View style={[styles.bundleIcon, { backgroundColor: bundle.color + '22', borderColor: bundle.color + '44' }]}>
-                  <Feather name={bundle.icon as never} size={22} color={bundle.color} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.itemName, { color: colors.foreground }]}>{bundle.name}</Text>
-                  <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{bundle.desc}</Text>
-                </View>
-                <View style={[styles.buyBtn, { backgroundColor: bundle.color + '22', borderColor: bundle.color + '55' }]}>
-                  <Feather name="circle" size={10} color="#FFD700" />
-                  <Text style={[styles.buyBtnText, { color: bundle.color }]}>{bundle.price}</Text>
-                </View>
-              </Pressable>
-            ))}
-
-            {/* Earn coins section */}
-            <View style={[styles.earnCard, { backgroundColor: colors.card, borderColor: '#FFD70033' }]}>
-              <Feather name="star" size={18} color="#FFD700" />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.earnTitle, { color: colors.foreground }]}>Earn Coins</Text>
-                <Text style={[styles.earnDesc, { color: colors.mutedForeground }]}>
-                  Win matches to earn coins. Victories pay 60 coins, losses pay 15 coins.
-                </Text>
-              </View>
+            <View style={SH2.grid}>
+              {SKINS.map(skin => (
+                <ItemCard
+                  key={skin.id}
+                  emoji="🎨" name={skin.name} desc="Paddle skin" price={skin.price}
+                  color={skin.color}
+                  owned={profile.ownedSkins.includes(skin.id)}
+                  equipped={profile.currentSkin === skin.id}
+                  loading={purchasing === skin.id}
+                  onPress={() => handleBuySkin(skin.id, skin.price, skin.name)}
+                />
+              ))}
             </View>
           </>
         )}
 
-        {activeTab === 'extras' && (
+        {activeTab === 'themes' && (
+          <View style={SH2.grid}>
+            {ARENA_THEMES.map(theme => (
+              <ItemCard
+                key={theme.id}
+                emoji={theme.emoji} name={theme.name} desc={theme.desc} price={theme.price}
+                color={theme.color}
+                owned={profile.ownedThemes?.includes(theme.id)}
+                equipped={profile.currentArenaTheme === theme.id}
+                onPress={() => handleBuyTheme(theme)}
+              />
+            ))}
+          </View>
+        )}
+
+        {activeTab === 'bundles' && (
           <>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
-              Extra lives give you an advantage — start matches with more lives.
-            </Text>
-
-            {EXTRA_LIVES.map(item => (
-              <View
-                key={item.id}
-                style={[styles.bundleCard, { backgroundColor: colors.card, borderColor: '#FF69B422', opacity: 0.38 }]}
-              >
-                <LinearGradient colors={['#FF69B411', '#FF69B405']} style={StyleSheet.absoluteFill} />
-                <View style={[styles.bundleIcon, { backgroundColor: '#FF69B411', borderColor: '#FF69B422' }]}>
-                  <Feather name="heart" size={22} color="#FF69B466" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.itemName, { color: colors.foreground }]}>{item.name}</Text>
-                  <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{item.desc}</Text>
-                </View>
-                <View style={[styles.iapBtn, { backgroundColor: '#FFFFFF0A', borderColor: '#FFFFFF18' }]}>
-                  <Text style={[styles.iapText, { color: '#FFFFFF33' }]}>SOON</Text>
-                </View>
+            {/* Banner */}
+            <LinearGradient colors={['#2A1A00', '#1A1000']} style={SH2.bundleBanner}>
+              <Text style={{ fontSize: 32 }}>💰</Text>
+              <View>
+                <Text style={SH2.bundleBannerTitle}>POWER BUNDLES</Text>
+                <Text style={SH2.bundleBannerSub}>One-time use consumables</Text>
               </View>
-            ))}
-
-            {/* Coin IAP */}
-            <Text style={[styles.subsectionTitle, { color: colors.foreground }]}>COIN PACKS</Text>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
-              Real-money purchases coming in a future update.
-            </Text>
-            {[
-              { label: '100 Coins', price: '$0.99', coins: 100 },
-              { label: '500 Coins', price: '$3.99', coins: 500 },
-              { label: '1200 Coins', price: '$7.99', coins: 1200 },
-            ].map(pack => (
-              <View
-                key={pack.label}
-                style={[styles.bundleCard, { backgroundColor: colors.card, borderColor: '#FFD70018', opacity: 0.38 }]}
-              >
-                <LinearGradient colors={['#FFD70011', '#FFD70005']} style={StyleSheet.absoluteFill} />
-                <View style={[styles.bundleIcon, { backgroundColor: '#FFD70011', borderColor: '#FFD70022' }]}>
-                  <Feather name="circle" size={22} color="#FFD70066" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.itemName, { color: colors.foreground }]}>{pack.label}</Text>
-                  <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>Coming soon</Text>
-                </View>
-                <View style={[styles.iapBtn, { backgroundColor: '#FFFFFF0A', borderColor: '#FFFFFF18' }]}>
-                  <Text style={[styles.iapText, { color: '#FFFFFF33' }]}>{pack.price}</Text>
-                </View>
-              </View>
-            ))}
+            </LinearGradient>
+            <View style={SH2.grid}>
+              {BUNDLES.map(b => (
+                <ItemCard
+                  key={b.id} emoji={b.emoji} name={b.name} desc={b.desc} price={b.price}
+                  color={b.color} hot={b.hot}
+                  onPress={() => handleBuyBundle(b)}
+                />
+              ))}
+            </View>
           </>
         )}
       </ScrollView>
@@ -355,44 +283,61 @@ export default function ShopScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 10 },
-  headerTitle: { fontFamily: 'Inter_700Bold', fontSize: 22, letterSpacing: 2 },
-  coinDisplay: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFD70022', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 6 },
-  coinAmount: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 16 },
-  tabRow: { flexDirection: 'row', borderBottomWidth: 1, marginHorizontal: 16, marginBottom: 4 },
-  tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabText: { fontFamily: 'Inter_600SemiBold', fontSize: 11, letterSpacing: 1 },
-  sectionInfo: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
-  subsectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 1, marginTop: 4 },
-  skinGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  skinCard: { width: '47%', flex: 1, minWidth: 140, borderRadius: 14, borderWidth: 1.5, overflow: 'hidden' },
-  skinPreview: { height: 80, alignItems: 'center', justifyContent: 'center' },
-  paddlePreview: { width: 70, height: 12, borderRadius: 6, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 8, elevation: 4 },
-  ownedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
-  ownedText: { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 0.5 },
-  equippedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-  equippedText: { fontFamily: 'Inter_700Bold', fontSize: 8, color: '#080814', letterSpacing: 0.5 },
-  skinInfo: { padding: 10, gap: 3 },
-  skinName: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
-  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  priceText: { color: '#FFD700', fontFamily: 'Inter_600SemiBold', fontSize: 12 },
-  ownedLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 0.5 },
-  itemRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 12, gap: 10 },
-  trailDot: { width: 24, height: 24, borderRadius: 12, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 6, elevation: 4 },
-  itemName: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
-  itemDesc: { fontFamily: 'Inter_400Regular', fontSize: 12 },
-  bundleCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, padding: 14, gap: 12, overflow: 'hidden' },
-  bundleIcon: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6 },
-  buyBtnText: { fontFamily: 'Inter_700Bold', fontSize: 13 },
-  iapBtn: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6 },
-  iapText: { fontFamily: 'Inter_700Bold', fontSize: 12 },
-  earnCard: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 14, borderWidth: 1, padding: 14, gap: 10 },
-  earnTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
-  earnDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18, marginTop: 2 },
-  themePreview: { width: 60, height: 60, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  themeArena: { width: 46, height: 46, borderRadius: 6, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
-  themePaddle: { width: 28, height: 5, borderRadius: 3, opacity: 0.9 },
+const SH2 = StyleSheet.create({
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingBottom: 14,
+    borderBottomWidth: 1, borderBottomColor: '#FFFFFF0E',
+  },
+  headerLeft: {},
+  title: { fontFamily: 'Inter_900Black', fontSize: 22, color: '#FFD700', letterSpacing: 1 },
+  sub:   { fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF44', marginTop: 2 },
+  coinDisplay: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: '#FFD70018', borderWidth: 1.5, borderColor: '#FFD70055',
+    borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8,
+  },
+  coinAmt: { fontFamily: 'Inter_900Black', fontSize: 18, color: '#FFD700' },
+  coinLbl: { fontFamily: 'Inter_600SemiBold', fontSize: 8, color: '#FFD70088', letterSpacing: 1.5 },
+
+  tabRow: {
+    flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#FFFFFF0E',
+    backgroundColor: '#0A0818',
+  },
+  tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
+  tabActive: { borderBottomWidth: 2.5, borderBottomColor: '#E5A020' },
+  tabTxt: { fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFFFFF33', letterSpacing: 0.8 },
+  tabTxtActive: { color: '#E5A020' },
+
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between' },
+
+  featured: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    borderRadius: 20, borderWidth: 1.5, borderColor: '#C8820A55',
+    padding: 16, overflow: 'hidden', backgroundColor: '#FFFFFF06',
+  },
+  featuredBanner: {
+    position: 'absolute', top: 10, right: 10,
+    borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3,
+  },
+  featuredBannerTxt: { color: '#FFF', fontFamily: 'Inter_700Bold', fontSize: 8 },
+  featName: { fontFamily: 'Inter_700Bold', fontSize: 15 },
+  featDesc: { fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF55', marginTop: 2 },
+  featBtn: {
+    borderRadius: 10, borderWidth: 1.5, paddingHorizontal: 12, paddingVertical: 8,
+  },
+  featBtnTxt: { fontFamily: 'Inter_700Bold', fontSize: 11 },
+  featPriceBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: '#FFD70022', borderWidth: 1.5, borderColor: '#FFD700',
+    borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8,
+  },
+  featBtnTxt2: { color: '#FFD700', fontFamily: 'Inter_900Black', fontSize: 13 },
+
+  bundleBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    borderRadius: 18, borderWidth: 1, borderColor: '#C8820A33', padding: 16,
+  },
+  bundleBannerTitle: { fontFamily: 'Inter_700Bold', fontSize: 14, color: '#FFD700' },
+  bundleBannerSub: { fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF55', marginTop: 2 },
 });
