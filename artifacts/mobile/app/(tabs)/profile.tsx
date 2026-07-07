@@ -83,7 +83,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#080814', '#0C0C22']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#07090F', '#0C1428']} style={StyleSheet.absoluteFill} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

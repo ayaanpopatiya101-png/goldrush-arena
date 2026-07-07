@@ -97,7 +97,7 @@ export default function ShopScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#080814', '#0C0C22']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#07090F', '#0C1428']} style={StyleSheet.absoluteFill} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   ownedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
   ownedText: { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 0.5 },
   equippedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-  equippedText: { fontFamily: 'Inter_700Bold', fontSize: 8, color: '#080814', letterSpacing: 0.5 },
+  equippedText: { fontFamily: 'Inter_700Bold', fontSize: 8, color: '#07090F', letterSpacing: 0.5 },
   skinInfo: { padding: 10, gap: 3 },
   skinName: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },

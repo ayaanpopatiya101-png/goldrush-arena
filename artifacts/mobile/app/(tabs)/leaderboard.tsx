@@ -86,7 +86,7 @@ export default function LeaderboardScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#080814', '#0A0A1E']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#07090F', '#0C1428']} style={StyleSheet.absoluteFill} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>

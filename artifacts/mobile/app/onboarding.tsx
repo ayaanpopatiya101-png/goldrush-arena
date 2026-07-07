@@ -460,7 +460,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
 
       {/* ── Deep space background ── */}
       <LinearGradient
-        colors={['#0D0A06', '#181208', '#201808', '#0A0604']}
+        colors={['#07090F', '#0D1428', '#0C1835', '#07090F']}
         locations={[0, 0.3, 0.65, 1]}
         style={StyleSheet.absoluteFill}
       />

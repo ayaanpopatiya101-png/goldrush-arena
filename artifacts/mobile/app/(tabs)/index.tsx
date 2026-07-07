@@ -201,11 +201,11 @@ export default function HomeScreen() {
   const topPad   = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
   const winRate  = profile.totalGames > 0 ? Math.round((profile.wins / profile.totalGames) * 100) : 0;
 
-  if (!isLoaded) return <View style={{ flex: 1, backgroundColor: '#0D0A06' }} />;
+  if (!isLoaded) return <View style={{ flex: 1, backgroundColor: '#07090F' }} />;
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={['#0D0A06', '#181208', '#0D0A06']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
       <AmbientParticles />
       <Svg style={StyleSheet.absoluteFill as never} pointerEvents="none">
         <Defs>
@@ -631,7 +631,7 @@ const st = StyleSheet.create({
   claimedBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#4A8A3822', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
   claimedText:  { color: '#4A8A38', fontFamily: 'Inter_700Bold', fontSize: 8 },
   claimTierBtn: { backgroundColor: '#C8820A', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  claimTierText: { color: '#0D0A06', fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
+  claimTierText: { color: '#07090F', fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
   lockedBadge:  { width: 22, height: 22, borderRadius: 11, backgroundColor: '#FFFFFF08', alignItems: 'center', justifyContent: 'center' },
 });
 
@@ -667,8 +667,8 @@ const styles = StyleSheet.create({
   playBtnCasual: { shadowColor: '#1E8AAA', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.55, shadowRadius: 20 },
   playBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, paddingHorizontal: 10, gap: 8 },
   playBtnIcon: { fontSize: 20 },
-  playBtnText: { color: '#0D0A06', fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 1.5 },
-  playBtnSub:  { color: '#0D0A0688', fontFamily: 'Inter_500Medium', fontSize: 10, letterSpacing: 0.5 },
+  playBtnText: { color: '#07090F', fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 1.5 },
+  playBtnSub:  { color: '#07090F88', fontFamily: 'Inter_500Medium', fontSize: 10, letterSpacing: 0.5 },
   modesSection: { gap: 8, marginBottom: 16 },
   modesSectionHeader: { paddingHorizontal: 20, gap: 2 },
   modesSectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#F0F0FF', letterSpacing: 1.5 },

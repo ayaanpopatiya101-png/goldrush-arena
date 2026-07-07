@@ -107,7 +107,7 @@ export default function LegalScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <LinearGradient colors={['#080814', '#0A0A22', '#080814']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
 
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
