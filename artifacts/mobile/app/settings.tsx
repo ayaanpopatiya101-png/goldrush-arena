@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettings } from '@/hooks/useSettings';
 import { usePlayer } from '@/context/PlayerContext';
@@ -224,6 +224,53 @@ export default function SettingsScreen() {
                 {i < arr.length - 1 && <View style={s.divider} />}
               </React.Fragment>
             ))}
+          </View>
+        </View>
+
+        {/* ── Legal & Support ── */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>⚖️  LEGAL & SUPPORT</Text>
+          <View style={s.card}>
+            <Pressable onPress={() => router.push({ pathname: '/legal', params: { tab: 'privacy' } })} style={s.row}>
+              <View style={s.rowIcon}>
+                <Feather name="shield" size={18} color="#C8820A" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.rowTitle}>Privacy Policy</Text>
+                <Text style={s.rowSub}>How we handle your data</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#FFFFFF33" />
+            </Pressable>
+            <View style={s.divider} />
+            <Pressable onPress={() => router.push({ pathname: '/legal', params: { tab: 'terms' } })} style={s.row}>
+              <View style={s.rowIcon}>
+                <Feather name="file-text" size={18} color="#C8820A" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.rowTitle}>Terms of Service</Text>
+                <Text style={s.rowSub}>Rules and license agreement</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#FFFFFF33" />
+            </Pressable>
+            <View style={s.divider} />
+            <Pressable
+              onPress={() => {
+                const url = Platform.OS === 'ios'
+                  ? 'https://apps.apple.com/app/goldrush-arena/id0000000000'
+                  : 'https://play.google.com/store/apps/details?id=com.goldrush.arena';
+                Linking.openURL(url).catch(() => {});
+              }}
+              style={s.row}
+            >
+              <View style={[s.rowIcon, { backgroundColor: '#FFD70015' }]}>
+                <Feather name="star" size={18} color="#FFD700" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.rowTitle, { color: '#FFD700' }]}>Rate GoldRush Arena</Text>
+                <Text style={s.rowSub}>Enjoying the game? Leave a review!</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#FFD70033" />
+            </Pressable>
           </View>
         </View>
       </ScrollView>

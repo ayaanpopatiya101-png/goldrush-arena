@@ -555,7 +555,8 @@ export function PlayerProvider({ username, onLogout, children }: {
 
   const upgradeRelic = useCallback(async (relicId: string): Promise<boolean> => {
     const relic = RELICS.find(r => r.id === relicId);
-    if (!relic || getRankIndex(profile.rank) < relic.unlockRankIndex) return false;
+    const trophyUnlocked = (profile.trophyUnlockedRelics ?? []).includes(relicId);
+    if (!relic || (!trophyUnlocked && getRankIndex(profile.rank) < relic.unlockRankIndex)) return false;
     const currentLevel = profile.relicLevels?.[relicId] ?? 1;
     if (currentLevel >= RELIC_MAX_LEVEL) return false;
     const cost = getRelicUpgradeCost(currentLevel);

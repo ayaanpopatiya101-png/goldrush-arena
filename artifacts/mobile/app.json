@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "goldrush",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
@@ -14,9 +14,23 @@
       "backgroundColor": "#080812"
     },
     "ios": {
-      "supportsTablet": false
+      "bundleIdentifier": "com.goldrush.arena",
+      "supportsTablet": false,
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "GoldRush Arena uses your photo library to let you set a profile avatar.",
+        "NSCameraUsageDescription": "GoldRush Arena can use the camera to set a profile avatar.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
-    "android": {},
+    "android": {
+      "package": "com.goldrush.arena",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#080812"
+      },
+      "permissions": []
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },

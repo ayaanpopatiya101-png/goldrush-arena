@@ -62,7 +62,7 @@ Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Ex
 - `RELIC_MAX_LEVEL = 10`. Upgrade costs: [50, 100, 200, 400, 800, 1500, 2500, 4000, 6000] (L1→L2 through L9→L10).
 - `getRelicLevel(profile, relicId)` reads `profile.relicLevels?.[relicId] ?? 1` — optional field, migration-safe.
 - `getScaledRelicEffect(relicId, level)` returns leveled-up `RelicEffect` via `lerpR(a, b, level)`. Binary bonuses unlock at L5/L10.
-- `upgradeRelic(relicId)` in PlayerContext deducts coins + increments `relicLevels[id]`. Returns `false` if insufficient coins or already maxed.
+- `upgradeRelic(relicId)` in PlayerContext deducts coins + increments `relicLevels[id]`. Returns `false` if insufficient coins or already maxed. Checks `trophyUnlockedRelics` — trophy-road unlocks bypass rank gates for both equip AND upgrade.
 - `game.tsx` passes `getScaledRelicEffect(relic.id, getRelicLevel(profile, relic.id))` to GameArena — level-scaling is applied at the game entry point, not inside GameArena.
 - Character SVG art lives in `components/RelicCharacter.tsx`. Each character drawn in a 100×120 viewBox with `react-native-svg`. Inventory shows 2-column grid with portrait (130px tall), level badge, 10-segment power bar, and UPGRADE button.
 

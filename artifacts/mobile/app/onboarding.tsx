@@ -617,7 +617,12 @@ export default function OnboardingScreen({ onSuccess }: Props) {
               {error !== '' && <Text style={s.error}>{error}</Text>}
 
               <ShimmerButton onPress={handleSignUp} loading={loading} label="ENTER THE ARENA" icon="play" />
-              <Text style={s.terms}>By joining, you agree to our Terms of Service</Text>
+              <Text style={[s.terms, { color: '#C8820A55' }]}>
+                By joining, you agree to our{' '}
+                <Text style={{ color: '#C8820A99', textDecorationLine: 'underline' }}>
+                  Terms of Service & Privacy Policy
+                </Text>
+              </Text>
             </>
           ) : (
             <>

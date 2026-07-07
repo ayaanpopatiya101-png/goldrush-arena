@@ -1,45 +1,74 @@
-# [Project name]
+# GoldRush Arena
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A 4-player air-hockey "last-one-standing" mobile game built with Expo SDK 54. Players deflect a ball to eliminate opponents. The last player wins XP, coins, and climbs a deep progression system featuring ranks, relics, skins, super abilities, and a 25-milestone Trophy Road.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/mobile run dev` — start Expo dev server (port via `$PORT`)
+- `pnpm --filter @workspace/mobile run typecheck` — typecheck the mobile app
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Expo SDK 54, React Native 0.81.5, TypeScript 5.9
+- Navigation: Expo Router 6 (file-based, tab + stack)
+- State: React Context (`PlayerContext`) + `AsyncStorage` (device-local only)
+- Fonts: `@expo-google-fonts/inter` (Inter 400/500/600/700)
+- Animations: React Native Animated API + `expo-haptics`
+- Audio: Web Audio API (web-only, platform-guarded)
+- Build: EAS Build (for App Store submission)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+| Path | Purpose |
+|---|---|
+| `artifacts/mobile/app/(tabs)/` | Tab screens: Home, Leaderboard, Profile, Shop, Inventory, Trophy Road |
+| `artifacts/mobile/app/` | Stack screens: Lobby, Game, Postgame, Gauntlet, Settings, Legal, Onboarding |
+| `artifacts/mobile/context/PlayerContext.tsx` | Single source of truth: profile, XP, coins, skins, relics, supers, Trophy Road |
+| `artifacts/mobile/components/GameArena.tsx` | Full game engine: physics, paddles, balls, power-ups, super abilities |
+| `artifacts/mobile/app.json` | Expo config: bundle IDs (`com.goldrush.arena`), splash, permissions |
+| `PRD.md` | Product Requirements Document with full App Store checklist |
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- **All data is device-local.** AsyncStorage key `@goldrush_v3_{username}`. No servers, no auth, no network. Enables 100% offline play and simplifies privacy compliance.
+- **PlayerContext is the single store.** All game state (XP, coins, skins, relics, Trophy Road, supers) flows through one context + `save()` fn that persists atomically to AsyncStorage.
+- **Expo Router file-based navigation.** Tabs live in `(tabs)/`, full-screen flows (game, postgame, settings, legal) are Stack screens registered in `app/_layout.tsx`.
+- **Trophy Road bypasses rank gates.** Relics and skins earned via Trophy Road are added to `trophyUnlockedRelics[]` / `ownedSkins[]`, and `equipRelic` + `upgradeRelic` check both rank AND Trophy Road unlocks.
+- **Web Audio API for sound.** Guarded by `Platform.OS === 'web'` to avoid crashes on native. Native audio is a v1.1 task (requires `expo-av`).
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Core loop:** Play match → earn XP + coins → climb Trophy Road → unlock skins + relics → equip for next match
+- **Game modes:** Classic, Rumble, Chaos, Six-Player, Gauntlet, Casual
+- **Progression:** XP ranks (Iron → Legend), 25 Trophy Road milestones, Competitive Level 1–50, Season Pass, daily streak
+- **Cosmetics:** 14 skins, 6 arena themes, 10 relics (each upgradeable to L10)
+- **Supers:** 3 super abilities (Iron Wall, Slow Field, Banish) — charges during match, bots also use supers
 
-## User preferences
+## App Store Submission (see PRD.md for full checklist)
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+Before submitting:
+1. Replace placeholder App Store URLs in `app/settings.tsx` with real URLs
+2. Add Privacy Policy URL to App Store Connect
+3. Capture screenshots from TestFlight on a physical device
+4. Run `eas build --platform all --profile production`
+
+Key config in `app.json`:
+- iOS bundle identifier: `com.goldrush.arena`
+- Android package: `com.goldrush.arena`
+- Deep link scheme: `goldrush://`
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- **Do NOT run `pnpm dev` at workspace root.** Run via Replit workflows or `pnpm --filter @workspace/mobile run dev`.
+- **AsyncStorage delete bug:** `deleteAccount()` uses the old key `@goldrush_player_{username}` instead of `@goldrush_v3_{username}`. Fix before launch.
+- **Postgame refresh guard:** if `params.won` is missing on load (hard-refresh on web), the screen redirects to `/` to prevent a blank zero-stats display.
+- **Audio on native:** Web Audio API calls are guarded by `Platform.OS === 'web'`. On iOS/Android, music and SFX are silently skipped until `expo-av` is integrated.
+- **EAS Build required** for any real device testing or App Store submission. `expo start` only serves the dev bundle.
 
-## Pointers
+## User preferences
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Keep the dark space/arena aesthetic throughout all screens
+- Gold (#C8820A / #FFD700) as the primary accent color
+- Inter font family across all text
+- Push code to GitHub after every significant feature: `git push github main --force`

@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -23,6 +24,20 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
+function AppLoadingScreen() {
+  return (
+    <SafeAreaProvider>
+      <View style={{ flex: 1, backgroundColor: '#080812', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <Text style={{ fontSize: 48 }}>👑</Text>
+        <Text style={{ color: '#C8820A', fontSize: 12, letterSpacing: 3, fontWeight: '700' }}>
+          GOLDRUSH ARENA
+        </Text>
+        <ActivityIndicator color="#C8820A55" size="small" style={{ marginTop: 8 }} />
+      </View>
+    </SafeAreaProvider>
+  );
+}
+
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
@@ -30,7 +45,9 @@ function RootLayoutNav() {
       <Stack.Screen name="lobby"     options={{ headerShown: false, animation: 'slide_from_right' }} />
       <Stack.Screen name="game"      options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="postgame"  options={{ headerShown: false, animation: 'fade' }} />
+      <Stack.Screen name="gauntlet"  options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="settings"  options={{ headerShown: false, animation: 'slide_from_right' }} />
+      <Stack.Screen name="legal"     options={{ headerShown: false, animation: 'slide_from_right' }} />
     </Stack>
   );
 }
@@ -72,8 +89,8 @@ export default function RootLayout() {
     setAuthState('out');
   }
 
-  if (!fontsLoaded && !fontError) return null;
-  if (authState === 'loading')    return null;
+  if (!fontsLoaded && !fontError) return <AppLoadingScreen />;
+  if (authState === 'loading')    return <AppLoadingScreen />;
 
   if (authState === 'out') {
     return (

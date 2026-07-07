@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
 import { ConfettiRain } from '@/components/ConfettiRain';
@@ -13,6 +13,13 @@ import { useColors } from '@/hooks/useColors';
 export default function PostGameScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+
+  // ── Guard: if params are missing (e.g. hard-refresh on web), go home ──────
+  const rawParams = useLocalSearchParams();
+  const paramsMissing = !rawParams.won && !rawParams.xpEarned;
+  useEffect(() => { if (paramsMissing) router.replace('/'); }, [paramsMissing]);
+  if (paramsMissing) return null;
+
   const params = useLocalSearchParams<{
     won: string; position: string; deflections: string;
     goalsAgainst: string; xpEarned: string; coinsEarned: string;
@@ -54,6 +61,14 @@ export default function PostGameScreen() {
   const promoted = newRank.name !== profile.rank;
 
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
+
+  async function handleShare() {
+    const posLabel = positionLabels[position] ?? '4TH';
+    const msg = won
+      ? `🏆 VICTORY! I won a match in GoldRush Arena with ${deflections} deflections and earned +${xpEarned} XP. Think you can beat me?`
+      : `I finished ${posLabel} in GoldRush Arena — ${deflections} deflections, +${xpEarned} XP. Download and challenge me!`;
+    try { await Share.share({ message: msg }); } catch { /* user cancelled */ }
+  }
 
   useEffect(() => {
     Animated.parallel([
@@ -112,7 +127,11 @@ export default function PostGameScreen() {
         }]} />
       ))}
 
-      <Animated.View style={[styles.content, { opacity: fadeAnim, paddingTop: topPad + 10 }]}>
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.content, { paddingTop: topPad + 10, paddingBottom: insets.bottom + 24 }]}
+        >
         {/* Result banner */}
         <Animated.View style={[styles.resultBanner, { transform: [{ scale: scaleAnim }] }]}>
           <LinearGradient
@@ -271,6 +290,12 @@ export default function PostGameScreen() {
             </LinearGradient>
           </Pressable>
           <Pressable
+            onPress={handleShare}
+            style={({ pressed }) => [styles.homeBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
+          >
+            <Feather name="share-2" size={18} color={colors.foreground} />
+          </Pressable>
+          <Pressable
             onPress={() => router.replace('/')}
             style={({ pressed }) => [styles.homeBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
           >
@@ -284,6 +309,7 @@ export default function PostGameScreen() {
             🔥 {profile.winStreak} win streak
           </Text>
         )}
+        </ScrollView>
       </Animated.View>
     </View>
   );
@@ -292,7 +318,7 @@ export default function PostGameScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   star: { position: 'absolute', width: 3, height: 3, borderRadius: 1.5 },
-  content: { flex: 1, paddingHorizontal: 20, gap: 14, alignItems: 'stretch' },
+  content: { paddingHorizontal: 20, gap: 14, alignItems: 'stretch' },
   resultBanner: { alignItems: 'center', overflow: 'hidden', borderRadius: 20 },
   bannerGrad: { width: '100%', alignItems: 'center', paddingVertical: 24, paddingHorizontal: 20, gap: 4, borderRadius: 20 },
   positionText: { fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 3 },
