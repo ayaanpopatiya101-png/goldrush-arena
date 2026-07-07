@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: {
-    fontFamily: 'Exo2_700Bold',
+    fontFamily: 'Inter_700Bold',
   },
   info: {
     flex: 1,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   name: {
-    fontFamily: 'Exo2_700Bold',
+    fontFamily: 'Inter_700Bold',
     flex: 1,
   },
   botBadge: {
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
   },
   botText: {
-    fontFamily: 'Exo2_600SemiBold',
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 8,
     letterSpacing: 0.5,
   },
@@ -121,14 +121,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   rankText: {
-    fontFamily: 'Exo2_500Medium',
+    fontFamily: 'Inter_500Medium',
   },
   levelText: {
-    fontFamily: 'Exo2_400Regular',
+    fontFamily: 'Inter_400Regular',
     fontSize: 11,
   },
   wins: {
-    fontFamily: 'Exo2_400Regular',
+    fontFamily: 'Inter_400Regular',
     fontSize: 11,
   },
   readyDot: {

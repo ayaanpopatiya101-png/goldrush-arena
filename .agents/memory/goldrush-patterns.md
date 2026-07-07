@@ -41,7 +41,7 @@ The `colors as Record<...>` cast must use `as unknown as Record<...>` due to the
 `extraLifeUsed` is a `useRef<boolean>` in `game.tsx`. When triggered it calls `grantExtraLifeRef.current?.()` three times (not once). The ref is never reset between mounts because the game screen is replaced on game-over.
 
 ## Expo web preview: no direct URL deep-linking
-Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Expo web preview falls back to the home screen — expo-router routes here are only reachable via in-app navigation (on-screen buttons + bottom tab bar). When e2e-testing or screenshotting, drive the real UI flow (tap play → lobby → start); don't rely on deep links. The screenshot tool visiting `/` shows the onboarding/login screen (not the home tab).
+Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Expo web preview falls back to the home screen — expo-router routes here are only reachable via in-app navigation (on-screen buttons + bottom tab bar). When e2e-testing or screenshotting, drive the real UI flow (tap play → lobby → start); don't rely on deep links.
 
 ## Champion's Gauntlet mode
 - `gauntletSession.ts` — module-level store (same pattern as gameSession.ts). `startGauntlet()` shuffles 7 variants + 3 bots, returns first variant. `recordRoundResult(won, xp, coins)` increments wins/roundNumber, returns `{gauntletWon, gauntletOver}`. Call `getGauntletState()` AFTER `recordRoundResult` to get updated roundNumber.
@@ -60,20 +60,14 @@ Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Ex
 
 ## Relic character leveling system (Brawl-Stars style)
 - `RELIC_MAX_LEVEL = 10`. Upgrade costs: [50, 100, 200, 400, 800, 1500, 2500, 4000, 6000] (L1→L2 through L9→L10).
-- `getRelicLevel(profile, relicId)` reads `profile.relicLevels?.[relicId] ?? 1` — takes FULL `profile` as first arg, NOT `profile.relicLevels`.
+- `getRelicLevel(profile, relicId)` reads `profile.relicLevels?.[relicId] ?? 1` — optional field, migration-safe.
 - `getScaledRelicEffect(relicId, level)` returns leveled-up `RelicEffect` via `lerpR(a, b, level)`. Binary bonuses unlock at L5/L10.
 - `upgradeRelic(relicId)` in PlayerContext deducts coins + increments `relicLevels[id]`. Returns `false` if insufficient coins or already maxed.
 - `game.tsx` passes `getScaledRelicEffect(relic.id, getRelicLevel(profile, relic.id))` to GameArena — level-scaling is applied at the game entry point, not inside GameArena.
-
-## SKINS and ACHIEVEMENTS type gaps
-- `SKINS` entries have NO `desc` field — only `id, name, color, glowColor, price`. Use a hardcoded fallback string when a desc is needed in UI.
-- `ACHIEVEMENTS` entries have NO `icon` field — only `id, name, desc`. Maintain a local `ACH_ICONS: Record<string,string>` map in the UI file.
-
-## Tab bar custom component
-`_layout.tsx` uses `tabBar={(props) => <GameTabBar {...props} />}` on `<Tabs>`. Type the props as `any` — `@react-navigation/bottom-tabs` is a transitive dep only; defining a compatible custom type is fragile.
+- Character SVG art lives in `components/RelicCharacter.tsx`. Each character drawn in a 100×120 viewBox with `react-native-svg`. Inventory shows 2-column grid with portrait (130px tall), level badge, 10-segment power bar, and UPGRADE button.
 
 ## Relics / Maps / bot-scaling (rank-gated game modifiers)
-- `RelicEffect` is applied to a `PlayerRef` at mount via `applyRelicToPlayer`; bots get a rank-appropriate relic via `relicForRank(rank, botId)`.
-- **Defense-in-depth:** `game.tsx` re-validates `unlockRankIndex <= playerRankIdx` for both relic and map before passing into `GameArena`.
-- Caps that exist for balance: paddle length 1.25×, `deflectBoost` 1.3×, `botAccuracy` 0.97, bot speed `0.7+0.4*skill`.
-- Duel-mode rendering must reference `duelBottomPlayer`/`duelTopPlayer` (not `gs.players[BOTTOM/TOP]`) for paddle width/transform/shield.
+- `RelicEffect` is applied to a `PlayerRef` at mount via `applyRelicToPlayer`; bots get a rank-appropriate relic via `relicForRank(rank, botId)` (pool indexed by `botId % pool.length`, so it's an unlock bound, not escalating power).
+- **Defense-in-depth:** `game.tsx` re-validates `unlockRankIndex <= playerRankIdx` for both relic and map before passing into `GameArena` — UI gates aren't trusted alone. Any new rank-gated modifier should do the same final check.
+- Caps that exist for balance: paddle length 1.25×, `deflectBoost` 1.3×, `botAccuracy` 0.97, bot speed `0.7+0.4*skill`. Don't remove these silently.
+- Duel-mode rendering must reference `duelBottomPlayer`/`duelTopPlayer` (not `gs.players[BOTTOM/TOP]`) for paddle width/transform/shield, or a spectated bot-vs-bot duel shows the wrong paddle length/shield.

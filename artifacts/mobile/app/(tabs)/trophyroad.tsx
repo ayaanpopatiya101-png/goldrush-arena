@@ -349,16 +349,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, marginBottom: 14,
   },
   headerTitle: {
-    color: '#FFD700', fontFamily: 'Exo2_700Bold', fontSize: 20, letterSpacing: 1,
+    color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 1,
     textShadowColor: '#FFD700', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10,
   },
-  headerSub: { color: '#FFFFFF55', fontFamily: 'Exo2_400Regular', fontSize: 11, marginTop: 2 },
+  headerSub: { color: '#FFFFFF55', fontFamily: 'Inter_400Regular', fontSize: 11, marginTop: 2 },
   xpBadge: {
     backgroundColor: '#FFD70022', borderWidth: 1, borderColor: '#FFD70066',
     borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, alignItems: 'center',
   },
-  xpBadgeVal: { color: '#FFD700', fontFamily: 'Exo2_700Bold', fontSize: 18 },
-  xpBadgeLabel: { color: '#FFD70099', fontFamily: 'Exo2_500Medium', fontSize: 9, letterSpacing: 1.5 },
+  xpBadgeVal: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 18 },
+  xpBadgeLabel: { color: '#FFD70099', fontFamily: 'Inter_500Medium', fontSize: 9, letterSpacing: 1.5 },
 
   progressCard: {
     marginHorizontal: 20, marginBottom: 12,
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#FFFFFF11',
   },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  progressLabel: { color: '#FFFFFF66', fontFamily: 'Exo2_500Medium', fontSize: 11 },
+  progressLabel: { color: '#FFFFFF66', fontFamily: 'Inter_500Medium', fontSize: 11 },
   progressBarBg: {
     height: 6, borderRadius: 3, backgroundColor: '#FFFFFF11', overflow: 'hidden',
   },
@@ -387,18 +387,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.9, shadowRadius: 16, shadowOffset: { width: 0, height: 0 },
   },
   rewardName: {
-    fontFamily: 'Exo2_600SemiBold', fontSize: 8, letterSpacing: 0.5,
+    fontFamily: 'Inter_600SemiBold', fontSize: 8, letterSpacing: 0.5,
     marginTop: 3, textAlign: 'center', width: NODE_SIZE + 16,
   },
   xpLabel: {
-    color: '#FFD70099', fontFamily: 'Exo2_700Bold', fontSize: 9, letterSpacing: 0.5,
+    color: '#FFD70099', fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5,
   },
   collectChip: {
     marginTop: 4, backgroundColor: '#FFD70033', borderWidth: 1, borderColor: '#FFD700',
     borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3,
   },
   collectTxt: {
-    color: '#FFD700', fontFamily: 'Exo2_700Bold', fontSize: 7, letterSpacing: 1.5,
+    color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 7, letterSpacing: 1.5,
   },
 
   legend: {
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendLabel: { color: '#FFFFFF55', fontFamily: 'Exo2_400Regular', fontSize: 10 },
+  legendLabel: { color: '#FFFFFF55', fontFamily: 'Inter_400Regular', fontSize: 10 },
 
   toast: {
     position: 'absolute', bottom: 110, alignSelf: 'center',
@@ -415,5 +415,5 @@ const styles = StyleSheet.create({
     borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10,
     shadowColor: '#00C853', shadowOpacity: 0.7, shadowRadius: 12, shadowOffset: { width: 0, height: 0 },
   },
-  toastTxt: { color: '#00C853', fontFamily: 'Exo2_700Bold', fontSize: 13 },
+  toastTxt: { color: '#00C853', fontFamily: 'Inter_700Bold', fontSize: 13 },
 });
