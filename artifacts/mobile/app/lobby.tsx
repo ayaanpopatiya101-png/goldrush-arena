@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Easing,
   Platform,
   Pressable,
   ScrollView,
@@ -108,6 +109,56 @@ const VARIANT_RULES: Record<string, string[]> = {
     'Last of 6 standing wins — largest bracket ever!',
   ],
 };
+
+// ── 3D Countdown Overlay ──────────────────────────────────────────────────────
+function CountdownOverlay({ countdown }: { countdown: number }) {
+  const scaleAnim   = useRef(new Animated.Value(2.8)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const ring1Anim   = useRef(new Animated.Value(0)).current;
+  const ring2Anim   = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    scaleAnim.setValue(2.8);
+    opacityAnim.setValue(0);
+    ring1Anim.setValue(0);
+    ring2Anim.setValue(0);
+    Animated.parallel([
+      Animated.spring(scaleAnim,  { toValue: 1, friction: 5, tension: 95, useNativeDriver: true }),
+      Animated.timing(opacityAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
+    ]).start();
+    Animated.timing(ring1Anim, { toValue: 1, duration: 850, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+    Animated.timing(ring2Anim, { toValue: 1, duration: 1100, delay: 120, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+  }, [countdown]);
+
+  const ring1Scale   = ring1Anim.interpolate({ inputRange: [0, 1], outputRange: [0.4, 2.8] });
+  const ring1Opacity = ring1Anim.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0.9, 0.5, 0] });
+  const ring2Scale   = ring2Anim.interpolate({ inputRange: [0, 1], outputRange: [0.4, 4.0] });
+  const ring2Opacity = ring2Anim.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0.6, 0.25, 0] });
+
+  return (
+    <View style={styles.countdownOverlay} pointerEvents="none">
+      {/* Expanding ring 1 */}
+      <Animated.View style={{
+        position: 'absolute', width: 100, height: 100, borderRadius: 50,
+        borderWidth: 3, borderColor: '#C8820A',
+        opacity: ring1Opacity, transform: [{ scale: ring1Scale }],
+      }} />
+      {/* Expanding ring 2 */}
+      <Animated.View style={{
+        position: 'absolute', width: 100, height: 100, borderRadius: 50,
+        borderWidth: 2, borderColor: '#FFD700',
+        opacity: ring2Opacity, transform: [{ scale: ring2Scale }],
+      }} />
+      {/* Number */}
+      <Animated.Text style={[styles.countdownText, {
+        opacity: opacityAnim,
+        transform: [{ scale: scaleAnim }, { perspective: 600 }],
+      }]}>
+        {countdown}
+      </Animated.Text>
+    </View>
+  );
+}
 
 export default function LobbyScreen() {
   const colors = useColors();
@@ -347,11 +398,9 @@ export default function LobbyScreen() {
         </View>
       </ScrollView>
 
-      {/* Big countdown overlay */}
+      {/* Big countdown overlay — 3D explosion */}
       {countdown !== null && countdown > 0 && (
-        <View style={styles.countdownOverlay} pointerEvents="none">
-          <Text style={styles.countdownText}>{countdown}</Text>
-        </View>
+        <CountdownOverlay key={countdown} countdown={countdown} />
       )}
     </View>
   );

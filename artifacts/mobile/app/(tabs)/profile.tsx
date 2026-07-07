@@ -1,7 +1,8 @@
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Easing, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RankBadge } from '@/components/RankBadge';
@@ -21,6 +22,23 @@ export default function ProfileScreen() {
   const [avatarEditing, setAvatarEditing] = useState(false);
   const [tempEmoji, setTempEmoji]         = useState(profile.avatarEmoji);
   const [tempColor, setTempColor]         = useState(profile.avatarFrameColor);
+
+  const orbitAnim  = useRef(new Animated.Value(0)).current;
+  const glowAnim   = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const orbit = Animated.loop(
+      Animated.timing(orbitAnim, { toValue: 1, duration: 5500, easing: Easing.linear, useNativeDriver: true })
+    );
+    const glow = Animated.loop(Animated.sequence([
+      Animated.timing(glowAnim, { toValue: 1, duration: 2200, useNativeDriver: true }),
+      Animated.timing(glowAnim, { toValue: 0, duration: 2200, useNativeDriver: true }),
+    ]));
+    orbit.start(); glow.start();
+    return () => { orbit.stop(); glow.stop(); };
+  }, []);
+  const orbitRotate  = orbitAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const orbitRotateR = orbitAnim.interpolate({ inputRange: [0, 1], outputRange: ['360deg', '0deg'] });
+  const avatarScale  = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.04] });
 
   const rankInfo  = xpForNextRank(profile.xp);
   const rankData  = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
@@ -77,12 +95,45 @@ export default function ProfileScreen() {
 
           {/* Avatar — tappable to edit */}
           <Pressable onPress={() => { setTempEmoji(profile.avatarEmoji); setTempColor(profile.avatarFrameColor); setAvatarEditing(true); }}>
-            <View style={[styles.bigAvatar, { borderColor: profile.avatarFrameColor, backgroundColor: profile.avatarFrameColor + '33' }]}>
+            <Animated.View style={[styles.bigAvatar, {
+              borderColor: profile.avatarFrameColor,
+              backgroundColor: profile.avatarFrameColor + '33',
+              transform: [{ scale: avatarScale }],
+              overflow: 'visible',
+            }]}>
+              {/* Spinning inner orbit ring */}
+              <Animated.View style={{ position: 'absolute', top: -8, left: -8, transform: [{ rotate: orbitRotate }] }} pointerEvents="none">
+                <Svg width={84} height={84}>
+                  <Circle
+                    cx={42} cy={42} r={40}
+                    stroke={profile.avatarFrameColor}
+                    strokeWidth={1.5}
+                    strokeDasharray="22 58"
+                    fill="none"
+                    opacity={0.65}
+                    strokeLinecap="round"
+                  />
+                </Svg>
+              </Animated.View>
+              {/* Counter-spinning outer ring */}
+              <Animated.View style={{ position: 'absolute', top: -14, left: -14, transform: [{ rotate: orbitRotateR }] }} pointerEvents="none">
+                <Svg width={96} height={96}>
+                  <Circle
+                    cx={48} cy={48} r={46}
+                    stroke={profile.avatarFrameColor}
+                    strokeWidth={1}
+                    strokeDasharray="10 80"
+                    fill="none"
+                    opacity={0.3}
+                    strokeLinecap="round"
+                  />
+                </Svg>
+              </Animated.View>
               <Text style={styles.bigAvatarEmoji}>{profile.avatarEmoji}</Text>
               <View style={styles.editBadge}>
                 <Feather name="edit-2" size={9} color="#000" />
               </View>
-            </View>
+            </Animated.View>
           </Pressable>
 
           <View style={styles.profileInfo}>

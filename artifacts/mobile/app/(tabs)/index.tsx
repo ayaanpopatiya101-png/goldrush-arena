@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import {
-  Animated, Platform, Pressable, ScrollView,
+  Animated, Easing, Platform, Pressable, ScrollView,
   StyleSheet, Text, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -116,10 +116,12 @@ export default function HomeScreen() {
     profile, isLoaded, showStreakModal, dismissStreakModal,
     claimDailyStreak, claimSeasonTier, setSelectedSuper,
   } = usePlayer();
-  const pulseAnim   = useRef(new Animated.Value(1)).current;
-  const glowAnim    = useRef(new Animated.Value(0)).current;
-  const shimmerAnim = useRef(new Animated.Value(-1)).current;
-  const titleGlowAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim      = useRef(new Animated.Value(1)).current;
+  const glowAnim       = useRef(new Animated.Value(0)).current;
+  const shimmerAnim    = useRef(new Animated.Value(-1)).current;
+  const titleGlowAnim  = useRef(new Animated.Value(0)).current;
+  const floatCrownAnim = useRef(new Animated.Value(0)).current;
+  const rotateCrownAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const pulse = Animated.loop(Animated.sequence([
@@ -141,8 +143,17 @@ export default function HomeScreen() {
       Animated.timing(titleGlowAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
       Animated.timing(titleGlowAnim, { toValue: 0, duration: 1200, useNativeDriver: true }),
     ]));
+    const crownFloat = Animated.loop(Animated.sequence([
+      Animated.timing(floatCrownAnim, { toValue: 1, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      Animated.timing(floatCrownAnim, { toValue: 0, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+    ]));
+    const crownRotate = Animated.loop(Animated.sequence([
+      Animated.timing(rotateCrownAnim, { toValue: 1, duration: 3200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      Animated.timing(rotateCrownAnim, { toValue: 0, duration: 3200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+    ]));
     pulse.start(); glow.start(); shimmer.start(); titleGlow.start();
-    return () => { pulse.stop(); glow.stop(); shimmer.stop(); titleGlow.stop(); };
+    crownFloat.start(); crownRotate.start();
+    return () => { pulse.stop(); glow.stop(); shimmer.stop(); titleGlow.stop(); crownFloat.stop(); crownRotate.stop(); };
   }, []);
 
   function handlePlay(matchType: MatchType) {
@@ -261,10 +272,23 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* Mini arena */}
+        {/* Mini arena — 3D perspective table */}
         <View style={styles.arenaWrap}>
-          <MiniArena />
+          <View style={{ transform: [{ perspective: 500 }, { rotateX: '18deg' }], shadowColor: '#C8820A', shadowOffset: { width: 0, height: 18 }, shadowOpacity: 0.35, shadowRadius: 20, elevation: 12 }}>
+            <MiniArena />
+          </View>
+          {/* Floor glow */}
+          <View style={{ width: 120, height: 10, borderRadius: 60, backgroundColor: '#C8820A', opacity: 0.16, marginTop: 6, alignSelf: 'center' }} />
         </View>
+
+        {/* Floating 3D crown */}
+        <Animated.View style={{ alignItems: 'center', marginBottom: 2, transform: [
+          { translateY: floatCrownAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -10] }) },
+          { perspective: 800 },
+          { rotateY: rotateCrownAnim.interpolate({ inputRange: [0, 1], outputRange: ['-14deg', '14deg'] }) },
+        ] }}>
+          <Text style={{ fontSize: 52, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24 }}>👑</Text>
+        </Animated.View>
 
         {/* Title */}
         <View style={styles.titleWrap}>
@@ -282,7 +306,7 @@ export default function HomeScreen() {
         <View style={styles.playWrap}>
           <Animated.View style={[styles.playBtnRow, { transform: [{ scale: pulseAnim }] }]}>
             {/* Ranked */}
-            <Pressable onPress={() => handlePlay('ranked')} style={({ pressed }) => [styles.playBtn, styles.playBtnRanked, pressed && { opacity: 0.85, transform:[{scale:0.97}] }]}>
+            <Pressable onPress={() => handlePlay('ranked')} style={({ pressed }) => [styles.playBtn, styles.playBtnRanked, pressed && { opacity: 0.85, transform:[{ perspective: 600 }, { rotateX: '7deg' }, { scale: 0.97 }] }]}>
               <LinearGradient colors={['#E09620', '#C8820A', '#A86008']} style={styles.playBtnGrad}>
                 <Text style={styles.playBtnIcon}>⚔️</Text>
                 <View>
@@ -298,7 +322,7 @@ export default function HomeScreen() {
               }} />
             </Pressable>
             {/* Casual */}
-            <Pressable onPress={() => handlePlay('casual')} style={({ pressed }) => [styles.playBtn, styles.playBtnCasual, pressed && { opacity: 0.85, transform:[{scale:0.97}] }]}>
+            <Pressable onPress={() => handlePlay('casual')} style={({ pressed }) => [styles.playBtn, styles.playBtnCasual, pressed && { opacity: 0.85, transform:[{ perspective: 600 }, { rotateX: '7deg' }, { scale: 0.97 }] }]}>
               <LinearGradient colors={['#1A6888', '#1E8AAA', '#147898']} style={styles.playBtnGrad}>
                 <Text style={styles.playBtnIcon}>🎮</Text>
                 <View>
