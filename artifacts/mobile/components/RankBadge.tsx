@@ -9,14 +9,14 @@ interface RankBadgeProps {
 }
 
 const RANK_SYMBOLS: Record<string, string> = {
-  Iron: 'I',
-  Bronze: 'II',
-  Silver: 'III',
-  Gold: 'IV',
-  Platinum: 'V',
-  Diamond: 'VI',
-  Master: 'VII',
-  Legend: 'VIII',
+  Recruit:    'I',
+  Private:    'II',
+  Corporal:   'III',
+  Sergeant:   'IV',
+  Lieutenant: 'V',
+  Commander:  'VI',
+  General:    'VII',
+  Spartan:    'VIII',
 };
 
 export function RankBadge({ rank, size = 'md', showLabel = true }: RankBadgeProps) {

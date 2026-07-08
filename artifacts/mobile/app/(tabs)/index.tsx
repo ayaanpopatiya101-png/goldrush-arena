@@ -14,7 +14,7 @@ import { RankBadge } from '@/components/RankBadge';
 import { AmbientParticles } from '@/components/AmbientParticles';
 import { LiveEventBanner } from '@/components/LiveEventBanner';
 import {
-  RANKS, getRankIndex, SEASON_TIERS, SKINS, usePlayer, xpForNextRank, xpToLevel,
+  RANKS, getRankIndex, SEASON_TIERS, SKINS, SUPERS, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
 type SuperType = 1 | 2 | 3;
 import { setGameConfig } from '@/store/gameSession';
@@ -342,30 +342,32 @@ export default function HomeScreen() {
 
         {/* ── Super Ability Selector ── */}
         <View style={styles.superSection}>
-          <Text style={styles.superTitle}>⚡ YOUR SUPER ABILITY</Text>
+          <Text style={styles.superTitle}>⚡ SUPER ABILITIES</Text>
           <Text style={styles.superSubtitle}>Block 10 balls to charge — then tap to unleash</Text>
           <View style={styles.superRow}>
-            {([
-              { id: 1 as SuperType, icon: '⚔️', name: 'IRON WALL', desc: 'Goal blocked\n3 seconds' },
-              { id: 2 as SuperType, icon: '🌀', name: 'SLOW FIELD', desc: 'Incoming balls\nmove at crawl speed' },
-              { id: 3 as SuperType, icon: '💥', name: 'BANISH',     desc: 'Ball that scores\ndisappears from play' },
-            ] as { id: SuperType; icon: string; name: string; desc: string }[]).map(sup => {
+            {SUPERS.map(sup => {
               const active = (profile.selectedSuper ?? 1) === sup.id;
+              const unlocked = profile.level >= sup.unlockLevel;
               return (
                 <Pressable
                   key={sup.id}
-                  onPress={() => setSelectedSuper(sup.id)}
+                  onPress={() => unlocked && setSelectedSuper(sup.id)}
                   style={({ pressed }) => [styles.superCard, {
-                    borderColor: active ? '#FFD700' : '#FFFFFF1A',
-                    backgroundColor: active ? '#FFD70018' : '#FFFFFF06',
-                    opacity: pressed ? 0.8 : 1,
-                    transform: [{ scale: pressed ? 0.97 : 1 }],
+                    borderColor: !unlocked ? '#FFFFFF0D' : active ? '#FFD700' : '#FFFFFF1A',
+                    backgroundColor: !unlocked ? '#FFFFFF04' : active ? '#FFD70018' : '#FFFFFF06',
+                    opacity: !unlocked ? 0.45 : pressed ? 0.8 : 1,
+                    transform: [{ scale: pressed && unlocked ? 0.97 : 1 }],
                   }]}
                 >
-                  <Text style={styles.superIcon}>{sup.icon}</Text>
-                  <Text style={[styles.superName, { color: active ? '#FFD700' : '#FFFFFF99' }]}>{sup.name}</Text>
-                  <Text style={[styles.superDesc, { color: active ? '#FFD70088' : '#FFFFFF44' }]}>{sup.desc}</Text>
-                  {active && (
+                  {!unlocked && (
+                    <View style={styles.superLockBadge}>
+                      <Text style={styles.superLockTxt}>LV.{sup.unlockLevel}</Text>
+                    </View>
+                  )}
+                  <Text style={[styles.superIcon, { opacity: unlocked ? 1 : 0.4 }]}>{sup.icon}</Text>
+                  <Text style={[styles.superName, { color: !unlocked ? '#FFFFFF33' : active ? '#FFD700' : '#FFFFFF99' }]}>{sup.name}</Text>
+                  <Text style={[styles.superDesc, { color: !unlocked ? '#FFFFFF1A' : active ? '#FFD70088' : '#FFFFFF44' }]}>{sup.desc}</Text>
+                  {active && unlocked && (
                     <View style={styles.superActiveBadge}>
                       <Text style={styles.superActiveTxt}>EQUIPPED</Text>
                     </View>
@@ -695,6 +697,8 @@ const styles = StyleSheet.create({
   superDesc:       { fontFamily: 'Inter_400Regular', fontSize: 8, textAlign: 'center', lineHeight: 12 },
   superActiveBadge:{ backgroundColor: '#FFD70033', borderRadius: 5, borderWidth: 1, borderColor: '#FFD700', paddingHorizontal: 5, paddingVertical: 1, marginTop: 2 },
   superActiveTxt:  { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 7, letterSpacing: 1 },
+  superLockBadge:  { position: 'absolute', top: 4, right: 4, backgroundColor: '#FFFFFF12', borderRadius: 5, borderWidth: 1, borderColor: '#FFFFFF1A', paddingHorizontal: 4, paddingVertical: 1 },
+  superLockTxt:    { color: '#FFFFFF55', fontFamily: 'Inter_700Bold', fontSize: 7, letterSpacing: 0.5 },
   statsRow:   { flexDirection: 'row', paddingHorizontal: 16, gap: 10, marginBottom: 14 },
   statCard:   { flex: 1, alignItems: 'center', padding: 12, borderRadius: 12, borderWidth: 1, gap: 4 },
   statValue:  { fontFamily: 'Inter_700Bold', fontSize: 18 },

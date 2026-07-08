@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SKINS, usePlayer } from '@/context/PlayerContext';
+import { SKINS, FORGE_ABILITIES, RELICS, getRankIndex, usePlayer } from '@/context/PlayerContext';
 import { useColors } from '@/hooks/useColors';
 
 const POWERUP_BUNDLES = [
@@ -36,9 +36,14 @@ const ARENA_THEMES = [
 export default function ShopScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { profile, purchaseSkin, equipSkin, spendCoins } = usePlayer();
-  const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras'>('skins');
+  const { profile, purchaseSkin, equipSkin, spendCoins, purchaseForgeAbility, equipForgeAbility } = usePlayer();
+  const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras' | 'forge'>('skins');
   const [purchasing, setPurchasing] = useState<string | null>(null);
+
+  const allRelicsOwned = RELICS.every(r =>
+    (profile.trophyUnlockedRelics ?? []).includes(r.id) ||
+    getRankIndex(profile.rank) >= r.unlockRankIndex
+  );
 
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
@@ -102,18 +107,26 @@ export default function ShopScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <Text style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</Text>
-        <View style={styles.coinDisplay}>
-          <Feather name="circle" size={14} color="#FFD700" />
-          <Text style={styles.coinAmount}>{profile.coins}</Text>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {allRelicsOwned && (
+            <View style={[styles.coinDisplay, { backgroundColor: '#7A50A022', borderWidth: 1, borderColor: '#7A50A044' }]}>
+              <Text style={{ fontSize: 12 }}>⚡</Text>
+              <Text style={[styles.coinAmount, { color: '#B9A0E0' }]}>{profile.credits ?? 0}</Text>
+            </View>
+          )}
+          <View style={styles.coinDisplay}>
+            <Feather name="circle" size={14} color="#FFD700" />
+            <Text style={styles.coinAmount}>{profile.coins}</Text>
+          </View>
         </View>
       </View>
 
       {/* Tabs */}
       <View style={[styles.tabRow, { borderBottomColor: colors.border }]}>
-        {(['skins', 'themes', 'powerups', 'extras'] as const).map(t => (
-          <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: colors.primary }]}>
-            <Text style={[styles.tabText, { color: activeTab === t ? colors.primary : colors.mutedForeground }]}>
-              {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : 'EXTRAS'}
+        {(['skins', 'themes', 'powerups', 'extras', ...(allRelicsOwned ? ['forge' as const] : [])] as const).map(t => (
+          <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: t === 'forge' ? '#7A50A0' : colors.primary }]}>
+            <Text style={[styles.tabText, { color: activeTab === t ? (t === 'forge' ? '#B9A0E0' : colors.primary) : colors.mutedForeground }]}>
+              {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'forge' ? '⚡ FORGE' : 'EXTRAS'}
             </Text>
           </Pressable>
         ))}
@@ -350,6 +363,90 @@ export default function ShopScreen() {
             ))}
           </>
         )}
+        {activeTab === 'forge' && (
+          <>
+            <View style={[styles.forgeHeader, { backgroundColor: '#7A50A014', borderColor: '#7A50A033' }]}>
+              <Text style={{ fontSize: 22 }}>⚡</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.forgeTitle, { color: '#B9A0E0' }]}>THE FORGE</Text>
+                <Text style={[styles.forgeSubtitle, { color: colors.mutedForeground }]}>
+                  Unlock all relics to forge powerful enhancements. Earn Credits by playing matches.
+                </Text>
+              </View>
+              <View style={styles.creditsBox}>
+                <Text style={styles.creditsLabel}>CREDITS</Text>
+                <Text style={styles.creditsValue}>{profile.credits ?? 0}</Text>
+              </View>
+            </View>
+
+            {FORGE_ABILITIES.map(forge => {
+              const owned = (profile.ownedForgeAbilities ?? []).includes(forge.id);
+              const equipped = profile.equippedForgeAbility === forge.id;
+              const canAfford = (profile.credits ?? 0) >= forge.cost;
+              return (
+                <Pressable
+                  key={forge.id}
+                  onPress={async () => {
+                    if (owned) {
+                      if (!equipped) {
+                        await equipForgeAbility(forge.id);
+                        if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      }
+                      return;
+                    }
+                    if (!canAfford) {
+                      xAlert('Not enough Credits', `You need ${forge.cost - (profile.credits ?? 0)} more Credits.`);
+                      return;
+                    }
+                    xConfirm(`Forge ${forge.name}?`, `Cost: ${forge.cost} Credits`, async () => {
+                      const ok = await purchaseForgeAbility(forge.id);
+                      if (ok) {
+                        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        xAlert('Forged!', `${forge.name} is now equipped.`);
+                      }
+                    }, 'Forge');
+                  }}
+                  style={({ pressed }) => [styles.bundleCard, {
+                    backgroundColor: equipped ? forge.color + '18' : colors.card,
+                    borderColor: equipped ? forge.color : owned ? forge.color + '44' : colors.border,
+                    opacity: pressed ? 0.85 : 1,
+                    overflow: 'hidden',
+                  }]}
+                >
+                  <LinearGradient colors={[forge.color + '18', forge.color + '06']} style={StyleSheet.absoluteFill} />
+                  <View style={[styles.bundleIcon, { backgroundColor: forge.color + '22', borderColor: forge.color + '44' }]}>
+                    <Text style={{ fontSize: 22 }}>{forge.icon}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.itemName, { color: equipped ? forge.color : colors.foreground }]}>{forge.name}</Text>
+                    <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{forge.desc}</Text>
+                    {equipped && <Text style={[styles.ownedLabel, { color: forge.color }]}>● EQUIPPED</Text>}
+                    {owned && !equipped && <Text style={[styles.ownedLabel, { color: forge.color + '88' }]}>OWNED — TAP TO EQUIP</Text>}
+                  </View>
+                  {!owned && (
+                    <View style={[styles.buyBtn, {
+                      backgroundColor: canAfford ? forge.color + '22' : '#FFFFFF08',
+                      borderColor: canAfford ? forge.color + '66' : '#FFFFFF15',
+                    }]}>
+                      <Text style={{ fontSize: 10 }}>⚡</Text>
+                      <Text style={[styles.buyBtnText, { color: canAfford ? forge.color : '#FFFFFF33' }]}>{forge.cost}</Text>
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+
+            <View style={[styles.earnCard, { backgroundColor: colors.card, borderColor: '#7A50A033' }]}>
+              <Text style={{ fontSize: 18 }}>🔄</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.earnTitle, { color: colors.foreground }]}>Earning Credits</Text>
+                <Text style={[styles.earnDesc, { color: colors.mutedForeground }]}>
+                  Once all relics are unlocked, every match rewards Credits instead. Win for 2 Credits, lose for 1. Duplicate relic milestones on Trophy Road give 15 Credits each.
+                </Text>
+              </View>
+            </View>
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -395,4 +492,10 @@ const styles = StyleSheet.create({
   themePreview: { width: 60, height: 60, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   themeArena: { width: 46, height: 46, borderRadius: 6, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
   themePaddle: { width: 28, height: 5, borderRadius: 3, opacity: 0.9 },
+  forgeHeader: { borderRadius: 14, borderWidth: 1, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
+  forgeTitle: { fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 2 },
+  forgeSubtitle: { fontFamily: 'Inter_400Regular', fontSize: 11, marginTop: 2, lineHeight: 16 },
+  creditsBox: { alignItems: 'center', gap: 2 },
+  creditsLabel: { color: '#B9A0E0', fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 1.5 },
+  creditsValue: { color: '#B9A0E0', fontFamily: 'Inter_700Bold', fontSize: 22 },
 });

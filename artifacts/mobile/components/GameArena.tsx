@@ -96,7 +96,7 @@ interface GameArenaProps {
   botSkill?: number;
   /** Inner arena gradient from the selected map; falls back to mode-based. */
   arenaBg?: [string, string, string];
-  /** Player's chosen super ability: 1=Iron Wall, 2=Slow Field, 3=Banish */
+  /** Player's chosen super ability: 1=Rampart, 2=Dead Zone, 3=Shatter */
   playerSuperType?: 1 | 2 | 3;
 }
 
@@ -363,10 +363,10 @@ export function GameArena({
     duelTopId: TOP, duelBottomId: BOTTOM, duelFrames: 0,
     players: [
       { id:BOTTOM,   name:playerName,              paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:false, isEliminated:false,              score:0, color:playerColor,      glowColor:playerGlowColor, rank:'Gold',              botSpeed:0,   botAccuracy:1,    hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
-      { id:TOP,      name:botNames[0]??'Blaze_99',  paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[1], glowColor:PLAYER_GLOW[1],  rank:botRanks[0]??'Platinum',     botSpeed:4.8, botAccuracy:0.86, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
-      { id:LEFT,     name:botNames[1]??'IceQueen',  paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[2], glowColor:PLAYER_GLOW[2],  rank:botRanks[1]??'Diamond',      botSpeed:5.2, botAccuracy:0.88, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
-      { id:RIGHT,    name:botNames[2]??'Venom_X',   paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[3], glowColor:PLAYER_GLOW[3],  rank:botRanks[2]??'Master',       botSpeed:5.6, botAccuracy:0.91, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
-      { id:BOTTOM_R, name:botNames[3]??'ShadowFox', paddleCenter:arenaSize*3/4,                                prevPaddleCenter:arenaSize*3/4,                                lives:initialLivesVal, isBot:true,  isEliminated:!(sixPlayer??false), score:0, color:PLAYER_COLORS[4], glowColor:PLAYER_GLOW[4],  rank:botRanks[3]??'Legend',       botSpeed:4.6, botAccuracy:0.84, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      { id:TOP,      name:botNames[0]??'Blaze_99',  paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[1], glowColor:PLAYER_GLOW[1],  rank:botRanks[0]??'Lieutenant',   botSpeed:4.8, botAccuracy:0.86, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      { id:LEFT,     name:botNames[1]??'IceQueen',  paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[2], glowColor:PLAYER_GLOW[2],  rank:botRanks[1]??'Commander',    botSpeed:5.2, botAccuracy:0.88, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      { id:RIGHT,    name:botNames[2]??'Venom_X',   paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[3], glowColor:PLAYER_GLOW[3],  rank:botRanks[2]??'General',      botSpeed:5.6, botAccuracy:0.91, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      { id:BOTTOM_R, name:botNames[3]??'ShadowFox', paddleCenter:arenaSize*3/4,                                prevPaddleCenter:arenaSize*3/4,                                lives:initialLivesVal, isBot:true,  isEliminated:!(sixPlayer??false), score:0, color:PLAYER_COLORS[4], glowColor:PLAYER_GLOW[4],  rank:botRanks[3]??'Spartan',      botSpeed:4.6, botAccuracy:0.84, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
       { id:TOP_R,    name:botNames[4]??'CyberWolf',  paddleCenter:arenaSize*3/4,                                prevPaddleCenter:arenaSize*3/4,                                lives:initialLivesVal, isBot:true,  isEliminated:!(sixPlayer??false), score:0, color:PLAYER_COLORS[5], glowColor:PLAYER_GLOW[5],  rank:botRanks[4]??'Grandmaster', botSpeed:5.0, botAccuracy:0.87, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
     ],
   });
@@ -680,9 +680,9 @@ export function GameArena({
     setSuperChargeUI(0);
     setSuperActiveUI(true);
     const labels: Record<number, string> = {
-      1: '⚔️ IRON WALL!',
-      2: '🌀 SLOW FIELD!',
-      3: '💥 BANISH!',
+      1: '🛡️ RAMPART!',
+      2: '🌀 DEAD ZONE!',
+      3: '💥 SHATTER!',
     };
     showAnnouncer(labels[superTypeRef.current] ?? 'SUPER!');
     // Super 2: immediately halve vy of all balls heading toward human goal
@@ -1593,7 +1593,7 @@ export function GameArena({
                 textShadowOffset: { width: 0, height: 0 },
                 textShadowRadius: 8,
               }}>
-                {superTypeRef.current === 1 ? '⚔️ IRON WALL' : superTypeRef.current === 2 ? '🌀 SLOW FIELD' : '💥 BANISH'} · TAP!
+                {superTypeRef.current === 1 ? '🛡️ RAMPART' : superTypeRef.current === 2 ? '🌀 DEAD ZONE' : '💥 SHATTER'} · TAP!
               </Text>
             </Pressable>
           )}
@@ -1610,7 +1610,7 @@ export function GameArena({
                 textShadowOffset: { width: 0, height: 0 },
                 textShadowRadius: 6,
               }}>
-                {superTypeRef.current === 1 ? '⚔️ IRON WALL ACTIVE' : superTypeRef.current === 2 ? '🌀 SLOW FIELD ACTIVE' : '💥 BANISH ACTIVE'}
+                {superTypeRef.current === 1 ? '🛡️ RAMPART ACTIVE' : superTypeRef.current === 2 ? '🌀 DEAD ZONE ACTIVE' : '💥 SHATTER ACTIVE'}
               </Text>
             </View>
           )}

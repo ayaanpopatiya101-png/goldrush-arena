@@ -7,13 +7,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
-import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, MAPS, getScaledRelicEffect, getRelicLevel, getStreakMultiplier, getDifficultyMultiplier } from '@/context/PlayerContext';
+import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, MAPS, getScaledRelicEffect, getRelicLevel, getStreakMultiplier, getDifficultyMultiplier, getForgeAbility, mergeRelicEffects } from '@/context/PlayerContext';
 import { getGameConfig } from '@/store/gameSession';
 import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
-const BOT_RANKS  = ['Platinum', 'Diamond',  'Master',  'Legend',    'Grandmaster'];
+const BOT_RANKS  = ['Lieutenant', 'Commander', 'General', 'Spartan', 'Spartan'];
 const BOT_COLORS = ['#C03820',  '#1E8AAA',  '#4A8A38', '#D07018',   '#7A50A0'];
 
 const VARIANT_PROPS: Record<string, {
@@ -302,7 +302,10 @@ export default function GameScreen() {
             onActiveBallsChange={setActiveBalls}
             botDifficulty={botDifficulty}
             onGameStart={handleGameStart}
-            playerRelic={relic ? getScaledRelicEffect(relic.id, getRelicLevel(profile, relic.id)) : undefined}
+            playerRelic={mergeRelicEffects(
+              relic ? getScaledRelicEffect(relic.id, getRelicLevel(profile, relic.id)) : undefined,
+              getForgeAbility(profile.equippedForgeAbility)?.effect
+            )}
             botSkill={botSkill}
             arenaBg={map.arenaBg}
             playerSuperType={profile.selectedSuper ?? 1}

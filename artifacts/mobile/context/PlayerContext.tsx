@@ -3,14 +3,14 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 
 // ─── Ranks & Skins ────────────────────────────────────────────────────────────
 export const RANKS = [
-  { name: 'Iron',     minXP: 0,     color: '#8B8B8B' },
-  { name: 'Bronze',   minXP: 500,   color: '#CD7F32' },
-  { name: 'Silver',   minXP: 1500,  color: '#C0C0C0' },
-  { name: 'Gold',     minXP: 3000,  color: '#FFD700' },
-  { name: 'Platinum', minXP: 6000,  color: '#00E5FF' },
-  { name: 'Diamond',  minXP: 10000, color: '#B9F2FF' },
-  { name: 'Master',   minXP: 20000, color: '#FF4757' },
-  { name: 'Legend',   minXP: 40000, color: '#FFD700' },
+  { name: 'Recruit',    minXP: 0,     color: '#8B9BAB' },
+  { name: 'Private',    minXP: 500,   color: '#A8B8C8' },
+  { name: 'Corporal',   minXP: 1500,  color: '#B89040' },
+  { name: 'Sergeant',   minXP: 3000,  color: '#D4A030' },
+  { name: 'Lieutenant', minXP: 6000,  color: '#3A9DD4' },
+  { name: 'Commander',  minXP: 10000, color: '#9055C8' },
+  { name: 'General',    minXP: 20000, color: '#E04030' },
+  { name: 'Spartan',    minXP: 40000, color: '#FFD700' },
 ];
 
 export const SKINS = [
@@ -74,6 +74,83 @@ export const RELICS: Relic[] = [
 export function getRelic(id: string | undefined | null): Relic | null {
   if (!id || id === 'none') return null;
   return RELICS.find(r => r.id === id) ?? null;
+}
+
+// ─── Super Abilities (level-gated active powers) ───────────────────────────
+export interface SuperAbility {
+  id: 1 | 2 | 3;
+  name: string;
+  icon: string;
+  desc: string;
+  unlockLevel: number;
+}
+
+export const SUPERS: SuperAbility[] = [
+  { id: 1, name: 'RAMPART',   icon: '🛡️', desc: 'Goal blocked\n3 seconds',             unlockLevel: 5  },
+  { id: 2, name: 'DEAD ZONE', icon: '🌀', desc: 'Incoming balls\nmove at crawl speed',  unlockLevel: 10 },
+  { id: 3, name: 'SHATTER',   icon: '💥', desc: 'Ball that scores\nvanishes from play', unlockLevel: 15 },
+];
+
+// ─── Forge Abilities (bought with Credits after all relics unlocked) ──────
+export interface ForgeAbility {
+  id: string;
+  name: string;
+  desc: string;
+  icon: string;
+  color: string;
+  cost: number;
+  effect: RelicEffect;
+}
+
+export const FORGE_ABILITIES: ForgeAbility[] = [
+  {
+    id: 'precision_core', name: 'Precision Core', icon: '⚙️', color: '#9AA0A6', cost: 50,
+    desc: 'Refines field calibration for improved match response.',
+    effect: { paddleSpeedMult: 1.20, deflectBoost: 1.15 },
+  },
+  {
+    id: 'iron_aegis', name: 'Iron Aegis', icon: '🪖', color: '#1E8AAA', cost: 75,
+    desc: 'Deploys reinforced shielding protocols at match initialization.',
+    effect: { startShield: true, shrinkImmune: true },
+  },
+  {
+    id: 'void_drive', name: 'Void Drive', icon: '🌑', color: '#7A50A0', cost: 100,
+    desc: 'Interfaces with an unstable spatial frequency channel.',
+    effect: { paddleSpeedMult: 1.45, deflectBoost: 1.40, bonusLives: 1 },
+  },
+  {
+    id: 'temporal_shift', name: 'Temporal Shift', icon: '⌛', color: '#B9F2FF', cost: 125,
+    desc: 'Applies a subtle temporal recalibration to match initialization.',
+    effect: { slowStartFrames: 600, bonusLives: 2, revive: 2 },
+  },
+  {
+    id: 'catalyst', name: 'Catalyst', icon: '🔮', color: '#D4A030', cost: 150,
+    desc: 'A balanced enhancement across multiple match parameters.',
+    effect: { paddleLenMult: 1.25, startShield: true, bonusLives: 1 },
+  },
+];
+
+export function getForgeAbility(id: string | undefined | null): ForgeAbility | null {
+  if (!id) return null;
+  return FORGE_ABILITIES.find(f => f.id === id) ?? null;
+}
+
+/** Merge a relic effect + forge effect into one combined RelicEffect. */
+export function mergeRelicEffects(a: RelicEffect | undefined, b: RelicEffect | undefined): RelicEffect {
+  if (!a && !b) return {};
+  if (!a) return b!;
+  if (!b) return a;
+  return {
+    startShield:      (a.startShield      || b.startShield)      || undefined,
+    shrinkImmune:     (a.shrinkImmune     || b.shrinkImmune)     || undefined,
+    magnet:           (a.magnet           || b.magnet)           || undefined,
+    paddleLenMult:    (a.paddleLenMult  ?? 1) * (b.paddleLenMult  ?? 1) > 1 ? (a.paddleLenMult ?? 1) * (b.paddleLenMult ?? 1) : undefined,
+    paddleSpeedMult:  (a.paddleSpeedMult ?? 1) * (b.paddleSpeedMult ?? 1) > 1 ? (a.paddleSpeedMult ?? 1) * (b.paddleSpeedMult ?? 1) : undefined,
+    deflectBoost:     (a.deflectBoost   ?? 1) * (b.deflectBoost   ?? 1) > 1 ? (a.deflectBoost ?? 1) * (b.deflectBoost ?? 1) : undefined,
+    bonusLives:       ((a.bonusLives    ?? 0) + (b.bonusLives    ?? 0)) || undefined,
+    slowStartFrames:  ((a.slowStartFrames ?? 0) + (b.slowStartFrames ?? 0)) || undefined,
+    revive:           ((a.revive        ?? 0) + (b.revive        ?? 0)) || undefined,
+  };
 }
 
 // ─── Maps (rank-unlocked arenas) ──────────────────────────────────────────────
@@ -186,7 +263,7 @@ export const ACHIEVEMENTS = [
   { id: 'level10',    name: 'Veteran',         desc: 'Reach level 10'                 },
   { id: 'level25',    name: 'Elite',           desc: 'Reach level 25'                 },
   { id: 'collector',  name: 'Collector',       desc: 'Own 3 skins'                    },
-  { id: 'gold_rank',  name: 'Gold Standard',   desc: 'Reach Gold rank'                },
+  { id: 'gold_rank',  name: 'Gold Standard',   desc: 'Reach Lieutenant rank'           },
   { id: 'century',    name: 'Centurion',       desc: 'Play 100 matches'               },
   { id: 'deflect100', name: 'The Wall',        desc: 'Deflect 100 balls total'        },
   { id: 'powerup10',  name: 'Power Hungry',    desc: 'Collect 10 power-ups'           },
@@ -347,8 +424,13 @@ export interface PlayerProfile {
   relicLevels?: Record<string, number>;
   // Onboarding: false = never shown tutorial, true = completed
   tutorialComplete?: boolean;
-  // Super ability equipped for matches: 1=Iron Wall, 2=Slow Field, 3=Banish
+  // Super ability equipped for matches: 1=Rampart, 2=Dead Zone, 3=Shatter
   selectedSuper?: 1 | 2 | 3;
+  // Credits earned once all relics are unlocked (Brawl Stars-style overflow currency)
+  credits?: number;
+  // Forge Abilities purchased with credits
+  ownedForgeAbilities?: string[];
+  equippedForgeAbility?: string | null;
   // Trophy Road claimed milestone IDs
   trophyRoadClaimed?: string[];
   // Relics unlocked via Trophy Road (bypass rank requirement)
@@ -363,7 +445,7 @@ export interface MatchResult {
 }
 
 const DEFAULT_PROFILE: PlayerProfile = {
-  name: 'Player', xp: 0, level: 1, rank: 'Iron', coins: 200,
+  name: 'Player', xp: 0, level: 1, rank: 'Recruit', coins: 200,
   wins: 0, losses: 0, totalGames: 0, totalDeflections: 0, totalPowerups: 0,
   ownedSkins: ['default'], currentSkin: 'default', achievements: [],
   winStreak: 0, bestStreak: 0, matchHistory: [],
@@ -378,6 +460,9 @@ const DEFAULT_PROFILE: PlayerProfile = {
   selectedSuper: 1,
   trophyRoadClaimed: [],
   trophyUnlockedRelics: [],
+  credits: 0,
+  ownedForgeAbilities: [],
+  equippedForgeAbility: null,
 };
 
 // ─── Halo-style level change calculator ───────────────────────────────────────
@@ -432,6 +517,8 @@ interface PlayerContextType {
   claimTrophyRoad: (id: string) => Promise<void>;
   completeTutorial: () => Promise<void>;
   setSelectedSuper: (type: 1 | 2 | 3) => Promise<void>;
+  purchaseForgeAbility: (id: string) => Promise<boolean>;
+  equipForgeAbility: (id: string | null) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -504,10 +591,17 @@ export function PlayerProvider({ username, onLogout, children }: {
       ...result, id, timestamp: Date.now(),
       levelBefore: profile.competitiveLevel, levelAfter: newCompLevel,
     };
+    // Award credits when all relics are unlocked (Brawl Stars overflow mechanic)
+    const trophyRelics = profile.trophyUnlockedRelics ?? [];
+    const allRelicsOwned = RELICS.every(r =>
+      trophyRelics.includes(r.id) || getRankIndex(getRankFromXP(newXP)) >= r.unlockRankIndex
+    );
+    const creditsEarned = allRelicsOwned ? (result.won ? 2 : 1) : 0;
     await save({
       ...profile,
       xp: newXP, level: xpToLevel(newXP), rank: getRankFromXP(newXP),
       coins: profile.coins + result.coinsEarned,
+      credits: (profile.credits ?? 0) + creditsEarned,
       wins:  result.won ? profile.wins + 1 : profile.wins,
       losses: !result.won ? profile.losses + 1 : profile.losses,
       totalGames: profile.totalGames + 1,
@@ -617,8 +711,15 @@ export function PlayerProvider({ username, onLogout, children }: {
         updated = { ...updated, ownedSkins: [...updated.ownedSkins, r.id] };
     } else if (r.type === 'relic') {
       const prev = updated.trophyUnlockedRelics ?? [];
-      if (!prev.includes(r.id))
+      const relicData = RELICS.find(rl => rl.id === r.id);
+      const alreadyHas = prev.includes(r.id) ||
+        (relicData ? getRankIndex(updated.rank) >= relicData.unlockRankIndex : false);
+      if (alreadyHas) {
+        // Already own this relic — award 15 credits instead (Brawl Stars overflow)
+        updated = { ...updated, credits: (updated.credits ?? 0) + 15 };
+      } else {
         updated = { ...updated, trophyUnlockedRelics: [...prev, r.id] };
+      }
     }
     await save(updated);
   }, [profile, save]);
@@ -627,13 +728,33 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({ ...profile, selectedSuper: type });
   }, [profile, save]);
 
+  const purchaseForgeAbility = useCallback(async (id: string): Promise<boolean> => {
+    const forge = FORGE_ABILITIES.find(f => f.id === id);
+    if (!forge) return false;
+    if ((profile.ownedForgeAbilities ?? []).includes(id)) return false;
+    if ((profile.credits ?? 0) < forge.cost) return false;
+    await save({
+      ...profile,
+      credits: (profile.credits ?? 0) - forge.cost,
+      ownedForgeAbilities: [...(profile.ownedForgeAbilities ?? []), id],
+      equippedForgeAbility: profile.equippedForgeAbility ?? id,
+    });
+    return true;
+  }, [profile, save]);
+
+  const equipForgeAbility = useCallback(async (id: string | null) => {
+    if (id !== null && !(profile.ownedForgeAbilities ?? []).includes(id)) return;
+    await save({ ...profile, equippedForgeAbility: id });
+  }, [profile, save]);
+
   const dismissStreakModal = useCallback(() => setShowStreakModal(false), []);
 
   return (
     <PlayerContext.Provider value={{
       profile, isLoaded, currentUsername: username, showStreakModal, dismissStreakModal,
       updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic, upgradeRelic,
-      addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial, setSelectedSuper, logout,
+      addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial,
+      setSelectedSuper, purchaseForgeAbility, equipForgeAbility, logout,
     }}>
       {children}
     </PlayerContext.Provider>

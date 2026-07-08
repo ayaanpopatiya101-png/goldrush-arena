@@ -110,12 +110,12 @@ function PowerupsIllustration() {
 
 function RanksIllustration() {
   const ranks = [
-    { name: 'Iron',    color: '#8B8B8B' },
-    { name: 'Bronze',  color: '#CD7F32' },
-    { name: 'Silver',  color: '#C0C0C0' },
-    { name: 'Gold',    color: '#FFD700' },
-    { name: 'Diamond', color: '#B9F2FF' },
-    { name: 'Legend',  color: '#FFD700' },
+    { name: 'Recruit',    color: '#8B9BAB' },
+    { name: 'Sergeant',   color: '#D4A030' },
+    { name: 'Lieutenant', color: '#3A9DD4' },
+    { name: 'General', color: '#E04030' },
+    { name: 'Commander', color: '#9055C8' },
+    { name: 'Spartan',   color: '#FFD700' },
   ];
   return (
     <View style={il.rankRow}>
@@ -239,8 +239,8 @@ const STEPS: Step[] = [
   {
     emoji: '🏆',
     title: 'Ranks & XP',
-    subtitle: 'Iron → Legend — climb the ladder',
-    body: "Every match earns XP. Stack XP to climb: Iron, Bronze, Silver, Gold, Platinum, Diamond, Master, Legend. Higher ranks unlock exclusive arenas and powerful relic characters.",
+    subtitle: 'Recruit → Spartan — climb the ranks',
+    body: "Every match earns XP. Stack XP to climb: Recruit, Private, Corporal, Sergeant, Lieutenant, Commander, General, Spartan. Higher ranks unlock exclusive arenas and powerful relic characters.",
     illustration: <RanksIllustration />,
     accentColor: '#C0C0C0',
   },
