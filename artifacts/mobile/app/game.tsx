@@ -13,7 +13,7 @@ import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
-const BOT_RANKS  = ['Lieutenant', 'Commander', 'General', 'Spartan', 'Spartan'];
+const BOT_RANKS  = ['Gold', 'Platinum', 'Diamond', 'Master 1', 'Master 2'];
 const BOT_COLORS = ['#C03820',  '#1E8AAA',  '#4A8A38', '#D07018',   '#7A50A0'];
 
 const VARIANT_PROPS: Record<string, {

@@ -110,12 +110,12 @@ function PowerupsIllustration() {
 
 function RanksIllustration() {
   const ranks = [
-    { name: 'Recruit',    color: '#8B9BAB' },
-    { name: 'Sergeant',   color: '#D4A030' },
-    { name: 'Lieutenant', color: '#3A9DD4' },
-    { name: 'General', color: '#E04030' },
-    { name: 'Commander', color: '#9055C8' },
-    { name: 'Spartan',   color: '#FFD700' },
+    { name: 'Bronze',   color: '#CD7F32' },
+    { name: 'Diamond',  color: '#B9F2FF' },
+    { name: 'Master 2', color: '#F06020' },
+    { name: 'Legend 1', color: '#DD44FF' },
+    { name: 'Recruit',  color: '#8B9BAB' },
+    { name: 'Spartan 3',color: '#FFB300' },
   ];
   return (
     <View style={il.rankRow}>
@@ -239,8 +239,8 @@ const STEPS: Step[] = [
   {
     emoji: '🏆',
     title: 'Ranks & XP',
-    subtitle: 'Recruit → Spartan — climb the ranks',
-    body: "Every match earns XP. Stack XP to climb: Recruit, Private, Corporal, Sergeant, Lieutenant, Commander, General, Spartan. Higher ranks unlock exclusive arenas and powerful relic characters.",
+    subtitle: 'Bronze → Spartan 3 — 23 ranks to climb',
+    body: "Every match earns XP. Climb through Bronze, Silver, Gold, Platinum, Diamond, then into Master and Legend tiers. Reach the Prestige ranks — Recruit through Spartan 3 — to prove elite status.",
     illustration: <RanksIllustration />,
     accentColor: '#C0C0C0',
   },

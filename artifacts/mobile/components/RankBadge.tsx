@@ -9,14 +9,29 @@ interface RankBadgeProps {
 }
 
 const RANK_SYMBOLS: Record<string, string> = {
-  Recruit:    'I',
-  Private:    'II',
-  Corporal:   'III',
-  Sergeant:   'IV',
-  Lieutenant: 'V',
-  Commander:  'VI',
-  General:    'VII',
-  Spartan:    'VIII',
+  'Bronze':     'B',
+  'Silver':     'S',
+  'Gold':       'G',
+  'Platinum':   'P',
+  'Diamond':    'D',
+  'Master 1':   '1',
+  'Master 2':   '2',
+  'Master 3':   '3',
+  'Legend 1':   '1',
+  'Legend 2':   '2',
+  'Legend 3':   '3',
+  'Recruit':    'R',
+  'Private':    'P',
+  'Corporal':   'C',
+  'Sergeant':   'S',
+  'Lieutenant': 'L',
+  'Commander':  'C',
+  'General 1':  '1',
+  'General 2':  '2',
+  'General 3':  '3',
+  'Spartan 1':  '1',
+  'Spartan 2':  '2',
+  'Spartan 3':  '3',
 };
 
 export function RankBadge({ rank, size = 'md', showLabel = true }: RankBadgeProps) {

@@ -21,14 +21,14 @@ import { getGauntletState } from '@/store/gauntletSession';
 import { useColors } from '@/hooks/useColors';
 
 const BOT_POOL = [
-  { name: 'Blaze_99', rank: 'Lieutenant', color: '#FF4757' },
-  { name: 'IceQueen', rank: 'Commander',  color: '#00BFFF' },
-  { name: 'Venom_X',  rank: 'General',    color: '#00FF88' },
-  { name: 'ShadowFX', rank: 'Sergeant', color: '#9B59B6' },
-  { name: 'NeonBlitz',  rank: 'Lieutenant', color: '#FF6B35' },
-  { name: 'DarkMatter', rank: 'Corporal',   color: '#C0C0C0' },
-  { name: 'PulseWave',  rank: 'Commander',  color: '#FF00FF' },
-  { name: 'GhostPing',  rank: 'Private',    color: '#CD7F32' },
+  { name: 'Blaze_99',   rank: 'Master 1', color: '#FF4757' },
+  { name: 'IceQueen',   rank: 'Diamond',  color: '#00BFFF' },
+  { name: 'Venom_X',    rank: 'Master 2', color: '#00FF88' },
+  { name: 'ShadowFX',   rank: 'Platinum', color: '#9B59B6' },
+  { name: 'NeonBlitz',  rank: 'Master 1', color: '#FF6B35' },
+  { name: 'DarkMatter', rank: 'Gold',     color: '#C0C0C0' },
+  { name: 'PulseWave',  rank: 'Diamond',  color: '#FF00FF' },
+  { name: 'GhostPing',  rank: 'Silver',   color: '#CD7F32' },
 ];
 
 const VARIANT_META: Record<string, { emoji: string; name: string; color: string }> = {

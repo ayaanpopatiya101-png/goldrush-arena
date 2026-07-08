@@ -606,7 +606,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
                 </View>
                 <View>
                   <Text style={[s.previewName, { color: selectedColor }]}>{username || 'Hero Name'}</Text>
-                  <Text style={s.previewRank}>Recruit · Level 1</Text>
+                  <Text style={s.previewRank}>Bronze · Level 1</Text>
                 </View>
                 <View style={{ flex: 1 }} />
                 <View style={[s.previewBadge, { backgroundColor: selectedColor + '22', borderColor: selectedColor + '44' }]}>
