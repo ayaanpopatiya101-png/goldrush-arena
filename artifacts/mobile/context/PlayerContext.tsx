@@ -184,10 +184,19 @@ export function getWeekPeriodKey(d = new Date()): string {
   return `w_${d.getFullYear()}_${getISOWeek(d)}`;
 }
 export function getMonthPeriodKey(d = new Date()): string {
+  // Period runs from the 28th of a month to the 27th of the next.
+  // Key is labelled by the month in which the 28th (start day) falls.
+  if (d.getDate() < 28) {
+    const prev = new Date(d.getFullYear(), d.getMonth() - 1, 28);
+    return `m_${prev.getFullYear()}_${prev.getMonth() + 1}`;
+  }
   return `m_${d.getFullYear()}_${d.getMonth() + 1}`;
 }
 export function getAnnualPeriodKey(d = new Date()): string {
-  return `a_${d.getFullYear()}`;
+  // Annual period runs Oct 28 → Oct 27 of the following year.
+  // Key is the year in which Oct 28 (start day) falls.
+  const oct28 = new Date(d.getFullYear(), 9, 28);
+  return d >= oct28 ? `a_${d.getFullYear()}` : `a_${d.getFullYear() - 1}`;
 }
 function _msUntilEndOfWeek(): number {
   const now = new Date();
@@ -197,14 +206,21 @@ function _msUntilEndOfWeek(): number {
   return Math.max(0, next.getTime() - now.getTime());
 }
 function _msUntilEndOfMonth(): number {
+  // Time until the next 28th (when the monthly cup resets).
   const now = new Date();
-  const nm = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  return Math.max(0, nm.getTime() - now.getTime());
+  const next28 = now.getDate() < 28
+    ? new Date(now.getFullYear(), now.getMonth(), 28)
+    : new Date(now.getFullYear(), now.getMonth() + 1, 28);
+  next28.setHours(0, 0, 0, 0);
+  return Math.max(0, next28.getTime() - now.getTime());
 }
 function _msUntilEndOfYear(): number {
+  // Time until the next October 28th (when the annual cup resets).
   const now = new Date();
-  const ny = new Date(now.getFullYear() + 1, 0, 1);
-  return Math.max(0, ny.getTime() - now.getTime());
+  const year = now.getFullYear();
+  let oct28 = new Date(year, 9, 28); oct28.setHours(0, 0, 0, 0);
+  if (now >= oct28) { oct28 = new Date(year + 1, 9, 28); oct28.setHours(0, 0, 0, 0); }
+  return Math.max(0, oct28.getTime() - now.getTime());
 }
 
 export interface EventDefinition {
