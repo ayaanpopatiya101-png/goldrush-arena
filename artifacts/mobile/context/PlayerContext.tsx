@@ -183,20 +183,19 @@ export function getISOWeek(d: Date): number {
 export function getWeekPeriodKey(d = new Date()): string {
   return `w_${d.getFullYear()}_${getISOWeek(d)}`;
 }
+// Monthly period key = calendar month. Cup opens on the 28th of that month.
 export function getMonthPeriodKey(d = new Date()): string {
-  // Period runs from the 28th of a month to the 27th of the next.
-  // Key is labelled by the month in which the 28th (start day) falls.
-  if (d.getDate() < 28) {
-    const prev = new Date(d.getFullYear(), d.getMonth() - 1, 28);
-    return `m_${prev.getFullYear()}_${prev.getMonth() + 1}`;
-  }
   return `m_${d.getFullYear()}_${d.getMonth() + 1}`;
 }
+// Annual period key = calendar year. Cup opens on Oct 28 of that year.
 export function getAnnualPeriodKey(d = new Date()): string {
-  // Annual period runs Oct 28 → Oct 27 of the following year.
-  // Key is the year in which Oct 28 (start day) falls.
-  const oct28 = new Date(d.getFullYear(), 9, 28);
-  return d >= oct28 ? `a_${d.getFullYear()}` : `a_${d.getFullYear() - 1}`;
+  return `a_${d.getFullYear()}`;
+}
+export function isMonthlyEventOpen(d = new Date()): boolean {
+  return d.getDate() >= 28;
+}
+export function isAnnualEventOpen(d = new Date()): boolean {
+  return d >= new Date(d.getFullYear(), 9, 28);
 }
 function _msUntilEndOfWeek(): number {
   const now = new Date();
@@ -205,23 +204,30 @@ function _msUntilEndOfWeek(): number {
   const next = new Date(now); next.setDate(now.getDate() + daysUntil); next.setHours(0, 0, 0, 0);
   return Math.max(0, next.getTime() - now.getTime());
 }
-function _msUntilEndOfMonth(): number {
-  // Time until the next 28th (when the monthly cup resets).
+function _msUntilMonthly(): number {
   const now = new Date();
-  const next28 = now.getDate() < 28
-    ? new Date(now.getFullYear(), now.getMonth(), 28)
-    : new Date(now.getFullYear(), now.getMonth() + 1, 28);
-  next28.setHours(0, 0, 0, 0);
-  return Math.max(0, next28.getTime() - now.getTime());
+  const open = isMonthlyEventOpen(now);
+  // locked → time until the 28th of this month; open → time until the 28th of next month
+  const target = open
+    ? new Date(now.getFullYear(), now.getMonth() + 1, 28)
+    : new Date(now.getFullYear(), now.getMonth(), 28);
+  target.setHours(0, 0, 0, 0);
+  return Math.max(0, target.getTime() - now.getTime());
 }
-function _msUntilEndOfYear(): number {
-  // Time until the next October 28th (when the annual cup resets).
+function _msUntilAnnual(): number {
   const now = new Date();
+  const open = isAnnualEventOpen(now);
   const year = now.getFullYear();
-  let oct28 = new Date(year, 9, 28); oct28.setHours(0, 0, 0, 0);
-  if (now >= oct28) { oct28 = new Date(year + 1, 9, 28); oct28.setHours(0, 0, 0, 0); }
-  return Math.max(0, oct28.getTime() - now.getTime());
+  // locked → time until Oct 28 this year; open → time until Oct 28 next year
+  const target = open
+    ? new Date(year + 1, 9, 28)
+    : new Date(year, 9, 28);
+  target.setHours(0, 0, 0, 0);
+  return Math.max(0, target.getTime() - now.getTime());
 }
+
+// Minimum rank index to access events at all (General 1 = index 17)
+export const EVENT_MIN_RANK_INDEX = 17;
 
 export interface EventDefinition {
   id: string;
@@ -238,10 +244,15 @@ export interface EventDefinition {
   creditRankIndex: number;
   mode: string;
   periodKey: string;
+  /** ms until the event opens (if locked) or closes/resets (if open). */
   endsIn: number;
+  /** true = event hasn't reached its unlock date yet */
+  isLocked: boolean;
+  /** Human-readable unlock date for locked state, e.g. "Jul 28" */
+  opensOnLabel: string;
 }
 
-type EventBase = Omit<EventDefinition, 'type' | 'maxPlays' | 'creditRankIndex' | 'periodKey' | 'endsIn'>;
+type EventBase = Omit<EventDefinition, 'type' | 'maxPlays' | 'creditRankIndex' | 'periodKey' | 'endsIn' | 'isLocked' | 'opensOnLabel'>;
 
 const WEEKLY_POOL: EventBase[] = [
   { id: 'blaze_wk',      name: 'Blaze Week',      emoji: '🔥', color: '#FF6B35', mode: 'chaos',      description: 'Multi-ball chaos — survive the inferno.',          winRewards: { xp: 200, coins: 100 }, loseRewards: { xp: 60,  coins: 25 }, creditsOnWin: 4, creditsOnLose: 1 },
@@ -277,13 +288,45 @@ const ANNUAL_CUP_BASE: EventBase = {
 
 /** Returns the 3 currently active events (weekly, monthly, annual). Deterministic from device date. */
 export function getCurrentEvents(): { weekly: EventDefinition; monthly: EventDefinition; annual: EventDefinition } {
-  const now = new Date();
-  const wBase = WEEKLY_POOL[getISOWeek(now) % WEEKLY_POOL.length];
-  const mBase = MONTHLY_POOL[now.getMonth()];
+  const now      = new Date();
+  const wBase    = WEEKLY_POOL[getISOWeek(now) % WEEKLY_POOL.length];
+  const mBase    = MONTHLY_POOL[now.getMonth()];
+  const monthOpen  = isMonthlyEventOpen(now);
+  const annualOpen = isAnnualEventOpen(now);
+
+  // Monthly opens on the 28th of the current calendar month
+  const monthOpenDate = new Date(now.getFullYear(), now.getMonth(), 28);
+  const monthLabel = monthOpenDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  // Annual opens on Oct 28 of the current year
+  const annualOpenDate = new Date(now.getFullYear(), 9, 28);
+  const annualLabel = annualOpenDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
   return {
-    weekly:  { ...wBase,          type: 'weekly',  maxPlays: 5, creditRankIndex: 8, periodKey: getWeekPeriodKey(now),  endsIn: _msUntilEndOfWeek()  },
-    monthly: { ...mBase,          type: 'monthly', maxPlays: 3, creditRankIndex: 8, periodKey: getMonthPeriodKey(now), endsIn: _msUntilEndOfMonth() },
-    annual:  { ...ANNUAL_CUP_BASE, type: 'annual', maxPlays: 2, creditRankIndex: 8, periodKey: getAnnualPeriodKey(now),endsIn: _msUntilEndOfYear()  },
+    weekly: {
+      ...wBase, type: 'weekly', maxPlays: 5,
+      creditRankIndex: EVENT_MIN_RANK_INDEX,
+      periodKey: getWeekPeriodKey(now),
+      endsIn: _msUntilEndOfWeek(),
+      isLocked: false,
+      opensOnLabel: '',
+    },
+    monthly: {
+      ...mBase, type: 'monthly', maxPlays: 3,
+      creditRankIndex: EVENT_MIN_RANK_INDEX,
+      periodKey: getMonthPeriodKey(now),
+      endsIn: _msUntilMonthly(),
+      isLocked: !monthOpen,
+      opensOnLabel: monthOpen ? '' : monthLabel,
+    },
+    annual: {
+      ...ANNUAL_CUP_BASE, type: 'annual', maxPlays: 2,
+      creditRankIndex: EVENT_MIN_RANK_INDEX,
+      periodKey: getAnnualPeriodKey(now),
+      endsIn: _msUntilAnnual(),
+      isLocked: !annualOpen,
+      opensOnLabel: annualOpen ? '' : annualLabel,
+    },
   };
 }
 
