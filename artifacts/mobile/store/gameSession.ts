@@ -46,3 +46,22 @@ export function updateGameConfig(partial: Partial<GameSessionConfig>) {
 export function getGameConfig(): GameSessionConfig {
   return _config;
 }
+
+// ─── Active Event Bonus ────────────────────────────────────────────────────────
+export interface ActiveEventBonus {
+  eventId: string;
+  eventName: string;
+  eventEmoji: string;
+  eventColor: string;
+  winXP: number;
+  winCoins: number;
+  loseXP: number;
+  loseCoins: number;
+  winCredits: number;
+  loseCredits: number;
+}
+
+let _activeEvent: ActiveEventBonus | null = null;
+export function setActiveEvent(e: ActiveEventBonus | null): void { _activeEvent = e; }
+export function getActiveEvent(): ActiveEventBonus | null { return _activeEvent; }
+export function clearActiveEvent(): void { _activeEvent = null; }

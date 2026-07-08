@@ -25,8 +25,10 @@ export default function PostGameScreen() {
     goalsAgainst: string; xpEarned: string; coinsEarned: string;
     matchType: string; levelBefore: string;
     streakMult: string; diffMult: string; winStreak: string; variant: string;
+    evXP: string; evCoins: string; evCredits: string;
+    evName: string; evEmoji: string; evColor: string;
   }>();
-  const { profile, unlockAchievement } = usePlayer();
+  const { profile, unlockAchievement, claimEventBonus } = usePlayer();
 
   const won = params.won === '1';
   const position = parseInt(params.position ?? '4', 10);
@@ -41,6 +43,13 @@ export default function PostGameScreen() {
   const winStreak   = parseInt(params.winStreak ?? '0', 10);
   const variant     = params.variant ?? 'classic';
   const hasBonus    = streakMult > 1.0 || diffMult !== 1.0;
+  const evXP      = parseInt(params.evXP ?? '0', 10);
+  const evCoins   = parseInt(params.evCoins ?? '0', 10);
+  const evCredits = parseInt(params.evCredits ?? '0', 10);
+  const evName    = params.evName ?? '';
+  const evEmoji   = params.evEmoji ?? '';
+  const evColor   = params.evColor ?? '#FFD700';
+  const hasEvent  = evXP > 0 || evCoins > 0 || evCredits > 0;
   const levelAfter  = profile.competitiveLevel ?? 1;
   const levelDelta  = levelAfter - levelBefore;
 
@@ -89,6 +98,11 @@ export default function PostGameScreen() {
         Animated.timing(xpBarAnim, { toValue: newProgress, duration: 1200, useNativeDriver: false }).start();
       });
     }, 600);
+
+    // Apply event bonus (XP + coins + credits on top of match result)
+    if (hasEvent) {
+      claimEventBonus({ xp: evXP, coins: evCoins, credits: evCredits });
+    }
 
     // Check achievements
     async function checkAchievements() {
@@ -165,6 +179,40 @@ export default function PostGameScreen() {
             ))}
           </View>
         </View>
+
+        {/* Event bonus card */}
+        {hasEvent && (
+          <View style={[styles.bonusCard, { backgroundColor: colors.card, borderColor: evColor + '44' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <Text style={{ fontSize: 16 }}>{evEmoji}</Text>
+              <Text style={[styles.bonusTitle, { color: evColor }]}>EVENT BONUS</Text>
+              <Text style={[styles.bonusTitle, { color: colors.mutedForeground, fontWeight: '400' }]}>· {evName}</Text>
+            </View>
+            <View style={styles.bonusRows}>
+              {evXP > 0 && (
+                <View style={styles.bonusRow}>
+                  <Text style={styles.bonusIcon}>✨</Text>
+                  <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Bonus XP</Text>
+                  <Text style={[styles.bonusMult, { color: evColor }]}>+{evXP}</Text>
+                </View>
+              )}
+              {evCoins > 0 && (
+                <View style={styles.bonusRow}>
+                  <Text style={styles.bonusIcon}>🪙</Text>
+                  <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Bonus Coins</Text>
+                  <Text style={[styles.bonusMult, { color: '#C8820A' }]}>+{evCoins}</Text>
+                </View>
+              )}
+              {evCredits > 0 && (
+                <View style={styles.bonusRow}>
+                  <Text style={styles.bonusIcon}>⚡</Text>
+                  <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Credits</Text>
+                  <Text style={[styles.bonusMult, { color: '#B9A0E0' }]}>+{evCredits}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Reward multiplier breakdown */}
         {hasBonus && (

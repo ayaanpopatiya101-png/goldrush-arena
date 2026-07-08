@@ -70,6 +70,12 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Feather name="map" size={size ?? 22} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="events"
+        options={{
+          tabBarIcon: ({ color, size }) => <Feather name="zap" size={size ?? 22} color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

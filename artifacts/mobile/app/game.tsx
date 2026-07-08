@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
 import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, MAPS, getScaledRelicEffect, getRelicLevel, getStreakMultiplier, getDifficultyMultiplier, getForgeAbility, mergeRelicEffects } from '@/context/PlayerContext';
-import { getGameConfig } from '@/store/gameSession';
+import { getGameConfig, getActiveEvent, clearActiveEvent } from '@/store/gameSession';
 import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
 
@@ -198,6 +198,11 @@ export default function GameScreen() {
 
     // ── Normal match completion ───────────────────────────────────────────────
     const mt = matchType as 'ranked' | 'casual';
+    const ev = getActiveEvent();
+    clearActiveEvent();
+    const evXP      = ev ? (result.won ? ev.winXP      : ev.loseXP)      : 0;
+    const evCoins   = ev ? (result.won ? ev.winCoins   : ev.loseCoins)   : 0;
+    const evCredits = ev ? (result.won ? ev.winCredits : ev.loseCredits) : 0;
     addMatchResult({
       won: result.won, xpEarned: finalXP, coinsEarned: finalCoins,
       deflections: result.deflections, goalsAgainst: result.goalsAgainst,
@@ -218,6 +223,12 @@ export default function GameScreen() {
         diffMult: String(diffMult),
         winStreak: String(profile.winStreak),
         variant,
+        evXP: String(evXP),
+        evCoins: String(evCoins),
+        evCredits: String(evCredits),
+        evName: ev?.eventName ?? '',
+        evEmoji: ev?.eventEmoji ?? '',
+        evColor: ev?.eventColor ?? '',
       },
     });
   }

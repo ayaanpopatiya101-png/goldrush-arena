@@ -168,6 +168,109 @@ export function mergeRelicEffects(a: RelicEffect | undefined, b: RelicEffect | u
   };
 }
 
+// ─── Events ───────────────────────────────────────────────────────────────────
+// Weekly events rotate by (ISO week number % 8).
+// Monthly cups select by month index 0–11.
+// Annual cup is one per year.
+// Credits require rank index >= creditRankIndex (8 = Legend 1).
+
+export function getISOWeek(d: Date): number {
+  const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+  return Math.ceil((((tmp.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
+export function getWeekPeriodKey(d = new Date()): string {
+  return `w_${d.getFullYear()}_${getISOWeek(d)}`;
+}
+export function getMonthPeriodKey(d = new Date()): string {
+  return `m_${d.getFullYear()}_${d.getMonth() + 1}`;
+}
+export function getAnnualPeriodKey(d = new Date()): string {
+  return `a_${d.getFullYear()}`;
+}
+function _msUntilEndOfWeek(): number {
+  const now = new Date();
+  const day = now.getDay();
+  const daysUntil = day === 0 ? 1 : 8 - day;
+  const next = new Date(now); next.setDate(now.getDate() + daysUntil); next.setHours(0, 0, 0, 0);
+  return Math.max(0, next.getTime() - now.getTime());
+}
+function _msUntilEndOfMonth(): number {
+  const now = new Date();
+  const nm = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return Math.max(0, nm.getTime() - now.getTime());
+}
+function _msUntilEndOfYear(): number {
+  const now = new Date();
+  const ny = new Date(now.getFullYear() + 1, 0, 1);
+  return Math.max(0, ny.getTime() - now.getTime());
+}
+
+export interface EventDefinition {
+  id: string;
+  name: string;
+  type: 'weekly' | 'monthly' | 'annual';
+  emoji: string;
+  description: string;
+  color: string;
+  maxPlays: number;
+  winRewards: { xp: number; coins: number };
+  loseRewards: { xp: number; coins: number };
+  creditsOnWin: number;
+  creditsOnLose: number;
+  creditRankIndex: number;
+  mode: string;
+  periodKey: string;
+  endsIn: number;
+}
+
+type EventBase = Omit<EventDefinition, 'type' | 'maxPlays' | 'creditRankIndex' | 'periodKey' | 'endsIn'>;
+
+const WEEKLY_POOL: EventBase[] = [
+  { id: 'blaze_wk',      name: 'Blaze Week',      emoji: '🔥', color: '#FF6B35', mode: 'chaos',      description: 'Multi-ball chaos — survive the inferno.',          winRewards: { xp: 200, coins: 100 }, loseRewards: { xp: 60,  coins: 25 }, creditsOnWin: 4, creditsOnLose: 1 },
+  { id: 'speed_sprint',  name: 'Speed Sprint',    emoji: '⚡', color: '#FFD700', mode: 'blitz',      description: 'Blitz mode — faster ball, sharper reflexes.',      winRewards: { xp: 180, coins: 90  }, loseRewards: { xp: 55,  coins: 22 }, creditsOnWin: 3, creditsOnLose: 1 },
+  { id: 'wave_surge',    name: 'Wave Surge',      emoji: '🌊', color: '#3A9DD4', mode: 'classic',    description: 'Classic ranked — prove your fundamentals.',        winRewards: { xp: 160, coins: 80  }, loseRewards: { xp: 50,  coins: 20 }, creditsOnWin: 3, creditsOnLose: 1 },
+  { id: 'diamond_clash', name: 'Diamond Clash',   emoji: '💎', color: '#B9F2FF', mode: 'classic',    description: 'Ranked Classic — maximum XP, maximum stakes.',      winRewards: { xp: 240, coins: 120 }, loseRewards: { xp: 70,  coins: 30 }, creditsOnWin: 5, creditsOnLose: 1 },
+  { id: 'chaos_carni',   name: 'Chaos Carnival',  emoji: '🎪', color: '#E040FB', mode: 'chaos',      description: 'Multi-ball mayhem — expect the unexpected.',        winRewards: { xp: 260, coins: 130 }, loseRewards: { xp: 75,  coins: 32 }, creditsOnWin: 5, creditsOnLose: 2 },
+  { id: 'battle_surge',  name: 'Battle Surge',    emoji: '⚔️', color: '#E04030', mode: 'six_player', description: 'Six-player showdown — survive the crowd.',           winRewards: { xp: 300, coins: 150 }, loseRewards: { xp: 80,  coins: 35 }, creditsOnWin: 6, creditsOnLose: 2 },
+  { id: 'relic_rumble',  name: 'Relic Rumble',    emoji: '🧬', color: '#9055C8', mode: 'blitz',      description: 'Blitz mode — relic effects are amplified.',         winRewards: { xp: 220, coins: 110 }, loseRewards: { xp: 65,  coins: 28 }, creditsOnWin: 4, creditsOnLose: 1 },
+  { id: 'precision_duel',name: 'Precision Duel',  emoji: '🎯', color: '#00FF88', mode: 'classic',    description: 'One arena. Four players. No excuses.',              winRewards: { xp: 200, coins: 100 }, loseRewards: { xp: 60,  coins: 25 }, creditsOnWin: 4, creditsOnLose: 1 },
+];
+
+const MONTHLY_POOL: EventBase[] = [
+  { id: 'frost_cup',    name: 'Frost Cup',    emoji: '❄️', color: '#B9F2FF', mode: 'classic',    description: 'January — conquer the frozen arena.',               winRewards: { xp: 500, coins: 250 }, loseRewards: { xp: 120, coins: 50 }, creditsOnWin: 10, creditsOnLose: 3 },
+  { id: 'heart_cup',   name: 'Heart Cup',    emoji: '💝', color: '#FF4785', mode: 'blitz',      description: 'February — battle with passion.',                   winRewards: { xp: 500, coins: 250 }, loseRewards: { xp: 120, coins: 50 }, creditsOnWin: 10, creditsOnLose: 3 },
+  { id: 'spring_cup',  name: 'Spring Cup',   emoji: '🌱', color: '#00E676', mode: 'classic',    description: 'March — new season, new glory.',                     winRewards: { xp: 520, coins: 260 }, loseRewards: { xp: 125, coins: 52 }, creditsOnWin: 10, creditsOnLose: 3 },
+  { id: 'bloom_cup',   name: 'Bloom Cup',    emoji: '🌸', color: '#FF69B4', mode: 'chaos',      description: 'April — chaos blooms in the arena.',                 winRewards: { xp: 520, coins: 260 }, loseRewards: { xp: 125, coins: 52 }, creditsOnWin: 10, creditsOnLose: 3 },
+  { id: 'sol_cup',     name: 'Sol Cup',      emoji: '☀️', color: '#FFD700', mode: 'classic',    description: 'May — peak competition under the blazing sun.',       winRewards: { xp: 540, coins: 270 }, loseRewards: { xp: 130, coins: 55 }, creditsOnWin: 11, creditsOnLose: 3 },
+  { id: 'wave_cup',    name: 'Wave Cup',     emoji: '🌊', color: '#3A9DD4', mode: 'blitz',      description: 'June — blitz at high tide.',                         winRewards: { xp: 540, coins: 270 }, loseRewards: { xp: 130, coins: 55 }, creditsOnWin: 11, creditsOnLose: 3 },
+  { id: 'inferno_cup', name: 'Inferno Cup',  emoji: '🔥', color: '#FF6B35', mode: 'chaos',      description: 'July — summer heat, fierce battles.',                winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
+  { id: 'thunder_cup', name: 'Thunder Cup',  emoji: '⚡', color: '#9055C8', mode: 'six_player', description: 'August — six players, one winner.',                   winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
+  { id: 'harvest_cup', name: 'Harvest Cup',  emoji: '🍂', color: '#C8820A', mode: 'classic',    description: 'September — reap the rewards of your grind.',        winRewards: { xp: 540, coins: 270 }, loseRewards: { xp: 130, coins: 55 }, creditsOnWin: 11, creditsOnLose: 3 },
+  { id: 'shadow_cup',  name: 'Shadow Cup',   emoji: '🎃', color: '#9900CC', mode: 'chaos',      description: 'October — haunted arena chaos.',                     winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
+  { id: 'eclipse_cup', name: 'Eclipse Cup',  emoji: '🌙', color: '#5050C8', mode: 'blitz',      description: 'November — night falls, only one survives.',         winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
+  { id: 'winter_cup',  name: 'Winter Cup',   emoji: '🎄', color: '#00E5FF', mode: 'classic',    description: 'December — end the year as champion.',               winRewards: { xp: 600, coins: 300 }, loseRewards: { xp: 150, coins: 65 }, creditsOnWin: 15, creditsOnLose: 5 },
+];
+
+const ANNUAL_CUP_BASE: EventBase = {
+  id: 'grand_prix', name: 'GoldRush Grand Prix', emoji: '🏆', color: '#FFD700', mode: 'classic',
+  description: 'The ultimate annual championship. Every arena warrior competes for glory, massive rewards, and the prestigious Grand Prix title.',
+  winRewards: { xp: 2000, coins: 1000 }, loseRewards: { xp: 400, coins: 150 }, creditsOnWin: 50, creditsOnLose: 10,
+};
+
+/** Returns the 3 currently active events (weekly, monthly, annual). Deterministic from device date. */
+export function getCurrentEvents(): { weekly: EventDefinition; monthly: EventDefinition; annual: EventDefinition } {
+  const now = new Date();
+  const wBase = WEEKLY_POOL[getISOWeek(now) % WEEKLY_POOL.length];
+  const mBase = MONTHLY_POOL[now.getMonth()];
+  return {
+    weekly:  { ...wBase,          type: 'weekly',  maxPlays: 5, creditRankIndex: 8, periodKey: getWeekPeriodKey(now),  endsIn: _msUntilEndOfWeek()  },
+    monthly: { ...mBase,          type: 'monthly', maxPlays: 3, creditRankIndex: 8, periodKey: getMonthPeriodKey(now), endsIn: _msUntilEndOfMonth() },
+    annual:  { ...ANNUAL_CUP_BASE, type: 'annual', maxPlays: 2, creditRankIndex: 8, periodKey: getAnnualPeriodKey(now),endsIn: _msUntilEndOfYear()  },
+  };
+}
+
 // ─── Maps (rank-unlocked arenas) ──────────────────────────────────────────────
 // Each map is a distinct arena with its own atmosphere. Higher ranks unlock more.
 // Maps drive the in-match background/atmosphere and apply light gameplay modifiers.
@@ -450,6 +553,8 @@ export interface PlayerProfile {
   trophyRoadClaimed?: string[];
   // Relics unlocked via Trophy Road (bypass rank requirement)
   trophyUnlockedRelics?: string[];
+  // Event plays used: key = periodKey (e.g. "w_2026_28"), value = plays consumed
+  eventPlaysUsed?: Record<string, number>;
 }
 
 export interface MatchResult {
@@ -478,6 +583,7 @@ const DEFAULT_PROFILE: PlayerProfile = {
   credits: 0,
   ownedForgeAbilities: [],
   equippedForgeAbility: null,
+  eventPlaysUsed: {},
 };
 
 // ─── Halo-style level change calculator ───────────────────────────────────────
@@ -534,6 +640,8 @@ interface PlayerContextType {
   setSelectedSuper: (type: 1 | 2 | 3) => Promise<void>;
   purchaseForgeAbility: (id: string) => Promise<boolean>;
   equipForgeAbility: (id: string | null) => Promise<void>;
+  spendEventPlay: (periodKey: string) => Promise<boolean>;
+  claimEventBonus: (bonus: { xp: number; coins: number; credits: number }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -762,6 +870,31 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({ ...profile, equippedForgeAbility: id });
   }, [profile, save]);
 
+  const spendEventPlay = useCallback(async (periodKey: string): Promise<boolean> => {
+    const events = getCurrentEvents();
+    const all = [events.weekly, events.monthly, events.annual];
+    const ev = all.find(e => e.periodKey === periodKey);
+    if (!ev) return false;
+    const used = (profile.eventPlaysUsed ?? {})[periodKey] ?? 0;
+    if (used >= ev.maxPlays) return false;
+    await save({ ...profile, eventPlaysUsed: { ...(profile.eventPlaysUsed ?? {}), [periodKey]: used + 1 } });
+    return true;
+  }, [profile, save]);
+
+  const claimEventBonus = useCallback(async (bonus: { xp: number; coins: number; credits: number }) => {
+    if (bonus.xp === 0 && bonus.coins === 0 && bonus.credits === 0) return;
+    const newXP = profile.xp + bonus.xp;
+    let newRank = profile.rank;
+    for (const r of RANKS) { if (newXP >= r.minXP) newRank = r.name; }
+    await save({
+      ...profile,
+      xp: newXP,
+      coins: profile.coins + bonus.coins,
+      credits: (profile.credits ?? 0) + bonus.credits,
+      rank: newRank,
+    });
+  }, [profile, save]);
+
   const dismissStreakModal = useCallback(() => setShowStreakModal(false), []);
 
   return (
@@ -769,7 +902,8 @@ export function PlayerProvider({ username, onLogout, children }: {
       profile, isLoaded, currentUsername: username, showStreakModal, dismissStreakModal,
       updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic, upgradeRelic,
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial,
-      setSelectedSuper, purchaseForgeAbility, equipForgeAbility, logout,
+      setSelectedSuper, purchaseForgeAbility, equipForgeAbility,
+      spendEventPlay, claimEventBonus, logout,
     }}>
       {children}
     </PlayerContext.Provider>
