@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
 import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, MAPS, getScaledRelicEffect, getRelicLevel, getStreakMultiplier, getDifficultyMultiplier, getForgeAbility, mergeRelicEffects } from '@/context/PlayerContext';
-import { getGameConfig, getActiveEvent, clearActiveEvent } from '@/store/gameSession';
+import { getGameConfig, getActiveEvent, clearActiveEvent, getQualifierContext, clearQualifierContext } from '@/store/gameSession';
 import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
 
@@ -197,9 +197,11 @@ export default function GameScreen() {
     }
 
     // ── Normal match completion ───────────────────────────────────────────────
-    const mt = matchType as 'ranked' | 'casual';
-    const ev = getActiveEvent();
+    const mt   = matchType as 'ranked' | 'casual';
+    const ev   = getActiveEvent();
     clearActiveEvent();
+    const qCtx = getQualifierContext();
+    clearQualifierContext();
     const evXP      = ev ? (result.won ? ev.winXP      : ev.loseXP)      : 0;
     const evCoins   = ev ? (result.won ? ev.winCoins   : ev.loseCoins)   : 0;
     const evCredits = ev ? (result.won ? ev.winCredits : ev.loseCredits) : 0;
@@ -226,9 +228,22 @@ export default function GameScreen() {
         evXP: String(evXP),
         evCoins: String(evCoins),
         evCredits: String(evCredits),
-        evName: ev?.eventName ?? '',
+        evName:  ev?.eventName  ?? '',
         evEmoji: ev?.eventEmoji ?? '',
         evColor: ev?.eventColor ?? '',
+        // Qualifier context — non-empty when this was a qualifier match
+        qPeriodKey:   qCtx?.periodKey    ?? '',
+        qRoundIdx:    String(qCtx?.roundIdx    ?? -1),
+        qRoundName:   qCtx?.roundName    ?? '',
+        qTotalRounds: String(qCtx?.totalRounds ?? 0),
+        qThreshold:   String(qCtx?.threshold   ?? 0),
+        qpFor1:       String(qCtx?.qpPerPlace[0] ?? 0),
+        qpFor2:       String(qCtx?.qpPerPlace[1] ?? 0),
+        qpFor3:       String(qCtx?.qpPerPlace[2] ?? 0),
+        qpFor4:       String(qCtx?.qpPerPlace[3] ?? 0),
+        qEventName:   qCtx?.eventName   ?? '',
+        qEventEmoji:  qCtx?.eventEmoji  ?? '',
+        qEventColor:  qCtx?.eventColor  ?? '',
       },
     });
   }

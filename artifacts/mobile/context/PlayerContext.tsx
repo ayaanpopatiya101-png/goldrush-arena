@@ -229,6 +229,18 @@ function _msUntilAnnual(): number {
 // Minimum rank index to access events at all (General 1 = index 17)
 export const EVENT_MIN_RANK_INDEX = 17;
 
+/** One stage of an event's qualifier ladder (qualifier → semi → main draw). */
+export interface QualifierRoundDef {
+  name:       string;    // "Open Qualifier" | "Semi-Final" | "Grand Final" | "Main Draw"
+  badge:      string;    // emoji used as the round's icon
+  maxPlays:   number;    // how many plays this round allows
+  threshold:  number;    // QP required to advance (0 = this is the final/main-draw round)
+  /** QP awarded for 1st, 2nd, 3rd, 4th place. */
+  qpPerPlace: [number, number, number, number];
+  /** If true, uses eventPlaysUsed + full event bonus rewards. */
+  isMainDraw: boolean;
+}
+
 export interface EventDefinition {
   id: string;
   name: string;
@@ -250,9 +262,11 @@ export interface EventDefinition {
   isLocked: boolean;
   /** Human-readable unlock date for locked state, e.g. "Jul 28" */
   opensOnLabel: string;
+  /** Qualifier ladder. null = no qualifier (weekly events are direct entry). */
+  rounds: QualifierRoundDef[] | null;
 }
 
-type EventBase = Omit<EventDefinition, 'type' | 'maxPlays' | 'creditRankIndex' | 'periodKey' | 'endsIn' | 'isLocked' | 'opensOnLabel'>;
+type EventBase = Omit<EventDefinition, 'type' | 'maxPlays' | 'creditRankIndex' | 'periodKey' | 'endsIn' | 'isLocked' | 'opensOnLabel' | 'rounds'>;
 
 const WEEKLY_POOL: EventBase[] = [
   { id: 'blaze_wk',      name: 'Blaze Week',      emoji: '🔥', color: '#FF6B35', mode: 'chaos',      description: 'Multi-ball chaos — survive the inferno.',          winRewards: { xp: 200, coins: 100 }, loseRewards: { xp: 60,  coins: 25 }, creditsOnWin: 4, creditsOnLose: 1 },
@@ -310,6 +324,7 @@ export function getCurrentEvents(): { weekly: EventDefinition; monthly: EventDef
       endsIn: _msUntilEndOfWeek(),
       isLocked: false,
       opensOnLabel: '',
+      rounds: null,
     },
     monthly: {
       ...mBase, type: 'monthly', maxPlays: 3,
@@ -318,6 +333,10 @@ export function getCurrentEvents(): { weekly: EventDefinition; monthly: EventDef
       endsIn: _msUntilMonthly(),
       isLocked: !monthOpen,
       opensOnLabel: monthOpen ? '' : monthLabel,
+      rounds: [
+        { name: 'Open Qualifier', badge: '🎯', maxPlays: 6,  threshold: 20, qpPerPlace: [10, 7, 4, 2], isMainDraw: false },
+        { name: 'Main Draw',      badge: '🏆', maxPlays: 3,  threshold: 0,  qpPerPlace: [0,  0, 0, 0], isMainDraw: true  },
+      ],
     },
     annual: {
       ...ANNUAL_CUP_BASE, type: 'annual', maxPlays: 2,
@@ -326,8 +345,42 @@ export function getCurrentEvents(): { weekly: EventDefinition; monthly: EventDef
       endsIn: _msUntilAnnual(),
       isLocked: !annualOpen,
       opensOnLabel: annualOpen ? '' : annualLabel,
+      rounds: [
+        { name: 'Open Qualifier', badge: '🎯', maxPlays: 8, threshold: 30, qpPerPlace: [10, 7, 4, 2], isMainDraw: false },
+        { name: 'Semi-Final',     badge: '⚔️', maxPlays: 6, threshold: 25, qpPerPlace: [10, 7, 4, 2], isMainDraw: false },
+        { name: 'Grand Final',    badge: '👑', maxPlays: 2, threshold: 0,  qpPerPlace: [0,  0, 0, 0], isMainDraw: true  },
+      ],
     },
   };
+}
+
+/**
+ * Returns the player's current state within an event's qualifier ladder.
+ * Returns null for events with no qualifier (weekly).
+ */
+export function getEventQualifierState(
+  profile: PlayerProfile,
+  ev: EventDefinition,
+): {
+  roundIdx:    number;
+  roundDef:    QualifierRoundDef;
+  qp:          number;
+  playsUsed:   number;
+  playsLeft:   number;
+  isEliminated: boolean;
+} | null {
+  if (!ev.rounds) return null;
+  const roundIdx = (profile.qualifierRound ?? {})[ev.periodKey] ?? 0;
+  const roundDef = ev.rounds[roundIdx];
+  if (!roundDef) return null;
+  const qpKey    = `${ev.periodKey}_${roundIdx}`;
+  const qp       = roundDef.isMainDraw ? 0 : ((profile.qualifierPoints ?? {})[qpKey] ?? 0);
+  const playsUsed = roundDef.isMainDraw
+    ? ((profile.eventPlaysUsed ?? {})[ev.periodKey] ?? 0)
+    : ((profile.qualifierPlaysUsed ?? {})[qpKey] ?? 0);
+  const playsLeft     = Math.max(0, roundDef.maxPlays - playsUsed);
+  const isEliminated  = !roundDef.isMainDraw && playsLeft === 0 && qp < roundDef.threshold;
+  return { roundIdx, roundDef, qp, playsUsed, playsLeft, isEliminated };
 }
 
 // ─── Maps (rank-unlocked arenas) ──────────────────────────────────────────────
@@ -614,6 +667,10 @@ export interface PlayerProfile {
   trophyUnlockedRelics?: string[];
   // Event plays used: key = periodKey (e.g. "w_2026_28"), value = plays consumed
   eventPlaysUsed?: Record<string, number>;
+  // Qualifier data — keys: periodKey for round index, `${periodKey}_${roundIdx}` for QP/plays
+  qualifierRound?:     Record<string, number>;
+  qualifierPoints?:    Record<string, number>;
+  qualifierPlaysUsed?: Record<string, number>;
 }
 
 export interface MatchResult {
@@ -701,6 +758,13 @@ interface PlayerContextType {
   equipForgeAbility: (id: string | null) => Promise<void>;
   spendEventPlay: (periodKey: string) => Promise<boolean>;
   claimEventBonus: (bonus: { xp: number; coins: number; credits: number }) => Promise<void>;
+  spendQualifierPlay: (periodKey: string, roundIdx: number) => Promise<boolean>;
+  earnQualifierPoints: (
+    periodKey: string,
+    roundIdx: number,
+    placement: number,
+    rounds: QualifierRoundDef[],
+  ) => Promise<{ qpEarned: number; totalQP: number; advanced: boolean; nextRoundName: string }>;
   logout: () => Promise<void>;
 }
 
@@ -954,6 +1018,44 @@ export function PlayerProvider({ username, onLogout, children }: {
     });
   }, [profile, save]);
 
+  const spendQualifierPlay = useCallback(async (periodKey: string, roundIdx: number): Promise<boolean> => {
+    const events = getCurrentEvents();
+    const ev = [events.weekly, events.monthly, events.annual].find(e => e.periodKey === periodKey);
+    if (!ev?.rounds) return false;
+    const roundDef = ev.rounds[roundIdx];
+    if (!roundDef || roundDef.isMainDraw) return false;
+    const qpKey  = `${periodKey}_${roundIdx}`;
+    const used   = (profile.qualifierPlaysUsed ?? {})[qpKey] ?? 0;
+    if (used >= roundDef.maxPlays) return false;
+    await save({ ...profile, qualifierPlaysUsed: { ...(profile.qualifierPlaysUsed ?? {}), [qpKey]: used + 1 } });
+    return true;
+  }, [profile, save]);
+
+  const earnQualifierPoints = useCallback(async (
+    periodKey: string,
+    roundIdx: number,
+    placement: number,
+    rounds: QualifierRoundDef[],
+  ): Promise<{ qpEarned: number; totalQP: number; advanced: boolean; nextRoundName: string }> => {
+    const roundDef = rounds[roundIdx];
+    if (!roundDef || roundDef.isMainDraw) return { qpEarned: 0, totalQP: 0, advanced: false, nextRoundName: '' };
+    const placeIdx = Math.min(Math.max(placement - 1, 0), 3) as 0 | 1 | 2 | 3;
+    const qpEarned = roundDef.qpPerPlace[placeIdx];
+    const qpKey    = `${periodKey}_${roundIdx}`;
+    const currentQP = (profile.qualifierPoints ?? {})[qpKey] ?? 0;
+    const totalQP   = currentQP + qpEarned;
+    const advanced  = roundDef.threshold > 0 && totalQP >= roundDef.threshold;
+    const nextRound = rounds[roundIdx + 1];
+    const updates: Partial<PlayerProfile> = {
+      qualifierPoints: { ...(profile.qualifierPoints ?? {}), [qpKey]: totalQP },
+    };
+    if (advanced) {
+      updates.qualifierRound = { ...(profile.qualifierRound ?? {}), [periodKey]: roundIdx + 1 };
+    }
+    await save({ ...profile, ...updates });
+    return { qpEarned, totalQP, advanced, nextRoundName: nextRound?.name ?? '' };
+  }, [profile, save]);
+
   const dismissStreakModal = useCallback(() => setShowStreakModal(false), []);
 
   return (
@@ -962,7 +1064,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic, upgradeRelic,
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial,
       setSelectedSuper, purchaseForgeAbility, equipForgeAbility,
-      spendEventPlay, claimEventBonus, logout,
+      spendEventPlay, claimEventBonus, spendQualifierPlay, earnQualifierPoints, logout,
     }}>
       {children}
     </PlayerContext.Provider>

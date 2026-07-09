@@ -7,7 +7,7 @@ import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, Vie
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
 import { ConfettiRain } from '@/components/ConfettiRain';
-import { ACHIEVEMENTS, RANKS, usePlayer, xpForNextRank, xpToLevel } from '@/context/PlayerContext';
+import { ACHIEVEMENTS, RANKS, getCurrentEvents, usePlayer, xpForNextRank, xpToLevel } from '@/context/PlayerContext';
 import { useColors } from '@/hooks/useColors';
 
 export default function PostGameScreen() {
@@ -27,8 +27,13 @@ export default function PostGameScreen() {
     streakMult: string; diffMult: string; winStreak: string; variant: string;
     evXP: string; evCoins: string; evCredits: string;
     evName: string; evEmoji: string; evColor: string;
+    // Qualifier params
+    qPeriodKey: string; qRoundIdx: string; qRoundName: string;
+    qTotalRounds: string; qThreshold: string;
+    qpFor1: string; qpFor2: string; qpFor3: string; qpFor4: string;
+    qEventName: string; qEventEmoji: string; qEventColor: string;
   }>();
-  const { profile, unlockAchievement, claimEventBonus } = usePlayer();
+  const { profile, unlockAchievement, claimEventBonus, earnQualifierPoints } = usePlayer();
 
   const won = params.won === '1';
   const position = parseInt(params.position ?? '4', 10);
@@ -50,6 +55,25 @@ export default function PostGameScreen() {
   const evEmoji   = params.evEmoji ?? '';
   const evColor   = params.evColor ?? '#FFD700';
   const hasEvent  = evXP > 0 || evCoins > 0 || evCredits > 0;
+
+  // Qualifier params
+  const qPeriodKey   = params.qPeriodKey   ?? '';
+  const qRoundIdx    = parseInt(params.qRoundIdx   ?? '-1', 10);
+  const qRoundName   = params.qRoundName   ?? '';
+  const qTotalRounds = parseInt(params.qTotalRounds ?? '0', 10);
+  const qThreshold   = parseInt(params.qThreshold   ?? '0', 10);
+  const qpPerPlace: [number,number,number,number] = [
+    parseInt(params.qpFor1 ?? '0', 10),
+    parseInt(params.qpFor2 ?? '0', 10),
+    parseInt(params.qpFor3 ?? '0', 10),
+    parseInt(params.qpFor4 ?? '0', 10),
+  ];
+  const qEventName  = params.qEventName  ?? '';
+  const qEventEmoji = params.qEventEmoji ?? '';
+  const qEventColor = params.qEventColor ?? '#FFD700';
+  const isQualifier = qPeriodKey.length > 0 && qRoundIdx >= 0;
+  const qpEarnedThisMatch = isQualifier ? (qpPerPlace[Math.min(Math.max(position - 1, 0), 3)] ?? 0) : 0;
+
   const levelAfter  = profile.competitiveLevel ?? 1;
   const levelDelta  = levelAfter - levelBefore;
 
@@ -58,6 +82,7 @@ export default function PostGameScreen() {
   const xpBarAnim = useRef(new Animated.Value(0)).current;
   const [newAchievement, setNewAchievement] = useState<string | null>(null);
   const [showXP, setShowXP] = useState(false);
+  const [qualResult, setQualResult] = useState<{ qpEarned: number; totalQP: number; advanced: boolean; nextRoundName: string } | null>(null);
 
   const rankInfo = xpForNextRank(profile.xp);
   const rankData = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
@@ -102,6 +127,15 @@ export default function PostGameScreen() {
     // Apply event bonus (XP + coins + credits on top of match result)
     if (hasEvent) {
       claimEventBonus({ xp: evXP, coins: evCoins, credits: evCredits });
+    }
+
+    // Award qualifier points if this was a qualifier match
+    if (isQualifier) {
+      const allEvents = getCurrentEvents();
+      const qEvent = [allEvents.weekly, allEvents.monthly, allEvents.annual].find(e => e.periodKey === qPeriodKey);
+      if (qEvent?.rounds) {
+        earnQualifierPoints(qPeriodKey, qRoundIdx, position, qEvent.rounds).then(setQualResult);
+      }
     }
 
     // Check achievements
@@ -208,6 +242,51 @@ export default function PostGameScreen() {
                   <Text style={styles.bonusIcon}>⚡</Text>
                   <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Credits</Text>
                   <Text style={[styles.bonusMult, { color: '#B9A0E0' }]}>+{evCredits}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* Qualifier result card */}
+        {isQualifier && qualResult && (
+          <View style={[styles.bonusCard, { backgroundColor: colors.card, borderColor: (qualResult.advanced ? '#FFD700' : '#00BFFF') + '44' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <Text style={{ fontSize: 16 }}>{qEventEmoji}</Text>
+              <Text style={[styles.bonusTitle, { color: qualResult.advanced ? '#FFD700' : '#00BFFF' }]}>
+                {qualResult.advanced ? '🎉 QUALIFIED!' : 'QUALIFIER POINTS'}
+              </Text>
+              <Text style={[styles.bonusTitle, { color: colors.mutedForeground, fontWeight: '400' }]}>
+                · {qRoundName}
+              </Text>
+            </View>
+            <View style={styles.bonusRows}>
+              <View style={styles.bonusRow}>
+                <Text style={styles.bonusIcon}>⚡</Text>
+                <Text style={[styles.bonusLabel, { color: colors.foreground }]}>QP Earned</Text>
+                <Text style={[styles.bonusMult, { color: '#00BFFF' }]}>+{qualResult.qpEarned} QP</Text>
+              </View>
+              <View style={styles.bonusRow}>
+                <Text style={styles.bonusIcon}>📊</Text>
+                <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Total QP</Text>
+                <Text style={[styles.bonusMult, { color: '#00BFFF' }]}>
+                  {qualResult.totalQP} / {qThreshold} QP
+                </Text>
+              </View>
+              {qualResult.advanced && qualResult.nextRoundName.length > 0 && (
+                <View style={styles.bonusRow}>
+                  <Text style={styles.bonusIcon}>🏆</Text>
+                  <Text style={[styles.bonusLabel, { color: '#FFD700', fontFamily: 'Inter_700Bold' }]}>
+                    ADVANCED → {qualResult.nextRoundName.toUpperCase()}
+                  </Text>
+                </View>
+              )}
+              {!qualResult.advanced && qualResult.totalQP < qThreshold && (
+                <View style={styles.bonusRow}>
+                  <Text style={styles.bonusIcon}>🎯</Text>
+                  <Text style={[styles.bonusLabel, { color: colors.mutedForeground }]}>
+                    Need {qThreshold - qualResult.totalQP} more QP to advance
+                  </Text>
                 </View>
               )}
             </View>
