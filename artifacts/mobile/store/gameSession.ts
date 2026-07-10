@@ -21,6 +21,10 @@ export interface GameSessionConfig {
   playerRelicId?:  string;
   /** Selected arena map id (chosen in the lobby). */
   mapId?:          string;
+  /** Opponent names for the match — set by matchmaking (real or bot). */
+  opponentNames?:  string[];
+  /** Opponent ranks for the match — used to scale bot difficulty. */
+  opponentRanks?:  string[];
 }
 
 let _config: GameSessionConfig = {

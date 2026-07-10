@@ -315,8 +315,8 @@ export default function GameScreen() {
             playerName={config.playerName}
             playerColor={config.playerColor}
             playerGlowColor={config.playerGlowColor}
-            botNames={BOT_NAMES}
-            botRanks={BOT_RANKS}
+            botNames={config.opponentNames ?? BOT_NAMES}
+            botRanks={config.opponentRanks ?? BOT_RANKS}
             onGameOver={handleGameOver}
             onGameModeChange={handleGameModeChange}
             onPlayerLivesChange={handleLivesChange}

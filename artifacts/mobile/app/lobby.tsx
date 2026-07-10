@@ -19,17 +19,20 @@ import { RANKS, SKINS, MAPS, getRankIndex, getRelic, usePlayer } from '@/context
 import { getGameConfig, updateGameConfig } from '@/store/gameSession';
 import { getGauntletState } from '@/store/gauntletSession';
 import { useColors } from '@/hooks/useColors';
+import { apiUrl } from '@/utils/api';
 
-const BOT_POOL = [
-  { name: 'Blaze_99',   rank: 'Master 1', color: '#FF4757' },
-  { name: 'IceQueen',   rank: 'Diamond',  color: '#00BFFF' },
-  { name: 'Venom_X',    rank: 'Master 2', color: '#00FF88' },
-  { name: 'ShadowFX',   rank: 'Platinum', color: '#9B59B6' },
-  { name: 'NeonBlitz',  rank: 'Master 1', color: '#FF6B35' },
-  { name: 'DarkMatter', rank: 'Gold',     color: '#C0C0C0' },
-  { name: 'PulseWave',  rank: 'Diamond',  color: '#FF00FF' },
-  { name: 'GhostPing',  rank: 'Silver',   color: '#CD7F32' },
-];
+// ─── Types ─────────────────────────────────────────────────────────────────────
+interface MatchPlayer {
+  id:    string;
+  name:  string;
+  rank:  string;
+  color: string;
+}
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+function genPlayerId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
 
 const VARIANT_META: Record<string, { emoji: string; name: string; color: string }> = {
   duos:         { emoji: '👥', name: 'DUOS',         color: '#1E8AAA' },
@@ -137,19 +140,16 @@ function CountdownOverlay({ countdown }: { countdown: number }) {
 
   return (
     <View style={styles.countdownOverlay} pointerEvents="none">
-      {/* Expanding ring 1 */}
       <Animated.View style={{
         position: 'absolute', width: 100, height: 100, borderRadius: 50,
         borderWidth: 3, borderColor: '#C8820A',
         opacity: ring1Opacity, transform: [{ scale: ring1Scale }],
       }} />
-      {/* Expanding ring 2 */}
       <Animated.View style={{
         position: 'absolute', width: 100, height: 100, borderRadius: 50,
         borderWidth: 2, borderColor: '#FFD700',
         opacity: ring2Opacity, transform: [{ scale: ring2Scale }],
       }} />
-      {/* Number */}
       <Animated.Text style={[styles.countdownText, {
         opacity: opacityAnim,
         transform: [{ scale: scaleAnim }, { perspective: 600 }],
@@ -160,6 +160,7 @@ function CountdownOverlay({ countdown }: { countdown: number }) {
   );
 }
 
+// ─── Screen ────────────────────────────────────────────────────────────────────
 export default function LobbyScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -170,15 +171,24 @@ export default function LobbyScreen() {
   const unlockedMaps  = MAPS.filter(m => playerRankIdx >= m.unlockRankIndex);
   const defaultMapId  = unlockedMaps.length ? unlockedMaps[unlockedMaps.length - 1].id : MAPS[0].id;
   const equippedRelic = getRelic(config.playerRelicId);
+  const playerSkin    = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
+  const topPad        = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
-  const [bots, setBots] = useState<typeof BOT_POOL>([]);
-  const [countdown, setCountdown] = useState<number | null>(null);
-  const [searching, setSearching] = useState(true);
-  const [selectedMap, setSelectedMap] = useState(defaultMapId);
+  // Stable player ID for this session
+  const playerIdRef = useRef(genPlayerId());
+
+  // Matchmaking state
+  const [opponents, setOpponents]   = useState<MatchPlayer[]>([]);  // up to 3 others
+  const [status, setStatus]         = useState<'searching' | 'found' | 'countdown'>('searching');
+  const [countdown, setCountdown]   = useState<number | null>(null);
+  const [apiAvailable, setApiAvailable] = useState<boolean | null>(null); // null = unknown
+  const [selectedMap, setSelectedMap]   = useState(defaultMapId);
   const selectedMapRef = useRef(selectedMap);
   selectedMapRef.current = selectedMap;
-  const pulseAnim = useRef(new Animated.Value(0.5)).current;
+  const roomIdRef     = useRef<string | null>(null);
+  const pulseAnim     = useRef(new Animated.Value(0.5)).current;
 
+  // Pulse animation
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
@@ -187,44 +197,169 @@ export default function LobbyScreen() {
       ])
     );
     pulse.start();
+    return () => pulse.stop();
+  }, []);
 
-    // Simulate players joining
-    const shuffled = [...BOT_POOL].sort(() => Math.random() - 0.5).slice(0, 3);
-    const timers: ReturnType<typeof setTimeout>[] = [];
+  // Matchmaking logic
+  useEffect(() => {
+    let cancelled = false;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let countdownTimer: ReturnType<typeof setInterval> | null = null;
 
-    shuffled.forEach((bot, i) => {
-      timers.push(setTimeout(() => {
-        setBots(prev => [...prev, bot]);
-        if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }, (i + 1) * 900));
-    });
-
-    timers.push(setTimeout(() => {
-      setSearching(false);
-      // Start countdown
+    function startCountdown(finalOpponents: MatchPlayer[]) {
+      if (cancelled) return;
+      // Store opponents in game config so GameArena uses their names/ranks
+      const names = finalOpponents.map(p => p.name);
+      const ranks = finalOpponents.map(p => p.rank);
+      updateGameConfig({ opponentNames: names, opponentRanks: ranks, mapId: selectedMapRef.current });
+      setStatus('countdown');
       let c = 3;
-      setCountdown(3);
-      const cTimer = setInterval(() => {
+      setCountdown(c);
+      if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      countdownTimer = setInterval(() => {
+        if (cancelled) { if (countdownTimer) clearInterval(countdownTimer); return; }
         c -= 1;
         setCountdown(c);
         if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         if (c <= 0) {
-          clearInterval(cTimer);
+          if (countdownTimer) clearInterval(countdownTimer);
           updateGameConfig({ mapId: selectedMapRef.current });
           router.replace('/game');
         }
       }, 1000);
-      timers.push(cTimer as unknown as ReturnType<typeof setTimeout>);
-    }, 3400));
+    }
+
+    function handlePollResult(players: MatchPlayer[], isReady: boolean) {
+      if (cancelled) return;
+      // Filter out the human player
+      const others = players.filter(p => p.id !== playerIdRef.current);
+      // Animate new arrivals one by one
+      const prev = opponents.length;
+      const curr = others.length;
+      if (curr > prev) {
+        for (let i = prev; i < curr; i++) {
+          const idx = i;
+          setTimeout(() => {
+            if (cancelled) return;
+            setOpponents(o => {
+              if (o.length <= idx) {
+                const updated = [...o];
+                while (updated.length <= idx) updated.push(others[updated.length]!);
+                if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                return updated;
+              }
+              return o;
+            });
+          }, (i - prev) * 500);
+        }
+      }
+      if (isReady && status !== 'countdown') {
+        // Wait for animations to finish before counting down
+        setTimeout(() => {
+          if (cancelled) return;
+          const allOthers = players.filter(p => p.id !== playerIdRef.current);
+          setOpponents(allOthers);
+          setStatus('found');
+          setTimeout(() => startCountdown(allOthers), 600);
+        }, (curr - prev) * 500 + 200);
+        if (pollTimer) clearInterval(pollTimer);
+      }
+    }
+
+    async function joinMatchmaking() {
+      try {
+        const res = await fetch(apiUrl('/matchmaking/join'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            playerId:    playerIdRef.current,
+            playerName:  profile.name,
+            playerRank:  profile.rank,
+            rankIndex:   playerRankIdx,
+            color:       playerSkin.color,
+          }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json() as { roomId: string; players: MatchPlayer[]; isReady: boolean };
+        if (cancelled) return;
+        setApiAvailable(true);
+        roomIdRef.current = data.roomId;
+        handlePollResult(data.players, data.isReady);
+
+        // Start polling every 2s
+        pollTimer = setInterval(async () => {
+          if (cancelled || !roomIdRef.current) return;
+          try {
+            const pollRes = await fetch(
+              apiUrl(`/matchmaking/room/${roomIdRef.current}?playerId=${playerIdRef.current}&rankIndex=${playerRankIdx}`)
+            );
+            if (!pollRes.ok) return;
+            const pollData = await pollRes.json() as { players: MatchPlayer[]; isReady: boolean };
+            handlePollResult(pollData.players, pollData.isReady);
+          } catch { /* network hiccup — keep polling */ }
+        }, 2000);
+      } catch {
+        // API unavailable — fall back to simulated matchmaking
+        if (cancelled) return;
+        setApiAvailable(false);
+        simulateFallback();
+      }
+    }
+
+    // Fallback: simulated matchmaking (when API is unreachable)
+    const FALLBACK_POOL = [
+      { id: 'f1', name: 'ArcReaper',   rank: 'Diamond',  color: '#00BFFF' },
+      { id: 'f2', name: 'VoidDash',    rank: 'Platinum', color: '#9B59B6' },
+      { id: 'f3', name: 'PhantomBolt', rank: 'Master 1', color: '#FF4757' },
+      { id: 'f4', name: 'NightHawk',   rank: 'Gold III', color: '#FF6B35' },
+      { id: 'f5', name: 'ZeroShift',   rank: 'Diamond',  color: '#00FF88' },
+      { id: 'f6', name: 'CyberAce',    rank: 'Master 2', color: '#FF00FF' },
+      { id: 'f7', name: 'SlipStream7', rank: 'Silver II', color: '#C0C0C0' },
+      { id: 'f8', name: 'GhostPad',    rank: 'Gold I',   color: '#FFD700' },
+    ];
+    function simulateFallback() {
+      const shuffled = [...FALLBACK_POOL].sort(() => Math.random() - 0.5).slice(0, 3);
+      const timers: ReturnType<typeof setTimeout>[] = [];
+      shuffled.forEach((p, i) => {
+        timers.push(setTimeout(() => {
+          if (cancelled) return;
+          setOpponents(prev => [...prev, p]);
+          if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }, (i + 1) * 900));
+      });
+      timers.push(setTimeout(() => {
+        if (cancelled) return;
+        setStatus('found');
+        setTimeout(() => startCountdown(shuffled), 400);
+      }, 3600));
+    }
+
+    joinMatchmaking();
 
     return () => {
-      timers.forEach(clearTimeout);
-      pulse.stop();
+      cancelled = true;
+      if (pollTimer) clearInterval(pollTimer);
+      if (countdownTimer) clearInterval(countdownTimer);
+      // Leave the room gracefully
+      if (roomIdRef.current && apiAvailable) {
+        fetch(apiUrl(`/matchmaking/room/${roomIdRef.current}/leave`), {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ playerId: playerIdRef.current }),
+        }).catch(() => {});
+      }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const playerSkin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
-  const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
+  const searchingLabel = status === 'countdown' && countdown !== null
+    ? `Match found! Starting in ${countdown}...`
+    : status === 'found'
+    ? 'All players ready!'
+    : opponents.length === 0
+    ? 'Scanning for players...'
+    : `${opponents.length}/3 players found — waiting...`;
+  const statusColor = status === 'searching' ? '#C8820A' : '#00FF88';
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -275,24 +410,14 @@ export default function LobbyScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        {/* Status */}
+        {/* Status row */}
         <View style={styles.statusRow}>
-          {searching ? (
-            <>
-              <Animated.View style={[styles.dot, { opacity: pulseAnim, backgroundColor: '#C8820A' }]} />
-              <Text style={[styles.statusText, { color: colors.mutedForeground }]}>Finding opponents...</Text>
-            </>
-          ) : countdown !== null ? (
-            <>
-              <View style={[styles.dot, { backgroundColor: '#00FF88' }]} />
-              <Text style={[styles.statusText, { color: '#00FF88' }]}>Match found! Starting in {countdown}...</Text>
-            </>
+          {status === 'searching' ? (
+            <Animated.View style={[styles.dot, { opacity: pulseAnim, backgroundColor: '#C8820A' }]} />
           ) : (
-            <>
-              <View style={[styles.dot, { backgroundColor: '#00FF88' }]} />
-              <Text style={[styles.statusText, { color: '#00FF88' }]}>All players ready!</Text>
-            </>
+            <View style={[styles.dot, { backgroundColor: '#00FF88' }]} />
           )}
+          <Text style={[styles.statusText, { color: statusColor }]}>{searchingLabel}</Text>
         </View>
 
         {/* Players */}
@@ -309,19 +434,19 @@ export default function LobbyScreen() {
               isBot={false}
               isReady={true}
             />
-            {/* Bots */}
-            {bots.map((bot) => (
+            {/* Opponents (real or bot — no distinction shown) */}
+            {opponents.map((opp) => (
               <PlayerCard
-                key={bot.name}
-                name={bot.name}
-                rank={bot.rank}
-                color={bot.color}
-                isBot={true}
-                isReady={bots.indexOf(bot) < bots.length}
+                key={opp.id}
+                name={opp.name}
+                rank={opp.rank}
+                color={opp.color}
+                isBot={false}
+                isReady={status !== 'searching'}
               />
             ))}
             {/* Empty slots */}
-            {Array.from({ length: 3 - bots.length }).map((_, i) => (
+            {Array.from({ length: Math.max(0, 3 - opponents.length) }).map((_, i) => (
               <View key={i} style={[styles.emptySlot, { borderColor: colors.border }]}>
                 <Animated.View style={{ opacity: pulseAnim }}>
                   <Feather name="user" size={20} color={colors.mutedForeground} />
@@ -373,7 +498,7 @@ export default function LobbyScreen() {
                     ? (selected
                         ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#0D0A06" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
                         : <View style={[styles.mapBadge, { backgroundColor: '#FFFFFF14' }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
-                    : <View style={[styles.mapLockBadge, { borderColor: reqRank.color + '66' }]}><Feather name="lock" size={9} color={reqRank.color} /><Text style={[styles.mapLockText, { color: reqRank.color }]}>{reqRank.name}</Text></View>}
+                    : <View style={[styles.mapLockBadge, { borderColor: reqRank?.color + '66' }]}><Feather name="lock" size={9} color={reqRank?.color} /><Text style={[styles.mapLockText, { color: reqRank?.color }]}>{reqRank?.name}</Text></View>}
                 </Pressable>
               );
             })}
@@ -381,16 +506,25 @@ export default function LobbyScreen() {
         </View>
 
         {/* Game rules */}
-        <View style={[styles.rulesCard, { backgroundColor: colors.card, borderColor: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? colors.border) + '44' : colors.border }]}>
+        <View style={[styles.rulesCard, {
+          backgroundColor: colors.card,
+          borderColor: config.variant !== 'classic'
+            ? (VARIANT_META[config.variant]?.color ?? colors.border) + '44'
+            : colors.border,
+        }]}>
           <Text style={[styles.rulesTitle, { color: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? colors.foreground) : colors.foreground }]}>
             {config.variant !== 'classic'
               ? `${VARIANT_META[config.variant]?.emoji ?? ''} ${VARIANT_META[config.variant]?.name ?? ''} RULES`
               : 'HOW TO PLAY'}
           </Text>
           <View style={styles.rulesList}>
-            {(VARIANT_RULES[config.variant] ?? VARIANT_RULES['classic']).map((rule, i) => (
+            {(VARIANT_RULES[config.variant] ?? VARIANT_RULES['classic']!).map((rule, i) => (
               <View key={i} style={styles.ruleItem}>
-                <View style={[styles.ruleDot, { backgroundColor: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? colors.primary) : colors.primary }]} />
+                <View style={[styles.ruleDot, {
+                  backgroundColor: config.variant !== 'classic'
+                    ? (VARIANT_META[config.variant]?.color ?? colors.primary)
+                    : colors.primary,
+                }]} />
                 <Text style={[styles.ruleText, { color: colors.mutedForeground }]}>{rule}</Text>
               </View>
             ))}
@@ -398,7 +532,7 @@ export default function LobbyScreen() {
         </View>
       </ScrollView>
 
-      {/* Big countdown overlay — 3D explosion */}
+      {/* Big countdown overlay */}
       {countdown !== null && countdown > 0 && (
         <CountdownOverlay key={countdown} countdown={countdown} />
       )}
