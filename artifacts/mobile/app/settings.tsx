@@ -1,8 +1,9 @@
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import * as StoreReview from 'expo-store-review';
 import React from 'react';
-import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettings } from '@/hooks/useSettings';
 import { usePlayer } from '@/context/PlayerContext';
@@ -254,11 +255,16 @@ export default function SettingsScreen() {
             </Pressable>
             <View style={s.divider} />
             <Pressable
-              onPress={() => {
-                const url = Platform.OS === 'ios'
-                  ? 'https://apps.apple.com/app/goldrush-arena/id0000000000'
-                  : 'https://play.google.com/store/apps/details?id=com.goldrush.arena';
-                Linking.openURL(url).catch(() => {});
+              onPress={async () => {
+                if (Platform.OS !== 'web' && await StoreReview.hasAction()) {
+                  StoreReview.requestReview();
+                } else {
+                  Alert.alert(
+                    'Rate GoldRush Arena',
+                    'Thank you for playing! You can rate us once the app is live on the App Store and Google Play.',
+                    [{ text: 'OK' }],
+                  );
+                }
               }}
               style={s.row}
             >

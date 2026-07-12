@@ -98,6 +98,8 @@ interface GameArenaProps {
   arenaBg?: [string, string, string];
   /** Player's chosen super ability: 1=Rampart, 2=Dead Zone, 3=Shatter */
   playerSuperType?: 1 | 2 | 3;
+  /** When true the game loop freezes (paused menu or app backgrounded). */
+  paused?: boolean;
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
@@ -158,11 +160,14 @@ export function GameArena({
   colorBoard = true, soundEnabled = true,
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
   initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.7, duoMode, sixPlayer,
-  playerRelic, botSkill, arenaBg, playerSuperType = 1,
+  playerRelic, botSkill, arenaBg, playerSuperType = 1, paused = false,
 }: GameArenaProps) {
 
   const szRef = useRef(arenaSize);
   szRef.current = arenaSize;
+
+  const pausedRef = useRef(paused);
+  useEffect(() => { pausedRef.current = paused; }, [paused]);
 
   const ballSpawnFramesRef   = useRef(ballSpawnFrames   ?? BALL_SPAWN_FRAMES);
   const noPowerupsRef        = useRef(noPowerups        ?? false);
@@ -725,6 +730,7 @@ export function GameArena({
   // ── Main game loop ──
   const gameLoop = useCallback((ts: number) => {
     if (!isRunningRef.current) return;
+    if (pausedRef.current) { rafRef.current = requestAnimationFrame(gameLoop); return; }
     const delta = ts - lastTimeRef.current;
     lastTimeRef.current = ts;
     if (delta > 100) { rafRef.current = requestAnimationFrame(gameLoop); return; }

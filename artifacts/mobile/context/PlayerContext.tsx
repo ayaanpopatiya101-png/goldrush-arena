@@ -610,7 +610,7 @@ export async function deleteAccount(username: string): Promise<void> {
   await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(filtered));
   const current = await AsyncStorage.getItem(CURRENT_KEY);
   if (current === username) await AsyncStorage.removeItem(CURRENT_KEY);
-  const KEY = `@goldrush_player_${username}`;
+  const KEY = `@goldrush_v3_${username}`;
   await AsyncStorage.removeItem(KEY);
 }
 

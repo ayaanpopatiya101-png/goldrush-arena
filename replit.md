@@ -61,9 +61,9 @@ Key config in `app.json`:
 ## Gotchas
 
 - **Do NOT run `pnpm dev` at workspace root.** Run via Replit workflows or `pnpm --filter @workspace/mobile run dev`.
-- **AsyncStorage delete bug:** `deleteAccount()` uses the old key `@goldrush_player_{username}` instead of `@goldrush_v3_{username}`. Fix before launch.
 - **Postgame refresh guard:** if `params.won` is missing on load (hard-refresh on web), the screen redirects to `/` to prevent a blank zero-stats display.
-- **Audio on native:** Web Audio API calls are guarded by `Platform.OS === 'web'`. On iOS/Android, music and SFX are silently skipped until `expo-av` is integrated.
+- **Native audio warm-up:** On first launch, `useSoundFX` and `BackgroundMusic` write WAV files to `expo-file-system`'s cache directory. There is a brief delay on the very first note/hit — subsequent plays are instant (cached).
+- **Rate button (Settings):** Uses `expo-store-review` for native in-app review. Shows a "coming soon" alert on web or before the app is published.
 - **EAS Build required** for any real device testing or App Store submission. `expo start` only serves the dev bundle.
 
 ## User preferences

@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Platform, Pressable, StyleSheet, Text, Animated, View, useWindowDimensions } from 'react-native';
+import { AppState, Modal, Platform, Pressable, StyleSheet, Text, Animated, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
@@ -112,6 +112,14 @@ export default function GameScreen() {
   useEffect(() => {
     music.setMuted(!settings.musicEnabled);
   }, [settings.musicEnabled]);
+
+  // Pause automatically when the player switches away from the app.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', nextState => {
+      if (nextState !== 'active' && !gameOver) setPaused(true);
+    });
+    return () => sub.remove();
+  }, [gameOver]);
 
   useEffect(() => {
     if (timerRunning && !paused && !gameOver) {
@@ -328,6 +336,7 @@ export default function GameScreen() {
             onActiveBallsChange={setActiveBalls}
             botDifficulty={botDifficulty}
             onGameStart={handleGameStart}
+            paused={paused}
             playerRelic={mergeRelicEffects(
               relic ? getScaledRelicEffect(relic.id, getRelicLevel(profile, relic.id)) : undefined,
               getForgeAbility(profile.equippedForgeAbility)?.effect

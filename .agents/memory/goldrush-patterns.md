@@ -9,12 +9,19 @@ description: Storage keys, GameArena props, PlayerContext API, and implementatio
 - Per-user profile: `@goldrush_v3_${username}`
 - Settings: `@goldrush_settings_v1`
 
-## GameArena props added this session
+## GameArena props added
 New optional props (all have defaults so existing callers don't break):
 - `sensitivity: number` (0.6 | 1.0 | 1.5) — scales paddle input around arena center
 - `onActiveBallsChange: (count: number) => void` — fires when live ball count changes
 - `botDifficulty: 'easy' | 'normal'` — easy = 0.62× speed + 2.2× inaccuracy
 - `onGameStart: () => void` — fires once when the countdown finishes and play begins
+- `paused: boolean` — freezes RAF loop (skipssimulation); game.tsx sets this via AppState listener on app-background
+
+## Native audio (expo-av + expo-file-system v57)
+- expo-file-system v57 uses class-based API: `new File(Paths.cache, 'name.wav')`, `file.write(Uint8Array)`, `file.exists` (boolean property), `file.uri` (string). No `FileSystem.cacheDirectory` or `writeAsStringAsync`.
+- `useSoundFX.ts` generates mono 16-bit 22050 Hz WAV bytes on-device and caches to `Paths.cache`. Synchronous write, async playback via `Audio.Sound.createAsync`.
+- `BackgroundMusic.tsx` does the same for melody notes. Both are Platform-guarded (native path only).
+- `prewarmNativeAudio()` exported from `useSoundFX.ts` — call at game screen mount to pre-write all WAV files before the first hit sound fires.
 
 ## PlayerProfile fields added
 - `competitiveLevel: number` (1–50)
