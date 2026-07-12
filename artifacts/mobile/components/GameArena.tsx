@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, Line, Polygon, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { getSettings } from '@/hooks/useSettings';
-import { RELICS, getRankIndex, type RelicEffect } from '@/context/PlayerContext';
+import { RELICS, getRankIndex, MAX_RANK_INDEX, type RelicEffect } from '@/context/PlayerContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const WALL_MARGIN = 24;
@@ -383,13 +383,16 @@ export function GameArena({
     // Human relic (from props) + Time-Warp slow-start window.
     applyRelicToPlayer(gs.players[BOTTOM], playerRelic);
     slowStartFramesRef.current = playerRelic?.slowStartFrames ?? 0;
-    // Bots: rank-appropriate relic + difficulty scaled by the human's rank.
-    const skill = Math.max(0, Math.min(1, botSkill ?? 0));
+    // Bots: rank-appropriate relic + per-bot skill derived from each bot's own
+    // rank (not the human's rank).  botSkill acts as a global cap so the
+    // training ramp still clamps all bots to easy regardless of their label.
+    const skillCap = Math.max(0, Math.min(1, botSkill ?? 1));
     for (const pid of [TOP, LEFT, RIGHT, BOTTOM_R, TOP_R]) {
       const bot = gs.players[pid];
       applyRelicToPlayer(bot, relicForRank(bot.rank, bot.id));
-      bot.botSpeed    = bot.botSpeed * (0.7 + 0.4 * skill);
-      bot.botAccuracy = Math.min(0.97, bot.botAccuracy * (0.85 + 0.2 * skill));
+      const perBotSkill = Math.min(skillCap, getRankIndex(bot.rank) / MAX_RANK_INDEX);
+      bot.botSpeed    = bot.botSpeed * (0.7 + 0.4 * perBotSkill);
+      bot.botAccuracy = Math.min(0.97, bot.botAccuracy * (0.85 + 0.2 * perBotSkill));
     }
     // Reflect starting shields / bonus lives in the UI.
     setShieldActive(gs.players.map(p => p.hasShield));

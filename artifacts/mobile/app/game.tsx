@@ -1,13 +1,13 @@
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Modal, Platform, Pressable, StyleSheet, Text, Animated, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
-import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, MAPS, getScaledRelicEffect, getRelicLevel, getStreakMultiplier, getDifficultyMultiplier, getForgeAbility, mergeRelicEffects } from '@/context/PlayerContext';
+import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, RANKS, MAPS, getScaledRelicEffect, getRelicLevel, getStreakMultiplier, getDifficultyMultiplier, getForgeAbility, mergeRelicEffects } from '@/context/PlayerContext';
 import { getGameConfig, getActiveEvent, clearActiveEvent, getQualifierContext, clearQualifierContext } from '@/store/gameSession';
 import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
@@ -64,6 +64,20 @@ export default function GameScreen() {
   // Final rank-gate (defense-in-depth): never honor a relic/map the player's rank
   // hasn't unlocked, even if a stale/corrupt session id slips through the UI gates.
   const playerRankIdx = getRankIndex(profile.rank);
+
+  // Generate ±1 rank slots for each bot — computed once on mount so the
+  // opponents don't shuffle on every re-render.  Lobby path overrides these
+  // with matchmaker-assigned ranks via config.opponentRanks.
+  const generatedBotRanks = useMemo(() =>
+    Array.from({ length: 5 }, () => {
+      const offset = Math.floor(Math.random() * 3) - 1; // -1, 0, or +1
+      const idx    = Math.max(0, Math.min(MAX_RANK_INDEX, playerRankIdx + offset));
+      return RANKS[idx]?.name ?? profile.rank;
+    }),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [], // compute once per game mount
+  );
+
   const rawRelic = getRelic(config.playerRelicId);
   const relic    = rawRelic && rawRelic.unlockRankIndex <= playerRankIdx ? rawRelic : null;
   const rawMap   = getMap(config.mapId);
@@ -324,7 +338,7 @@ export default function GameScreen() {
             playerColor={config.playerColor}
             playerGlowColor={config.playerGlowColor}
             botNames={config.opponentNames ?? BOT_NAMES}
-            botRanks={config.opponentRanks ?? BOT_RANKS}
+            botRanks={config.opponentRanks ?? generatedBotRanks}
             onGameOver={handleGameOver}
             onGameModeChange={handleGameModeChange}
             onPlayerLivesChange={handleLivesChange}
