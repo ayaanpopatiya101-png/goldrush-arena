@@ -178,6 +178,17 @@ export default function HomeScreen() {
     router.push('/lobby');
   }
 
+  function handlePlayEliteMode(variant: GameVariant) {
+    const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
+    setGameConfig({
+      playerName: profile.name, playerSkinId: skin.id,
+      playerColor: skin.color, playerGlowColor: skin.glowColor,
+      playerRelicId: profile.currentRelic,
+      matchType: 'ranked', variant,
+    });
+    router.push('/lobby');
+  }
+
   function handleStartGauntlet() {
     const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
     const firstVariant = startGauntlet();
@@ -482,6 +493,128 @@ export default function HomeScreen() {
                 )}
               </LinearGradient>
             </Pressable>
+          );
+        })()}
+
+        {/* ── Elite Modes ── */}
+        {(() => {
+          const eliteModes = [
+            {
+              id: 'storm_surge' as GameVariant,
+              emoji: '⚡',
+              name: 'STORM SURGE',
+              rankLabel: '⭐ MASTER 1+',
+              lockIdx: 5,
+              accent: '#FF8C42',
+              bg: ['#1A0A00', '#2A1200', '#1A0A00'] as [string,string,string],
+              tagline: '3 balls. 1 life. Max-skill opponents.',
+              chips: ['3 balls active','1 life only','Elite bots','2× XP + coins'],
+              chipColors: ['#FF4757','#FF8C42','#FF6B35','#00FF88'],
+            },
+            {
+              id: 'ghost_protocol' as GameVariant,
+              emoji: '👻',
+              name: 'GHOST PROTOCOL',
+              rankLabel: '🌟 LEGEND 1+',
+              lockIdx: 8,
+              accent: '#BF5FFF',
+              bg: ['#0E0018', '#1A0030', '#0E0018'] as [string,string,string],
+              tagline: 'Balls vanish mid-flight. Navigate by instinct.',
+              chips: ['Balls turn invisible','2 lives','2× balls','3× XP + coins'],
+              chipColors: ['#BF5FFF','#B9F2FF','#00E5FF','#00FF88'],
+            },
+            {
+              id: 'warlord' as GameVariant,
+              emoji: '🔱',
+              name: 'WARLORD',
+              rankLabel: '💀 GENERAL 1+',
+              lockIdx: 17,
+              accent: '#FF2244',
+              bg: ['#180004', '#2A0008', '#180004'] as [string,string,string],
+              tagline: '1 vs 5 max-rank Generals. Dominate or fall.',
+              chips: ['6 players','8 lives (you)','Elite bots','5× XP + coins'],
+              chipColors: ['#FF4757','#FFD700','#FF2244','#00FF88'],
+            },
+          ];
+          return (
+            <View style={{ marginBottom: 8 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 20, marginBottom: 10, marginTop: 4 }}>
+                <Text style={{ fontSize: 11, letterSpacing: 3, color: '#FF8C42', fontWeight: '700' }}>⚡  ELITE MODES</Text>
+                <Text style={{ fontSize: 11, color: '#FFFFFF55', fontWeight: '600' }}>Ranked · Higher rewards</Text>
+              </View>
+              {eliteModes.map(m => {
+                const locked = playerRankIdx < m.lockIdx;
+                return (
+                  <Pressable
+                    key={m.id}
+                    onPress={locked ? undefined : () => handlePlayEliteMode(m.id)}
+                    style={({ pressed }) => [{
+                      marginHorizontal: 20, marginBottom: 10, borderRadius: 16,
+                      borderWidth: 1.5, overflow: 'hidden' as const,
+                      borderColor: locked ? '#FFFFFF1A' : m.accent + '55',
+                      opacity: locked ? 0.82 : (pressed ? 0.88 : 1),
+                    }]}
+                  >
+                    <LinearGradient colors={locked ? ['#0E0E10','#0A0A0C'] : m.bg} style={{ padding: 16 }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                          <Text style={{ fontSize: 26 }}>{m.emoji}</Text>
+                          <View>
+                            <Text style={{ fontSize: 16, fontWeight: '900', letterSpacing: 0.5, color: locked ? '#FFFFFF44' : m.accent }}>
+                              {m.name}
+                            </Text>
+                            <Text style={{ fontSize: 11, color: locked ? '#FFFFFF33' : '#FFFFFF88', marginTop: 1 }}>
+                              {m.tagline}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={{
+                          backgroundColor: locked ? '#FFFFFF0A' : m.accent + '22',
+                          borderColor: locked ? '#FFFFFF22' : m.accent + '66',
+                          borderWidth: 1, borderRadius: 8,
+                          paddingHorizontal: 8, paddingVertical: 4,
+                        }}>
+                          <Text style={{ fontSize: 10, fontWeight: '700', color: locked ? '#FFFFFF44' : m.accent }}>{m.rankLabel}</Text>
+                        </View>
+                      </View>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                        {m.chips.map((chip, ci) => (
+                          <View key={chip} style={{
+                            backgroundColor: locked ? '#FFFFFF08' : m.chipColors[ci]! + '18',
+                            borderColor: locked ? '#FFFFFF18' : m.chipColors[ci]! + '44',
+                            borderWidth: 1, borderRadius: 6,
+                            paddingHorizontal: 8, paddingVertical: 3,
+                          }}>
+                            <Text style={{ fontSize: 10, fontWeight: '700', color: locked ? '#FFFFFF33' : m.chipColors[ci] }}>{chip}</Text>
+                          </View>
+                        ))}
+                      </View>
+                      {locked ? (
+                        <View style={{
+                          flexDirection: 'row', alignItems: 'center', gap: 7,
+                          backgroundColor: '#FFFFFF08', borderRadius: 8,
+                          paddingVertical: 8, paddingHorizontal: 12,
+                        }}>
+                          <Text style={{ fontSize: 14 }}>🔒</Text>
+                          <Text style={{ color: '#FFFFFF44', fontSize: 12, fontWeight: '600' }}>
+                            Reach {m.rankLabel.replace(/^[^ ]+ /, '')} to unlock
+                          </Text>
+                        </View>
+                      ) : (
+                        <View style={{
+                          flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          backgroundColor: m.accent + '22', borderColor: m.accent + '55',
+                          borderWidth: 1, borderRadius: 10, paddingVertical: 10,
+                        }}>
+                          <Text style={{ color: m.accent, fontSize: 13, fontWeight: '900', letterSpacing: 1.5 }}>ENTER MODE</Text>
+                          <Text style={{ fontSize: 16 }}>{m.emoji}</Text>
+                        </View>
+                      )}
+                    </LinearGradient>
+                  </Pressable>
+                );
+              })}
+            </View>
           );
         })()}
 

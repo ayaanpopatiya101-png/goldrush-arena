@@ -8,7 +8,10 @@ export type GameVariant =
   | 'sudden_death'
   | 'turbo'
   | 'pinball'
-  | 'six_player';
+  | 'six_player'
+  | 'storm_surge'
+  | 'ghost_protocol'
+  | 'warlord';
 
 export interface GameSessionConfig {
   playerName:      string;

@@ -443,10 +443,13 @@ export function getDifficultyMultiplier(variant: string | undefined, matchType: 
   if (matchType === 'gauntlet') return 3.0;
   if (matchType === 'casual') return 0.8;
   switch (variant) {
-    case 'six_player': return 1.75;
-    case 'chaos':      return 1.5;
-    case 'rumble':     return 1.2;
-    default:           return 1.0;  // classic ranked
+    case 'warlord':        return 5.0;
+    case 'ghost_protocol': return 3.0;
+    case 'storm_surge':    return 2.0;
+    case 'six_player':     return 1.75;
+    case 'chaos':          return 1.5;
+    case 'rumble':         return 1.2;
+    default:               return 1.0;  // classic ranked
   }
 }
 

@@ -100,6 +100,10 @@ interface GameArenaProps {
   playerSuperType?: 1 | 2 | 3;
   /** When true the game loop freezes (paused menu or app backgrounded). */
   paused?: boolean;
+  /** Ghost Protocol mode: balls flash invisible for 1.5 s every 3 s cycle */
+  phantomBalls?: boolean;
+  /** Extra lives added only to the human player at game start (Warlord mode) */
+  playerBonusLives?: number;
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
@@ -161,6 +165,7 @@ export function GameArena({
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
   initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.7, duoMode, sixPlayer,
   playerRelic, botSkill, arenaBg, playerSuperType = 1, paused = false,
+  phantomBalls = false, playerBonusLives = 0,
 }: GameArenaProps) {
 
   const szRef = useRef(arenaSize);
@@ -301,6 +306,15 @@ export function GameArena({
     }
   }, [ballVisuals]);
 
+  // ── Ghost Protocol: balls flash invisible on a 3 s cycle ────────────────────
+  const [ballsVisible, setBallsVisible] = useState(true);
+  useEffect(() => {
+    if (!phantomBalls) return;
+    // 1.5 s visible → 1.5 s invisible → repeat
+    const id = setInterval(() => setBallsVisible(v => !v), 1500);
+    return () => clearInterval(id);
+  }, [phantomBalls]);
+
   // ── Color-board: cycle through tint phases ──────────────────────────────────
   const colorPhaseAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -394,6 +408,8 @@ export function GameArena({
       bot.botSpeed    = bot.botSpeed * (0.7 + 0.4 * perBotSkill);
       bot.botAccuracy = Math.min(0.97, bot.botAccuracy * (0.85 + 0.2 * perBotSkill));
     }
+    // Warlord mode: grant extra lives to the human player only.
+    if (playerBonusLives > 0) gs.players[BOTTOM].lives += playerBonusLives;
     // Reflect starting shields / bonus lives in the UI.
     setShieldActive(gs.players.map(p => p.hasShield));
     setLivesState(gs.players.map(p => p.lives));
@@ -1317,11 +1333,12 @@ export function GameArena({
           });
         })}
 
-        {/* Balls */}
+        {/* Balls — opacity 0 during Ghost Protocol invisible phase */}
         {ballVisuals.map((bv, i) => bv.active ? (
           <Animated.View key={i} style={[s.ball, {
             width:bv.radius*2, height:bv.radius*2, borderRadius:bv.radius,
             backgroundColor:bv.color, shadowColor:bv.color,
+            opacity: ballsVisible ? 1 : 0,
             transform:[{ translateX:Animated.subtract(ballAnims[i].x, bv.radius) },{ translateY:Animated.subtract(ballAnims[i].y, bv.radius) }],
           }]} />
         ) : null)}

@@ -24,16 +24,23 @@ const VARIANT_PROPS: Record<string, {
   startSpeedMult?: number;
   duoMode?: boolean;
   sixPlayer?: boolean;
+  phantomBalls?: boolean;
+  playerBonusLives?: number;
+  maxSkillBots?: boolean; // game.tsx only — forces botSkill to 1.0
 }> = {
-  classic:      {},
-  duos:         { duoMode: true },
-  blitz:        { initialLives: 1, startingBallCount: 2, ballSpawnFrames: 600, startSpeedMult: 1.5 },
-  chaos:        { initialLives: 3, startingBallCount: 5, ballSpawnFrames: 300, noPowerups: true, startSpeedMult: 1.2 },
-  survival:     { initialLives: 12, ballSpawnFrames: 300 },
-  sudden_death: { initialLives: 1, startingBallCount: 3, ballSpawnFrames: 240, noPowerups: true, startSpeedMult: 2.0 },
-  turbo:        { ballSpawnFrames: 480, startSpeedMult: 1.8 },
-  pinball:      { ballSpawnFrames: 180 },
-  six_player:   { sixPlayer: true, initialLives: 4, ballSpawnFrames: 600 },
+  classic:       {},
+  duos:          { duoMode: true },
+  blitz:         { initialLives: 1, startingBallCount: 2, ballSpawnFrames: 600, startSpeedMult: 1.5 },
+  chaos:         { initialLives: 3, startingBallCount: 5, ballSpawnFrames: 300, noPowerups: true, startSpeedMult: 1.2 },
+  survival:      { initialLives: 12, ballSpawnFrames: 300 },
+  sudden_death:  { initialLives: 1, startingBallCount: 3, ballSpawnFrames: 240, noPowerups: true, startSpeedMult: 2.0 },
+  turbo:         { ballSpawnFrames: 480, startSpeedMult: 1.8 },
+  pinball:       { ballSpawnFrames: 180 },
+  six_player:    { sixPlayer: true, initialLives: 4, ballSpawnFrames: 600 },
+  // ── Elite rank-gated modes ────────────────────────────────────────────────
+  storm_surge:    { initialLives: 1, startingBallCount: 3, startSpeedMult: 1.6, ballSpawnFrames: 420, maxSkillBots: true },
+  ghost_protocol: { initialLives: 2, startingBallCount: 2, startSpeedMult: 1.1, phantomBalls: true },
+  warlord:        { sixPlayer: true, initialLives: 3, playerBonusLives: 5, startSpeedMult: 1.3, maxSkillBots: true },
 };
 
 const MODE_LABELS: Record<GameMode, string> = { square:'4-PLAYER', triangle:'3-PLAYER', duel:'1v1' };
@@ -99,11 +106,13 @@ export default function GameScreen() {
 
   const mapMods  = map.mods ?? {};
   // Merge variant + map modifiers — variant rules always win over map mods.
+  const { maxSkillBots, ...variantCfgRest } = variantCfg;
+  const effectiveBotSkill = maxSkillBots ? 1.0 : botSkill;
   const mergedCfg = {
-    ...variantCfg,
-    startSpeedMult:  variantCfg.startSpeedMult  ?? mapMods.startSpeedMult,
-    ballSpawnFrames: variantCfg.ballSpawnFrames ?? mapMods.ballSpawnFrames,
-    noPowerups:      variantCfg.noPowerups      ?? mapMods.noPowerups,
+    ...variantCfgRest,
+    startSpeedMult:  variantCfgRest.startSpeedMult  ?? mapMods.startSpeedMult,
+    ballSpawnFrames: variantCfgRest.ballSpawnFrames ?? mapMods.ballSpawnFrames,
+    noPowerups:      variantCfgRest.noPowerups      ?? mapMods.noPowerups,
   };
 
   const [gameOver,     setGameOver]     = useState(false);
@@ -355,7 +364,7 @@ export default function GameScreen() {
               relic ? getScaledRelicEffect(relic.id, getRelicLevel(profile, relic.id)) : undefined,
               getForgeAbility(profile.equippedForgeAbility)?.effect
             )}
-            botSkill={botSkill}
+            botSkill={effectiveBotSkill}
             arenaBg={map.arenaBg}
             playerSuperType={profile.selectedSuper ?? 1}
             {...mergedCfg}

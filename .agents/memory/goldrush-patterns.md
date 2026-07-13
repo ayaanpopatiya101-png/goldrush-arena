@@ -58,6 +58,15 @@ Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Ex
 - Diamond+ lock: `playerRankIdx < 5` (Diamond = index 5) on home screen card; locked card shows lock UI.
 - Lobby badge handles 'gauntlet' matchType: shows "⚔️ GAUNTLET · Round N" in gold.
 
+## Elite rank-gated modes (Storm Surge / Ghost Protocol / Warlord)
+- Three new premium variants added to `VARIANT_PROPS` in game.tsx + `GameVariant` type in gameSession.ts.
+- `maxSkillBots: boolean` — game.tsx-only flag; extracted before mergedCfg spread so TypeScript doesn't reject it on the GameArena JSX. Forces `effectiveBotSkill = 1.0`.
+- `phantomBalls: boolean` — GameArena prop; drives a `ballsVisible` state toggled by a 1500 ms interval; ball opacity becomes 0 during invisible phase.
+- `playerBonusLives: number` — GameArena prop; added to `gs.players[BOTTOM].lives` at init after the bot-skill loop and before `setLivesState`.
+- Multipliers in `getDifficultyMultiplier`: storm_surge=2.0, ghost_protocol=3.0, warlord=5.0.
+- Rank gates: storm_surge `playerRankIdx < 5` (Master 1+), ghost_protocol `< 8` (Legend 1+), warlord `< 17` (General 1+).
+- Home screen: `handlePlayEliteMode` uses `matchType: 'ranked'` (affects rank/XP). Cards rendered as a stacked IIFE section between Gauntlet and Extra Modes.
+
 ## Bot difficulty curve (training → rank-based)
 - `NEW_PLAYER_GAMES = 5`, `RAMP_GAMES = 10` constants in `game.tsx`.
 - Games 0–4: `botSkill = 0`, `botDifficulty = 'easy'` always (training window).
