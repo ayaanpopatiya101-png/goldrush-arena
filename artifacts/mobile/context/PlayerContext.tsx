@@ -2,30 +2,34 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 // ─── Ranks & Skins ────────────────────────────────────────────────────────────
+// 20 ranks: Bronze/Silver/Gold/Diamond/Master (×3 each) + Champion (×5, top-100 leaderboard)
 export const RANKS = [
-  { name: 'Bronze',     minXP: 0,       color: '#CD7F32' },
-  { name: 'Silver',     minXP: 600,     color: '#A8A9B4' },
-  { name: 'Gold',       minXP: 1_800,   color: '#E8C040' },
-  { name: 'Platinum',   minXP: 4_000,   color: '#D4ECF7' },
-  { name: 'Diamond',    minXP: 8_000,   color: '#B9F2FF' },
-  { name: 'Master 1',   minXP: 14_000,  color: '#FF8C42' },
-  { name: 'Master 2',   minXP: 21_000,  color: '#F06020' },
-  { name: 'Master 3',   minXP: 30_000,  color: '#E03808' },
-  { name: 'Legend 1',   minXP: 42_000,  color: '#DD44FF' },
-  { name: 'Legend 2',   minXP: 57_000,  color: '#BB22CC' },
-  { name: 'Legend 3',   minXP: 76_000,  color: '#9900AA' },
-  { name: 'Recruit',    minXP: 100_000, color: '#8B9BAB' },
-  { name: 'Private',    minXP: 125_000, color: '#A8B8C8' },
-  { name: 'Corporal',   minXP: 155_000, color: '#B89040' },
-  { name: 'Sergeant',   minXP: 190_000, color: '#D4A030' },
-  { name: 'Lieutenant', minXP: 232_000, color: '#3A9DD4' },
-  { name: 'Commander',  minXP: 282_000, color: '#9055C8' },
-  { name: 'General 1',  minXP: 340_000, color: '#E04030' },
-  { name: 'General 2',  minXP: 410_000, color: '#C02820' },
-  { name: 'General 3',  minXP: 490_000, color: '#A01808' },
-  { name: 'Spartan 1',  minXP: 580_000, color: '#FFD700' },
-  { name: 'Spartan 2',  minXP: 690_000, color: '#FFC000' },
-  { name: 'Spartan 3',  minXP: 820_000, color: '#FFB300' },
+  // ── Bronze ──────────────────────────────────────────────────────────────────
+  { name: 'Bronze 1',    minXP: 0,        color: '#CD7F32' },  // 0
+  { name: 'Bronze 2',    minXP: 500,      color: '#D4904A' },  // 1
+  { name: 'Bronze 3',    minXP: 1_200,    color: '#DBA060' },  // 2
+  // ── Silver ──────────────────────────────────────────────────────────────────
+  { name: 'Silver 1',    minXP: 2_200,    color: '#A8A9B4' },  // 3
+  { name: 'Silver 2',    minXP: 3_600,    color: '#B8C0CC' },  // 4
+  { name: 'Silver 3',    minXP: 5_400,    color: '#C8D0DC' },  // 5
+  // ── Gold ────────────────────────────────────────────────────────────────────
+  { name: 'Gold 1',      minXP: 8_000,    color: '#E8C040' },  // 6
+  { name: 'Gold 2',      minXP: 11_500,   color: '#EFD050' },  // 7
+  { name: 'Gold 3',      minXP: 16_000,   color: '#F6E060' },  // 8
+  // ── Diamond ─────────────────────────────────────────────────────────────────
+  { name: 'Diamond 1',   minXP: 22_000,   color: '#7DD8FF' },  // 9
+  { name: 'Diamond 2',   minXP: 31_000,   color: '#50CCFF' },  // 10
+  { name: 'Diamond 3',   minXP: 43_000,   color: '#00BFFF' },  // 11
+  // ── Master ──────────────────────────────────────────────────────────────────
+  { name: 'Master 1',    minXP: 58_000,   color: '#CC88FF' },  // 12
+  { name: 'Master 2',    minXP: 78_000,   color: '#BB66FF' },  // 13
+  { name: 'Master 3',    minXP: 105_000,  color: '#AA44FF' },  // 14
+  // ── Champion (top-100 leaderboard) ──────────────────────────────────────────
+  { name: 'Champion 1',  minXP: 138_000,  color: '#FF9944' },  // 15
+  { name: 'Champion 2',  minXP: 180_000,  color: '#FF7722' },  // 16
+  { name: 'Champion 3',  minXP: 232_000,  color: '#FF5500' },  // 17
+  { name: 'Champion 4',  minXP: 295_000,  color: '#FF2244' },  // 18
+  { name: 'Champion 5',  minXP: 370_000,  color: '#FF0066' },  // 19
 ];
 
 export const SKINS = [
@@ -75,15 +79,15 @@ export interface Relic {
 
 export const RELICS: Relic[] = [
   { id: 'ironhide',    name: 'Ironhide',     icon: '🛡️', color: '#9AA0A6', unlockRankIndex: 0,  desc: 'Begin every match with a shield already active.',                   effect: { startShield: true } },
-  { id: 'longarm',     name: 'Longarm',      icon: '📐', color: '#CD7F32', unlockRankIndex: 1,  desc: 'Your paddle is 18% longer.',                                        effect: { paddleLenMult: 1.18 } },
-  { id: 'quicksilver', name: 'Quicksilver',  icon: '💨', color: '#C0C0C0', unlockRankIndex: 2,  desc: 'Your paddle moves 18% faster.',                                     effect: { paddleSpeedMult: 1.18 } },
-  { id: 'secondwind',  name: 'Second Wind',  icon: '❤️', color: '#C8820A', unlockRankIndex: 3,  desc: 'Start each match with +1 extra life.',                              effect: { bonusLives: 1 } },
-  { id: 'prospector',  name: 'Prospector',   icon: '🧲', color: '#D9A441', unlockRankIndex: 4,  desc: 'Power-ups drift toward your zone.',                                 effect: { magnet: true } },
-  { id: 'aftershock',  name: 'Aftershock',   icon: '💥', color: '#1E8AAA', unlockRankIndex: 5,  desc: 'Balls you deflect rebound 25% faster.',                             effect: { deflectBoost: 1.25 } },
-  { id: 'timewarp',    name: 'Time Warp',    icon: '⏳', color: '#B9F2FF', unlockRankIndex: 6,  desc: 'All balls move 35% slower for the first 6 seconds.',                effect: { slowStartFrames: 360 } },
-  { id: 'bulwark',     name: 'Bulwark',      icon: '🪨', color: '#C03820', unlockRankIndex: 8,  desc: 'Start with a shield and total immunity to shrink traps.',           effect: { startShield: true, shrinkImmune: true } },
-  { id: 'phoenix',     name: 'Phoenix',      icon: '🔥', color: '#FF6B35', unlockRankIndex: 9,  desc: 'Revive once with 2 lives the first time you are eliminated.',       effect: { revive: 2 } },
-  { id: 'midas',       name: 'Midas Touch',  icon: '👑', color: '#FFD700', unlockRankIndex: 10, desc: 'Start with a shield, +1 life, and a 12% larger paddle.',            effect: { startShield: true, bonusLives: 1, paddleLenMult: 1.12 } },
+  { id: 'longarm',     name: 'Longarm',      icon: '📐', color: '#CD7F32', unlockRankIndex: 2,  desc: 'Your paddle is 18% longer.',                                        effect: { paddleLenMult: 1.18 } },
+  { id: 'quicksilver', name: 'Quicksilver',  icon: '💨', color: '#C0C0C0', unlockRankIndex: 3,  desc: 'Your paddle moves 18% faster.',                                     effect: { paddleSpeedMult: 1.18 } },
+  { id: 'secondwind',  name: 'Second Wind',  icon: '❤️', color: '#C8820A', unlockRankIndex: 5,  desc: 'Start each match with +1 extra life.',                              effect: { bonusLives: 1 } },
+  { id: 'prospector',  name: 'Prospector',   icon: '🧲', color: '#D9A441', unlockRankIndex: 6,  desc: 'Power-ups drift toward your zone.',                                 effect: { magnet: true } },
+  { id: 'aftershock',  name: 'Aftershock',   icon: '💥', color: '#1E8AAA', unlockRankIndex: 9,  desc: 'Balls you deflect rebound 25% faster.',                             effect: { deflectBoost: 1.25 } },
+  { id: 'timewarp',    name: 'Time Warp',    icon: '⏳', color: '#B9F2FF', unlockRankIndex: 11, desc: 'All balls move 35% slower for the first 6 seconds.',                effect: { slowStartFrames: 360 } },
+  { id: 'bulwark',     name: 'Bulwark',      icon: '🪨', color: '#C03820', unlockRankIndex: 12, desc: 'Start with a shield and total immunity to shrink traps.',           effect: { startShield: true, shrinkImmune: true } },
+  { id: 'phoenix',     name: 'Phoenix',      icon: '🔥', color: '#FF6B35', unlockRankIndex: 14, desc: 'Revive once with 2 lives the first time you are eliminated.',       effect: { revive: 2 } },
+  { id: 'midas',       name: 'Midas Touch',  icon: '👑', color: '#FFD700', unlockRankIndex: 15, desc: 'Start with a shield, +1 life, and a 12% larger paddle.',            effect: { startShield: true, bonusLives: 1, paddleLenMult: 1.12 } },
 ];
 
 export function getRelic(id: string | undefined | null): Relic | null {
@@ -226,8 +230,8 @@ function _msUntilAnnual(): number {
   return Math.max(0, target.getTime() - now.getTime());
 }
 
-// Minimum rank index to access events at all (General 1 = index 17)
-export const EVENT_MIN_RANK_INDEX = 17;
+// Minimum rank index to access events at all (Master 1 = index 12)
+export const EVENT_MIN_RANK_INDEX = 12;
 
 /** One stage of an event's qualifier ladder (qualifier → semi → main draw). */
 export interface QualifierRoundDef {
@@ -496,7 +500,7 @@ export const ACHIEVEMENTS = [
   { id: 'level10',    name: 'Veteran',         desc: 'Reach level 10'                 },
   { id: 'level25',    name: 'Elite',           desc: 'Reach level 25'                 },
   { id: 'collector',  name: 'Collector',       desc: 'Own 3 skins'                    },
-  { id: 'gold_rank',  name: 'Gold Standard',   desc: 'Reach Lieutenant rank'           },
+  { id: 'gold_rank',  name: 'Gold Standard',   desc: 'Reach Gold 1 rank'               },
   { id: 'century',    name: 'Centurion',       desc: 'Play 100 matches'               },
   { id: 'deflect100', name: 'The Wall',        desc: 'Deflect 100 balls total'        },
   { id: 'powerup10',  name: 'Power Hungry',    desc: 'Collect 10 power-ups'           },

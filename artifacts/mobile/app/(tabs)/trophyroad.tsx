@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Animated, Dimensions, Pressable, ScrollView,
+  Animated, Dimensions, Image, Pressable, ScrollView,
   StyleSheet, Text, View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,6 +9,8 @@ import {
   TROPHY_ROAD, RELICS, SKINS, usePlayer,
   type TrophyMilestone,
 } from '@/context/PlayerContext';
+
+const BG_IMAGE = require('@/assets/images/trophy_road_bg.png');
 
 const { width: SW } = Dimensions.get('window');
 
@@ -403,7 +405,29 @@ export default function TrophyRoadScreen() {
   }
 
   return (
-    <LinearGradient colors={['#090912', '#0C0C1A', '#07070F']} style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: '#090912' }}>
+      {/* Brawl Stars-style image background — tinted and stretched across the road zone */}
+      <Image
+        source={BG_IMAGE}
+        style={{
+          position: 'absolute', top: 0, left: 0, right: 0,
+          height: '65%', opacity: 0.22,
+        }}
+        resizeMode="cover"
+      />
+      {/* Deep gradient overlay to keep text readable */}
+      <LinearGradient
+        colors={['#07070FDD', '#0C0C1A88', '#07070F00', '#07070FFF']}
+        locations={[0, 0.12, 0.55, 1]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      {/* Warm gold glow from top — like Brawl Stars' golden light */}
+      <LinearGradient
+        colors={['#C8820A22', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 200 }}
+        pointerEvents="none"
+      />
       {/* Background sparkles */}
       {SPARKLES.map((s, i) => <Sparkle key={i} {...s} />)}
 
@@ -461,7 +485,7 @@ export default function TrophyRoadScreen() {
         <ClaimToast key={t.id} label={t.label} color={t.color}
           onDone={() => setToasts(prev => prev.filter(x => x.id !== t.id))} />
       ))}
-    </LinearGradient>
+    </View>
   );
 }
 

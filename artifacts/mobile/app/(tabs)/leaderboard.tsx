@@ -8,58 +8,58 @@ import { RANKS, usePlayer } from '@/context/PlayerContext';
 import { useColors } from '@/hooks/useColors';
 
 const GLOBAL_LEADERS = [
-  { name: 'NightViper', rank: 'Spartan 1',  wins: 2847, xp: 620000, level: 48, color: '#C8820A' },
-  { name: 'CrystalX',   rank: 'Legend 3',   wins: 2614, xp: 82000,  level: 46, color: '#B9F2FF' },
-  { name: 'Inferno_K',  rank: 'Legend 2',   wins: 1990, xp: 63000,  level: 41, color: '#FF4757' },
-  { name: 'ZeroGravity',rank: 'Legend 1',   wins: 1823, xp: 48000,  level: 39, color: '#FF6B35' },
-  { name: 'Blaze_99',   rank: 'Master 3',   wins: 1450, xp: 34000,  level: 33, color: '#FF4757' },
-  { name: 'IceQueen',   rank: 'Master 2',   wins: 1380, xp: 25000,  level: 30, color: '#00BFFF' },
-  { name: 'Venom_X',    rank: 'Master 3',   wins: 1270, xp: 32000,  level: 27, color: '#00FF88' },
-  { name: 'ShadowFX',   rank: 'Master 2',   wins: 1100, xp: 22000,  level: 24, color: '#9B59B6' },
-  { name: 'PulseWave',  rank: 'Master 1',   wins: 980,  xp: 16000,  level: 21, color: '#FF00FF' },
-  { name: 'NeonBlitz',  rank: 'Master 1',   wins: 870,  xp: 15000,  level: 18, color: '#FF6B35' },
+  { name: 'NightViper', rank: 'Champion 5',  wins: 2847, xp: 390000, level: 48, color: '#FF0066' },
+  { name: 'CrystalX',   rank: 'Champion 4',  wins: 2614, xp: 310000, level: 46, color: '#FF2244' },
+  { name: 'Inferno_K',  rank: 'Champion 3',  wins: 1990, xp: 248000, level: 41, color: '#FF5500' },
+  { name: 'ZeroGravity',rank: 'Champion 3',  wins: 1823, xp: 240000, level: 39, color: '#FF6B35' },
+  { name: 'Blaze_99',   rank: 'Champion 2',  wins: 1450, xp: 192000, level: 33, color: '#FF7722' },
+  { name: 'IceQueen',   rank: 'Champion 2',  wins: 1380, xp: 185000, level: 30, color: '#00BFFF' },
+  { name: 'Venom_X',    rank: 'Champion 1',  wins: 1270, xp: 145000, level: 27, color: '#00FF88' },
+  { name: 'ShadowFX',   rank: 'Champion 1',  wins: 1100, xp: 140000, level: 24, color: '#9B59B6' },
+  { name: 'PulseWave',  rank: 'Master 3',    wins: 980,  xp: 112000, level: 21, color: '#AA44FF' },
+  { name: 'NeonBlitz',  rank: 'Master 3',    wins: 870,  xp: 108000, level: 18, color: '#BB66FF' },
 ];
 
 const REGIONAL_LEADERS: Record<string, Array<{name:string;rank:string;wins:number;level:number;color:string}>> = {
   NA: [
-    { name: 'NightViper',  rank: 'Spartan 1', wins: 2847, level: 48, color: '#C8820A' },
-    { name: 'Blaze_99',    rank: 'Master 3',  wins: 1450, level: 33, color: '#FF4757' },
-    { name: 'Venom_X',     rank: 'Master 3',  wins: 1270, level: 27, color: '#00FF88' },
-    { name: 'DarkRift',    rank: 'Master 1',  wins: 940,  level: 22, color: '#8B8B8B' },
-    { name: 'StormBreaker',rank: 'Gold',      wins: 620,  level: 14, color: '#C8820A' },
+    { name: 'NightViper',  rank: 'Champion 5', wins: 2847, level: 48, color: '#FF0066' },
+    { name: 'Blaze_99',    rank: 'Champion 2', wins: 1450, level: 33, color: '#FF7722' },
+    { name: 'Venom_X',     rank: 'Champion 1', wins: 1270, level: 27, color: '#00FF88' },
+    { name: 'DarkRift',    rank: 'Master 3',   wins: 940,  level: 22, color: '#AA44FF' },
+    { name: 'StormBreaker',rank: 'Gold 2',     wins: 620,  level: 14, color: '#EFD050' },
   ],
   EU: [
-    { name: 'CrystalX',   rank: 'Legend 3',  wins: 2614, level: 46, color: '#B9F2FF' },
-    { name: 'IceQueen',   rank: 'Master 2',  wins: 1380, level: 30, color: '#00BFFF' },
-    { name: 'ShadowFX',   rank: 'Master 2',  wins: 1100, level: 24, color: '#9B59B6' },
-    { name: 'Ghostline',  rank: 'Master 1',  wins: 880,  level: 20, color: '#FFFFFF88' },
-    { name: 'VoidWalker', rank: 'Platinum',  wins: 560,  level: 13, color: '#8800FF' },
+    { name: 'CrystalX',   rank: 'Champion 4', wins: 2614, level: 46, color: '#FF2244' },
+    { name: 'IceQueen',   rank: 'Champion 2', wins: 1380, level: 30, color: '#00BFFF' },
+    { name: 'ShadowFX',   rank: 'Champion 1', wins: 1100, level: 24, color: '#9B59B6' },
+    { name: 'Ghostline',  rank: 'Master 2',   wins: 880,  level: 20, color: '#BB66FF' },
+    { name: 'VoidWalker', rank: 'Diamond 3',  wins: 560,  level: 13, color: '#00BFFF' },
   ],
   APAC: [
-    { name: 'Inferno_K',  rank: 'Legend 2',  wins: 1990, level: 41, color: '#FF4757' },
-    { name: 'PulseWave',  rank: 'Master 1',  wins: 980,  level: 21, color: '#FF00FF' },
-    { name: 'PixelHawk',  rank: 'Diamond',   wins: 810,  level: 19, color: '#00E5FF' },
-    { name: 'NeonSword',  rank: 'Platinum',  wins: 540,  level: 12, color: '#C8820A' },
-    { name: 'AstroKid',   rank: 'Silver',    wins: 280,  level: 7,  color: '#C0C0C0' },
+    { name: 'Inferno_K',  rank: 'Champion 3', wins: 1990, level: 41, color: '#FF5500' },
+    { name: 'PulseWave',  rank: 'Master 3',   wins: 980,  level: 21, color: '#AA44FF' },
+    { name: 'PixelHawk',  rank: 'Diamond 2',  wins: 810,  level: 19, color: '#50CCFF' },
+    { name: 'NeonSword',  rank: 'Gold 3',     wins: 540,  level: 12, color: '#F6E060' },
+    { name: 'AstroKid',   rank: 'Silver 2',   wins: 280,  level: 7,  color: '#B8C0CC' },
   ],
   LATAM: [
-    { name: 'ZeroGravity',rank: 'Legend 1',  wins: 1823, level: 39, color: '#FF6B35' },
-    { name: 'NeonBlitz',  rank: 'Master 1',  wins: 870,  level: 18, color: '#FF6B35' },
-    { name: 'TigerKing',  rank: 'Gold',      wins: 620,  level: 15, color: '#C8820A' },
-    { name: 'LatinFury',  rank: 'Silver',    wins: 390,  level: 9,  color: '#C0C0C0' },
-    { name: 'DragonX',    rank: 'Bronze',    wins: 180,  level: 4,  color: '#CD7F32' },
+    { name: 'ZeroGravity',rank: 'Champion 3', wins: 1823, level: 39, color: '#FF5500' },
+    { name: 'NeonBlitz',  rank: 'Master 3',   wins: 870,  level: 18, color: '#AA44FF' },
+    { name: 'TigerKing',  rank: 'Gold 1',     wins: 620,  level: 15, color: '#E8C040' },
+    { name: 'LatinFury',  rank: 'Silver 2',   wins: 390,  level: 9,  color: '#B8C0CC' },
+    { name: 'DragonX',    rank: 'Bronze 3',   wins: 180,  level: 4,  color: '#DBA060' },
   ],
 };
 
 const SEASON_LEADERS = [
-  { name: 'NightViper',  rank: 'Spartan 1', wins: 187, level: 48, color: '#C8820A' },
-  { name: 'ZeroGravity', rank: 'Legend 1',  wins: 164, level: 39, color: '#FF6B35' },
-  { name: 'CrystalX',   rank: 'Legend 3',  wins: 159, level: 46, color: '#B9F2FF' },
-  { name: 'Blaze_99',   rank: 'Master 3',  wins: 143, level: 33, color: '#FF4757' },
-  { name: 'Venom_X',    rank: 'Master 3',  wins: 138, level: 27, color: '#00FF88' },
-  { name: 'IceQueen',   rank: 'Master 2',  wins: 121, level: 30, color: '#00BFFF' },
-  { name: 'DarkMatter', rank: 'Master 1',  wins: 98,  level: 20, color: '#8B8B8B' },
-  { name: 'PulseWave',  rank: 'Master 1',  wins: 87,  level: 21, color: '#FF00FF' },
+  { name: 'NightViper',  rank: 'Champion 5', wins: 187, level: 48, color: '#FF0066' },
+  { name: 'ZeroGravity', rank: 'Champion 3', wins: 164, level: 39, color: '#FF5500' },
+  { name: 'CrystalX',   rank: 'Champion 4', wins: 159, level: 46, color: '#FF2244' },
+  { name: 'Blaze_99',   rank: 'Champion 2', wins: 143, level: 33, color: '#FF7722' },
+  { name: 'Venom_X',    rank: 'Champion 1', wins: 138, level: 27, color: '#00FF88' },
+  { name: 'IceQueen',   rank: 'Master 3',   wins: 121, level: 30, color: '#AA44FF' },
+  { name: 'DarkMatter', rank: 'Master 2',   wins: 98,  level: 20, color: '#BB66FF' },
+  { name: 'PulseWave',  rank: 'Master 1',   wins: 87,  level: 21, color: '#CC88FF' },
 ];
 
 const TABS = ['GLOBAL', 'REGIONAL', 'SEASON', 'YOUR RANK'] as const;
@@ -86,7 +86,8 @@ export default function LeaderboardScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#07090F', '#0C1428']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#060810', '#0E1535', '#08090F']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#FF006622', 'transparent']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 240 }} pointerEvents="none" />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>

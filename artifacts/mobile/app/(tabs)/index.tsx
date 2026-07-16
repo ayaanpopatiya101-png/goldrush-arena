@@ -216,16 +216,30 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#060810', '#0C1230', '#060A16']} style={StyleSheet.absoluteFill} />
+      {/* Brawl Stars-style top glow — rich purple aurora */}
+      <LinearGradient
+        colors={['#6633FF18', '#3311FF0A', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 320 }}
+        pointerEvents="none"
+      />
+      {/* Gold arena glow from center */}
+      <LinearGradient
+        colors={['transparent', '#C8820A14', 'transparent']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={{ position: 'absolute', top: '30%', left: 0, right: 0, height: 400 }}
+        pointerEvents="none"
+      />
       <AmbientParticles />
       <Svg style={StyleSheet.absoluteFill as never} pointerEvents="none">
         <Defs>
-          <RadialGradient id="bg" cx="50%" cy="40%" r="55%">
-            <Stop offset="0%"   stopColor="#C8820A" stopOpacity="0.12" />
+          <RadialGradient id="bg" cx="50%" cy="35%" r="55%">
+            <Stop offset="0%"   stopColor="#C8820A" stopOpacity="0.18" />
+            <Stop offset="60%"  stopColor="#6633FF" stopOpacity="0.06" />
             <Stop offset="100%" stopColor="#C8820A" stopOpacity="0" />
           </RadialGradient>
         </Defs>
-        <Circle cx="50%" cy="40%" r="100%" fill="url(#bg)" />
+        <Circle cx="50%" cy="35%" r="100%" fill="url(#bg)" />
       </Svg>
 
       {/* Daily streak modal */}
@@ -406,7 +420,7 @@ export default function HomeScreen() {
 
         {/* ── Champion's Gauntlet ── */}
         {(() => {
-          const locked = playerRankIdx < 5;
+          const locked = playerRankIdx < 9;
           return (
             <Pressable
               onPress={locked ? undefined : handleStartGauntlet}
@@ -503,8 +517,8 @@ export default function HomeScreen() {
               id: 'storm_surge' as GameVariant,
               emoji: '⚡',
               name: 'STORM SURGE',
-              rankLabel: '⭐ MASTER 1+',
-              lockIdx: 5,
+              rankLabel: '⚡ MASTER 1+',
+              lockIdx: 12,
               accent: '#FF8C42',
               bg: ['#1A0A00', '#2A1200', '#1A0A00'] as [string,string,string],
               tagline: '3 balls. 1 life. Max-skill opponents.',
@@ -515,8 +529,8 @@ export default function HomeScreen() {
               id: 'ghost_protocol' as GameVariant,
               emoji: '👻',
               name: 'GHOST PROTOCOL',
-              rankLabel: '🌟 LEGEND 1+',
-              lockIdx: 8,
+              rankLabel: '👑 CHAMPION 1+',
+              lockIdx: 15,
               accent: '#BF5FFF',
               bg: ['#0E0018', '#1A0030', '#0E0018'] as [string,string,string],
               tagline: 'Balls vanish mid-flight. Navigate by instinct.',
@@ -527,7 +541,7 @@ export default function HomeScreen() {
               id: 'warlord' as GameVariant,
               emoji: '🔱',
               name: 'WARLORD',
-              rankLabel: '💀 GENERAL 1+',
+              rankLabel: '💀 CHAMPION 3+',
               lockIdx: 17,
               accent: '#FF2244',
               bg: ['#180004', '#2A0008', '#180004'] as [string,string,string],

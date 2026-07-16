@@ -58,6 +58,15 @@ Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Ex
 - Diamond+ lock: `playerRankIdx < 5` (Diamond = index 5) on home screen card; locked card shows lock UI.
 - Lobby badge handles 'gauntlet' matchType: shows "⚔️ GAUNTLET · Round N" in gold.
 
+## Rank system (20 ranks, MAX_RANK_INDEX = 19)
+- Bronze 1-3 (0-2) → Silver 1-3 (3-5) → Gold 1-3 (6-8) → Diamond 1-3 (9-11) → Master 1-3 (12-14) → Champion 1-5 (15-19)
+- Champion = top-100 leaderboard tier. XP: Bronze1=0 → Champion5=370k.
+- RELICS spread: ironhide=0, longarm=2, quicksilver=3, secondwind=5, prospector=6, aftershock=9, timewarp=11, bulwark=12, phoenix=14, midas=15.
+- EVENT_MIN_RANK_INDEX = 12 (Master 1). Gauntlet gate = 9 (Diamond 1).
+- RankBadge now shows tier emoji (🥉/🥈/🥇/💎/⚡/👑/🏆) + pip with level number.
+- Elite gates: storm_surge=12 (Master 1), ghost_protocol=15 (Champion 1), warlord=17 (Champion 3).
+- trophy_road_bg.png copied to assets/images/ and used as background in trophyroad.tsx.
+
 ## Elite rank-gated modes (Storm Surge / Ghost Protocol / Warlord)
 - Three new premium variants added to `VARIANT_PROPS` in game.tsx + `GameVariant` type in gameSession.ts.
 - `maxSkillBots: boolean` — game.tsx-only flag; extracted before mergedCfg spread so TypeScript doesn't reject it on the GameArena JSX. Forces `effectiveBotSkill = 1.0`.
