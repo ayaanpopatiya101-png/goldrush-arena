@@ -97,14 +97,17 @@ Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Ex
 - Caps that exist for balance: paddle length 1.25×, `deflectBoost` 1.3×, `botAccuracy` 0.97, bot speed `0.7+0.4*skill`. Don't remove these silently.
 - Duel-mode rendering must reference `duelBottomPlayer`/`duelTopPlayer` (not `gs.players[BOTTOM/TOP]`) for paddle width/transform/shield, or a spectated bot-vs-bot duel shows the wrong paddle length/shield.
 
-## Premium UI design system (completed)
-- **Background pattern** (all tab screens): `LinearGradient ['#0B0D14', '#07090F']` base + `LinearGradient ['#C8820A10'/'#C8820A14', 'transparent']` gold top glow at height 260-280. Gauntlet intentionally uses `#0A0600` (warm golden tone).
-- **Font rule**: ALL bold text uses `fontFamily: 'Inter_700Bold'` or `'Inter_600SemiBold'`. Zero `fontWeight: '600'/'700'/'800'/'900'` remain in the codebase.
-- **Header pattern** (leaderboard, shop, inventory, events, trophyroad): tiny eyebrow text above title — `fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44'` + main title at `fontSize: 22, letterSpacing: 2`.
-- **Premium section header pattern** (ALL screens, including settings, lobby, postgame): `View {flexDirection:'row', alignItems:'center', gap:8}` → `View {width:3, height:16, backgroundColor:COLOR, borderRadius:2}` accent bar + `Text {fontFamily:'Inter_700Bold', fontSize:12, letterSpacing:2, color:COLOR}` title + `View {flex:1, height:1, backgroundColor:'#FFFFFF0E'}` flanking line + optional right-side hint text. Each section has its own accent color (gold=#C8820A, cyan=#1E8AAA, purple=#BF5FFF, red=#FF4757, green=#00FF88, etc.).
-- **XP bar standard**: `height:8, borderRadius:4` + shine overlay inside fill: `View {position:'absolute', top:0, left:0, right:0, height:'50%', backgroundColor:'#FFFFFF28', borderRadius:4}`. Used in home screen, profile screen, and postgame screen.
-- **Home screen play buttons**: Hero RANKED (full-width, 28px text, 4-stop gold gradient, shimmer sweep animation, pulse Animated.View shadow) + slim CASUAL secondary (teal border gradient, 17px text). Styles: `rankedBtn`, `rankedBtnGrad`, `rankedBtnHighlight`, `casualBtn`, `casualBtnGrad`, `shimmerSweep`.
-- **Mode info cards**: 3-column row with `overflow:'hidden'` + `LinearGradient` top-fade + circular icon background `{width:36, height:36, borderRadius:18, backgroundColor:color+'22'}`.
-- **Super ability cards**: `padding:14, borderRadius:16, superIcon fontSize:28` (larger than before).
-- **Daily challenge card**: warm dark gradient `['#1E1000', '#130C00', '#0E0900']` + gold top accent gradient.
-- **Podium blocks**: medal emojis 🥇🥈🥉 + larger pos number for #1 (22px vs 18px) + slightly stronger gradient `p.color + '55'/'18'` + border.
+## Premium UI design system (Brawl Stars polish level)
+- **Background pattern** (all tab screens): `LinearGradient ['#0B0D14', '#07090F']` base + `LinearGradient ['#C8820A10'/'#C8820A14', 'transparent']` gold top glow at height 260-280.
+- **Font rule**: ALL bold text uses `fontFamily: 'Inter_700Bold'` or `'Inter_600SemiBold'`. Zero `fontWeight: '600'/'700'/'800'/'900'` remain.
+- **Section header pattern** (all screens): `View {width:3, height:16, backgroundColor:COLOR, borderRadius:2}` + `Text {Inter_700Bold, fontSize:12, letterSpacing:2, color:COLOR}` + `View {flex:1, height:1, backgroundColor:'#FFFFFF0E'}` flanking line.
+- **Stat card top accent strip**: `position:'absolute', top:0, left:0, right:0, height:3, backgroundColor:color` + `overflow:'hidden'` on parent + value at `fontSize:28 (home) / 24 (profile)` + label `fontFamily:Inter_700Bold, fontSize:8, letterSpacing:1.5, color:color+'AA'`.
+- **Coin badge standard**: `backgroundColor:'#C8820A1A', borderRadius:12, borderWidth:1, borderColor:'#C8820A44', paddingHorizontal:10, paddingVertical:6` + text `color:'#FFB830', fontFamily:Inter_700Bold, fontSize:14-15`. Used in home header, shop header, inventory header.
+- **Header title standard**: `fontFamily:Inter_700Bold, fontSize:24, letterSpacing:2` (shop, inventory). Home uses 16px player name; leaderboard/profile/trophyroad use larger display sizes.
+- **All Pressables**: scale `0.95` on press via `transform:[{scale: pressed ? 0.95 : 1}]`. Applied to extra mode cards, shop mode tabs, map cards.
+- **Postame stat values**: `fontSize:28` + `letterSpacing:1.5` label, Inter_700Bold.
+- **Play Again button** (postgame): `borderRadius:16, paddingVertical:18, fontSize:17, shadowOpacity:0.5, shadowRadius:14` — strong gold shadow.
+- **Leaderboard rows**: `paddingVertical:12, paddingHorizontal:12, borderRadius:12` + avatar `width:36, height:36, borderRadius:18, borderWidth:2` + name `Inter_700Bold, fontSize:14`.
+- **Podium**: avatar 46px, pos number 24px, block borderRadius:10.
+- **YOUR RANK mini-stats**: `fontSize:22, letterSpacing:1.5` (Inter_700Bold labels).
+- **XP bar standard**: `height:8, borderRadius:4` + shine overlay `height:'50%', backgroundColor:'#FFFFFF28'`.

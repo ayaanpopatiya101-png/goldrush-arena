@@ -255,19 +255,17 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.statsGrid}>
           {[
-            { label: 'WINS',        value: String(profile.wins),             icon: 'award',   color: '#FFD700' },
-            { label: 'LOSSES',      value: String(profile.losses),           icon: 'x-circle',color: '#FF4757' },
-            { label: 'WIN RATE',    value: `${winRate}%`,                    icon: 'percent', color: '#00FF88' },
-            { label: 'BEST STREAK', value: String(profile.bestStreak),       icon: 'zap',     color: '#FF6B35' },
-            { label: 'DEFLECTIONS', value: String(profile.totalDeflections), icon: 'shield',  color: '#00BFFF' },
-            { label: 'GAMES',       value: String(profile.totalGames),       icon: 'grid',    color: '#9B59B6' },
+            { label: 'WINS',        value: String(profile.wins),             color: '#C8820A' },
+            { label: 'LOSSES',      value: String(profile.losses),           color: '#FF4757' },
+            { label: 'WIN RATE',    value: `${winRate}%`,                    color: '#00FF88' },
+            { label: 'BEST STREAK', value: String(profile.bestStreak),       color: '#FF6B35' },
+            { label: 'DEFLECTIONS', value: String(profile.totalDeflections), color: '#00BFFF' },
+            { label: 'GAMES',       value: String(profile.totalGames),       color: '#BF5FFF' },
           ].map(stat => (
-            <View key={stat.label} style={[styles.statCard, { backgroundColor: stat.color + '0C', borderColor: stat.color + '30' }]}>
-              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: stat.color + '18', alignItems: 'center', justifyContent: 'center' }}>
-                <Feather name={stat.icon as never} size={16} color={stat.color} />
-              </View>
-              <Text style={[styles.statValue, { color: colors.foreground }]}>{stat.value}</Text>
-              <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
+            <View key={stat.label} style={[styles.statCard, { backgroundColor: stat.color + '0A', borderColor: stat.color + '28', overflow: 'hidden' }]}>
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, backgroundColor: stat.color, borderTopLeftRadius: 12, borderTopRightRadius: 12 }} />
+              <Text style={[styles.statValue, { color: '#F0F0FF' }]}>{stat.value}</Text>
+              <Text style={[styles.statLabel, { color: stat.color + 'AA' }]}>{stat.label}</Text>
             </View>
           ))}
         </View>
@@ -412,9 +410,9 @@ const styles = StyleSheet.create({
 
   // Stats
   statsGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  statCard:   { width: '30%', flex: 1, minWidth: 90, alignItems: 'center', padding: 12, borderRadius: 12, borderWidth: 1, gap: 4 },
-  statValue:  { fontFamily: 'Inter_700Bold', fontSize: 20 },
-  statLabel:  { fontFamily: 'Inter_500Medium', fontSize: 9, letterSpacing: 1, textAlign: 'center' },
+  statCard:   { width: '30%', flex: 1, minWidth: 90, alignItems: 'center', paddingVertical: 16, paddingHorizontal: 8, borderRadius: 12, borderWidth: 1, gap: 6 },
+  statValue:  { fontFamily: 'Inter_700Bold', fontSize: 24 },
+  statLabel:  { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 1.5, textAlign: 'center' },
 
   // Achievements
   sectionWrap: { gap: 10 },

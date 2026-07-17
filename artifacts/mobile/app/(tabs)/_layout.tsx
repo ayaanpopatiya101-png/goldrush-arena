@@ -13,10 +13,27 @@ function TabIcon({ name, color, label, focused }: {
 }) {
   return (
     <View style={styles.tabItem}>
-      <View style={[styles.iconWrap, focused && { backgroundColor: color + '18' }]}>
-        <Feather name={name} size={20} color={color} />
+      <View style={[
+        styles.iconWrap,
+        focused && { backgroundColor: color + '20', borderColor: color + '44', borderWidth: 1 },
+      ]}>
+        <Feather
+          name={name}
+          size={focused ? 22 : 19}
+          color={focused ? color : '#4A5568'}
+        />
+        {focused && (
+          <View style={[styles.activeDot, { backgroundColor: color }]} />
+        )}
       </View>
-      <Text style={[styles.tabLabel, { color, fontFamily: focused ? 'Inter_600SemiBold' : 'Inter_400Regular' }]}>
+      <Text style={[
+        styles.tabLabel,
+        {
+          color: focused ? color : '#3A4255',
+          fontFamily: focused ? 'Inter_700Bold' : 'Inter_400Regular',
+          fontSize: focused ? 10 : 9,
+        },
+      ]}>
         {label}
       </Text>
     </View>
@@ -31,7 +48,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: '#4A5568',
+        tabBarInactiveTintColor: '#3A4255',
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
@@ -39,12 +56,12 @@ export default function TabLayout() {
           backgroundColor: 'transparent',
           borderTopWidth: 0,
           elevation: 0,
-          height: Platform.OS === 'web' ? 72 : 64,
+          height: Platform.OS === 'web' ? 74 : 66,
         },
         tabBarBackground: () => (
           <View style={StyleSheet.absoluteFill}>
             {isIOS ? (
-              <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+              <BlurView intensity={95} tint="dark" style={StyleSheet.absoluteFill} />
             ) : (
               <View style={[StyleSheet.absoluteFill, styles.tabBg]} />
             )}
@@ -115,30 +132,37 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBg: {
-    backgroundColor: '#07090FEE',
+    backgroundColor: '#05070DEE',
   },
   tabBorder: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 0.5,
-    backgroundColor: '#FFFFFF12',
+    height: 1,
+    backgroundColor: '#FFFFFF0C',
   },
   tabItem: {
     alignItems: 'center',
-    gap: 3,
-    paddingTop: 6,
+    gap: 2,
+    paddingTop: 4,
   },
   iconWrap: {
-    width: 36,
-    height: 28,
-    borderRadius: 8,
+    width: 40,
+    height: 32,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  activeDot: {
+    position: 'absolute',
+    bottom: -4,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
   },
   tabLabel: {
-    fontSize: 10,
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
   },
 });

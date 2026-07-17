@@ -392,13 +392,13 @@ function EmptyState({ icon, message, sub }: { icon: string; message: string; sub
 }
 
 const s = StyleSheet.create({
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10, gap: 10 },
-  title:       { fontFamily: 'Inter_700Bold', fontSize: 22, letterSpacing: 2 },
-  countBadge:  { backgroundColor: '#C8820A22', borderRadius: 12, borderWidth: 1, borderColor: '#C8820A44', paddingHorizontal: 10, paddingVertical: 4 },
-  countText:   { fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#C8820A', letterSpacing: 0.5 },
+  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12, gap: 10 },
+  title:       { fontFamily: 'Inter_700Bold', fontSize: 24, letterSpacing: 2 },
+  countBadge:  { backgroundColor: '#C8820A1A', borderRadius: 12, borderWidth: 1, borderColor: '#C8820A44', paddingHorizontal: 10, paddingVertical: 6 },
+  countText:   { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#FFB830', letterSpacing: 0.5 },
   tabRow:      { flexDirection: 'row', borderBottomWidth: 1, paddingHorizontal: 16 },
   tab:         { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabText:     { fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1.2 },
+  tabText:     { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.2 },
 
   // Skin grid
   skinGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
@@ -424,8 +424,8 @@ const s = StyleSheet.create({
 
   // Relics — Brawl-Stars-style character collection
   relicHeaderRow:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  coinBadge:       { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#C8820A22', borderRadius: 20, borderWidth: 1, borderColor: '#C8820A55', paddingHorizontal: 12, paddingVertical: 5 },
-  coinBadgeText:   { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#C8820A' },
+  coinBadge:       { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#C8820A1A', borderRadius: 12, borderWidth: 1, borderColor: '#C8820A44', paddingHorizontal: 12, paddingVertical: 6 },
+  coinBadgeText:   { fontFamily: 'Inter_700Bold', fontSize: 14, color: '#FFB830' },
   relicHint:       { fontFamily: 'Inter_400Regular', fontSize: 11, flex: 1 },
   noRelicRow:      { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 12, borderWidth: 1.5, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 12 },
   noRelicName:     { fontFamily: 'Inter_700Bold', fontSize: 13 },

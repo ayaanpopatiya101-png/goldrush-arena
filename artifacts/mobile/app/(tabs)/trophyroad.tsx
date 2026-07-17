@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   // XP badge
   xpBadge: { borderRadius: 14, overflow: 'hidden', shadowColor: '#FFD700', shadowOpacity: 0.5, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
   xpBadgeGrad: { paddingHorizontal: 14, paddingVertical: 7, alignItems: 'center', borderRadius: 14 },
-  xpBadgeVal: { color: '#1A0900', fontFamily: 'Inter_700Bold', fontSize: 18, lineHeight: 22 },
+  xpBadgeVal: { color: '#1A0900', fontFamily: 'Inter_700Bold', fontSize: 20, lineHeight: 24 },
   xpBadgeLabel: { color: '#1A090088', fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 2 },
 
   // Progress

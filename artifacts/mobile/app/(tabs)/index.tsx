@@ -239,32 +239,44 @@ export default function HomeScreen() {
         {/* ── Header ── */}
         <View style={styles.header}>
           <View style={styles.playerInfo}>
-            {/* Avatar — uses emoji + frame color */}
-            <View style={[styles.avatar, { borderColor: profile.avatarFrameColor, backgroundColor: profile.avatarFrameColor + '33' }]}>
-              <Text style={styles.avatarEmoji}>{profile.avatarEmoji}</Text>
+            {/* Avatar with animated glow ring */}
+            <View style={{ position: 'relative' }}>
+              <Animated.View style={{
+                position: 'absolute', inset: -3,
+                borderRadius: 30, borderWidth: 2,
+                borderColor: profile.avatarFrameColor + '60',
+                opacity: glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }),
+              }} />
+              <View style={[styles.avatar, { borderColor: profile.avatarFrameColor, backgroundColor: profile.avatarFrameColor + '28' }]}>
+                <Text style={styles.avatarEmoji}>{profile.avatarEmoji}</Text>
+              </View>
             </View>
-            <View>
+            <View style={{ gap: 2 }}>
               <Text style={styles.playerName}>{profile.name}</Text>
               <View style={styles.streakRow}>
-                <Text style={styles.levelText}>Level {xpToLevel(profile.xp)}</Text>
+                <View style={{ backgroundColor: rankData.color + '20', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2 }}>
+                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: rankData.color, letterSpacing: 0.5 }}>
+                    LV.{xpToLevel(profile.xp)}
+                  </Text>
+                </View>
                 {profile.loginStreak > 0 && (
                   <View style={styles.streakBadge}>
                     <Text style={styles.streakIcon}>🔥</Text>
-                    <Text style={styles.streakCount}>{profile.loginStreak}</Text>
+                    <Text style={styles.streakCount}>{profile.loginStreak}d</Text>
                   </View>
                 )}
               </View>
             </View>
           </View>
           <View style={styles.headerRight}>
-            <Pressable onPress={() => router.push('/settings')} style={styles.settingsBtn}>
-              <Feather name="settings" size={18} color="#FFFFFF66" />
-            </Pressable>
-            <RankBadge rank={profile.rank} size="sm" showLabel={false} />
             <View style={styles.coinBadge}>
               <Text style={styles.coinEmoji}>🪙</Text>
-              <Text style={styles.coinText}>{profile.coins}</Text>
+              <Text style={styles.coinText}>{profile.coins.toLocaleString()}</Text>
             </View>
+            <RankBadge rank={profile.rank} size="sm" showLabel={false} />
+            <Pressable onPress={() => router.push('/settings')} style={styles.settingsBtn}>
+              <Feather name="settings" size={18} color="#FFFFFF44" />
+            </Pressable>
           </View>
         </View>
 
@@ -316,15 +328,19 @@ export default function HomeScreen() {
           <Animated.View style={{
             marginBottom: 10,
             transform: [{ scale: pulseAnim }],
-            shadowColor: '#C8820A', shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.75, shadowRadius: 28, elevation: 16,
+            shadowColor: '#C8820A', shadowOffset: { width: 0, height: 12 },
+            shadowOpacity: 0.9, shadowRadius: 32, elevation: 18,
           }}>
             <Pressable
               onPress={() => handlePlay('ranked')}
-              style={({ pressed }) => [styles.rankedBtn, pressed && { transform: [{ scale: 0.97 }] }]}
+              style={({ pressed }) => [styles.rankedBtn, pressed && { transform: [{ scale: 0.96 }], opacity: 0.92 }]}
             >
               <LinearGradient colors={['#F0A428', '#D08A14', '#A86008', '#7A4800']} style={styles.rankedBtnGrad}>
+                {/* Top highlight edge */}
                 <View style={styles.rankedBtnHighlight} />
+                {/* Bottom 3D edge — depth illusion */}
+                <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, backgroundColor: '#00000040', borderBottomLeftRadius: 22, borderBottomRightRadius: 22 }} />
+                {/* Shimmer sweep */}
                 <Animated.View pointerEvents="none" style={[styles.shimmerSweep, {
                   transform: [
                     { translateX: shimmerAnim.interpolate({ inputRange: [-1, 2], outputRange: [-140, 300] }) },
@@ -336,6 +352,7 @@ export default function HomeScreen() {
                   <Text style={styles.rankedBtnText}>RANKED</Text>
                   <Text style={styles.rankedBtnSub}>WIN XP · CLIMB RANKS · EARN GLORY</Text>
                 </View>
+                <Feather name="chevron-right" size={20} color="#07090F66" />
               </LinearGradient>
             </Pressable>
           </Animated.View>
@@ -343,12 +360,12 @@ export default function HomeScreen() {
           {/* CASUAL — Secondary CTA */}
           <Pressable
             onPress={() => handlePlay('casual')}
-            style={({ pressed }) => [styles.casualBtn, pressed && { opacity: 0.82, transform: [{ scale: 0.97 }] }]}
+            style={({ pressed }) => [styles.casualBtn, pressed && { opacity: 0.82, transform: [{ scale: 0.96 }] }]}
           >
             <LinearGradient colors={['#0D2533', '#081828', '#0A1E2A']} style={styles.casualBtnGrad}>
               <Text style={{ fontSize: 16 }}>🎮</Text>
               <Text style={styles.casualBtnText}>CASUAL</Text>
-              <Text style={styles.casualBtnSub}> · No rank effect</Text>
+              <Text style={[styles.casualBtnSub, { marginLeft: -4 }]}>· No rank effect</Text>
             </LinearGradient>
           </Pressable>
         </View>
@@ -657,7 +674,8 @@ export default function HomeScreen() {
                 style={({ pressed }) => [styles.modePickCard, {
                   borderColor: m.color + '55',
                   backgroundColor: m.color + '10',
-                  opacity: pressed ? 0.75 : 1,
+                  opacity: pressed ? 0.85 : 1,
+                  transform: [{ scale: pressed ? 0.95 : 1 }],
                 }]}
               >
                 <LinearGradient
@@ -687,16 +705,15 @@ export default function HomeScreen() {
         </View>
         <View style={styles.statsRow}>
           {[
-            { label: 'WINS',     value: String(profile.wins),    icon: 'award'   },
-            { label: 'WIN RATE', value: profile.totalGames > 0 ? `${winRate}%` : '—', icon: 'percent' },
-            { label: 'STREAK',   value: String(profile.winStreak), icon: 'zap'   },
+            { label: 'WINS',     value: String(profile.wins),    icon: 'award',   color: '#C8820A' },
+            { label: 'WIN RATE', value: profile.totalGames > 0 ? `${winRate}%` : '—', icon: 'percent', color: '#00FF88' },
+            { label: 'STREAK',   value: String(profile.winStreak), icon: 'zap',   color: '#BF5FFF' },
           ].map(stat => (
-            <View key={stat.label} style={[styles.statCard, { backgroundColor: '#C8820A0C', borderColor: '#C8820A30' }]}>
-              <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#C8820A18', alignItems: 'center', justifyContent: 'center' }}>
-                <Feather name={stat.icon as never} size={14} color={colors.primary} />
-              </View>
+            <View key={stat.label} style={[styles.statCard, { backgroundColor: stat.color + '0A', borderColor: stat.color + '28', overflow: 'hidden' }]}>
+              {/* Top accent strip */}
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, backgroundColor: stat.color, borderTopLeftRadius: 12, borderTopRightRadius: 12 }} />
               <Text style={[styles.statValue, { color: '#F0F0FF' }]}>{stat.value}</Text>
-              <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
+              <Text style={[styles.statLabel, { color: stat.color + 'AA' }]}>{stat.label}</Text>
             </View>
           ))}
         </View>
@@ -732,28 +749,34 @@ export default function HomeScreen() {
         {/* Daily challenge */}
         <View style={[styles.challengeCard, { borderColor: '#C8820A44', overflow: 'hidden' }]}>
           <LinearGradient colors={['#1E1000', '#130C00', '#0E0900']} style={StyleSheet.absoluteFill} />
-          <LinearGradient colors={['#C8820A18', 'transparent']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 40 }} />
+          <LinearGradient colors={['#C8820A20', 'transparent']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 50 }} />
           <View style={styles.challengeHeader}>
-            <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#C8820A22', alignItems: 'center', justifyContent: 'center' }}>
-              <Feather name="sun" size={14} color="#C8820A" />
+            <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#C8820A22', borderWidth: 1, borderColor: '#C8820A44', alignItems: 'center', justifyContent: 'center' }}>
+              <Feather name="sun" size={15} color="#C8820A" />
             </View>
-            <Text style={styles.challengeTitle}>DAILY CHALLENGE</Text>
-            <View style={{ flex: 1 }} />
-            <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 8, color: '#C8820A88', letterSpacing: 1 }}>+100 🪙</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.challengeTitle}>DAILY CHALLENGE</Text>
+              <Text style={styles.challengeDesc}>Win 3 matches today</Text>
+            </View>
+            <View style={{ backgroundColor: '#C8820A22', borderRadius: 8, borderWidth: 1, borderColor: '#C8820A44', paddingHorizontal: 8, paddingVertical: 4, alignItems: 'center' }}>
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 13, color: '#C8820A' }}>+100</Text>
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#C8820A88' }}>COINS</Text>
+            </View>
           </View>
-          <Text style={styles.challengeDesc}>Win 3 matches today</Text>
-          <View style={styles.challengeProgress}>
-            {[0, 1, 2].map(i => (
-              <View key={i} style={[styles.challengeDot, {
-                backgroundColor: i < (profile.wins % 3) ? '#C8820A' : '#FFFFFF15',
-                width: i < (profile.wins % 3) ? 14 : 10,
-                height: i < (profile.wins % 3) ? 14 : 10,
-              }]} />
-            ))}
-            <Text style={[styles.challengeReward, { color: colors.mutedForeground }]}>
-              {(profile.wins % 3)}/3 wins
-            </Text>
+          {/* Segmented progress bar */}
+          <View style={{ flexDirection: 'row', gap: 5, marginTop: 4 }}>
+            {[0, 1, 2].map(i => {
+              const filled = i < (profile.wins % 3);
+              return (
+                <View key={i} style={{ flex: 1, height: 8, borderRadius: 4, backgroundColor: filled ? '#C8820A' : '#FFFFFF12', overflow: 'hidden' }}>
+                  {filled && <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: '#FFFFFF30', borderRadius: 4 }} />}
+                </View>
+              );
+            })}
           </View>
+          <Text style={{ fontFamily: 'Inter_500Medium', fontSize: 10, color: '#FFFFFF44', marginTop: 4 }}>
+            {(profile.wins % 3)}/3 wins today
+          </Text>
         </View>
 
         {/* Login streak card */}
@@ -805,20 +828,20 @@ const st = StyleSheet.create({
 
 const styles = StyleSheet.create({
   root:       { flex: 1 },
-  header:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 10 },
-  playerInfo: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  avatar:     { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  avatarEmoji: { fontSize: 22 },
-  playerName: { fontFamily: 'Inter_700Bold', fontSize: 15, color: '#F0F0FF' },
+  header:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 12 },
+  playerInfo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatar:     { width: 50, height: 50, borderRadius: 25, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  avatarEmoji: { fontSize: 24 },
+  playerName: { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#F0F0FF', letterSpacing: 0.3 },
   streakRow:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  levelText:  { fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF66' },
-  streakBadge: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: '#FF6B3522', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 2 },
+  levelText:  { fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFFFFF66' },
+  streakBadge: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: '#FF6B3522', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   streakIcon: { fontSize: 9 },
   streakCount: { color: '#FF6B35', fontFamily: 'Inter_700Bold', fontSize: 10 },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  coinBadge:  { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#C8820A22', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 5 },
-  coinEmoji:  { fontSize: 11 },
-  coinText:   { color: '#C8820A', fontFamily: 'Inter_600SemiBold', fontSize: 13 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  coinBadge:  { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#C8820A1A', borderRadius: 12, borderWidth: 1, borderColor: '#C8820A44', paddingHorizontal: 10, paddingVertical: 6 },
+  coinEmoji:  { fontSize: 13 },
+  coinText:   { color: '#FFB830', fontFamily: 'Inter_700Bold', fontSize: 14 },
   xpBar:      { paddingHorizontal: 20, marginBottom: 16, gap: 5 },
   xpTrack:    { height: 8, borderRadius: 4, overflow: 'hidden' },
   xpFill:     { height: '100%', borderRadius: 4 },
@@ -871,9 +894,9 @@ const styles = StyleSheet.create({
   superLockBadge:  { position: 'absolute', top: 4, right: 4, backgroundColor: '#FFFFFF12', borderRadius: 5, borderWidth: 1, borderColor: '#FFFFFF1A', paddingHorizontal: 4, paddingVertical: 1 },
   superLockTxt:    { color: '#FFFFFF55', fontFamily: 'Inter_700Bold', fontSize: 7, letterSpacing: 0.5 },
   statsRow:   { flexDirection: 'row', paddingHorizontal: 16, gap: 10, marginBottom: 14 },
-  statCard:   { flex: 1, alignItems: 'center', padding: 12, borderRadius: 12, borderWidth: 1, gap: 4 },
-  statValue:  { fontFamily: 'Inter_700Bold', fontSize: 22 },
-  statLabel:  { fontFamily: 'Inter_500Medium', fontSize: 9, letterSpacing: 1 },
+  statCard:   { flex: 1, alignItems: 'center', paddingVertical: 16, paddingHorizontal: 8, borderRadius: 12, borderWidth: 1, gap: 6 },
+  statValue:  { fontFamily: 'Inter_700Bold', fontSize: 28 },
+  statLabel:  { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 1.5 },
   // Season pass
   passSection: { paddingHorizontal: 16, marginBottom: 14, gap: 6 },
   passHeader:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -883,10 +906,10 @@ const styles = StyleSheet.create({
   activeBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1 },
   tierScroll:  { paddingVertical: 8, paddingRight: 16, gap: 8 },
   // Daily challenge
-  challengeCard: { marginHorizontal: 16, borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 10, gap: 7 },
-  challengeHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  challengeTitle: { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.5 },
-  challengeDesc:  { color: '#F0F0FF', fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  challengeCard: { marginHorizontal: 16, borderRadius: 16, borderWidth: 1, padding: 16, marginBottom: 10, gap: 10 },
+  challengeHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  challengeTitle: { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2 },
+  challengeDesc:  { color: '#F0F0FF', fontFamily: 'Inter_700Bold', fontSize: 15 },
   challengeProgress: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   challengeDot:   { width: 10, height: 10, borderRadius: 5 },
   challengeReward: { fontFamily: 'Inter_500Medium', fontSize: 11, marginLeft: 4 },
