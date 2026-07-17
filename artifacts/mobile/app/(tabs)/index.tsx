@@ -222,10 +222,31 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={['#0B0D14', '#07090F']} style={StyleSheet.absoluteFill} />
+      {/* ── Cinematic 5-layer background depth system ─────────────────────── */}
+      {/* 1. Deep base — richer midnight blue-black, not flat CSS black */}
+      <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
+      {/* 2. Top atmospheric warmth — gold veil; 2× stronger and 45% taller than before */}
       <LinearGradient
-        colors={['#C8820A14', 'transparent']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 400 }}
+        colors={['#C8820A2E', '#C8820A14', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 580 }}
+        pointerEvents="none"
+      />
+      {/* 3. Cinematic spotlight column — warm amber shaft behind the arena center */}
+      <LinearGradient
+        colors={['#C8820A1C', '#C8820A0C', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: '16%', right: '16%', height: 480 }}
+        pointerEvents="none"
+      />
+      {/* 4. Edge vignette — dark edges pull the eye inward to the arena */}
+      <LinearGradient
+        colors={['#04060E70', 'transparent', 'transparent', '#04060E70']}
+        start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }}
+        style={StyleSheet.absoluteFill} pointerEvents="none"
+      />
+      {/* 5. Ground atmosphere — cool blue depth at bottom creates a horizon sense */}
+      <LinearGradient
+        colors={['transparent', '#0508189A']}
+        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 360 }}
         pointerEvents="none"
       />
       <AmbientParticles />
@@ -301,14 +322,22 @@ export default function HomeScreen() {
 
         {/* Mini arena — 3D perspective table */}
         <View style={styles.arenaWrap}>
-          {/* Atmospheric glow — radiates from behind the arena, giving it a stage feeling */}
+          {/* Arena stage glow — two concentric halos for depth */}
+          {/* Outer diffuse aura */}
           <View pointerEvents="none" style={{
             position: 'absolute',
-            top: 0, width: 260, height: 140, borderRadius: 130,
-            backgroundColor: '#C8820A',
-            opacity: 0.07,
+            top: -40, width: 340, height: 210, borderRadius: 170,
+            backgroundColor: '#C8820A', opacity: 0.05,
             shadowColor: '#C8820A', shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 1, shadowRadius: 60,
+            shadowOpacity: 1, shadowRadius: 110,
+          }} />
+          {/* Inner focused halo — more saturated, brighter center */}
+          <View pointerEvents="none" style={{
+            position: 'absolute',
+            top: 0, width: 210, height: 125, borderRadius: 105,
+            backgroundColor: '#D49828', opacity: 0.10,
+            shadowColor: '#D49828', shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 1, shadowRadius: 58,
           }} />
           <View style={{ transform: [{ perspective: 500 }, { rotateX: '18deg' }], shadowColor: '#C8820A', shadowOffset: { width: 0, height: 18 }, shadowOpacity: 0.35, shadowRadius: 20, elevation: 12 }}>
             <MiniArena />
@@ -862,14 +891,14 @@ const styles = StyleSheet.create({
   coinBadge:  { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#C8820A1A', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A44', paddingHorizontal: 9, paddingVertical: 4 },
   coinEmoji:  { fontSize: 12 },
   coinText:   { color: '#FFB830', fontFamily: 'Inter_700Bold', fontSize: 13 },
-  xpBar:      { paddingHorizontal: 20, marginBottom: 16, gap: 5 },
+  xpBar:      { paddingHorizontal: 20, marginBottom: 8, gap: 5 },
   xpTrack:    { height: 8, borderRadius: 4, overflow: 'hidden' },
   xpFill:     { height: '100%', borderRadius: 4 },
   xpText:     { fontFamily: 'Inter_400Regular', fontSize: 10 },
-  arenaWrap:  { alignItems: 'center', marginBottom: 12 },
-  titleWrap:  { alignItems: 'center', gap: 4, marginBottom: 20, paddingHorizontal: 20 },
-  gameTitle:  { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 27, letterSpacing: 3.5, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 18, textAlign: 'center' },
-  gameSubtitle: { color: '#FFFFFF66', fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 1.5, textAlign: 'center' },
+  arenaWrap:  { alignItems: 'center', marginBottom: 6 },
+  titleWrap:  { alignItems: 'center', gap: 3, marginBottom: 14, paddingHorizontal: 20 },
+  gameTitle:  { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 30, letterSpacing: 4, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 28, textAlign: 'center' },
+  gameSubtitle: { color: '#FFFFFF7A', fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 2, textAlign: 'center' },
   playWrap:   { paddingHorizontal: 20, marginBottom: 20 },
   settingsBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   // Hero RANKED button
@@ -914,8 +943,8 @@ const styles = StyleSheet.create({
   superLockBadge:  { position: 'absolute', top: 4, right: 4, backgroundColor: '#FFFFFF12', borderRadius: 5, borderWidth: 1, borderColor: '#FFFFFF1A', paddingHorizontal: 4, paddingVertical: 1 },
   superLockTxt:    { color: '#FFFFFF55', fontFamily: 'Inter_700Bold', fontSize: 7, letterSpacing: 0.5 },
   statsRow:   { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 14 },
-  statCard:   { flex: 1, alignItems: 'center', paddingVertical: 12, paddingHorizontal: 6, borderRadius: 12, borderWidth: 1, gap: 4 },
-  statValue:  { fontFamily: 'Inter_700Bold', fontSize: 21 },
+  statCard:   { flex: 1, alignItems: 'center', paddingVertical: 10, paddingHorizontal: 6, borderRadius: 12, borderWidth: 1, gap: 3 },
+  statValue:  { fontFamily: 'Inter_700Bold', fontSize: 19 },
   statLabel:  { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 1.5 },
   // Season pass
   passSection: { paddingHorizontal: 16, marginBottom: 14, gap: 6 },

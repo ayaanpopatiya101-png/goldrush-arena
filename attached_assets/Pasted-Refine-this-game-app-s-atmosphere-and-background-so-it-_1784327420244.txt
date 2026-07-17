@@ -1,0 +1,58 @@
+Refine this game app’s atmosphere and background so it feels like a premium top-grossing mobile game, not just a functional game UI.
+
+Use the current app as the base, but improve the visual world dramatically:
+- make the background feel deeper, richer, and more cinematic
+- add layered atmosphere instead of a flat gradient
+- create a stronger focal point around the hero/character
+- reduce the feeling of scattered UI panels around the screen
+- make the lobby feel like a unified composed scene
+- make the app feel more expensive, polished, and alive
+
+What to improve:
+1. Background depth
+- add multiple layers of environment depth
+- use subtle foreground, midground, and background separation
+- add soft ambient lighting, shadows, and atmosphere
+- make the backdrop feel alive without distracting from the gameplay or UI
+
+2. Lighting and mood
+- improve the light direction so the character feels spotlighted
+- use cinematic highlights and controlled glow
+- avoid flat, single-tone fills
+- make the scene feel more premium and intentional
+
+3. UI composition
+- tighten the hierarchy so the eye goes to the character and Play button first
+- reduce visual clutter from side panels and floating badges
+- make spacing more elegant and balanced
+- group related UI elements more cleanly
+
+4. Panel and card design
+- make panels feel lighter, cleaner, and more premium
+- use better borders, shadows, and surface contrast
+- avoid oversized blocks that overwhelm the scene
+- make the whole interface feel like one art-directed system
+
+5. Atmosphere polish
+- add subtle texture, ambient particles, or arena-style visual details
+- make the background feel like a game world, not a flat screen
+- keep the atmosphere exciting but readable
+- improve the feeling of energy and motion throughout the lobby
+
+6. Premium game feel
+- make it feel closer to a polished studio game lobby
+- make transitions, hover states, taps, and popups feel satisfying
+- improve the emotional impact of rewards, events, and progression screens
+- keep the UI bold, but make it feel more refined and less crowded
+
+Important:
+- Do not break gameplay or navigation
+- Do not copy Brawl Stars assets or layout directly
+- Do not make the screen busier
+- Do not use generic AI gradients or random neon blobs
+- Focus on depth, composition, lighting, hierarchy, and atmosphere
+
+First, analyze the current background and identify what makes it feel flat or crowded.
+Then redesign the visual system.
+Then apply the improvements screen by screen, starting with the lobby/home screen.
+The final result should feel like a premium mobile game from a major studio.

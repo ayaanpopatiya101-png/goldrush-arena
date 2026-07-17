@@ -413,11 +413,16 @@ export default function TrophyRoadScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#07090F' }}>
-      <LinearGradient colors={['#0B0D14', '#07090F']} style={StyleSheet.absoluteFill} />
+    <View style={{ flex: 1, backgroundColor: '#04060E' }}>
+      <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#C8820A14', 'transparent']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 280 }}
+        colors={['#C8820A26', '#C8820A10', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 420 }}
+        pointerEvents="none"
+      />
+      <LinearGradient
+        colors={['transparent', '#05081888']}
+        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 }}
         pointerEvents="none"
       />
       {/* Background sparkles */}
