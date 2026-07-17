@@ -12,6 +12,22 @@ import {
 } from '@/context/PlayerContext';
 import { useColors } from '@/hooks/useColors';
 
+// ─── Per-achievement emoji — replaces the generic award icon ─────────────────
+const ACH_EMOJI: Record<string, string> = {
+  first_win:  '🏆',
+  hat_trick:  '🎯',
+  survivor:   '🛡️',
+  streak3:    '🔥',
+  streak5:    '⚡',
+  level10:    '⭐',
+  level25:    '💫',
+  collector:  '🎨',
+  gold_rank:  '🥇',
+  century:    '💯',
+  deflect100: '🧱',
+  powerup10:  '🎰',
+};
+
 export default function ProfileScreen() {
   const colors    = useColors();
   const insets    = useSafeAreaInsets();
@@ -294,12 +310,18 @@ export default function ProfileScreen() {
               const unlocked = profile.achievements.includes(ach.id);
               return (
                 <View key={ach.id} style={[styles.achCard, {
-                  backgroundColor: unlocked ? '#FFD70022' : colors.card,
-                  borderColor:     unlocked ? '#FFD70055' : colors.border,
-                  opacity:         unlocked ? 1 : 0.45,
+                  backgroundColor: unlocked ? '#FFD70012' : colors.card,
+                  borderColor:     unlocked ? '#FFD70066' : colors.border,
+                  opacity:         unlocked ? 1 : 0.42,
+                  overflow:        'hidden',
                 }]}>
-                  <Feather name="award" size={18} color={unlocked ? '#FFD700' : colors.mutedForeground} />
-                  <Text style={[styles.achName, { color: unlocked ? colors.foreground : colors.mutedForeground }]} numberOfLines={1}>{ach.name}</Text>
+                  {unlocked && (
+                    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#FFD700', borderTopLeftRadius: 12, borderTopRightRadius: 12 }} />
+                  )}
+                  <Text style={{ fontSize: unlocked ? 26 : 20, opacity: unlocked ? 1 : 0.3, marginTop: unlocked ? 4 : 2 }}>
+                    {ACH_EMOJI[ach.id] ?? '🏅'}
+                  </Text>
+                  <Text style={[styles.achName, { color: unlocked ? '#F8F8FF' : colors.mutedForeground }]} numberOfLines={1}>{ach.name}</Text>
                   <Text style={[styles.achDesc, { color: colors.mutedForeground }]} numberOfLines={2}>{ach.desc}</Text>
                 </View>
               );

@@ -301,11 +301,20 @@ export default function HomeScreen() {
 
         {/* Mini arena — 3D perspective table */}
         <View style={styles.arenaWrap}>
+          {/* Atmospheric glow — radiates from behind the arena, giving it a stage feeling */}
+          <View pointerEvents="none" style={{
+            position: 'absolute',
+            top: 0, width: 260, height: 140, borderRadius: 130,
+            backgroundColor: '#C8820A',
+            opacity: 0.07,
+            shadowColor: '#C8820A', shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 1, shadowRadius: 60,
+          }} />
           <View style={{ transform: [{ perspective: 500 }, { rotateX: '18deg' }], shadowColor: '#C8820A', shadowOffset: { width: 0, height: 18 }, shadowOpacity: 0.35, shadowRadius: 20, elevation: 12 }}>
             <MiniArena />
           </View>
           {/* Floor glow */}
-          <View style={{ width: 120, height: 10, borderRadius: 60, backgroundColor: '#C8820A', opacity: 0.16, marginTop: 6, alignSelf: 'center' }} />
+          <View style={{ width: 130, height: 10, borderRadius: 65, backgroundColor: '#C8820A', opacity: 0.18, marginTop: 6, alignSelf: 'center' }} />
         </View>
 
         {/* Floating 3D crown */}
@@ -370,9 +379,13 @@ export default function HomeScreen() {
             style={({ pressed }) => [styles.casualBtn, pressed && { opacity: 0.86, transform: [{ scale: 0.97 }, { translateY: 1 }] }]}
           >
             <LinearGradient colors={['#0D2533', '#081828', '#0A1E2A']} style={styles.casualBtnGrad}>
+              {/* Top highlight edge */}
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1.5, backgroundColor: '#1E8AAA28', borderTopLeftRadius: 14, borderTopRightRadius: 14 }} />
+              {/* Bottom depth edge */}
+              <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: '#00000035', borderBottomLeftRadius: 14, borderBottomRightRadius: 14 }} />
               <Text style={{ fontSize: 16 }}>🎮</Text>
               <Text style={styles.casualBtnText}>CASUAL</Text>
-              <Text style={[styles.casualBtnSub, { marginLeft: -4 }]}>· No rank effect</Text>
+              <Text style={styles.casualBtnSub}>· No rank effect</Text>
             </LinearGradient>
           </Pressable>
         </View>

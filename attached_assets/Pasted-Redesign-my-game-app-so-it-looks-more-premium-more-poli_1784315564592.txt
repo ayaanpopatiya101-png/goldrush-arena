@@ -1,0 +1,108 @@
+Redesign my game app so it looks more premium, more polished, and more exciting than the reference image I attached.
+
+Important:
+Do NOT copy the attached image directly.
+Do NOT clone Brawl Stars or reuse its exact layout, assets, colors, icons, or branding.
+Instead, study why the reference feels strong and then create something original that feels even more expensive, more modern, and more beautifully art-directed.
+
+My goal:
+I want this game app to feel like a top-grossing mobile game with world-class UI polish, custom-crafted menus, premium feedback, stronger composition, and a more iconic visual identity than the attached reference.
+
+Use the reference image only for inspiration in these ways:
+- bold visual hierarchy
+- strong center character focus
+- clear separation between primary and secondary actions
+- readable, high-contrast game HUD
+- touch-friendly buttons
+- satisfying shop / missions / rewards / friends / event presentation
+- exciting but controlled color usage
+- polished game-lobby energy
+
+But improve on it by making my app:
+- more modern
+- cleaner
+- less cluttered
+- more cinematic
+- more premium
+- more consistent
+- more original
+- more visually unforgettable
+
+Art direction:
+- Create a distinctive visual identity for my game
+- Make it feel like a real entertainment product, not an AI prototype
+- Use stronger atmosphere, better depth, richer lighting, and more intentional composition
+- Make the screen feel less like “many UI boxes around a character” and more like a unified premium game world
+- Use custom panel shapes, better layering, better shadows, stronger spacing rhythm, and more elegant use of color
+
+Hierarchy:
+- The main action should be instantly obvious
+- The player’s eye should go in this order: hero focal point, primary CTA, current mode/status, rewards/events, secondary navigation
+- Reduce visual noise from low-priority buttons
+- Group related actions more intelligently
+- Make every corner of the screen feel intentional
+
+Buttons:
+- Redesign every button to feel tactile, satisfying, and game-premium
+- Strong idle, hover, pressed, disabled, selected, and reward states
+- Buttons should feel custom-made, not like flat rectangles
+- The main Play button should feel irresistible and powerful
+- Secondary buttons should support the layout without stealing attention
+
+Panels and HUD:
+- Improve readability of currencies, trophies, quests, events, timers, and notifications
+- Create clearer grouping and better information density
+- Make stat bars, progress modules, and reward widgets feel more valuable and more refined
+- Reduce cramped feeling while still preserving excitement and content richness
+
+Character presentation:
+- Make the hero area more dramatic and premium
+- Better framing, better lighting, better pedestal/stage treatment, better background depth
+- The character should feel celebrated, not just placed in the middle
+- Add subtle ambient motion and environmental polish
+
+Motion and polish:
+- Add premium micro-interactions and transitions
+- Every tap should feel responsive
+- Menus, popups, claim moments, and selection states should animate with satisfying feedback
+- Use animation to create delight and clarity, not chaos
+- Make the whole app feel alive
+
+Anti-AI cleanup:
+Remove anything that feels generic, templated, cheap, or AI-generated:
+- random gradients
+- default cards
+- weak spacing
+- inconsistent icon sizes
+- messy panel stacking
+- bland buttons
+- too many equally loud elements
+- poor visual rhythm
+- no-name mobile UI kit styling
+
+Make it feel better than the reference by focusing on:
+- stronger composition
+- better spacing
+- better depth
+- cleaner grouping
+- more premium typography
+- better reward psychology
+- more satisfying interactions
+- more original art direction
+- more polished screen-to-screen consistency
+
+Implementation instructions:
+1. First analyze my current UI and explain why it looks worse than the attached reference.
+2. Then identify exactly what makes the reference feel premium.
+3. Then create an original visual direction that surpasses that quality without copying it.
+4. Then redesign the highest-traffic screens first.
+5. Build a reusable game UI system for buttons, panels, badges, currencies, timers, tabs, popups, and CTA modules.
+6. Keep the game functional while improving presentation.
+7. Make the result feel like a launch-ready, top-charting mobile game.
+
+Success criteria:
+- It should feel more premium than the attached image
+- It should look original, not derivative
+- It should feel like a real hit game product
+- It should be mobile-first, touch-first, and highly polished
+- It should instantly impress a player in the first 3 seconds

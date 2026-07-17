@@ -13,29 +13,17 @@ function TabIcon({ name, color, label, focused }: {
 }) {
   return (
     <View style={styles.tabItem}>
-      <View style={[
-        styles.iconWrap,
-        focused && { backgroundColor: color + '20', borderColor: color + '44', borderWidth: 1 },
-      ]}>
-        <Feather
-          name={name}
-          size={focused ? 22 : 19}
-          color={focused ? color : '#4A5568'}
-        />
-        {focused && (
-          <View style={[styles.activeDot, { backgroundColor: color }]} />
-        )}
+      <View style={[styles.iconWrap, focused && { backgroundColor: color + '1E' }]}>
+        <Feather name={name} size={21} color={focused ? color : '#FFFFFF2E'} />
       </View>
-      <Text style={[
-        styles.tabLabel,
-        {
-          color: focused ? color : '#3A4255',
-          fontFamily: focused ? 'Inter_700Bold' : 'Inter_400Regular',
-          fontSize: focused ? 10 : 9,
-        },
-      ]}>
+      <Text style={[styles.tabLabel, {
+        color: focused ? color : '#FFFFFF26',
+        fontFamily: focused ? 'Inter_700Bold' : 'Inter_400Regular',
+        fontSize: 9,
+      }]}>
         {label}
       </Text>
+      {focused && <View style={[styles.activePip, { backgroundColor: color }]} />}
     </View>
   );
 }
@@ -132,7 +120,7 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBg: {
-    backgroundColor: '#05070DEE',
+    backgroundColor: '#04060CF2',
   },
   tabBorder: {
     position: 'absolute',
@@ -140,29 +128,27 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: '#FFFFFF0C',
+    backgroundColor: '#FFFFFF14',
   },
   tabItem: {
     alignItems: 'center',
     gap: 2,
-    paddingTop: 4,
+    paddingTop: 6,
   },
   iconWrap: {
-    width: 40,
-    height: 32,
-    borderRadius: 10,
+    width: 44,
+    height: 30,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
   },
-  activeDot: {
-    position: 'absolute',
-    bottom: -4,
-    width: 4,
-    height: 4,
+  activePip: {
+    width: 18,
+    height: 2.5,
     borderRadius: 2,
+    marginTop: 1,
   },
   tabLabel: {
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
 });
