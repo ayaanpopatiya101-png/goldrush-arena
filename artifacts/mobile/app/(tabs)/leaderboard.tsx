@@ -86,25 +86,19 @@ export default function LeaderboardScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Deep teal-navy — prestige competitive arena */}
-      <LinearGradient colors={['#020C14', '#041C2A', '#020C14']} style={StyleSheet.absoluteFill} />
-      {/* Crimson-gold champion glow at top */}
+      <LinearGradient colors={['#0B0D14', '#07090F']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#FF226630', '#FF882015', 'transparent']}
+        colors={['#C8820A10', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 280 }}
-        pointerEvents="none"
-      />
-      {/* Cyan teal accent mid-section */}
-      <LinearGradient
-        colors={['transparent', '#00E5FF0E', 'transparent']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-        style={{ position: 'absolute', top: '30%', left: 0, right: 0, height: 300 }}
         pointerEvents="none"
       />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>LEADERBOARD</Text>
+        <View>
+          <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
+          <Text style={[styles.headerTitle, { color: colors.foreground }]}>LEADERBOARD</Text>
+        </View>
         <View style={styles.levelPill}>
           <Text style={styles.levelPillText}>LVL {profile.competitiveLevel ?? 1}</Text>
         </View>
@@ -142,8 +136,9 @@ export default function LeaderboardScreen() {
                     </View>
                     <Text style={[styles.podiumName, { color: colors.foreground }]} numberOfLines={1}>{p.name}</Text>
                     <Text style={[styles.podiumLevel, { color: p.color }]}>LVL {p.level}</Text>
-                    <LinearGradient colors={[p.color + '44', p.color + '22']} style={[styles.podiumBlock, { height: heights[i] }]}>
-                      <Text style={[styles.podiumPos, { color: p.color }]}>{pos}</Text>
+                    <LinearGradient colors={[p.color + '55', p.color + '18']} style={[styles.podiumBlock, { height: heights[i], borderWidth: 1, borderColor: p.color + '44', borderRadius: 10 }]}>
+                      <Text style={{ fontSize: pos === 1 ? 18 : 14 }}>{pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉'}</Text>
+                      <Text style={[styles.podiumPos, { color: p.color, fontSize: pos === 1 ? 22 : 18 }]}>{pos}</Text>
                       <Text style={[styles.podiumWins, { color: colors.mutedForeground }]}>{p.wins}W</Text>
                     </LinearGradient>
                   </View>
@@ -266,7 +261,11 @@ export default function LeaderboardScreen() {
               </Text>
             </View>
 
-            <Text style={[styles.nearbyTitle, { color: colors.mutedForeground }]}>NEARBY PLAYERS</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 }}>
+              <View style={{ height: 1, backgroundColor: '#FFFFFF10', flex: 1 }} />
+              <Text style={[styles.nearbyTitle, { color: colors.mutedForeground }]}>NEARBY PLAYERS</Text>
+              <View style={{ height: 1, backgroundColor: '#FFFFFF10', flex: 1 }} />
+            </View>
             {[...GLOBAL_LEADERS].sort((a, b) => b.xp - a.xp).slice(Math.max(0, playerPosition - 3), playerPosition + 2).map((p, i) => (
               <View key={p.name} style={[styles.row, {
                 backgroundColor: p.name === profile.name ? rankData.color + '22' : colors.card,

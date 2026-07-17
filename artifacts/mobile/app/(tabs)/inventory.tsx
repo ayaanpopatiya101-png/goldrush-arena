@@ -49,23 +49,19 @@ export default function InventoryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Warm dark amber — collection/treasure vault */}
-      <LinearGradient colors={['#100800', '#1C0E00', '#0E0A00']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0B0D14', '#07090F']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#FF880028', '#C8820018', 'transparent']}
+        colors={['#C8820A10', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 260 }}
-        pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['transparent', '#FFD70010', 'transparent']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-        style={{ position: 'absolute', top: '30%', left: 0, right: 0, height: 300 }}
         pointerEvents="none"
       />
 
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
-        <Text style={[s.title, { color: colors.foreground }]}>INVENTORY</Text>
+        <View>
+          <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44', marginBottom: 2 }}>YOUR COLLECTION</Text>
+          <Text style={[s.title, { color: colors.foreground }]}>INVENTORY</Text>
+        </View>
         <View style={s.countBadge}>
           <Text style={s.countText}>{ownedSkins.length + ownedThemes.length + unlockedRelics.length} items</Text>
         </View>

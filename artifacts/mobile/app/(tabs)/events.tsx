@@ -116,11 +116,17 @@ export default function EventsScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#07090F', '#0C1428', '#07090F']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0B0D14', '#07090F']} style={StyleSheet.absoluteFill} />
+      <LinearGradient
+        colors={['#C8820A10', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 280 }}
+        pointerEvents="none"
+      />
 
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 6 }]}>
         <View>
+          <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
           <Text style={[s.title, { color: colors.foreground }]}>EVENTS</Text>
           <Text style={[s.subtitle, { color: colors.mutedForeground }]}>
             Exclusive · General 1+ · Qualifier system

@@ -15,7 +15,7 @@ New optional props (all have defaults so existing callers don't break):
 - `onActiveBallsChange: (count: number) => void` — fires when live ball count changes
 - `botDifficulty: 'easy' | 'normal'` — easy = 0.62× speed + 2.2× inaccuracy
 - `onGameStart: () => void` — fires once when the countdown finishes and play begins
-- `paused: boolean` — freezes RAF loop (skipssimulation); game.tsx sets this via AppState listener on app-background
+- `paused: boolean` — freezes RAF loop (skips simulation); game.tsx sets this via AppState listener on app-background
 
 ## Native audio (expo-av + expo-file-system v57)
 - expo-file-system v57 uses class-based API: `new File(Paths.cache, 'name.wav')`, `file.write(Uint8Array)`, `file.exists` (boolean property), `file.uri` (string). No `FileSystem.cacheDirectory` or `writeAsStringAsync`.
@@ -96,3 +96,11 @@ Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Ex
 - **Defense-in-depth:** `game.tsx` re-validates `unlockRankIndex <= playerRankIdx` for both relic and map before passing into `GameArena` — UI gates aren't trusted alone. Any new rank-gated modifier should do the same final check.
 - Caps that exist for balance: paddle length 1.25×, `deflectBoost` 1.3×, `botAccuracy` 0.97, bot speed `0.7+0.4*skill`. Don't remove these silently.
 - Duel-mode rendering must reference `duelBottomPlayer`/`duelTopPlayer` (not `gs.players[BOTTOM/TOP]`) for paddle width/transform/shield, or a spectated bot-vs-bot duel shows the wrong paddle length/shield.
+
+## Premium UI design system (completed)
+- **Background pattern** (all tab screens): `LinearGradient ['#0B0D14', '#07090F']` base + `LinearGradient ['#C8820A10'/'#C8820A14', 'transparent']` gold top glow at height 260-280. Gauntlet intentionally uses `#0A0600` (warm golden tone).
+- **Font rule**: ALL bold text uses `fontFamily: 'Inter_700Bold'` or `'Inter_600SemiBold'`. Zero `fontWeight: '600'/'700'/'800'/'900'` remain in the codebase.
+- **Header pattern** (leaderboard, shop, inventory, events, trophyroad): tiny eyebrow text above title — `fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44'` + main title at `fontSize: 22, letterSpacing: 2`.
+- **Section separators**: "NEARBY PLAYERS" in leaderboard uses flanking `View` lines with `backgroundColor: '#FFFFFF10'`.
+- **Shop subsectionTitle**: gold left-border accent — `borderLeftWidth: 2, borderLeftColor: '#C8820A', paddingLeft: 8`.
+- **Podium blocks**: medal emojis 🥇🥈🥉 + larger pos number for #1 (22px vs 18px) + slightly stronger gradient `p.color + '55'/'18'` + border.

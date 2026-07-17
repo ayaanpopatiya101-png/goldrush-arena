@@ -223,10 +223,10 @@ const s = StyleSheet.create({
   header: { alignItems: 'center', marginBottom: 20 },
   headerEyebrow: {
     fontSize: 11, letterSpacing: 3, color: '#C8820A',
-    fontWeight: '700', marginBottom: 4,
+    fontFamily: 'Inter_700Bold', marginBottom: 4,
   },
   headerTitle: {
-    fontSize: 24, fontWeight: '900', color: '#FFD700', letterSpacing: 1,
+    fontSize: 24, fontFamily: 'Inter_700Bold', color: '#FFD700', letterSpacing: 1,
   },
 
   resultBanner: {
@@ -234,15 +234,15 @@ const s = StyleSheet.create({
     padding: 20, alignItems: 'center', marginBottom: 24,
   },
   resultEmoji:   { fontSize: 40, marginBottom: 6 },
-  resultLabel:   { fontSize: 20, fontWeight: '900', letterSpacing: 1.5 },
+  resultLabel:   { fontSize: 20, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
   resultRewards: { flexDirection: 'row', gap: 24, marginTop: 10 },
-  rewardXP:      { color: '#FFD700', fontWeight: '700', fontSize: 14 },
-  rewardCoins:   { color: '#C8820A', fontWeight: '700', fontSize: 14 },
-  bonusNote:     { color: '#FFD70077', fontSize: 11, marginTop: 6, fontWeight: '600', letterSpacing: 0.5 },
+  rewardXP:      { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 14 },
+  rewardCoins:   { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 14 },
+  bonusNote:     { color: '#FFD70077', fontSize: 11, marginTop: 6, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.5 },
 
   sectionLabel: {
     fontSize: 10, letterSpacing: 3, color: '#FFFFFF44',
-    fontWeight: '700', marginBottom: 10,
+    fontFamily: 'Inter_700Bold', marginBottom: 10,
   },
 
   scoreboard: { gap: 8, marginBottom: 24 },
@@ -252,18 +252,18 @@ const s = StyleSheet.create({
     padding: 14, gap: 12,
   },
   playerInfo: { flex: 1 },
-  playerName: { fontWeight: '800', fontSize: 14 },
+  playerName: { fontFamily: 'Inter_700Bold', fontSize: 14 },
   playerTag:  { color: '#FFFFFF44', fontSize: 11, marginTop: 2 },
-  winCount:   { fontWeight: '900', fontSize: 20, minWidth: 22, textAlign: 'right' },
+  winCount:   { fontFamily: 'Inter_700Bold', fontSize: 20, minWidth: 22, textAlign: 'right' },
 
   endState: { alignItems: 'center', paddingTop: 8 },
   endEmoji: { fontSize: 64, marginBottom: 12 },
-  endTitle: { fontSize: 28, fontWeight: '900', letterSpacing: 2, marginBottom: 6 },
+  endTitle: { fontSize: 28, fontFamily: 'Inter_700Bold', letterSpacing: 2, marginBottom: 6 },
   endSub:   { fontSize: 14, marginBottom: 24 },
 
   totalRewards: { flexDirection: 'row', gap: 28, marginBottom: 20 },
   rewardPill:   { alignItems: 'center' },
-  rewardPillNum:   { fontWeight: '900', fontSize: 24 },
+  rewardPillNum:   { fontFamily: 'Inter_700Bold', fontSize: 24 },
   rewardPillLabel: { color: '#FFFFFF55', fontSize: 11, marginTop: 2 },
   rewardDivider:   { width: 1, backgroundColor: '#FFFFFF22' },
 
@@ -272,14 +272,14 @@ const s = StyleSheet.create({
     borderWidth: 1, borderRadius: 10,
     paddingHorizontal: 16, paddingVertical: 10, marginBottom: 28,
   },
-  championBonusText: { color: '#FFD700', fontSize: 13, fontWeight: '700' },
+  championBonusText: { color: '#FFD700', fontSize: 13, fontFamily: 'Inter_700Bold' },
 
   homeBtn: {
     backgroundColor: '#C8820A', borderRadius: 14,
     paddingVertical: 16, paddingHorizontal: 52,
   },
   homeBtnText: {
-    color: '#0A0500', fontWeight: '900', fontSize: 16, letterSpacing: 1.5,
+    color: '#0A0500', fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 1.5,
   },
 
   nextRoundCard: {
@@ -287,7 +287,7 @@ const s = StyleSheet.create({
     padding: 22, alignItems: 'center', marginBottom: 20,
   },
   nextRoundEmoji: { fontSize: 48, marginBottom: 10 },
-  nextRoundName:  { fontSize: 22, fontWeight: '900', letterSpacing: 1 },
+  nextRoundName:  { fontSize: 22, fontFamily: 'Inter_700Bold', letterSpacing: 1 },
   nextRoundSub:   { color: '#FFFFFF66', fontSize: 14, marginTop: 6 },
 
   startBtn: { borderRadius: 14, overflow: 'hidden' },
@@ -295,6 +295,6 @@ const s = StyleSheet.create({
     paddingVertical: 18, alignItems: 'center',
   },
   startBtnText: {
-    color: '#0A0500', fontWeight: '900', fontSize: 18, letterSpacing: 1.5,
+    color: '#0A0500', fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 1.5,
   },
 });

@@ -29,7 +29,7 @@ function AppLoadingScreen() {
     <SafeAreaProvider>
       <View style={{ flex: 1, backgroundColor: '#080812', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
         <Text style={{ fontSize: 48 }}>👑</Text>
-        <Text style={{ color: '#C8820A', fontSize: 12, letterSpacing: 3, fontWeight: '700' }}>
+        <Text style={{ color: '#C8820A', fontSize: 12, letterSpacing: 3, fontFamily: 'Inter_700Bold' }}>
           GOLDRUSH ARENA
         </Text>
         <ActivityIndicator color="#C8820A55" size="small" style={{ marginTop: 8 }} />

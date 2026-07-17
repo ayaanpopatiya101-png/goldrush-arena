@@ -83,17 +83,10 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Rich deep violet — personal & prestigious */}
-      <LinearGradient colors={['#0E0820', '#120A38', '#0A0618']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0B0D14', '#07090F']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#AA44FF2A', '#7733FF14', 'transparent']}
+        colors={['#C8820A10', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300 }}
-        pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['transparent', '#FFD70012', 'transparent']}
-        start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
-        style={{ position: 'absolute', top: '20%', left: 0, right: 0, height: 400 }}
         pointerEvents="none"
       />
 
@@ -262,8 +255,10 @@ export default function ProfileScreen() {
             { label: 'DEFLECTIONS', value: String(profile.totalDeflections), icon: 'shield',  color: '#00BFFF' },
             { label: 'GAMES',       value: String(profile.totalGames),       icon: 'grid',    color: '#9B59B6' },
           ].map(stat => (
-            <View key={stat.label} style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Feather name={stat.icon as never} size={18} color={stat.color} />
+            <View key={stat.label} style={[styles.statCard, { backgroundColor: stat.color + '0C', borderColor: stat.color + '30' }]}>
+              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: stat.color + '18', alignItems: 'center', justifyContent: 'center' }}>
+                <Feather name={stat.icon as never} size={16} color={stat.color} />
+              </View>
               <Text style={[styles.statValue, { color: colors.foreground }]}>{stat.value}</Text>
               <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
             </View>

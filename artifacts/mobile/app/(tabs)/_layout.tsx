@@ -2,80 +2,143 @@ import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
-import { Platform, StyleSheet, View, useColorScheme } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useColors } from '@/hooks/useColors';
+
+function TabIcon({ name, color, label, focused }: {
+  name: React.ComponentProps<typeof Feather>['name'];
+  color: string;
+  label: string;
+  focused: boolean;
+}) {
+  return (
+    <View style={styles.tabItem}>
+      <View style={[styles.iconWrap, focused && { backgroundColor: color + '18' }]}>
+        <Feather name={name} size={20} color={color} />
+      </View>
+      <Text style={[styles.tabLabel, { color, fontFamily: focused ? 'Inter_600SemiBold' : 'Inter_400Regular' }]}>
+        {label}
+      </Text>
+    </View>
+  );
+}
 
 export default function TabLayout() {
   const colors = useColors();
-  const isDark = useColorScheme() === 'dark';
   const isIOS = Platform.OS === 'ios';
-  const isWeb = Platform.OS === 'web';
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: '#555580',
+        tabBarInactiveTintColor: '#4A5568',
         headerShown: false,
+        tabBarShowLabel: false,
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: isIOS ? 'transparent' : colors.background,
+          backgroundColor: 'transparent',
           borderTopWidth: 0,
-          borderTopColor: 'transparent',
           elevation: 0,
-          height: isWeb ? 84 : 60,
+          height: Platform.OS === 'web' ? 72 : 64,
         },
-        tabBarBackground: () =>
-          isIOS ? (
-            <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFill} />
-          ) : (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background + 'EE', borderTopWidth: 0.5, borderTopColor: colors.border }]} />
-          ),
-        tabBarShowLabel: false,
+        tabBarBackground: () => (
+          <View style={StyleSheet.absoluteFill}>
+            {isIOS ? (
+              <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+            ) : (
+              <View style={[StyleSheet.absoluteFill, styles.tabBg]} />
+            )}
+            <View style={styles.tabBorder} />
+          </View>
+        ),
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ color, size }) => <Feather name="home" size={size ?? 22} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="home" color={color} label="Home" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="leaderboard"
         options={{
-          tabBarIcon: ({ color, size }) => <Feather name="award" size={size ?? 22} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="award" color={color} label="Ranks" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          tabBarIcon: ({ color, size }) => <Feather name="user" size={size ?? 22} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="user" color={color} label="Profile" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="shop"
         options={{
-          tabBarIcon: ({ color, size }) => <Feather name="shopping-bag" size={size ?? 22} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="shopping-bag" color={color} label="Shop" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="inventory"
         options={{
-          tabBarIcon: ({ color, size }) => <Feather name="archive" size={size ?? 22} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="archive" color={color} label="Gear" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="trophyroad"
         options={{
-          tabBarIcon: ({ color, size }) => <Feather name="map" size={size ?? 22} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="map" color={color} label="Road" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="events"
         options={{
-          tabBarIcon: ({ color, size }) => <Feather name="zap" size={size ?? 22} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="zap" color={color} label="Events" focused={focused} />
+          ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBg: {
+    backgroundColor: '#07090FEE',
+  },
+  tabBorder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 0.5,
+    backgroundColor: '#FFFFFF12',
+  },
+  tabItem: {
+    alignItems: 'center',
+    gap: 3,
+    paddingTop: 6,
+  },
+  iconWrap: {
+    width: 36,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabLabel: {
+    fontSize: 10,
+    letterSpacing: 0.2,
+  },
+});

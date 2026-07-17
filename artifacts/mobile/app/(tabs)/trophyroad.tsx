@@ -413,30 +413,11 @@ export default function TrophyRoadScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0C0800' }}>
-      {/* Warm amber base — "golden road" feel */}
+    <View style={{ flex: 1, backgroundColor: '#07090F' }}>
+      <LinearGradient colors={['#0B0D14', '#07090F']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#1A0C00', '#0E0800', '#0A1000', '#0E0800']}
-        locations={[0, 0.35, 0.65, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-      {/* Gold sunrise glow from top */}
-      <LinearGradient
-        colors={['#FFB30040', '#FF880020', 'transparent']}
+        colors={['#C8820A14', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 280 }}
-        pointerEvents="none"
-      />
-      {/* Warm teal accent in the road zone — makes the road pop */}
-      <LinearGradient
-        colors={['transparent', '#00C8641A', 'transparent']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-        style={{ position: 'absolute', top: '35%', left: 0, right: 0, height: 220 }}
-        pointerEvents="none"
-      />
-      {/* Soft bottom fade to rich dark */}
-      <LinearGradient
-        colors={['transparent', '#0A060030']}
-        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 180 }}
         pointerEvents="none"
       />
       {/* Background sparkles */}
@@ -447,6 +428,7 @@ export default function TrophyRoadScreen() {
         {/* ── Header ── */}
         <View style={styles.header}>
           <View style={{ gap: 2 }}>
+            <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44', marginBottom: 1 }}>PROGRESSION</Text>
             <Title3D text="TROPHY ROAD" size={21} />
             <Text style={styles.headerSub}>Earn XP · Unlock Rewards · Rule the Arena</Text>
           </View>

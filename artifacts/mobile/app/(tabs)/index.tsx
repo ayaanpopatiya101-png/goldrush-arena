@@ -7,7 +7,6 @@ import {
   StyleSheet, Text, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 
 import { DailyStreakModal } from '@/components/DailyStreakModal';
 import { RankBadge } from '@/components/RankBadge';
@@ -216,39 +215,13 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.root}>
-      {/* Deep cosmic purple — main arena hub */}
-      <LinearGradient colors={['#080520', '#0E0838', '#060518']} style={StyleSheet.absoluteFill} />
-      {/* Vivid purple-blue aurora at top */}
+      <LinearGradient colors={['#0B0D14', '#07090F']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#8844FF30', '#4422FF18', 'transparent']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 360 }}
-        pointerEvents="none"
-      />
-      {/* Hot gold arena glow — signature GoldRush accent */}
-      <LinearGradient
-        colors={['transparent', '#C8820A18', 'transparent']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-        style={{ position: 'absolute', top: '28%', left: 0, right: 0, height: 420 }}
-        pointerEvents="none"
-      />
-      {/* Subtle teal shimmer bottom-right */}
-      <LinearGradient
-        colors={['transparent', '#00BFFF0C']}
-        start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }}
-        style={{ position: 'absolute', bottom: 0, right: 0, width: '60%', height: '40%' }}
+        colors={['#C8820A14', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 400 }}
         pointerEvents="none"
       />
       <AmbientParticles />
-      <Svg style={StyleSheet.absoluteFill as never} pointerEvents="none">
-        <Defs>
-          <RadialGradient id="bg" cx="50%" cy="35%" r="55%">
-            <Stop offset="0%"   stopColor="#C8820A" stopOpacity="0.18" />
-            <Stop offset="60%"  stopColor="#6633FF" stopOpacity="0.06" />
-            <Stop offset="100%" stopColor="#C8820A" stopOpacity="0" />
-          </RadialGradient>
-        </Defs>
-        <Circle cx="50%" cy="35%" r="100%" fill="url(#bg)" />
-      </Svg>
 
       {/* Daily streak modal */}
       <DailyStreakModal
@@ -448,10 +421,10 @@ export default function HomeScreen() {
                 {/* Top row: title + diamond badge */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                   <View>
-                    <Text style={{ fontSize: 10, letterSpacing: 3, color: '#C8820A', fontWeight: '700', marginBottom: 4 }}>
+                    <Text style={{ fontSize: 10, letterSpacing: 3, color: '#C8820A', fontFamily: 'Inter_700Bold', marginBottom: 4 }}>
                       EXCLUSIVE MODE
                     </Text>
-                    <Text style={{ fontSize: 22, fontWeight: '900', color: locked ? '#FFFFFF55' : '#FFD700', letterSpacing: 0.5 }}>
+                    <Text style={{ fontSize: 22, fontFamily: 'Inter_700Bold', color: locked ? '#FFFFFF55' : '#FFD700', letterSpacing: 0.5 }}>
                       ⚔️ CHAMPION'S{'\n'}GAUNTLET
                     </Text>
                   </View>
@@ -461,7 +434,7 @@ export default function HomeScreen() {
                     borderWidth: 1, borderRadius: 8,
                     paddingHorizontal: 10, paddingVertical: 5,
                   }}>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: locked ? '#FFFFFF55' : '#B9F2FF' }}>
+                    <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: locked ? '#FFFFFF55' : '#B9F2FF' }}>
                       💎 DIAMOND+
                     </Text>
                   </View>
@@ -481,7 +454,7 @@ export default function HomeScreen() {
                       borderWidth: 1, borderRadius: 8,
                       paddingHorizontal: 10, paddingVertical: 5,
                     }}>
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: locked ? '#FFFFFF44' : f.color }}>
+                      <Text style={{ fontSize: 11, fontFamily: 'Inter_700Bold', color: locked ? '#FFFFFF44' : f.color }}>
                         {f.label}
                       </Text>
                     </View>
@@ -496,7 +469,7 @@ export default function HomeScreen() {
                     paddingVertical: 10, paddingHorizontal: 14,
                   }}>
                     <Text style={{ fontSize: 16 }}>🔒</Text>
-                    <Text style={{ color: '#FFFFFF55', fontSize: 13, fontWeight: '600' }}>
+                    <Text style={{ color: '#FFFFFF55', fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>
                       Reach Diamond rank to unlock this mode
                     </Text>
                   </View>
@@ -507,7 +480,7 @@ export default function HomeScreen() {
                     borderWidth: 1, borderRadius: 12,
                     paddingVertical: 12,
                   }}>
-                    <Text style={{ color: '#FFD700', fontSize: 15, fontWeight: '900', letterSpacing: 1.5 }}>
+                    <Text style={{ color: '#FFD700', fontSize: 15, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 }}>
                       ENTER THE GAUNTLET
                     </Text>
                     <Text style={{ fontSize: 18 }}>⚔️</Text>
@@ -561,8 +534,8 @@ export default function HomeScreen() {
           return (
             <View style={{ marginBottom: 8 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 20, marginBottom: 10, marginTop: 4 }}>
-                <Text style={{ fontSize: 11, letterSpacing: 3, color: '#FF8C42', fontWeight: '700' }}>⚡  ELITE MODES</Text>
-                <Text style={{ fontSize: 11, color: '#FFFFFF55', fontWeight: '600' }}>Ranked · Higher rewards</Text>
+                <Text style={{ fontSize: 11, letterSpacing: 3, color: '#FF8C42', fontFamily: 'Inter_700Bold' }}>⚡  ELITE MODES</Text>
+                <Text style={{ fontSize: 11, color: '#FFFFFF55', fontFamily: 'Inter_600SemiBold' }}>Ranked · Higher rewards</Text>
               </View>
               {eliteModes.map(m => {
                 const locked = playerRankIdx < m.lockIdx;
@@ -582,7 +555,7 @@ export default function HomeScreen() {
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                           <Text style={{ fontSize: 26 }}>{m.emoji}</Text>
                           <View>
-                            <Text style={{ fontSize: 16, fontWeight: '900', letterSpacing: 0.5, color: locked ? '#FFFFFF44' : m.accent }}>
+                            <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', letterSpacing: 0.5, color: locked ? '#FFFFFF44' : m.accent }}>
                               {m.name}
                             </Text>
                             <Text style={{ fontSize: 11, color: locked ? '#FFFFFF33' : '#FFFFFF88', marginTop: 1 }}>
@@ -596,7 +569,7 @@ export default function HomeScreen() {
                           borderWidth: 1, borderRadius: 8,
                           paddingHorizontal: 8, paddingVertical: 4,
                         }}>
-                          <Text style={{ fontSize: 10, fontWeight: '700', color: locked ? '#FFFFFF44' : m.accent }}>{m.rankLabel}</Text>
+                          <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: locked ? '#FFFFFF44' : m.accent }}>{m.rankLabel}</Text>
                         </View>
                       </View>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
@@ -607,7 +580,7 @@ export default function HomeScreen() {
                             borderWidth: 1, borderRadius: 6,
                             paddingHorizontal: 8, paddingVertical: 3,
                           }}>
-                            <Text style={{ fontSize: 10, fontWeight: '700', color: locked ? '#FFFFFF33' : m.chipColors[ci] }}>{chip}</Text>
+                            <Text style={{ fontSize: 10, fontFamily: 'Inter_700Bold', color: locked ? '#FFFFFF33' : m.chipColors[ci] }}>{chip}</Text>
                           </View>
                         ))}
                       </View>
@@ -618,7 +591,7 @@ export default function HomeScreen() {
                           paddingVertical: 8, paddingHorizontal: 12,
                         }}>
                           <Text style={{ fontSize: 14 }}>🔒</Text>
-                          <Text style={{ color: '#FFFFFF44', fontSize: 12, fontWeight: '600' }}>
+                          <Text style={{ color: '#FFFFFF44', fontSize: 12, fontFamily: 'Inter_600SemiBold' }}>
                             Reach {m.rankLabel.replace(/^[^ ]+ /, '')} to unlock
                           </Text>
                         </View>
@@ -628,7 +601,7 @@ export default function HomeScreen() {
                           backgroundColor: m.accent + '22', borderColor: m.accent + '55',
                           borderWidth: 1, borderRadius: 10, paddingVertical: 10,
                         }}>
-                          <Text style={{ color: m.accent, fontSize: 13, fontWeight: '900', letterSpacing: 1.5 }}>ENTER MODE</Text>
+                          <Text style={{ color: m.accent, fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 }}>ENTER MODE</Text>
                           <Text style={{ fontSize: 16 }}>{m.emoji}</Text>
                         </View>
                       )}
@@ -694,8 +667,10 @@ export default function HomeScreen() {
             { label: 'WIN RATE', value: profile.totalGames > 0 ? `${winRate}%` : '—', icon: 'percent' },
             { label: 'STREAK',   value: String(profile.winStreak), icon: 'zap'   },
           ].map(stat => (
-            <View key={stat.label} style={[styles.statCard, { backgroundColor: '#FFFFFF0A', borderColor: '#FFFFFF18' }]}>
-              <Feather name={stat.icon as never} size={16} color={colors.primary} />
+            <View key={stat.label} style={[styles.statCard, { backgroundColor: '#C8820A0C', borderColor: '#C8820A30' }]}>
+              <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#C8820A18', alignItems: 'center', justifyContent: 'center' }}>
+                <Feather name={stat.icon as never} size={14} color={colors.primary} />
+              </View>
               <Text style={[styles.statValue, { color: '#F0F0FF' }]}>{stat.value}</Text>
               <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
             </View>

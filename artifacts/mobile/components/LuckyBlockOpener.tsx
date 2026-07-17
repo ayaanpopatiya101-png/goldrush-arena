@@ -344,7 +344,7 @@ const s = StyleSheet.create({
     alignItems: 'center', gap: 0,
   },
   tierLabel: {
-    fontSize: 22, fontWeight: '800', letterSpacing: 2,
+    fontSize: 22, fontFamily: 'Inter_700Bold', letterSpacing: 2,
     textShadowColor: '#000', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6,
     marginBottom: 16,
   },
@@ -360,7 +360,7 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   upgradeTxt: {
-    fontSize: 15, fontWeight: '800', letterSpacing: 1,
+    fontSize: 15, fontFamily: 'Inter_700Bold', letterSpacing: 1,
   },
   glowRing: {
     position: 'absolute',
@@ -390,10 +390,10 @@ const s = StyleSheet.create({
     marginTop: 32, alignItems: 'center', gap: 6,
   },
   hintText: {
-    fontSize: 16, fontWeight: '700', letterSpacing: 3, color: '#FFFFFF44',
+    fontSize: 16, fontFamily: 'Inter_700Bold', letterSpacing: 3, color: '#FFFFFF44',
   },
   tapsLeft: {
-    fontSize: 13, fontWeight: '600', letterSpacing: 1,
+    fontSize: 13, fontFamily: 'Inter_600SemiBold', letterSpacing: 1,
   },
   rewardCard: {
     marginHorizontal: 32, padding: 32, borderRadius: 24, borderWidth: 1.5,
@@ -403,7 +403,7 @@ const s = StyleSheet.create({
     fontSize: 64, marginBottom: 4,
   },
   rewardOpened: {
-    fontSize: 18, fontWeight: '800', letterSpacing: 2, marginBottom: 20,
+    fontSize: 18, fontFamily: 'Inter_700Bold', letterSpacing: 2, marginBottom: 20,
   },
   rewardItems: {
     width: '100%', gap: 10, marginBottom: 24,
@@ -413,13 +413,13 @@ const s = StyleSheet.create({
     backgroundColor: '#FFFFFF08', borderRadius: 12, padding: 14, borderWidth: 1,
   },
   rIcon: { fontSize: 20 },
-  rLabel: { flex: 1, color: '#FFFFFF88', fontSize: 14, fontWeight: '600' },
-  rValue: { fontSize: 18, fontWeight: '800' },
+  rLabel: { flex: 1, color: '#FFFFFF88', fontSize: 14, fontFamily: 'Inter_600SemiBold' },
+  rValue: { fontSize: 18, fontFamily: 'Inter_700Bold' },
   collectBtn: {
     paddingHorizontal: 40, paddingVertical: 16, borderRadius: 14,
     marginTop: 4,
   },
   collectBtnTxt: {
-    color: '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 2,
+    color: '#FFF', fontSize: 16, fontFamily: 'Inter_700Bold', letterSpacing: 2,
   },
 });

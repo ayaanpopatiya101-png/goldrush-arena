@@ -102,23 +102,19 @@ export default function ShopScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Deep emerald — treasure/store feel */}
-      <LinearGradient colors={['#030D08', '#071808', '#030D08']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0B0D14', '#07090F']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#FFD70022', '#C8820014', 'transparent']}
+        colors={['#C8820A10', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 260 }}
-        pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['transparent', '#00FF8812', 'transparent']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-        style={{ position: 'absolute', top: '25%', left: 0, right: 0, height: 350 }}
         pointerEvents="none"
       />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</Text>
+        <View>
+          <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
+          <Text style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</Text>
+        </View>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {allRelicsOwned && (
             <View style={[styles.coinDisplay, { backgroundColor: '#7A50A022', borderWidth: 1, borderColor: '#7A50A044' }]}>
@@ -474,7 +470,7 @@ const styles = StyleSheet.create({
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabText: { fontFamily: 'Inter_600SemiBold', fontSize: 11, letterSpacing: 1 },
   sectionInfo: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
-  subsectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 1, marginTop: 4 },
+  subsectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1.8, marginTop: 8, marginBottom: 2, color: '#FFFFFF99', borderLeftWidth: 2, borderLeftColor: '#C8820A', paddingLeft: 8 },
   skinGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   skinCard: { width: '47%', flex: 1, minWidth: 140, borderRadius: 14, borderWidth: 1.5, overflow: 'hidden' },
   skinPreview: { height: 80, alignItems: 'center', justifyContent: 'center' },

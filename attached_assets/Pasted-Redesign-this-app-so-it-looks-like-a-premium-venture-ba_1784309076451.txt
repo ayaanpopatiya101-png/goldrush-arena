@@ -1,0 +1,72 @@
+Redesign this app so it looks like a premium, venture-backed product with the polish of a top-tier SaaS app.
+
+Goal:
+Make the UI feel like a “$10 million app”: clean, expensive, fast, intentional, and trustworthy. The design should look like something from Linear, Stripe, Vercel, Notion, or Arc — not a generic AI-generated template.
+
+Design direction:
+- Minimal, premium, modern.
+- Strong visual hierarchy.
+- Extremely clean spacing.
+- Confident typography.
+- Smooth micro-interactions.
+- High-end product design, not flashy startup gimmicks.
+
+Visual rules:
+- Use a restrained color palette: mostly neutrals plus 1 accent color.
+- Avoid purple/blue AI gradients, glowing blobs, glassmorphism overuse, and cartoonish illustrations.
+- Use subtle borders, soft shadows, layered surfaces, and clean card layouts.
+- Increase whitespace and improve alignment everywhere.
+- Use a consistent spacing system and consistent border radius values.
+- Make every screen feel intentional and balanced.
+
+Typography:
+- Use a premium font pairing or a polished system stack.
+- Improve heading hierarchy, body readability, and button text.
+- Make headings feel confident and slightly bold, not oversized and noisy.
+- Keep body text readable and professional.
+
+Components:
+- Upgrade buttons, inputs, cards, modals, dropdowns, tables, nav bars, and empty states.
+- Buttons should have clear hierarchy: primary, secondary, ghost.
+- Inputs should feel premium with strong focus states and good padding.
+- Cards should have subtle depth and clean grouping.
+- Tables/lists should feel polished and easy to scan.
+- Empty states should look designed, not forgotten.
+
+Layout:
+- Improve overall spacing, padding, margins, and grid alignment.
+- Reduce clutter.
+- Create clearer section separation.
+- Make the app feel more structured and more premium on desktop and mobile.
+- Ensure responsive behavior is excellent.
+
+Motion:
+- Add subtle micro-interactions for hover, focus, pressed, modal open/close, and page transitions.
+- Animations should be smooth and fast, not bouncy or distracting.
+- The app should feel responsive and refined.
+
+User experience:
+- Make the primary action obvious on each screen.
+- Improve navigation clarity.
+- Reduce cognitive overload.
+- Make the app feel easier to use without removing functionality.
+
+Important:
+- Do not change the core app logic unless needed for UI cleanup.
+- Do not rewrite working backend behavior.
+- Focus on design polish, layout quality, consistency, and perceived product quality.
+- Refactor messy UI code if needed to create a cohesive design system.
+
+Implementation requirements:
+- Create a reusable design system with tokens for colors, spacing, radius, shadows, and typography.
+- Standardize components so the same button/card/input styles are reused across the app.
+- Audit every page for consistency.
+- Polish both light mode and dark mode if dark mode exists.
+- Make sure the final result feels production-ready, not prototype-like.
+
+Please:
+1. First analyze the current UI and list the biggest design problems.
+2. Then create a UI improvement plan.
+3. Then implement the redesign in small safe steps.
+4. After each major change, keep the app functional.
+5. Prioritize the highest-visibility screens first.
