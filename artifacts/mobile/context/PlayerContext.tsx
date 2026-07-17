@@ -526,11 +526,74 @@ export function getChallengeCode(username: string): string {
   return Math.abs(hash).toString(36).toUpperCase().padStart(6, '0').slice(0, 6);
 }
 
+// ─── Lucky Block ──────────────────────────────────────────────────────────────
+export type LuckyBlockTier = 'rare' | 'epic' | 'mythic' | 'legendary' | 'ultra';
+
+export interface LuckyBlock {
+  id: string;
+  tier: LuckyBlockTier;
+  source: string;
+}
+
+export interface LuckyBlockReward {
+  coins: number;
+  xp: number;
+  label: string;
+}
+
+export const LUCKY_BLOCK_META: Record<LuckyBlockTier, { name: string; emoji: string; color: string }> = {
+  rare:      { name: 'Rush Crate',    emoji: '📦', color: '#3399FF' },
+  epic:      { name: 'Storm Vault',   emoji: '⚡', color: '#AA44FF' },
+  mythic:    { name: 'Shadow Coffer', emoji: '🔮', color: '#FF44CC' },
+  legendary: { name: 'Dragon Cache', emoji: '🔥', color: '#FF6622' },
+  ultra:     { name: 'Nexus Core',   emoji: '💎', color: '#00EEFF' },
+};
+
+const LB_TIER_ORDER: LuckyBlockTier[] = ['rare', 'epic', 'mythic', 'legendary', 'ultra'];
+const LB_UPGRADE_CHANCE: Record<LuckyBlockTier, number> = {
+  rare: 0.38, epic: 0.26, mythic: 0.16, legendary: 0.06, ultra: 0,
+};
+
+export function rollLuckyBlockUpgrade(tier: LuckyBlockTier): LuckyBlockTier {
+  const idx = LB_TIER_ORDER.indexOf(tier);
+  if (idx < LB_TIER_ORDER.length - 1 && Math.random() < LB_UPGRADE_CHANCE[tier]) {
+    return LB_TIER_ORDER[idx + 1];
+  }
+  return tier;
+}
+
+export function generateLuckyBlockReward(tier: LuckyBlockTier): LuckyBlockReward {
+  const rnd = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
+  switch (tier) {
+    case 'rare': {
+      const c = rnd(200, 600);
+      return { coins: c, xp: 0, label: `${c} Coins` };
+    }
+    case 'epic': {
+      const c = rnd(600, 1200); const x = rnd(200, 500);
+      return { coins: c, xp: x, label: `${c} Coins + ${x} XP` };
+    }
+    case 'mythic': {
+      const c = rnd(1200, 2500); const x = rnd(500, 1200);
+      return { coins: c, xp: x, label: `${c} Coins + ${x} XP` };
+    }
+    case 'legendary': {
+      const c = rnd(2500, 5000); const x = rnd(1200, 3000);
+      return { coins: c, xp: x, label: `${c} Coins + ${x} XP` };
+    }
+    case 'ultra': {
+      const c = rnd(5000, 12000); const x = rnd(3000, 8000);
+      return { coins: c, xp: x, label: `${c} Coins + ${x} XP` };
+    }
+  }
+}
+
 // ─── Trophy Road ──────────────────────────────────────────────────────────────
 export type TrophyReward =
   | { type: 'coins'; amount: number }
   | { type: 'skin';  id: string }
-  | { type: 'relic'; id: string };
+  | { type: 'relic'; id: string }
+  | { type: 'luckyblock'; tier: LuckyBlockTier };
 
 export interface TrophyMilestone {
   id: string;
@@ -541,41 +604,41 @@ export interface TrophyMilestone {
 export const TROPHY_ROAD: TrophyMilestone[] = [
   { id: 'tr_01', xp: 100,    reward: { type: 'coins', amount: 200  } },
   { id: 'tr_02', xp: 300,    reward: { type: 'relic', id: 'ironhide'    } },
-  { id: 'tr_03', xp: 600,    reward: { type: 'coins', amount: 300  } },
+  { id: 'tr_03', xp: 600,    reward: { type: 'luckyblock', tier: 'rare'      } },
   { id: 'tr_04', xp: 1000,   reward: { type: 'skin',  id: 'plasma'      } },
   { id: 'tr_05', xp: 1500,   reward: { type: 'coins', amount: 400  } },
   { id: 'tr_06', xp: 2000,   reward: { type: 'relic', id: 'longarm'     } },
   { id: 'tr_07', xp: 3000,   reward: { type: 'skin',  id: 'frost'       } },
-  { id: 'tr_08', xp: 4000,   reward: { type: 'coins', amount: 600  } },
+  { id: 'tr_08', xp: 4000,   reward: { type: 'luckyblock', tier: 'epic'      } },
   { id: 'tr_09', xp: 6000,   reward: { type: 'relic', id: 'quicksilver' } },
   { id: 'tr_10', xp: 8000,   reward: { type: 'skin',  id: 'toxic'       } },
   { id: 'tr_11', xp: 10000,  reward: { type: 'coins', amount: 800  } },
   { id: 'tr_12', xp: 12000,  reward: { type: 'relic', id: 'secondwind'  } },
   { id: 'tr_13', xp: 15000,  reward: { type: 'skin',  id: 'void'        } },
-  { id: 'tr_14', xp: 20000,  reward: { type: 'coins', amount: 1000 } },
+  { id: 'tr_14', xp: 20000,  reward: { type: 'luckyblock', tier: 'mythic'    } },
   { id: 'tr_15', xp: 25000,  reward: { type: 'relic', id: 'aftershock'  } },
   { id: 'tr_16', xp: 30000,  reward: { type: 'skin',  id: 'inferno'     } },
   { id: 'tr_17', xp: 35000,  reward: { type: 'coins', amount: 1200 } },
   { id: 'tr_18', xp: 40000,  reward: { type: 'relic', id: 'timewarp'    } },
   { id: 'tr_19', xp: 50000,  reward: { type: 'skin',  id: 'chrome'      } },
-  { id: 'tr_20', xp: 60000,  reward: { type: 'coins', amount: 1500 } },
+  { id: 'tr_20', xp: 60000,  reward: { type: 'luckyblock', tier: 'legendary' } },
   { id: 'tr_21', xp: 75000,  reward: { type: 'relic', id: 'bulwark'     } },
   { id: 'tr_22', xp: 100000, reward: { type: 'skin',  id: 'cosmic'      } },
-  { id: 'tr_23', xp: 125000, reward: { type: 'coins', amount: 2000 } },
+  { id: 'tr_23', xp: 125000, reward: { type: 'luckyblock', tier: 'legendary' } },
   { id: 'tr_24', xp: 150000, reward: { type: 'relic', id: 'phoenix'     } },
   { id: 'tr_25', xp: 200000, reward: { type: 'relic', id: 'midas'       } },
 ];
 
 // ─── Season pass ──────────────────────────────────────────────────────────────
 export const SEASON_TIERS = [
-  { games: 0,   reward: '50 coins',    icon: '🪙', name: 'Rookie',    coinReward: 50  },
-  { games: 5,   reward: '100 coins',   icon: '💰', name: 'Contender', coinReward: 100 },
-  { games: 10,  reward: '150 coins',   icon: '⚡', name: 'Fighter',   coinReward: 150 },
-  { games: 20,  reward: 'Plasma skin', icon: '🎨', name: 'Warrior',   coinReward: 0   },
-  { games: 30,  reward: '300 coins',   icon: '💎', name: 'Champion',  coinReward: 300 },
-  { games: 50,  reward: 'Frost skin',  icon: '❄️', name: 'Legend',    coinReward: 0   },
-  { games: 75,  reward: '500 coins',   icon: '🔥', name: 'Myth',      coinReward: 500 },
-  { games: 100, reward: 'Cosmic skin', icon: '🌟', name: 'Immortal',  coinReward: 0   },
+  { games: 0,   reward: '50 coins',         icon: '🪙', name: 'Rookie',    coinReward: 50,  luckyBlockTier: null as LuckyBlockTier | null },
+  { games: 5,   reward: '100 coins',         icon: '💰', name: 'Contender', coinReward: 100, luckyBlockTier: null as LuckyBlockTier | null },
+  { games: 10,  reward: 'Rush Crate',        icon: '📦', name: 'Fighter',   coinReward: 0,   luckyBlockTier: 'rare'      as LuckyBlockTier | null },
+  { games: 20,  reward: 'Plasma skin',       icon: '🎨', name: 'Warrior',   coinReward: 0,   luckyBlockTier: null as LuckyBlockTier | null },
+  { games: 30,  reward: 'Storm Vault',       icon: '⚡', name: 'Champion',  coinReward: 0,   luckyBlockTier: 'epic'      as LuckyBlockTier | null },
+  { games: 50,  reward: 'Frost skin',        icon: '❄️', name: 'Legend',    coinReward: 0,   luckyBlockTier: null as LuckyBlockTier | null },
+  { games: 75,  reward: 'Shadow Coffer',     icon: '🔮', name: 'Myth',      coinReward: 0,   luckyBlockTier: 'mythic'    as LuckyBlockTier | null },
+  { games: 100, reward: 'Cosmic skin',       icon: '🌟', name: 'Immortal',  coinReward: 0,   luckyBlockTier: null as LuckyBlockTier | null },
 ];
 
 // ─── Saved account meta (for login screen) ────────────────────────────────────
@@ -678,6 +741,10 @@ export interface PlayerProfile {
   qualifierRound?:     Record<string, number>;
   qualifierPoints?:    Record<string, number>;
   qualifierPlaysUsed?: Record<string, number>;
+  // Lucky blocks inventory
+  luckyBlocks?: LuckyBlock[];
+  // Set during addMatchResult when a win-streak block is earned; cleared on open
+  pendingStreakLuckyBlockId?: string | null;
 }
 
 export interface MatchResult {
@@ -706,6 +773,8 @@ const DEFAULT_PROFILE: PlayerProfile = {
   credits: 0,
   ownedForgeAbilities: [],
   equippedForgeAbility: null,
+  luckyBlocks: [],
+  pendingStreakLuckyBlockId: null,
   eventPlaysUsed: {},
 };
 
@@ -757,8 +826,9 @@ interface PlayerContextType {
   spendCoins: (amount: number) => Promise<boolean>;
   setAvatar: (emoji: string, color: string) => Promise<void>;
   claimDailyStreak: () => Promise<number>;
-  claimSeasonTier: (tierIdx: number) => Promise<void>;
-  claimTrophyRoad: (id: string) => Promise<void>;
+  claimSeasonTier: (tierIdx: number) => Promise<LuckyBlock | null>;
+  claimTrophyRoad: (id: string) => Promise<LuckyBlock | null>;
+  openLuckyBlock: (blockId: string, reward: LuckyBlockReward) => Promise<void>;
   completeTutorial: () => Promise<void>;
   setSelectedSuper: (type: 1 | 2 | 3) => Promise<void>;
   purchaseForgeAbility: (id: string) => Promise<boolean>;
@@ -850,6 +920,17 @@ export function PlayerProvider({ username, onLogout, children }: {
       trophyRelics.includes(r.id) || getRankIndex(getRankFromXP(newXP)) >= r.unlockRankIndex
     );
     const creditsEarned = allRelicsOwned ? (result.won ? 2 : 1) : 0;
+
+    // Award a lucky block every 5th win streak
+    let streakBlock: LuckyBlock | null = null;
+    if (result.won && newWinStreak > 0 && newWinStreak % 5 === 0) {
+      const tier: LuckyBlockTier =
+        newWinStreak >= 20 ? 'legendary' :
+        newWinStreak >= 15 ? 'mythic'    :
+        newWinStreak >= 10 ? 'epic'      : 'rare';
+      streakBlock = { id: Date.now().toString(36) + 'lb', tier, source: 'win_streak' };
+    }
+
     await save({
       ...profile,
       xp: newXP, level: xpToLevel(newXP), rank: getRankFromXP(newXP),
@@ -863,6 +944,10 @@ export function PlayerProvider({ username, onLogout, children }: {
       matchHistory: [match, ...profile.matchHistory].slice(0, 50),
       competitiveLevel: newCompLevel,
       highestLevel: Math.max(profile.highestLevel, newCompLevel),
+      luckyBlocks: streakBlock
+        ? [...(profile.luckyBlocks ?? []), streakBlock]
+        : (profile.luckyBlocks ?? []),
+      pendingStreakLuckyBlockId: streakBlock ? streakBlock.id : profile.pendingStreakLuckyBlockId,
     });
   }, [profile, save]);
 
@@ -933,13 +1018,19 @@ export function PlayerProvider({ username, onLogout, children }: {
     return reward;
   }, [profile, save]);
 
-  const claimSeasonTier = useCallback(async (tierIdx: number) => {
-    if (profile.seasonPassClaimed.includes(tierIdx)) return;
+  const claimSeasonTier = useCallback(async (tierIdx: number): Promise<LuckyBlock | null> => {
+    if (profile.seasonPassClaimed.includes(tierIdx)) return null;
     const tier = SEASON_TIERS[tierIdx];
-    if (!tier) return;
+    if (!tier) return null;
     let updated = { ...profile, seasonPassClaimed: [...profile.seasonPassClaimed, tierIdx] };
+    let earnedBlock: LuckyBlock | null = null;
     if (tier.coinReward > 0) updated = { ...updated, coins: updated.coins + tier.coinReward };
+    if (tier.luckyBlockTier) {
+      earnedBlock = { id: Date.now().toString(36) + 'sp', tier: tier.luckyBlockTier, source: 'season_pass' };
+      updated = { ...updated, luckyBlocks: [...(updated.luckyBlocks ?? []), earnedBlock] };
+    }
     await save(updated);
+    return earnedBlock;
   }, [profile, save]);
 
   const logout = useCallback(async () => {
@@ -951,12 +1042,13 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({ ...profile, tutorialComplete: true });
   }, [profile, save]);
 
-  const claimTrophyRoad = useCallback(async (id: string) => {
-    if ((profile.trophyRoadClaimed ?? []).includes(id)) return;
+  const claimTrophyRoad = useCallback(async (id: string): Promise<LuckyBlock | null> => {
+    if ((profile.trophyRoadClaimed ?? []).includes(id)) return null;
     const milestone = TROPHY_ROAD.find(m => m.id === id);
-    if (!milestone || profile.xp < milestone.xp) return;
+    if (!milestone || profile.xp < milestone.xp) return null;
     let updated = { ...profile, trophyRoadClaimed: [...(profile.trophyRoadClaimed ?? []), id] };
     const r = milestone.reward;
+    let earnedBlock: LuckyBlock | null = null;
     if (r.type === 'coins') {
       updated = { ...updated, coins: updated.coins + r.amount };
     } else if (r.type === 'skin') {
@@ -968,13 +1060,16 @@ export function PlayerProvider({ username, onLogout, children }: {
       const alreadyHas = prev.includes(r.id) ||
         (relicData ? getRankIndex(updated.rank) >= relicData.unlockRankIndex : false);
       if (alreadyHas) {
-        // Already own this relic — award 15 credits instead (Brawl Stars overflow)
         updated = { ...updated, credits: (updated.credits ?? 0) + 15 };
       } else {
         updated = { ...updated, trophyUnlockedRelics: [...prev, r.id] };
       }
+    } else if (r.type === 'luckyblock') {
+      earnedBlock = { id: Date.now().toString(36) + 'tr', tier: r.tier, source: 'trophy_road' };
+      updated = { ...updated, luckyBlocks: [...(updated.luckyBlocks ?? []), earnedBlock] };
     }
     await save(updated);
+    return earnedBlock;
   }, [profile, save]);
 
   const setSelectedSuper = useCallback(async (type: 1 | 2 | 3) => {
@@ -1063,6 +1158,24 @@ export function PlayerProvider({ username, onLogout, children }: {
     return { qpEarned, totalQP, advanced, nextRoundName: nextRound?.name ?? '' };
   }, [profile, save]);
 
+  const openLuckyBlock = useCallback(async (blockId: string, reward: LuckyBlockReward) => {
+    const blocks = (profile.luckyBlocks ?? []).filter(b => b.id !== blockId);
+    const newXP = profile.xp + reward.xp;
+    let newRank = profile.rank;
+    if (reward.xp > 0) {
+      for (const r of RANKS) { if (newXP >= r.minXP) newRank = r.name; }
+    }
+    await save({
+      ...profile,
+      luckyBlocks: blocks,
+      pendingStreakLuckyBlockId:
+        profile.pendingStreakLuckyBlockId === blockId ? null : profile.pendingStreakLuckyBlockId,
+      coins: profile.coins + reward.coins,
+      xp: reward.xp > 0 ? newXP : profile.xp,
+      rank: reward.xp > 0 ? newRank : profile.rank,
+    });
+  }, [profile, save]);
+
   const dismissStreakModal = useCallback(() => setShowStreakModal(false), []);
 
   return (
@@ -1071,7 +1184,8 @@ export function PlayerProvider({ username, onLogout, children }: {
       updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic, upgradeRelic,
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial,
       setSelectedSuper, purchaseForgeAbility, equipForgeAbility,
-      spendEventPlay, claimEventBonus, spendQualifierPlay, earnQualifierPoints, logout,
+      spendEventPlay, claimEventBonus, spendQualifierPlay, earnQualifierPoints,
+      openLuckyBlock, logout,
     }}>
       {children}
     </PlayerContext.Provider>

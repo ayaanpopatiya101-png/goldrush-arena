@@ -7,8 +7,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   TROPHY_ROAD, RELICS, SKINS, usePlayer,
-  type TrophyMilestone,
+  LUCKY_BLOCK_META,
+  type TrophyMilestone, type LuckyBlock,
 } from '@/context/PlayerContext';
+import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -26,6 +28,7 @@ function rewardIcon(m: TrophyMilestone) {
   const r = m.reward;
   if (r.type === 'coins') return '🪙';
   if (r.type === 'skin') return '🎨';
+  if (r.type === 'luckyblock') return LUCKY_BLOCK_META[r.tier].emoji;
   const rel = RELICS.find(rl => rl.id === r.id);
   return rel?.icon ?? '⚡';
 }
@@ -33,12 +36,14 @@ function rewardColor(m: TrophyMilestone) {
   const r = m.reward;
   if (r.type === 'coins') return '#FFD700';
   if (r.type === 'skin') { const s = SKINS.find(sk => sk.id === r.id); return s?.color ?? '#FF4757'; }
+  if (r.type === 'luckyblock') return LUCKY_BLOCK_META[r.tier].color;
   const rel = RELICS.find(rl => rl.id === r.id); return rel?.color ?? '#C8820A';
 }
 function rewardLabel(m: TrophyMilestone) {
   const r = m.reward;
   if (r.type === 'coins') return `${r.amount} Coins`;
   if (r.type === 'skin') { const s = SKINS.find(sk => sk.id === r.id); return s?.name ?? r.id; }
+  if (r.type === 'luckyblock') return LUCKY_BLOCK_META[r.tier].name;
   const rel = RELICS.find(rl => rl.id === r.id); return rel?.name ?? r.id;
 }
 function fmtXP(n: number) { return n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n); }
@@ -365,6 +370,7 @@ export default function TrophyRoadScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const mountAnim = useRef(new Animated.Value(0)).current;
   const [toasts, setToasts] = useState<{ id: string; label: string; color: string }[]>([]);
+  const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
 
   const claimed  = profile.trophyRoadClaimed ?? [];
   const userXP   = profile.xp;
@@ -392,8 +398,12 @@ export default function TrophyRoadScreen() {
   }, []);
 
   const handleClaim = useCallback(async (m: TrophyMilestone) => {
-    await claimTrophyRoad(m.id);
-    setToasts(prev => [...prev, { id: m.id + Date.now(), label: rewardLabel(m), color: rewardColor(m) }]);
+    const block = await claimTrophyRoad(m.id);
+    if (block) {
+      setActiveLuckyBlock(block);
+    } else {
+      setToasts(prev => [...prev, { id: m.id + Date.now(), label: rewardLabel(m), color: rewardColor(m) }]);
+    }
   }, [claimTrophyRoad]);
 
   function nodeState(m: TrophyMilestone): NodeState {
@@ -486,6 +496,21 @@ export default function TrophyRoadScreen() {
         <ClaimToast key={t.id} label={t.label} color={t.color}
           onDone={() => setToasts(prev => prev.filter(x => x.id !== t.id))} />
       ))}
+
+      {/* ── Lucky Block opener ── */}
+      {activeLuckyBlock && (
+        <LuckyBlockOpener
+          block={activeLuckyBlock}
+          onClose={() => {
+            setActiveLuckyBlock(null);
+            setToasts(prev => [...prev, {
+              id: activeLuckyBlock.id + '_opened',
+              label: LUCKY_BLOCK_META[activeLuckyBlock.tier].name + ' opened!',
+              color: LUCKY_BLOCK_META[activeLuckyBlock.tier].color,
+            }]);
+          }}
+        />
+      )}
     </View>
   );
 }

@@ -7,7 +7,8 @@ import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, Vie
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
 import { ConfettiRain } from '@/components/ConfettiRain';
-import { ACHIEVEMENTS, RANKS, getCurrentEvents, usePlayer, xpForNextRank, xpToLevel } from '@/context/PlayerContext';
+import { ACHIEVEMENTS, RANKS, LUCKY_BLOCK_META, getCurrentEvents, usePlayer, xpForNextRank, xpToLevel, type LuckyBlock } from '@/context/PlayerContext';
+import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 import { useColors } from '@/hooks/useColors';
 
 export default function PostGameScreen() {
@@ -82,6 +83,7 @@ export default function PostGameScreen() {
   const xpBarAnim = useRef(new Animated.Value(0)).current;
   const [newAchievement, setNewAchievement] = useState<string | null>(null);
   const [showXP, setShowXP] = useState(false);
+  const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
   const [qualResult, setQualResult] = useState<{ qpEarned: number; totalQP: number; advanced: boolean; nextRoundName: string } | null>(null);
 
   const rankInfo = xpForNextRank(profile.xp);
@@ -405,6 +407,38 @@ export default function PostGameScreen() {
           </View>
         )}
 
+        {/* Win streak Lucky Block reward */}
+        {(() => {
+          if (!won || winStreak <= 0 || winStreak % 5 !== 0) return null;
+          const pendingId = profile.pendingStreakLuckyBlockId;
+          const block = pendingId
+            ? (profile.luckyBlocks ?? []).find(b => b.id === pendingId) ?? null
+            : null;
+          if (!block) return null;
+          const meta = LUCKY_BLOCK_META[block.tier];
+          return (
+            <Pressable
+              onPress={() => setActiveLuckyBlock(block)}
+              style={[styles.achieveCard, { borderColor: meta.color + '88', backgroundColor: 'transparent' }]}
+            >
+              <LinearGradient
+                colors={[meta.color + '30', meta.color + '10', '#00000000']}
+                style={StyleSheet.absoluteFill}
+              />
+              <Text style={{ fontSize: 32 }}>{meta.emoji}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.achieveTitle, { color: meta.color }]}>
+                  🎉 {winStreak}-WIN STREAK!
+                </Text>
+                <Text style={[styles.achieveName, { color: meta.color + 'CC' }]}>
+                  {meta.name} awaits — tap to open!
+                </Text>
+              </View>
+              <Text style={{ color: meta.color, fontSize: 20 }}>▶</Text>
+            </Pressable>
+          );
+        })()}
+
         {/* Buttons */}
         <View style={styles.buttons}>
           <Pressable
@@ -431,13 +465,19 @@ export default function PostGameScreen() {
         </View>
 
         {/* Win streak */}
-        {profile.winStreak > 1 && (
+        {profile.winStreak > 1 && !activeLuckyBlock && (
           <Text style={[styles.streakText, { color: '#FF6B35' }]}>
             🔥 {profile.winStreak} win streak
           </Text>
         )}
         </ScrollView>
       </Animated.View>
+      {activeLuckyBlock && (
+        <LuckyBlockOpener
+          block={activeLuckyBlock}
+          onClose={() => setActiveLuckyBlock(null)}
+        />
+      )}
     </View>
   );
 }
