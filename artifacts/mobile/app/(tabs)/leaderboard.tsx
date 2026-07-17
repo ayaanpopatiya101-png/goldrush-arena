@@ -145,6 +145,12 @@ export default function LeaderboardScreen() {
                 );
               })}
             </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C8820A' }}>NEARBY PLAYERS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>RANKED</Text>
+            </View>
             <View style={styles.list}>
               {GLOBAL_LEADERS.slice(3).map((p, i) => (
                 <View key={p.name} style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>

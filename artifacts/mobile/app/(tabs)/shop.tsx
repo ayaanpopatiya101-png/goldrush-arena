@@ -143,9 +143,12 @@ export default function ShopScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: insets.bottom + 80, gap: 10 }}>
         {activeTab === 'skins' && (
           <>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
-              Customize your paddle skin. Tap to equip owned skins or purchase new ones.
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C8820A' }}>PADDLE SKINS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>TAP TO EQUIP</Text>
+            </View>
             <View style={styles.skinGrid}>
               {SKINS.map(skin => {
                 const owned = profile.ownedSkins.includes(skin.id);
@@ -193,8 +196,12 @@ export default function ShopScreen() {
             </View>
 
             {/* Ball Trails */}
-            <Text style={[styles.subsectionTitle, { color: colors.foreground }]}>BALL TRAILS</Text>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>Cosmetic effects for balls (coming soon).</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#00BFFF', borderRadius: 2 }} />
+              <Text style={[styles.subsectionTitle, { color: colors.foreground, marginBottom: 0 }]}>BALL TRAILS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>COMING SOON</Text>
+            </View>
             {BALL_TRAILS.map(trail => (
               <Pressable
                 key={trail.id}
@@ -217,9 +224,12 @@ export default function ShopScreen() {
 
         {activeTab === 'themes' && (
           <>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
-              Arena color themes change the board's background during gameplay. No gameplay effect.
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#BF5FFF' }}>ARENA THEMES</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>VISUAL ONLY</Text>
+            </View>
             {ARENA_THEMES.map(theme => {
               const owned = (profile.ownedThemes ?? ['default']).includes(theme.id);
               const equipped = (profile.currentArenaTheme ?? 'default') === theme.id;
@@ -280,9 +290,11 @@ export default function ShopScreen() {
 
         {activeTab === 'powerups' && (
           <>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
-              Stock up on power-up bundles for your next match.
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#00FF88', borderRadius: 2 }} />
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#00FF88' }}>POWER-UP BUNDLES</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+            </View>
             {POWERUP_BUNDLES.map(bundle => (
               <Pressable
                 key={bundle.id}
@@ -319,9 +331,12 @@ export default function ShopScreen() {
 
         {activeTab === 'extras' && (
           <>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
-              Extra lives give you an advantage — start matches with more lives.
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#FF69B4', borderRadius: 2 }} />
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FF69B4' }}>EXTRA LIVES</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>COMING SOON</Text>
+            </View>
 
             {EXTRA_LIVES.map(item => (
               <View
@@ -343,10 +358,12 @@ export default function ShopScreen() {
             ))}
 
             {/* Coin IAP */}
-            <Text style={[styles.subsectionTitle, { color: colors.foreground }]}>COIN PACKS</Text>
-            <Text style={[styles.sectionInfo, { color: colors.mutedForeground }]}>
-              Real-money purchases coming in a future update.
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
+              <Text style={[styles.subsectionTitle, { color: colors.foreground, marginBottom: 0 }]}>COIN PACKS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>COMING SOON</Text>
+            </View>
             {[
               { label: '100 Coins', price: '$0.99', coins: 100 },
               { label: '500 Coins', price: '$3.99', coins: 500 },

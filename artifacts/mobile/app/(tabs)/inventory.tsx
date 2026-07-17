@@ -93,6 +93,12 @@ export default function InventoryScreen() {
         {/* ── Skins tab ── */}
         {activeTab === 'skins' && (
           <>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C8820A' }}>PADDLE SKINS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>{ownedSkins.length}/{SKINS.length} OWNED</Text>
+            </View>
             {ownedSkins.length === 0 ? (
               <EmptyState icon="shopping-bag" message="No skins yet" sub="Visit the Shop to buy paddle skins" />
             ) : (
@@ -149,6 +155,12 @@ export default function InventoryScreen() {
         {/* ── Themes tab ── */}
         {activeTab === 'themes' && (
           <>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#BF5FFF' }}>ARENA THEMES</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>{ownedThemes.length} OWNED</Text>
+            </View>
             {ownedThemes.length === 0 ? (
               <EmptyState icon="shopping-bag" message="No themes yet" sub="Visit the Shop to buy arena themes" />
             ) : (
@@ -205,6 +217,12 @@ export default function InventoryScreen() {
         {/* ── Relics tab — Brawl-Stars-style character collection ── */}
         {activeTab === 'relics' && (
           <>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#AA44FF', borderRadius: 2 }} />
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#AA44FF' }}>RELICS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>RANK-GATED</Text>
+            </View>
             {/* Coin balance + hint */}
             <View style={s.relicHeaderRow}>
               <View style={s.coinBadge}>

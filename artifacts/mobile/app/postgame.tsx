@@ -200,7 +200,11 @@ export default function PostGameScreen() {
 
         {/* Stats */}
         <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.statsTitle, { color: colors.mutedForeground }]}>MATCH STATS</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: rankData.color, borderRadius: 2 }} />
+            <Text style={[styles.statsTitle, { color: colors.foreground }]}>MATCH STATS</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          </View>
           <View style={styles.statsGrid}>
             {[
               { label: 'Deflections', value: String(deflections), color: '#00FF88' },
@@ -350,11 +354,13 @@ export default function PostGameScreen() {
               </Text>
               {promoted && <Text style={[styles.rankUpBadge, { color: '#00FF88', borderColor: '#00FF88' }]}>↑ PROMOTED</Text>}
             </View>
-            <View style={[styles.xpTrack, { backgroundColor: colors.muted }]}>
+            <View style={[styles.xpTrack, { backgroundColor: '#FFFFFF12' }]}>
               <Animated.View style={[styles.xpFill, {
                 width: xpBarAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
                 backgroundColor: rankData.color,
-              }]} />
+              }]}>
+                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: '#FFFFFF28', borderRadius: 4 }} />
+              </Animated.View>
             </View>
             <Text style={[styles.xpSub, { color: colors.mutedForeground }]}>
               Level {xpToLevel(profile.xp)} → {xpToLevel(newXP)} · Total: {newXP} XP

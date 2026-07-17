@@ -67,7 +67,11 @@ export default function SettingsScreen() {
       >
         {/* ── Account ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>👤  ACCOUNT</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
+            <Text style={s.sectionTitle}>ACCOUNT</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          </View>
           <View style={s.card}>
             <View style={s.accountCard}>
               <View style={[s.accountAvatar, { backgroundColor: profile.avatarFrameColor + '22', borderColor: profile.avatarFrameColor }]}>
@@ -102,7 +106,11 @@ export default function SettingsScreen() {
 
         {/* ── Audio ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>🔊  AUDIO</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#1E8AAA', borderRadius: 2 }} />
+            <Text style={s.sectionTitle}>AUDIO</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          </View>
           <View style={s.card}>
             <SettingRow
               icon="music"
@@ -136,7 +144,11 @@ export default function SettingsScreen() {
 
         {/* ── Visual ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>🎨  VISUAL</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
+            <Text style={s.sectionTitle}>VISUAL</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          </View>
           <View style={s.card}>
             <SettingRow
               icon="droplet"
@@ -184,7 +196,11 @@ export default function SettingsScreen() {
 
         {/* ── Controls ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>🕹️  CONTROLS</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#00FF88', borderRadius: 2 }} />
+            <Text style={s.sectionTitle}>CONTROLS</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          </View>
           <View style={s.card}>
             <Text style={[s.rowTitle, { paddingHorizontal: 14, paddingTop: 14 }]}>Paddle Sensitivity</Text>
             <Text style={[s.rowSub, { paddingHorizontal: 14, marginBottom: 10 }]}>How fast your paddle reacts to swipes</Text>
@@ -209,7 +225,11 @@ export default function SettingsScreen() {
 
         {/* ── About ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>ℹ️  ABOUT</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#FFFFFF44', borderRadius: 2 }} />
+            <Text style={s.sectionTitle}>ABOUT</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          </View>
           <View style={s.card}>
             {[
               { l: 'Game',    v: 'GoldRush Arena'  },
@@ -230,7 +250,11 @@ export default function SettingsScreen() {
 
         {/* ── Legal & Support ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>⚖️  LEGAL & SUPPORT</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
+            <Text style={s.sectionTitle}>LEGAL & SUPPORT</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          </View>
           <View style={s.card}>
             <Pressable onPress={() => router.push({ pathname: '/legal', params: { tab: 'privacy' } })} style={s.row}>
               <View style={s.rowIcon}>

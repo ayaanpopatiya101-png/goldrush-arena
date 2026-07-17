@@ -1,0 +1,163 @@
+Transform this app from looking like a generic AI-generated app into a world-class, premium game product that feels like it had a $100 million+ budget behind its design, UX, motion, and polish.
+
+Primary inspiration:
+Take inspiration from the craft, clarity, energy, and premium feel of top mobile game products such as Brawl Stars, Supercell-quality interfaces, and the best-performing mobile game apps in the market.
+
+Important:
+Do NOT copy Brawl Stars assets, characters, logos, layouts, or branding directly.
+Instead, study the qualities that make elite game apps feel amazing:
+- bold visual hierarchy
+- instantly understandable actions
+- fast readability
+- strong feedback loops
+- exciting but controlled motion
+- polished menus and overlays
+- touch-friendly controls
+- a UI that feels alive and expensive
+
+Goal:
+Make this app feel like a hit mobile game from a top-tier studio.
+It should feel premium, addictive, responsive, confident, and deeply intentional.
+It should NOT feel like a template, hobby project, hackathon prototype, or generic AI app.
+
+Design direction:
+- Visually rich, but never messy
+- Stylized, but still readable
+- Playful, but premium
+- High energy, but controlled
+- Bold shapes, clean hierarchy, and polished surfaces
+- Every screen should feel designed by a real game UI team, not assembled from default components
+
+Core transformation requirements:
+
+1. Art direction
+- Create a clear, cohesive visual identity for the entire app
+- Use a strong theme with memorable color, depth, shape language, and icon treatment
+- Make the app feel like a real game universe, not a SaaS dashboard with bright colors
+- Use layered backgrounds, premium lighting, subtle texture, and depth where appropriate
+- Build a visual system that feels iconic and marketable
+
+2. Visual hierarchy
+- Make the most important action on every screen immediately obvious
+- Important buttons should feel impossible to miss
+- Secondary actions should support the screen without competing with the primary action
+- Use scale, color, contrast, spacing, and motion to guide the player’s eye
+- Reduce visual confusion and clutter
+
+3. Buttons and interactions
+- Redesign all buttons to feel tactile, responsive, and satisfying
+- Buttons should feel pressable and game-like, with clear states for idle, hover, pressed, disabled, selected, and reward/claim states
+- Add premium feedback to taps: scale response, shadow shift, glow, particle pop, bounce, or other subtle game-quality interaction feedback
+- CTA buttons should feel exciting and rewarding, especially Play, Start, Claim, Upgrade, Open, Continue, and Buy
+
+4. Motion and polish
+- Add high-end micro-interactions throughout the app
+- Every transition should feel intentional, fluid, and responsive
+- Menus, modals, rewards, level-ups, currency changes, and screen transitions should all feel animated and satisfying
+- Use animation to improve clarity, not just decoration
+- Make opening overlays feel connected to the source button
+- Make the interface feel alive through subtle motion and reactive states
+
+5. Game-specific UI quality
+- If this app includes gameplay, HUD, inventory, shop, rewards, progression, missions, or character screens, redesign them to look like a premium mobile game
+- HUD should prioritize readability under pressure
+- Menus should feel celebratory and exciting without becoming cluttered
+- Reward moments should feel meaningful
+- Currency and progression should feel visually satisfying
+- Upgrade and unlock flows should feel premium and dramatic
+- Shop and battle pass style screens should feel polished and high-value
+
+6. Mobile-first excellence
+- Optimize for touch and thumb reach
+- Make the UI look amazing on phones first, then tablets and desktop
+- Ensure text is readable, buttons are large enough, and controls feel comfortable
+- Use clear separation of touch zones
+- Never make the player guess where to tap
+
+7. Readability and clarity
+- Keep important information readable in 1 second or less
+- Improve typography, contrast, spacing, and icon clarity
+- Make menus easier to scan
+- Reduce cognitive load
+- Make stats, currencies, objectives, and actions easy to understand instantly
+- Avoid tiny text, muddy contrast, and overloaded panels
+
+8. Feedback and confidence
+- Give immediate visual feedback for every important user action
+- Confirm success, danger, rewards, errors, upgrades, and locked states clearly
+- Add satisfying transitions for progress bars, counters, XP, resources, and unlocks
+- The player should always feel the app is responding to them
+- Make success feel exciting and mistakes feel understandable
+
+9. Consistency
+- Create a reusable design system for game UI:
+  - colors
+  - typography
+  - button styles
+  - card/panel styles
+  - icon sizing
+  - spacing
+  - shadows
+  - glow rules
+  - animation rules
+- Standardize the entire UI so every screen feels part of the same game
+- Remove mismatched styles and inconsistent spacing
+
+10. Anti-AI cleanup
+- Eliminate the generic AI-app look:
+  - default gradients
+  - random neon glows
+  - weak spacing
+  - inconsistent border radii
+  - template cards
+  - boring modal windows
+  - generic placeholder icons
+  - flat, lifeless lists
+  - “startup landing page” sections inside a game app
+- Do not make it look like a SaaS app pretending to be a game
+- Do not rely on generic glassmorphism or overused purple-blue gradients
+- Do not use bland default UI kits
+- Replace all obvious template patterns with custom, high-craft game UI solutions
+
+11. Premium screen treatment
+Redesign these areas with elite quality if they exist:
+- home screen / lobby
+- play screen
+- character or hero screen
+- game HUD
+- progression / level screen
+- missions / quests
+- rewards / loot / unlock screens
+- inventory
+- shop / offers
+- leaderboard
+- profile
+- settings
+- onboarding / tutorial
+- event screens
+- modal windows and popups
+- loading states and empty states
+
+12. Emotional impact
+- The app should feel exciting before gameplay even starts
+- Players should feel reward anticipation, momentum, and status
+- Build “wow” moments into key actions
+- Make the app feel desirable, memorable, and professionally art-directed
+
+Implementation instructions:
+- First audit the current app and identify exactly what makes it look AI-generated, cheap, flat, or inconsistent
+- Then propose a premium game-art-direction plan
+- Then implement the redesign in careful stages without breaking functionality
+- Prioritize the highest-traffic screens first
+- Refactor components into a reusable game UI system
+- Keep all existing app logic unless a UI structure change is needed for quality
+- Improve visuals, layout, motion, and interaction quality across the entire experience
+- Make sure the final result feels launch-ready and commercially credible
+
+Output expectations:
+- A clearly improved visual identity
+- Premium game-quality UI components
+- Better screen composition and hierarchy
+- Touch-friendly interaction design
+- Richer motion and feedback
+- A final app that feels expensive, polished, and competitive with top mobile game products

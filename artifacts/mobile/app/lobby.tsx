@@ -422,7 +422,11 @@ export default function LobbyScreen() {
 
         {/* Players */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>PLAYERS</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>PLAYERS</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          </View>
           <View style={styles.playersList}>
             {/* Human player */}
             <PlayerCard
@@ -459,8 +463,10 @@ export default function LobbyScreen() {
 
         {/* Map select */}
         <View style={styles.section}>
-          <View style={styles.sectionHead}>
-            <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>ARENA</Text>
+          <View style={[styles.sectionHead, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>ARENA</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
             {equippedRelic && (
               <View style={[styles.relicChip, { borderColor: equippedRelic.color + '66', backgroundColor: equippedRelic.color + '1A' }]}>
                 <Text style={{ fontSize: 11 }}>{equippedRelic.icon}</Text>
@@ -512,11 +518,15 @@ export default function LobbyScreen() {
             ? (VARIANT_META[config.variant]?.color ?? colors.border) + '44'
             : colors.border,
         }]}>
-          <Text style={[styles.rulesTitle, { color: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? colors.foreground) : colors.foreground }]}>
-            {config.variant !== 'classic'
-              ? `${VARIANT_META[config.variant]?.emoji ?? ''} ${VARIANT_META[config.variant]?.name ?? ''} RULES`
-              : 'HOW TO PLAY'}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? '#C8820A') : '#C8820A', borderRadius: 2 }} />
+            <Text style={[styles.rulesTitle, { color: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? colors.foreground) : colors.foreground, marginBottom: 0 }]}>
+              {config.variant !== 'classic'
+                ? `${VARIANT_META[config.variant]?.name ?? ''} RULES`
+                : 'HOW TO PLAY'}
+            </Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          </View>
           <View style={styles.rulesList}>
             {(VARIANT_RULES[config.variant] ?? VARIANT_RULES['classic']!).map((rule, i) => (
               <View key={i} style={styles.ruleItem}>

@@ -209,8 +209,10 @@ export default function ProfileScreen() {
               <Text style={[styles.xpRemaining, { color: rankData.color }]}>{rankInfo.remaining} to {rankInfo.next}</Text>
             )}
           </View>
-          <View style={[styles.xpTrack, { backgroundColor: colors.muted }]}>
-            <View style={[styles.xpFill, { width: `${rankInfo.progress * 100}%` as never, backgroundColor: rankData.color }]} />
+          <View style={[styles.xpTrack, { backgroundColor: '#FFFFFF12' }]}>
+            <View style={[styles.xpFill, { width: `${rankInfo.progress * 100}%` as never, backgroundColor: rankData.color }]}>
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: '#FFFFFF28', borderRadius: 4 }} />
+            </View>
           </View>
         </View>
 
@@ -246,6 +248,11 @@ export default function ProfileScreen() {
         </View>
 
         {/* ── Stats grid ── */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
+          <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>STATISTICS</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+        </View>
         <View style={styles.statsGrid}>
           {[
             { label: 'WINS',        value: String(profile.wins),             icon: 'award',   color: '#FFD700' },
@@ -267,8 +274,10 @@ export default function ProfileScreen() {
 
         {/* ── Achievements ── */}
         <View style={styles.sectionWrap}>
-          <View style={styles.sectionHeader}>
+          <View style={[styles.sectionHeader, { alignItems: 'center' }]}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>ACHIEVEMENTS</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
             <Text style={[styles.sectionCount, { color: colors.mutedForeground }]}>
               {profile.achievements.length}/{ACHIEVEMENTS.length}
             </Text>
@@ -294,7 +303,11 @@ export default function ProfileScreen() {
         {/* ── Match history ── */}
         {profile.matchHistory.length > 0 && (
           <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>RECENT MATCHES</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#00BFFF', borderRadius: 2 }} />
+              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>RECENT MATCHES</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+            </View>
             <View style={styles.historyList}>
               {profile.matchHistory.slice(0, 8).map(match => (
                 <View key={match.id} style={[styles.historyRow, { backgroundColor: colors.card, borderColor: match.won ? '#00FF8822' : colors.border }]}>

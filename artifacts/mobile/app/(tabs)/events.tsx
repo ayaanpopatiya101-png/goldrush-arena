@@ -166,6 +166,12 @@ export default function EventsScreen() {
         )}
 
         {/* Weekly — direct entry, no qualifier */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <View style={{ width: 3, height: 16, backgroundColor: '#00FF88', borderRadius: 2 }} />
+          <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#00FF88' }}>WEEKLY EVENT</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>DIRECT ENTRY</Text>
+        </View>
         <EventCard
           ev={events.weekly}
           rankGated={!hasRank}
@@ -176,6 +182,12 @@ export default function EventsScreen() {
         />
 
         {/* Monthly Cup — 2-round qualifier */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4, marginTop: 4 }}>
+          <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
+          <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C8820A' }}>MONTHLY CUP</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>2-ROUND QUALIFIER</Text>
+        </View>
         <EventCard
           ev={events.monthly}
           rankGated={!hasRank}
@@ -186,6 +198,12 @@ export default function EventsScreen() {
         />
 
         {/* Annual Grand Prix — 3-round qualifier */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4, marginTop: 4 }}>
+          <View style={{ width: 3, height: 16, backgroundColor: '#AA44FF', borderRadius: 2 }} />
+          <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#AA44FF' }}>ANNUAL GRAND PRIX</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>3-ROUND QUALIFIER</Text>
+        </View>
         <EventCard
           ev={events.annual}
           rankGated={!hasRank}
