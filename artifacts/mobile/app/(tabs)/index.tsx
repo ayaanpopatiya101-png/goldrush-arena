@@ -107,6 +107,13 @@ function TierCard({ tier, index, totalGames, claimed, onClaim }: {
   );
 }
 
+// ─── Per-super accent colors ──────────────────────────────────────────────────
+const SUPER_COLORS: Record<number, string> = {
+  1: '#00BFFF', // RAMPART  — electric steel blue
+  2: '#BF5FFF', // DEAD ZONE — void purple
+  3: '#FF6B35', // SHATTER  — explosive orange
+};
+
 // ─── Home screen ─────────────────────────────────────────────────────────────
 export default function HomeScreen() {
   const colors   = useColors();
@@ -333,13 +340,13 @@ export default function HomeScreen() {
           }}>
             <Pressable
               onPress={() => handlePlay('ranked')}
-              style={({ pressed }) => [styles.rankedBtn, pressed && { transform: [{ scale: 0.96 }], opacity: 0.92 }]}
+              style={({ pressed }) => [styles.rankedBtn, pressed && { transform: [{ scale: 0.97 }, { translateY: 2 }], opacity: 0.94 }]}
             >
               <LinearGradient colors={['#F0A428', '#D08A14', '#A86008', '#7A4800']} style={styles.rankedBtnGrad}>
                 {/* Top highlight edge */}
                 <View style={styles.rankedBtnHighlight} />
                 {/* Bottom 3D edge — depth illusion */}
-                <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, backgroundColor: '#00000040', borderBottomLeftRadius: 22, borderBottomRightRadius: 22 }} />
+                <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 5, backgroundColor: '#00000060', borderBottomLeftRadius: 18, borderBottomRightRadius: 18 }} />
                 {/* Shimmer sweep */}
                 <Animated.View pointerEvents="none" style={[styles.shimmerSweep, {
                   transform: [
@@ -360,7 +367,7 @@ export default function HomeScreen() {
           {/* CASUAL — Secondary CTA */}
           <Pressable
             onPress={() => handlePlay('casual')}
-            style={({ pressed }) => [styles.casualBtn, pressed && { opacity: 0.82, transform: [{ scale: 0.96 }] }]}
+            style={({ pressed }) => [styles.casualBtn, pressed && { opacity: 0.86, transform: [{ scale: 0.97 }, { translateY: 1 }] }]}
           >
             <LinearGradient colors={['#0D2533', '#081828', '#0A1E2A']} style={styles.casualBtnGrad}>
               <Text style={{ fontSize: 16 }}>🎮</Text>
@@ -372,39 +379,48 @@ export default function HomeScreen() {
 
         {/* ── Super Ability Selector ── */}
         <View style={styles.superSection}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-            <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
-            <Text style={styles.superTitle}>SUPER ABILITIES</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-            <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 8, color: '#FFD70066', letterSpacing: 1 }}>CHARGE 10 BLOCKS</Text>
-          </View>
+          {(() => {
+            const sc = SUPER_COLORS[profile.selectedSuper ?? 1] ?? '#FFD700';
+            return (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                <View style={{ width: 3, height: 16, backgroundColor: sc, borderRadius: 2 }} />
+                <Text style={[styles.superTitle, { color: sc }]}>SUPER ABILITIES</Text>
+                <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+                <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 8, color: sc + '66', letterSpacing: 1 }}>CHARGE 10 BLOCKS</Text>
+              </View>
+            );
+          })()}
           <Text style={styles.superSubtitle}>Tap to unleash when charged during a match</Text>
           <View style={styles.superRow}>
             {SUPERS.map(sup => {
               const active = (profile.selectedSuper ?? 1) === sup.id;
               const unlocked = profile.level >= sup.unlockLevel;
+              const supColor = SUPER_COLORS[sup.id] ?? '#FFD700';
               return (
                 <Pressable
                   key={sup.id}
                   onPress={() => unlocked && setSelectedSuper(sup.id)}
                   style={({ pressed }) => [styles.superCard, {
-                    borderColor: !unlocked ? '#FFFFFF0D' : active ? '#FFD700' : '#FFFFFF1A',
-                    backgroundColor: !unlocked ? '#FFFFFF04' : active ? '#FFD70018' : '#FFFFFF06',
-                    opacity: !unlocked ? 0.45 : pressed ? 0.8 : 1,
+                    borderColor: !unlocked ? '#FFFFFF0D' : active ? supColor : '#FFFFFF18',
+                    backgroundColor: !unlocked ? '#FFFFFF03' : active ? supColor + '1C' : supColor + '07',
+                    opacity: !unlocked ? 0.45 : pressed ? 0.82 : 1,
                     transform: [{ scale: pressed && unlocked ? 0.97 : 1 }],
                   }]}
                 >
+                  {active && unlocked && (
+                    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: supColor, borderTopLeftRadius: 14, borderTopRightRadius: 14 }} />
+                  )}
                   {!unlocked && (
                     <View style={styles.superLockBadge}>
                       <Text style={styles.superLockTxt}>LV.{sup.unlockLevel}</Text>
                     </View>
                   )}
                   <Text style={[styles.superIcon, { opacity: unlocked ? 1 : 0.4 }]}>{sup.icon}</Text>
-                  <Text style={[styles.superName, { color: !unlocked ? '#FFFFFF33' : active ? '#FFD700' : '#FFFFFF99' }]}>{sup.name}</Text>
-                  <Text style={[styles.superDesc, { color: !unlocked ? '#FFFFFF1A' : active ? '#FFD70088' : '#FFFFFF44' }]}>{sup.desc}</Text>
+                  <Text style={[styles.superName, { color: !unlocked ? '#FFFFFF33' : active ? supColor : '#FFFFFF88' }]}>{sup.name}</Text>
+                  <Text style={[styles.superDesc, { color: !unlocked ? '#FFFFFF1A' : active ? supColor + 'AA' : '#FFFFFF44' }]}>{sup.desc}</Text>
                   {active && unlocked && (
-                    <View style={styles.superActiveBadge}>
-                      <Text style={styles.superActiveTxt}>EQUIPPED</Text>
+                    <View style={[styles.superActiveBadge, { backgroundColor: supColor + '22', borderColor: supColor + 'BB' }]}>
+                      <Text style={[styles.superActiveTxt, { color: supColor }]}>EQUIPPED</Text>
                     </View>
                   )}
                 </Pressable>
@@ -413,23 +429,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Mode info cards */}
-        <View style={styles.modeRow}>
-          {[
-            { icon: 'grid',     label: '4-PLAYER', desc: 'All 4 sides active',       color: '#C8820A' },
-            { icon: 'triangle', label: 'TRIANGLE',  desc: '3 survive → new shape',    color: '#00FF88' },
-            { icon: 'zap',      label: '1v1 DUEL',  desc: 'Final 2 go head-to-head', color: '#FF4757' },
-          ].map(m => (
-            <View key={m.label} style={[styles.modeCard, { borderColor: m.color + '44', backgroundColor: m.color + '0C', overflow: 'hidden' }]}>
-              <LinearGradient colors={[m.color + '28', 'transparent']} style={StyleSheet.absoluteFill} />
-              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: m.color + '22', alignItems: 'center', justifyContent: 'center' }}>
-                <Feather name={m.icon as never} size={17} color={m.color} />
-              </View>
-              <Text style={[styles.modeLabel, { color: m.color }]}>{m.label}</Text>
-              <Text style={[styles.modeDesc, { color: colors.mutedForeground }]}>{m.desc}</Text>
-            </View>
-          ))}
-        </View>
 
         {/* ── Champion's Gauntlet ── */}
         {(() => {
@@ -506,16 +505,16 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                 ) : (
-                  <View style={{
-                    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
-                    backgroundColor: '#C8820A22', borderColor: '#C8820A66',
-                    borderWidth: 1, borderRadius: 12,
-                    paddingVertical: 12,
-                  }}>
-                    <Text style={{ color: '#FFD700', fontSize: 15, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 }}>
-                      ENTER THE GAUNTLET
-                    </Text>
-                    <Text style={{ fontSize: 18 }}>⚔️</Text>
+                  <View style={{ borderRadius: 14, overflow: 'hidden' }}>
+                    <LinearGradient
+                      colors={['#E8A030', '#C8820A', '#9A6208', '#7A4A06']}
+                      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 14 }}
+                    >
+                      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1.5, backgroundColor: '#FFFFFF45', borderTopLeftRadius: 14, borderTopRightRadius: 14 }} />
+                      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 5, backgroundColor: '#00000055', borderBottomLeftRadius: 14, borderBottomRightRadius: 14 }} />
+                      <Text style={{ color: '#07090F', fontSize: 15, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 }}>ENTER THE GAUNTLET</Text>
+                      <Text style={{ fontSize: 16 }}>⚔️</Text>
+                    </LinearGradient>
                   </View>
                 )}
               </LinearGradient>
@@ -628,13 +627,19 @@ export default function HomeScreen() {
                           </Text>
                         </View>
                       ) : (
-                        <View style={{
-                          flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-                          backgroundColor: m.accent + '22', borderColor: m.accent + '55',
-                          borderWidth: 1, borderRadius: 10, paddingVertical: 10,
-                        }}>
-                          <Text style={{ color: m.accent, fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 }}>ENTER MODE</Text>
-                          <Text style={{ fontSize: 16 }}>{m.emoji}</Text>
+                        <View style={{ borderRadius: 10, overflow: 'hidden' }}>
+                          <LinearGradient
+                            colors={[m.accent + '55', m.accent + '30', m.accent + '18']}
+                            style={{
+                              flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                              gap: 8, paddingVertical: 11, borderWidth: 1,
+                              borderColor: m.accent + '77', borderRadius: 10,
+                            }}
+                          >
+                            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1.5, backgroundColor: m.accent + '66', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} />
+                            <Text style={{ color: m.accent, fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 }}>PLAY NOW</Text>
+                            <Text style={{ fontSize: 14 }}>{m.emoji}</Text>
+                          </LinearGradient>
                         </View>
                       )}
                     </LinearGradient>
@@ -673,20 +678,22 @@ export default function HomeScreen() {
                 onPress={() => handlePlayMode(m.id)}
                 style={({ pressed }) => [styles.modePickCard, {
                   borderColor: m.color + '55',
-                  backgroundColor: m.color + '10',
+                  backgroundColor: m.color + '0E',
                   opacity: pressed ? 0.85 : 1,
-                  transform: [{ scale: pressed ? 0.95 : 1 }],
+                  transform: [{ scale: pressed ? 0.96 : 1 }, { translateY: pressed ? 2 : 0 }],
                 }]}
               >
+                {/* Per-mode top color strip */}
+                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2.5, backgroundColor: m.color, borderTopLeftRadius: 14, borderTopRightRadius: 14, opacity: 0.9 }} />
                 <LinearGradient
-                  colors={[m.color + '22', m.color + '08', '#00000000']}
+                  colors={[m.color + '28', m.color + '08', '#00000000']}
                   style={StyleSheet.absoluteFill}
                 />
                 <Text style={styles.modePickEmoji}>{m.emoji}</Text>
                 <Text style={[styles.modePickName, { color: m.color }]}>{m.name}</Text>
                 <Text style={[styles.modePickSub, { color: colors.mutedForeground }]}>{m.sub}</Text>
                 <Text style={[styles.modePickDesc, { color: m.color + 'BB' }]}>{m.desc}</Text>
-                <View style={[styles.modePlayChip, { backgroundColor: m.color + '22', borderColor: m.color + '55' }]}>
+                <View style={[styles.modePlayChip, { backgroundColor: m.color + '28', borderColor: m.color + '66' }]}>
                   <Feather name="play" size={8} color={m.color} />
                   <Text style={[styles.modePlayChipText, { color: m.color }]}>PLAY</Text>
                 </View>

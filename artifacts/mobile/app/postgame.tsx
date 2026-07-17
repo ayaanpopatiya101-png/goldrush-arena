@@ -159,7 +159,8 @@ export default function PostGameScreen() {
   }, []);
 
   const positionLabels = ['', '1ST', '2ND', '3RD', '4TH'];
-  const positionColors = ['', '#C8820A', '#C0C0C0', '#CD7F32', '#8B8B8B'];
+  const positionColors = ['', '#FFD700', '#C0C0C0', '#CD7F32', '#8B8B8B'];
+  const medalEmoji     = ['', '🥇', '🥈', '🥉', '💀'];
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -185,16 +186,24 @@ export default function PostGameScreen() {
         {/* Result banner */}
         <Animated.View style={[styles.resultBanner, { transform: [{ scale: scaleAnim }] }]}>
           <LinearGradient
-            colors={won ? ['#C8820A33', '#C8820A11'] : ['#FF475733', '#FF475711']}
+            colors={
+              won       ? ['#C8820A55', '#C8820A22', '#C8820A08']
+              : position === 2 ? ['#C0C0C033', '#C0C0C011', '#00000000']
+              : position === 3 ? ['#CD7F3233', '#CD7F3211', '#00000000']
+              :                  ['#FF475744', '#FF475722', '#FF475708']
+            }
             style={styles.bannerGrad}
           >
-            <Text style={[styles.positionText, { color: positionColors[position] ?? '#8B8B8B' }]}>
-              {positionLabels[position] ?? '4TH'}
+            {/* Large medal / outcome emoji */}
+            <Text style={[styles.medalEmoji, { textShadowColor: positionColors[position] ?? '#8B8B8B' }]}>
+              {medalEmoji[position] ?? '💀'}
             </Text>
-            <Text style={[styles.resultText, { color: won ? '#C8820A' : '#FF4757' }]}>
+            <Text style={[styles.positionText, { color: positionColors[position] ?? '#8B8B8B' }]}>
+              {positionLabels[position] ?? '4TH'}  ·  PLACE
+            </Text>
+            <Text style={[styles.resultText, { color: won ? '#FFD700' : position === 2 ? '#D8D8D8' : position === 3 ? '#CD7F32' : '#FF4757' }]}>
               {won ? 'VICTORY!' : position === 2 ? 'RUNNER-UP' : position === 3 ? 'THIRD PLACE' : 'ELIMINATED'}
             </Text>
-            {won && <Text style={styles.victoryEmoji}>🏆</Text>}
           </LinearGradient>
         </Animated.View>
 
@@ -492,10 +501,11 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   star: { position: 'absolute', width: 3, height: 3, borderRadius: 1.5 },
   content: { paddingHorizontal: 20, gap: 14, alignItems: 'stretch' },
-  resultBanner: { alignItems: 'center', overflow: 'hidden', borderRadius: 20 },
-  bannerGrad: { width: '100%', alignItems: 'center', paddingVertical: 24, paddingHorizontal: 20, gap: 4, borderRadius: 20 },
-  positionText: { fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 3 },
-  resultText: { fontFamily: 'Inter_700Bold', fontSize: 34, letterSpacing: 4 },
+  resultBanner: { alignItems: 'center', overflow: 'hidden', borderRadius: 22 },
+  bannerGrad: { width: '100%', alignItems: 'center', paddingVertical: 30, paddingHorizontal: 20, gap: 6, borderRadius: 22 },
+  medalEmoji: { fontSize: 68, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24 },
+  positionText: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 5 },
+  resultText: { fontFamily: 'Inter_700Bold', fontSize: 32, letterSpacing: 3 },
   victoryEmoji: { fontSize: 40, marginTop: 4 },
   statsCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 14 },
   statsTitle: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2 },

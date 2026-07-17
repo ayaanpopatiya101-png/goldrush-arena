@@ -96,9 +96,15 @@ export default function ProfileScreen() {
       >
         {/* ── Profile card ── */}
         <View style={[styles.profileCard, { borderColor: rankData.color + '44' }]}>
-          <LinearGradient colors={[rankData.color + '1A', rankData.color + '08']} style={StyleSheet.absoluteFill} />
+          {/* Rank-colored top band — the visual signal that this is a player card */}
+          <LinearGradient
+            colors={[rankData.color + '60', rankData.color + '28', 'transparent']}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 100 }}
+            pointerEvents="none"
+          />
+          <LinearGradient colors={[rankData.color + '18', rankData.color + '06']} style={StyleSheet.absoluteFill} />
 
-          {/* Avatar — tappable to edit */}
+          {/* Avatar — centered, tappable to edit */}
           <Pressable onPress={() => { setTempEmoji(profile.avatarEmoji); setTempColor(profile.avatarFrameColor); setAvatarEditing(true); }}>
             <Animated.View style={[styles.bigAvatar, {
               borderColor: profile.avatarFrameColor,
@@ -141,15 +147,18 @@ export default function ProfileScreen() {
             </Animated.View>
           </Pressable>
 
-          <View style={styles.profileInfo}>
+          {/* Centered name / rank / streak block */}
+          <View style={[styles.profileInfo, { alignItems: 'center' }]}>
             <Text style={[styles.profileName, { color: colors.foreground }]}>{profile.name}</Text>
-            <Text style={[styles.levelBadge, { color: rankData.color }]}>Level {xpToLevel(profile.xp)} · {profile.rank}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <RankBadge rank={profile.rank} size="sm" showLabel={false} />
+              <Text style={[styles.levelBadge, { color: rankData.color }]}>Lv.{xpToLevel(profile.xp)} · {profile.rank}</Text>
+            </View>
             <View style={styles.loginStreakRow}>
               <Text style={styles.streakIcon}>🔥</Text>
               <Text style={[styles.streakText, { color: '#FF6B35' }]}>{profile.loginStreak} day streak</Text>
             </View>
           </View>
-          <RankBadge rank={profile.rank} size="md" showLabel={false} />
         </View>
 
         {/* ── Avatar picker (expanded when editing) ── */}
@@ -351,16 +360,16 @@ export default function ProfileScreen() {
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  profileCard:    { borderRadius: 18, borderWidth: 1.5, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, overflow: 'hidden' },
-  bigAvatar:      { width: 68, height: 68, borderRadius: 34, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
-  bigAvatarEmoji: { fontSize: 32 },
-  editBadge:      { position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFD700', alignItems: 'center', justifyContent: 'center' },
-  profileInfo:    { flex: 1, gap: 4 },
-  profileName:    { fontFamily: 'Inter_700Bold', fontSize: 20 },
-  levelBadge:     { fontFamily: 'Inter_600SemiBold', fontSize: 12, letterSpacing: 0.5 },
+  profileCard:    { borderRadius: 20, borderWidth: 1.5, paddingTop: 28, paddingBottom: 22, paddingHorizontal: 20, alignItems: 'center', gap: 14, overflow: 'hidden' },
+  bigAvatar:      { width: 76, height: 76, borderRadius: 38, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  bigAvatarEmoji: { fontSize: 36 },
+  editBadge:      { position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, borderRadius: 11, backgroundColor: '#FFD700', alignItems: 'center', justifyContent: 'center' },
+  profileInfo:    { gap: 5 },
+  profileName:    { fontFamily: 'Inter_700Bold', fontSize: 22 },
+  levelBadge:     { fontFamily: 'Inter_600SemiBold', fontSize: 13, letterSpacing: 0.5 },
   loginStreakRow:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  streakIcon:     { fontSize: 11 },
-  streakText:     { fontFamily: 'Inter_600SemiBold', fontSize: 11 },
+  streakIcon:     { fontSize: 12 },
+  streakText:     { fontFamily: 'Inter_600SemiBold', fontSize: 12 },
 
   // Avatar editor
   section:      { borderRadius: 16, borderWidth: 1, padding: 16, gap: 12 },
