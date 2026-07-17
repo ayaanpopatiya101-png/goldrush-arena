@@ -49,7 +49,19 @@ export default function InventoryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
+      {/* Warm dark amber — collection/treasure vault */}
+      <LinearGradient colors={['#100800', '#1C0E00', '#0E0A00']} style={StyleSheet.absoluteFill} />
+      <LinearGradient
+        colors={['#FF880028', '#C8820018', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 260 }}
+        pointerEvents="none"
+      />
+      <LinearGradient
+        colors={['transparent', '#FFD70010', 'transparent']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={{ position: 'absolute', top: '30%', left: 0, right: 0, height: 300 }}
+        pointerEvents="none"
+      />
 
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 8 }]}>

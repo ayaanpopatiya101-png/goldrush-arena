@@ -86,8 +86,21 @@ export default function LeaderboardScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#060810', '#0E1535', '#08090F']} style={StyleSheet.absoluteFill} />
-      <LinearGradient colors={['#FF006622', 'transparent']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 240 }} pointerEvents="none" />
+      {/* Deep teal-navy — prestige competitive arena */}
+      <LinearGradient colors={['#020C14', '#041C2A', '#020C14']} style={StyleSheet.absoluteFill} />
+      {/* Crimson-gold champion glow at top */}
+      <LinearGradient
+        colors={['#FF226630', '#FF882015', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 280 }}
+        pointerEvents="none"
+      />
+      {/* Cyan teal accent mid-section */}
+      <LinearGradient
+        colors={['transparent', '#00E5FF0E', 'transparent']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={{ position: 'absolute', top: '30%', left: 0, right: 0, height: 300 }}
+        pointerEvents="none"
+      />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>

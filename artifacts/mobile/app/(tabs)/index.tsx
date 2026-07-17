@@ -216,18 +216,26 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={['#060810', '#0C1230', '#060A16']} style={StyleSheet.absoluteFill} />
-      {/* Brawl Stars-style top glow — rich purple aurora */}
+      {/* Deep cosmic purple — main arena hub */}
+      <LinearGradient colors={['#080520', '#0E0838', '#060518']} style={StyleSheet.absoluteFill} />
+      {/* Vivid purple-blue aurora at top */}
       <LinearGradient
-        colors={['#6633FF18', '#3311FF0A', 'transparent']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 320 }}
+        colors={['#8844FF30', '#4422FF18', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 360 }}
         pointerEvents="none"
       />
-      {/* Gold arena glow from center */}
+      {/* Hot gold arena glow — signature GoldRush accent */}
       <LinearGradient
-        colors={['transparent', '#C8820A14', 'transparent']}
+        colors={['transparent', '#C8820A18', 'transparent']}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-        style={{ position: 'absolute', top: '30%', left: 0, right: 0, height: 400 }}
+        style={{ position: 'absolute', top: '28%', left: 0, right: 0, height: 420 }}
+        pointerEvents="none"
+      />
+      {/* Subtle teal shimmer bottom-right */}
+      <LinearGradient
+        colors={['transparent', '#00BFFF0C']}
+        start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }}
+        style={{ position: 'absolute', bottom: 0, right: 0, width: '60%', height: '40%' }}
         pointerEvents="none"
       />
       <AmbientParticles />

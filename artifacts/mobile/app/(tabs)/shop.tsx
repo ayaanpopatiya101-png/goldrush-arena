@@ -102,7 +102,19 @@ export default function ShopScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#07090F', '#0C1428']} style={StyleSheet.absoluteFill} />
+      {/* Deep emerald — treasure/store feel */}
+      <LinearGradient colors={['#030D08', '#071808', '#030D08']} style={StyleSheet.absoluteFill} />
+      <LinearGradient
+        colors={['#FFD70022', '#C8820014', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 260 }}
+        pointerEvents="none"
+      />
+      <LinearGradient
+        colors={['transparent', '#00FF8812', 'transparent']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={{ position: 'absolute', top: '25%', left: 0, right: 0, height: 350 }}
+        pointerEvents="none"
+      />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>

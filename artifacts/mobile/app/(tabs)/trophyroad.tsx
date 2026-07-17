@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Animated, Dimensions, Image, Pressable, ScrollView,
+  Animated, Dimensions, Pressable, ScrollView,
   StyleSheet, Text, View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,8 +9,6 @@ import {
   TROPHY_ROAD, RELICS, SKINS, usePlayer,
   type TrophyMilestone,
 } from '@/context/PlayerContext';
-
-const BG_IMAGE = require('@/assets/images/trophy_road_bg.png');
 
 const { width: SW } = Dimensions.get('window');
 
@@ -405,27 +403,30 @@ export default function TrophyRoadScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#090912' }}>
-      {/* Brawl Stars-style image background — tinted and stretched across the road zone */}
-      <Image
-        source={BG_IMAGE}
-        style={{
-          position: 'absolute', top: 0, left: 0, right: 0,
-          height: '65%', opacity: 0.22,
-        }}
-        resizeMode="cover"
-      />
-      {/* Deep gradient overlay to keep text readable */}
+    <View style={{ flex: 1, backgroundColor: '#0C0800' }}>
+      {/* Warm amber base — "golden road" feel */}
       <LinearGradient
-        colors={['#07070FDD', '#0C0C1A88', '#07070F00', '#07070FFF']}
-        locations={[0, 0.12, 0.55, 1]}
+        colors={['#1A0C00', '#0E0800', '#0A1000', '#0E0800']}
+        locations={[0, 0.35, 0.65, 1]}
         style={StyleSheet.absoluteFill}
+      />
+      {/* Gold sunrise glow from top */}
+      <LinearGradient
+        colors={['#FFB30040', '#FF880020', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 280 }}
         pointerEvents="none"
       />
-      {/* Warm gold glow from top — like Brawl Stars' golden light */}
+      {/* Warm teal accent in the road zone — makes the road pop */}
       <LinearGradient
-        colors={['#C8820A22', 'transparent']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 200 }}
+        colors={['transparent', '#00C8641A', 'transparent']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={{ position: 'absolute', top: '35%', left: 0, right: 0, height: 220 }}
+        pointerEvents="none"
+      />
+      {/* Soft bottom fade to rich dark */}
+      <LinearGradient
+        colors={['transparent', '#0A060030']}
+        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 180 }}
         pointerEvents="none"
       />
       {/* Background sparkles */}
