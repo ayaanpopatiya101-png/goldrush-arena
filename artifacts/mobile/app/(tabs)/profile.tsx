@@ -410,8 +410,8 @@ const styles = StyleSheet.create({
 
   // Stats
   statsGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  statCard:   { width: '30%', flex: 1, minWidth: 90, alignItems: 'center', paddingVertical: 16, paddingHorizontal: 8, borderRadius: 12, borderWidth: 1, gap: 6 },
-  statValue:  { fontFamily: 'Inter_700Bold', fontSize: 24 },
+  statCard:   { width: '30%', flex: 1, minWidth: 90, alignItems: 'center', paddingVertical: 12, paddingHorizontal: 6, borderRadius: 12, borderWidth: 1, gap: 4 },
+  statValue:  { fontFamily: 'Inter_700Bold', fontSize: 20 },
   statLabel:  { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 1.5, textAlign: 'center' },
 
   // Achievements
