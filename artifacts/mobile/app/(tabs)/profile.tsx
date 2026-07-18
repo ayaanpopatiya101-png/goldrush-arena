@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Easing, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, Easing, Image, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,20 +12,21 @@ import {
 } from '@/context/PlayerContext';
 import { useColors } from '@/hooks/useColors';
 
-// ─── Per-achievement emoji — replaces the generic award icon ─────────────────
-const ACH_EMOJI: Record<string, string> = {
-  first_win:  '🏆',
-  hat_trick:  '🎯',
-  survivor:   '🛡️',
-  streak3:    '🔥',
-  streak5:    '⚡',
-  level10:    '⭐',
-  level25:    '💫',
-  collector:  '🎨',
-  gold_rank:  '🥇',
-  century:    '💯',
-  deflect100: '🧱',
-  powerup10:  '🎰',
+// ─── AI-generated achievement artwork — replaces generic award icon ──────────
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const ACH_IMAGE: Partial<Record<string, number>> = {
+  first_win:  require('../../assets/images/ach_first_win.png'),
+  hat_trick:  require('../../assets/images/ach_hat_trick.png'),
+  survivor:   require('../../assets/images/ach_survivor.png'),
+  streak3:    require('../../assets/images/ach_streak3.png'),
+  streak5:    require('../../assets/images/ach_streak5.png'),
+  level10:    require('../../assets/images/ach_level10.png'),
+  level25:    require('../../assets/images/ach_level25.png'),
+  collector:  require('../../assets/images/ach_collector.png'),
+  gold_rank:  require('../../assets/images/ach_gold_rank.png'),
+  century:    require('../../assets/images/ach_century.png'),
+  deflect100: require('../../assets/images/ach_deflect100.png'),
+  powerup10:  require('../../assets/images/ach_powerup10.png'),
 };
 
 export default function ProfileScreen() {
@@ -323,9 +324,14 @@ export default function ProfileScreen() {
                   {unlocked && (
                     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#FFD700', borderTopLeftRadius: 12, borderTopRightRadius: 12 }} />
                   )}
-                  <Text style={{ fontSize: unlocked ? 26 : 20, opacity: unlocked ? 1 : 0.3, marginTop: unlocked ? 4 : 2 }}>
-                    {ACH_EMOJI[ach.id] ?? '🏅'}
-                  </Text>
+                  {ACH_IMAGE[ach.id] != null
+                    ? <Image
+                        source={ACH_IMAGE[ach.id]!}
+                        style={{ width: unlocked ? 44 : 34, height: unlocked ? 44 : 34, opacity: unlocked ? 1 : 0.3, marginTop: unlocked ? 4 : 2 }}
+                        resizeMode="contain"
+                      />
+                    : <Text style={{ fontSize: unlocked ? 26 : 20, opacity: unlocked ? 1 : 0.3, marginTop: unlocked ? 4 : 2 }}>🏅</Text>
+                  }
                   <Text style={[styles.achName, { color: unlocked ? '#F8F8FF' : colors.mutedForeground }]} numberOfLines={1}>{ach.name}</Text>
                   <Text style={[styles.achDesc, { color: colors.mutedForeground }]} numberOfLines={2}>{ach.desc}</Text>
                 </View>

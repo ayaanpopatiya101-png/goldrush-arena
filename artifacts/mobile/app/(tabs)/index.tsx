@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import {
-  Animated, Easing, Platform, Pressable, ScrollView,
+  Animated, Easing, Image, Platform, Pressable, ScrollView,
   StyleSheet, Text, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -108,6 +108,21 @@ function TierCard({ tier, index, totalGames, claimed, onClaim }: {
 }
 
 // ─── Per-super accent colors ──────────────────────────────────────────────────
+// ─── AI-generated premium icon images ─────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const CROWN_IMG = require('../../assets/images/crown.png') as number;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const SUPER_IMAGES: Record<number, number> = {
+  1: require('../../assets/images/super_rampart.png'),
+  2: require('../../assets/images/super_deadzone.png'),
+  3: require('../../assets/images/super_shatter.png'),
+};
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const MODE_IMAGES: Partial<Record<string, number>> = {
+  chaos: require('../../assets/images/mode_chaos.png'),
+  blitz: require('../../assets/images/mode_blitz.png'),
+};
+
 const SUPER_COLORS: Record<number, string> = {
   1: '#00BFFF', // RAMPART  — electric steel blue
   2: '#BF5FFF', // DEAD ZONE — void purple
@@ -352,7 +367,7 @@ export default function HomeScreen() {
           { perspective: 800 },
           { rotateY: rotateCrownAnim.interpolate({ inputRange: [0, 1], outputRange: ['-14deg', '14deg'] }) },
         ] }}>
-          <Text style={{ fontSize: 52, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24 }}>👑</Text>
+          <Image source={CROWN_IMG} style={{ width: 74, height: 74 }} resizeMode="contain" />
         </Animated.View>
 
         {/* Title */}
@@ -457,7 +472,11 @@ export default function HomeScreen() {
                       <Text style={styles.superLockTxt}>LV.{sup.unlockLevel}</Text>
                     </View>
                   )}
-                  <Text style={[styles.superIcon, { opacity: unlocked ? 1 : 0.4 }]}>{sup.icon}</Text>
+                  <Image
+                    source={SUPER_IMAGES[sup.id]}
+                    style={{ width: 46, height: 46, opacity: unlocked ? 1 : 0.35 }}
+                    resizeMode="contain"
+                  />
                   <Text style={[styles.superName, { color: !unlocked ? '#FFFFFF33' : active ? supColor : '#FFFFFF88' }]}>{sup.name}</Text>
                   <Text style={[styles.superDesc, { color: !unlocked ? '#FFFFFF1A' : active ? supColor + 'AA' : '#FFFFFF44' }]}>{sup.desc}</Text>
                   {active && unlocked && (
@@ -731,7 +750,9 @@ export default function HomeScreen() {
                   colors={[m.color + '28', m.color + '08', '#00000000']}
                   style={StyleSheet.absoluteFill}
                 />
-                <Text style={styles.modePickEmoji}>{m.emoji}</Text>
+                {MODE_IMAGES[m.id] != null
+                  ? <Image source={MODE_IMAGES[m.id]!} style={{ width: 36, height: 36 }} resizeMode="contain" />
+                  : <Text style={styles.modePickEmoji}>{m.emoji}</Text>}
                 <Text style={[styles.modePickName, { color: m.color }]}>{m.name}</Text>
                 <Text style={[styles.modePickSub, { color: colors.mutedForeground }]}>{m.sub}</Text>
                 <Text style={[styles.modePickDesc, { color: m.color + 'BB' }]}>{m.desc}</Text>

@@ -6,3 +6,111 @@ id = "URuOJP7ZfxM2UDZuEkgkp"
 uri = "file://artifacts/mobile/assets/images/icon.png"
 type = "image"
 title = "generated_image"
+
+[[generated]]
+id = "Z4uP_tL83Afo7yRvKafUQ"
+uri = "file://artifacts/mobile/assets/images/crown.png"
+type = "image"
+title = "gold gaming crown icon"
+
+[[generated]]
+id = "6QuOzzjgMQE9tSu3tsXZ9"
+uri = "file://artifacts/mobile/assets/images/super_rampart.png"
+type = "image"
+title = "rampart ice wall super icon"
+
+[[generated]]
+id = "vtKM-89KKrqUpKPC6DiyL"
+uri = "file://artifacts/mobile/assets/images/super_deadzone.png"
+type = "image"
+title = "dead zone void portal super icon"
+
+[[generated]]
+id = "QTm46X9mJdWknZ1MP3YpH"
+uri = "file://artifacts/mobile/assets/images/super_shatter.png"
+type = "image"
+title = "shatter explosion super icon"
+
+[[generated]]
+id = "jErC86Im9X2KNHSSOtQuo"
+uri = "file://artifacts/mobile/assets/images/ach_first_win.png"
+type = "image"
+title = "trophy achievement icon"
+
+[[generated]]
+id = "c29ZUOcecjYfHXbNAdmYT"
+uri = "file://artifacts/mobile/assets/images/ach_hat_trick.png"
+type = "image"
+title = "bullseye target achievement icon"
+
+[[generated]]
+id = "DJ4pugksrwa8d-VLboQEt"
+uri = "file://artifacts/mobile/assets/images/ach_survivor.png"
+type = "image"
+title = "cracked shield survivor achievement"
+
+[[generated]]
+id = "Nla2yoLRS7UCXGXdpyLi8"
+uri = "file://artifacts/mobile/assets/images/ach_streak3.png"
+type = "image"
+title = "fire flame streak achievement icon"
+
+[[generated]]
+id = "mJIm3TfbU5PLDvPgwTT3o"
+uri = "file://artifacts/mobile/assets/images/ach_streak5.png"
+type = "image"
+title = "lightning bolt unstoppable achievement"
+
+[[generated]]
+id = "fW1eaIiF94p2QUZt66QN2"
+uri = "file://artifacts/mobile/assets/images/ach_gold_rank.png"
+type = "image"
+title = "gold medal achievement icon"
+
+[[generated]]
+id = "z0PXfkpv_SDRgt6cbSbcP"
+uri = "file://artifacts/mobile/assets/images/ach_level10.png"
+type = "image"
+title = "gold star veteran achievement icon"
+
+[[generated]]
+id = "0fKJWkNXuU0o2oZXpTHrc"
+uri = "file://artifacts/mobile/assets/images/ach_level25.png"
+type = "image"
+title = "comet elite achievement icon"
+
+[[generated]]
+id = "RbJJCqugVcL42yyzlMOph"
+uri = "file://artifacts/mobile/assets/images/ach_collector.png"
+type = "image"
+title = "gems collector achievement icon"
+
+[[generated]]
+id = "j5sGdR_4uzfSlfJyL62Q9"
+uri = "file://artifacts/mobile/assets/images/ach_century.png"
+type = "image"
+title = "centurion 100 achievement icon"
+
+[[generated]]
+id = "IV02Vr8tJK__qFchZQvUo"
+uri = "file://artifacts/mobile/assets/images/ach_deflect100.png"
+type = "image"
+title = "glowing brick wall achievement icon"
+
+[[generated]]
+id = "Awgy58y2jnsEZh4OONW-q"
+uri = "file://artifacts/mobile/assets/images/ach_powerup10.png"
+type = "image"
+title = "energy orb power achievement icon"
+
+[[generated]]
+id = "eHzJUosqc8LeWIaCt51K8"
+uri = "file://artifacts/mobile/assets/images/mode_chaos.png"
+type = "image"
+title = "chaos tornado mode icon"
+
+[[generated]]
+id = "zkIoGfUBXg6aEkF0di8wr"
+uri = "file://artifacts/mobile/assets/images/mode_blitz.png"
+type = "image"
+title = "crossed blades blitz mode icon"
