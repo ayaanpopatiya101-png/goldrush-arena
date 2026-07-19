@@ -5,7 +5,7 @@ import {
   Animated, Modal, Platform, Pressable, StyleSheet, Text, View,
 } from 'react-native';
 import {
-  LUCKY_BLOCK_META, LuckyBlock, LuckyBlockReward, LuckyBlockTier,
+  GOLD_STRIKE_NAME, LUCKY_BLOCK_META, LuckyBlock, LuckyBlockReward, LuckyBlockTier,
   generateLuckyBlockReward, rollLuckyBlockUpgrade, usePlayer,
 } from '@/context/PlayerContext';
 
@@ -211,6 +211,10 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
 
         {phase !== 'revealed' ? (
           <View style={s.center}>
+            {/* Category label */}
+            <Animated.Text style={[s.categoryLabel, { opacity: blockOp }]}>
+              {GOLD_STRIKE_NAME.toUpperCase()}
+            </Animated.Text>
             {/* Tier title */}
             <Animated.Text style={[s.tierLabel, { color: meta.color, opacity: blockOp }]}>
               {meta.name}
@@ -342,6 +346,10 @@ const s = StyleSheet.create({
   },
   center: {
     alignItems: 'center', gap: 0,
+  },
+  categoryLabel: {
+    fontSize: 10, fontFamily: 'Inter_600SemiBold', letterSpacing: 3.5,
+    color: '#FFFFFF44', marginBottom: 6,
   },
   tierLabel: {
     fontSize: 22, fontFamily: 'Inter_700Bold', letterSpacing: 2,

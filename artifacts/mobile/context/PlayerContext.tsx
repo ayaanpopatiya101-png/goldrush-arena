@@ -529,6 +529,9 @@ export function getChallengeCode(username: string): string {
 // ─── Lucky Block ──────────────────────────────────────────────────────────────
 export type LuckyBlockTier = 'rare' | 'epic' | 'mythic' | 'legendary' | 'ultra';
 
+/** The branded category name shown in all UI — replaces the generic "Lucky Block" label. */
+export const GOLD_STRIKE_NAME = 'Gold Strike';
+
 export interface LuckyBlock {
   id: string;
   tier: LuckyBlockTier;
@@ -1184,7 +1187,7 @@ export function PlayerProvider({ username, onLogout, children }: {
     if ((profile.redeemedCodes ?? []).includes(normalized)) {
       return { success: false, message: 'Code already redeemed.' };
     }
-    type CodeReward = { xp?: number; minXP?: number; coins?: number; skins?: string[]; themes?: string[]; label: string };
+    type CodeReward = { xp?: number; minXP?: number; coins?: number; skins?: string[]; themes?: string[]; goldStrikes?: LuckyBlockTier[]; label: string };
     const CODES: Record<string, CodeReward> = {
       'RUSH28$K': {
         xp: 28000, coins: 28000,
@@ -1195,6 +1198,16 @@ export function PlayerProvider({ username, onLogout, children }: {
       'BIGWIN2$': {
         minXP: 180_000, coins: 100_000,
         label: '100,000 Coins + Champion 2 rank unlocked!',
+      },
+      'STRIKE25': {
+        goldStrikes: [
+          'rare','rare','rare','rare','rare','rare','rare',
+          'epic','epic','epic','epic','epic','epic','epic',
+          'mythic','mythic','mythic','mythic','mythic',
+          'legendary','legendary','legendary','legendary',
+          'ultra','ultra',
+        ],
+        label: '25 Gold Strikes added — Rush Crates to Nexus Cores!',
       },
     };
     const reward = CODES[normalized];
@@ -1218,6 +1231,15 @@ export function PlayerProvider({ username, onLogout, children }: {
     }
     if (reward.themes) {
       updated = { ...updated, ownedThemes: [...new Set([...(updated.ownedThemes ?? []), ...reward.themes])] };
+    }
+    if (reward.goldStrikes) {
+      const now = Date.now();
+      const newBlocks: LuckyBlock[] = reward.goldStrikes.map((tier, i) => ({
+        id: (now + i).toString(36) + '_rc',
+        tier,
+        source: 'redeem',
+      }));
+      updated = { ...updated, luckyBlocks: [...(updated.luckyBlocks ?? []), ...newBlocks] };
     }
     updated = { ...updated, redeemedCodes: [...(updated.redeemedCodes ?? []), normalized] };
     await save(updated);
