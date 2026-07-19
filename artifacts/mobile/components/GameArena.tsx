@@ -11,7 +11,7 @@ const WALL_MARGIN = 24;
 const PADDLE_LENGTH = 88;
 const PADDLE_THICKNESS = 14;
 const MAX_BALLS = 8;
-const BALL_SPAWN_FRAMES = 300;   // 5 s × 60 fps
+const BALL_SPAWN_FRAMES = 420;   // 7 s × 60 fps
 const SUPER_MAX_CHARGE      = 10;
 const SUPER_DURATION_FRAMES = 180; // 3 s @ 60 fps
 const POWERUP_SPAWN_FRAMES = 420;
@@ -80,7 +80,7 @@ interface GameArenaProps {
   initialLives?: number;
   /** Extra balls spawned immediately at game start in addition to the first (default 0) */
   startingBallCount?: number;
-  /** Frames between automatic ball spawns (default 900 = 15 s at 60 fps) */
+  /** Frames between automatic ball spawns (default 420 = 7 s at 60 fps) */
   ballSpawnFrames?: number;
   /** When true, power-up pickups never spawn */
   noPowerups?: boolean;
@@ -165,7 +165,7 @@ export function GameArena({
   onPlayerLivesChange, grantExtraLifeRef, onEliminatedSpectating,
   colorBoard = true, soundEnabled = true,
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
-  initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.7, duoMode, sixPlayer,
+  initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.55, duoMode, sixPlayer,
   playerRelic, botSkill, arenaBg, playerSuperType = 1, paused = false,
   phantomBalls = false, playerBonusLives = 0, practice = false,
 }: GameArenaProps) {
