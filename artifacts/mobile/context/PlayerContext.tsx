@@ -1186,7 +1186,7 @@ export function PlayerProvider({ username, onLogout, children }: {
     }
     type CodeReward = { xp?: number; coins?: number; skins?: string[]; themes?: string[]; label: string };
     const CODES: Record<string, CodeReward> = {
-      'GOLDRUSH': {
+      'RUSH28$K': {
         xp: 28000, coins: 28000,
         skins:  ['default','plasma','frost','toxic','void','inferno','chrome','cosmic'],
         themes: ['default','solar','arctic','toxic','cosmic','golden'],
