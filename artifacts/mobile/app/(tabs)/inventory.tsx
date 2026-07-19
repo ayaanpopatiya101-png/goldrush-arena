@@ -4,7 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SKINS, RELICS, RANKS, getRankIndex, usePlayer, getRelicLevel, getRelicUpgradeCost, RELIC_MAX_LEVEL } from '@/context/PlayerContext';
+import { SKINS, RELICS, RANKS, getRankIndex, usePlayer, getRelicLevel, getRelicUpgradeCost, RELIC_MAX_LEVEL, LUCKY_BLOCK_META, GOLD_STRIKE_NAME, type LuckyBlock } from '@/context/PlayerContext';
+import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 import { RelicCharacter } from '@/components/RelicCharacter';
 import { useColors } from '@/hooks/useColors';
 
@@ -17,13 +18,18 @@ const ARENA_THEMES = [
   { id: 'golden',  name: 'Gold Rush',      desc: 'Prestige golden arena',       color: '#C8820A', preview: ['#1A1200', '#2A2000'] as [string,string] },
 ];
 
-type Tab = 'skins' | 'themes' | 'relics';
+type Tab = 'skins' | 'themes' | 'relics' | 'strikes';
+
+const TIER_ORDER: Array<import('@/context/PlayerContext').LuckyBlockTier> = ['ultra', 'legendary', 'mythic', 'epic', 'rare'];
 
 export default function InventoryScreen() {
   const colors  = useColors();
   const insets  = useSafeAreaInsets();
   const { profile, equipSkin, equipTheme, equipRelic, upgradeRelic } = usePlayer();
   const [activeTab, setActiveTab] = useState<Tab>('skins');
+  const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
+
+  const pendingBlocks = profile.luckyBlocks ?? [];
 
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
@@ -74,21 +80,31 @@ export default function InventoryScreen() {
 
       {/* Tabs */}
       <View style={[s.tabRow, { borderBottomColor: colors.border }]}>
-        {(['skins', 'themes', 'relics'] as Tab[]).map(tab => (
-          <Pressable
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            style={[s.tab, activeTab === tab && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]}
-          >
-            <Text style={[s.tabText, { color: activeTab === tab ? colors.primary : colors.mutedForeground }]}>
-              {tab === 'skins'
-                ? `SKINS (${ownedSkins.length})`
-                : tab === 'themes'
-                ? `THEMES (${ownedThemes.length})`
-                : `RELICS (${unlockedRelics.length})`}
-            </Text>
-          </Pressable>
-        ))}
+        {(['skins', 'themes', 'relics', 'strikes'] as Tab[]).map(tab => {
+          const label =
+            tab === 'skins'   ? `SKINS (${ownedSkins.length})` :
+            tab === 'themes'  ? `THEMES (${ownedThemes.length})` :
+            tab === 'relics'  ? `RELICS (${unlockedRelics.length})` :
+            pendingBlocks.length > 0 ? `STRIKES (${pendingBlocks.length})` : 'STRIKES';
+          const isActive = activeTab === tab;
+          const accentColor = tab === 'strikes' ? '#FFD700' : colors.primary;
+          return (
+            <Pressable
+              key={tab}
+              onPress={() => setActiveTab(tab)}
+              style={[s.tab, isActive && { borderBottomColor: accentColor, borderBottomWidth: 2 }]}
+            >
+              {tab === 'strikes' && pendingBlocks.length > 0 && (
+                <View style={s.strikeBadge}>
+                  <Text style={s.strikeBadgeText}>{pendingBlocks.length}</Text>
+                </View>
+              )}
+              <Text style={[s.tabText, { color: isActive ? accentColor : colors.mutedForeground }]}>
+                {label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       <ScrollView
@@ -215,6 +231,76 @@ export default function InventoryScreen() {
                   {ARENA_THEMES.length - ownedThemes.length} more theme{ARENA_THEMES.length - ownedThemes.length !== 1 ? 's' : ''} available in the Shop
                 </Text>
               </View>
+            )}
+          </>
+        )}
+
+        {/* ── Gold Strikes tab ── */}
+        {activeTab === 'strikes' && (
+          <>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>
+                {GOLD_STRIKE_NAME.toUpperCase()}S
+              </Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>
+                {pendingBlocks.length} PENDING
+              </Text>
+            </View>
+
+            {pendingBlocks.length === 0 ? (
+              <EmptyState icon="box" message="No Gold Strikes" sub="Earn them from Trophy Road, win streaks, or redeem a code" />
+            ) : (
+              <>
+                <View style={s.strikesInfoRow}>
+                  <Text style={{ fontSize: 16 }}>✨</Text>
+                  <Text style={[s.strikesInfo, { color: '#FFFFFF55' }]}>
+                    Tap any {GOLD_STRIKE_NAME} to open it and reveal your reward
+                  </Text>
+                </View>
+                {TIER_ORDER.map(tier => {
+                  const tierBlocks = pendingBlocks.filter(b => b.tier === tier);
+                  if (tierBlocks.length === 0) return null;
+                  const meta = LUCKY_BLOCK_META[tier];
+                  return (
+                    <View key={tier}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                        <Text style={{ fontSize: 14 }}>{meta.emoji}</Text>
+                        <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.5, color: meta.color }}>
+                          {meta.name.toUpperCase()}
+                        </Text>
+                        <View style={{ flex: 1, height: 1, backgroundColor: meta.color + '22' }} />
+                        <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: meta.color + '88', letterSpacing: 0.5 }}>
+                          ×{tierBlocks.length}
+                        </Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 }}>
+                        {tierBlocks.map((block, i) => (
+                          <Pressable
+                            key={block.id}
+                            onPress={() => setActiveLuckyBlock(block)}
+                            style={({ pressed }) => [s.strikeCard, {
+                              borderColor: meta.color + (pressed ? 'FF' : '66'),
+                              backgroundColor: meta.color + (pressed ? '22' : '10'),
+                            }]}
+                          >
+                            <LinearGradient
+                              colors={[meta.color + '40', meta.color + '10']}
+                              style={StyleSheet.absoluteFill}
+                            />
+                            <Text style={{ fontSize: 36 }}>{meta.emoji}</Text>
+                            <Text style={[s.strikeCardNum, { color: meta.color }]}>#{i + 1}</Text>
+                            <View style={[s.openChip, { backgroundColor: meta.color }]}>
+                              <Text style={s.openChipText}>OPEN</Text>
+                            </View>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </View>
+                  );
+                })}
+              </>
             )}
           </>
         )}
@@ -382,6 +468,13 @@ export default function InventoryScreen() {
           </>
         )}
       </ScrollView>
+
+      {activeLuckyBlock && (
+        <LuckyBlockOpener
+          block={activeLuckyBlock}
+          onClose={() => setActiveLuckyBlock(null)}
+        />
+      )}
     </View>
   );
 }
@@ -458,4 +551,14 @@ const s = StyleSheet.create({
   emptyState:  { alignItems: 'center', paddingVertical: 60, gap: 10 },
   emptyTitle:  { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#FFFFFF44' },
   emptySub:    { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#FFFFFF22', textAlign: 'center' },
+
+  // Gold Strikes tab
+  strikeBadge:     { position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#FFD700', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  strikeBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#1A1200', letterSpacing: 0 },
+  strikesInfoRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FFD70010', borderRadius: 10, borderWidth: 1, borderColor: '#FFD70022', paddingHorizontal: 12, paddingVertical: 9, marginBottom: 4 },
+  strikesInfo:     { fontFamily: 'Inter_400Regular', fontSize: 12, flex: 1 },
+  strikeCard:      { width: '30%', aspectRatio: 0.85, borderRadius: 14, borderWidth: 1.5, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  strikeCardNum:   { fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 0.5 },
+  openChip:        { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
+  openChipText:    { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#07090F', letterSpacing: 1 },
 });
