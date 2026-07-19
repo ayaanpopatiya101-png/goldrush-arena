@@ -5,10 +5,9 @@ import { Alert, Animated, Easing, Image, Platform, Pressable, ScrollView, Share,
 import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AvatarIcon, AVATAR_ICONS } from '@/components/AvatarIcon';
 import { RankBadge } from '@/components/RankBadge';
 import {
-  ACHIEVEMENTS, AVATAR_COLORS, RANKS, SKINS,
+  ACHIEVEMENTS, AVATAR_COLORS, AVATAR_EMOJIS, RANKS, SKINS,
   getChallengeCode, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
 import { useColors } from '@/hooks/useColors';
@@ -163,7 +162,7 @@ export default function ProfileScreen() {
                   />
                 </Svg>
               </Animated.View>
-              <AvatarIcon icon={profile.avatarEmoji} size={40} />
+              <Text style={styles.bigAvatarEmoji}>{profile.avatarEmoji}</Text>
               <View style={styles.editBadge}>
                 <Feather name="edit-2" size={9} color="#000" />
               </View>
@@ -194,10 +193,10 @@ export default function ProfileScreen() {
             {/* Emoji row */}
             <Text style={[styles.pickerLabel, { color: colors.mutedForeground }]}>PICK YOUR ICON</Text>
             <View style={styles.emojiGrid}>
-              {AVATAR_ICONS.map(e => (
+              {AVATAR_EMOJIS.map(e => (
                 <Pressable key={e} onPress={() => setTempEmoji(e)}
                   style={[styles.emojiBtn, tempEmoji === e && { borderColor: tempColor, backgroundColor: tempColor + '22', transform: [{ scale: 1.15 }] }]}>
-                  <AvatarIcon icon={e} size={34} />
+                  <Text style={styles.emojiBtnText}>{e}</Text>
                 </Pressable>
               ))}
             </View>
@@ -216,7 +215,7 @@ export default function ProfileScreen() {
             {/* Preview */}
             <View style={styles.avatarPreview}>
               <View style={[styles.previewCircle, { borderColor: tempColor, backgroundColor: tempColor + '33' }]}>
-                <AvatarIcon icon={tempEmoji} size={30} />
+                <Text style={styles.previewEmoji}>{tempEmoji}</Text>
               </View>
               <Text style={[styles.previewName, { color: tempColor }]}>{profile.name}</Text>
             </View>
@@ -412,7 +411,8 @@ const styles = StyleSheet.create({
   sectionCount:  { fontFamily: 'Inter_500Medium', fontSize: 12 },
   pickerLabel:   { fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.5 },
   emojiGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  emojiBtn:      { width: 44, height: 44, borderRadius: 12, borderWidth: 1.5, borderColor: '#FFFFFF18', backgroundColor: '#FFFFFF08', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  emojiBtn:      { width: 44, height: 44, borderRadius: 12, borderWidth: 1.5, borderColor: '#FFFFFF18', backgroundColor: '#FFFFFF08', alignItems: 'center', justifyContent: 'center' },
+  emojiBtnText:  { fontSize: 22 },
   colorGrid:     { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
   colorDot:      { width: 32, height: 32, borderRadius: 16, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
   avatarPreview: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFFFFF08', borderRadius: 12, padding: 12 },

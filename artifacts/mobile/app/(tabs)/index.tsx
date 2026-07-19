@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AvatarIcon } from '@/components/AvatarIcon';
 import { DailyStreakModal } from '@/components/DailyStreakModal';
 import { RankBadge } from '@/components/RankBadge';
 import { AmbientParticles } from '@/components/AmbientParticles';
@@ -292,7 +291,7 @@ export default function HomeScreen() {
                 opacity: glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }),
               }} />
               <View style={[styles.avatar, { borderColor: profile.avatarFrameColor, backgroundColor: profile.avatarFrameColor + '28' }]}>
-                <AvatarIcon icon={profile.avatarEmoji} size={21} />
+                <Text style={styles.avatarEmoji}>{profile.avatarEmoji}</Text>
               </View>
             </View>
             <View style={{ gap: 2 }}>

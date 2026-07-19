@@ -8,8 +8,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, Line, Path, RadialGradient as SvgRadialGradient, Stop } from 'react-native-svg';
-import { AVATAR_COLORS, SavedAccountMeta, deleteAccount, getSavedAccounts, loginAccount } from '@/context/PlayerContext';
-import { AvatarIcon, AVATAR_ICONS } from '@/components/AvatarIcon';
+import { AVATAR_COLORS, AVATAR_EMOJIS, SavedAccountMeta, deleteAccount, getSavedAccounts, loginAccount } from '@/context/PlayerContext';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -308,7 +307,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
   const [tab, setTab]                       = useState<'signup' | 'login'>('signup');
   const [username, setUsername]             = useState('');
   const [selectedColor, setSelectedColor]   = useState(AVATAR_COLORS[0]);
-  const [selectedEmoji, setSelectedEmoji]   = useState(AVATAR_ICONS[0]);
+  const [selectedEmoji, setSelectedEmoji]   = useState(AVATAR_EMOJIS[0]);
   const [error, setError]                   = useState('');
   const [loading, setLoading]               = useState(false);
   const [savedAccounts, setSavedAccounts]   = useState<SavedAccountMeta[]>([]);
@@ -443,7 +442,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
   async function handleLogin(acct?: SavedAccountMeta) {
     const name  = acct ? acct.username : loginInput.trim();
     if (!name)  { setError('Enter a username.'); return; }
-    const emoji = acct?.avatarEmoji ?? AVATAR_ICONS[0];
+    const emoji = acct?.avatarEmoji ?? AVATAR_EMOJIS[0];
     const color = acct?.avatarColor ?? AVATAR_COLORS[0];
     setLoading(true);
     try {
@@ -577,10 +576,10 @@ export default function OnboardingScreen({ onSuccess }: Props) {
               <View style={s.field}>
                 <Text style={s.label}>🎨  HERO ICON</Text>
                 <View style={s.emojiRow}>
-                  {AVATAR_ICONS.map(e => (
+                  {AVATAR_EMOJIS.map(e => (
                     <Pressable key={e} onPress={() => setSelectedEmoji(e)}
                       style={[s.emojiBtn, selectedEmoji === e && { borderColor: selectedColor, backgroundColor: selectedColor + '25', transform: [{ scale: 1.18 }] }]}>
-                      <AvatarIcon icon={e} size={34} />
+                      <Text style={s.emojiText}>{e}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -603,7 +602,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
               <View style={[s.preview, { borderColor: selectedColor + '44' }]}>
                 <LinearGradient colors={[selectedColor + '1C', selectedColor + '06']} style={StyleSheet.absoluteFill} />
                 <View style={[s.previewAvatar, { borderColor: selectedColor, backgroundColor: selectedColor + '33' }]}>
-                  <AvatarIcon icon={selectedEmoji} size={32} />
+                  <Text style={s.previewEmoji}>{selectedEmoji}</Text>
                 </View>
                 <View>
                   <Text style={[s.previewName, { color: selectedColor }]}>{username || 'Hero Name'}</Text>
@@ -635,7 +634,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
                       <LinearGradient colors={[acct.avatarColor + '14', acct.avatarColor + '06']} style={StyleSheet.absoluteFill} />
                       <Pressable style={s.savedRowMain} onPress={() => handleLogin(acct)}>
                         <View style={[s.savedAvatar, { borderColor: acct.avatarColor, backgroundColor: acct.avatarColor + '33' }]}>
-                          <AvatarIcon icon={acct.avatarEmoji} size={26} />
+                          <Text style={s.savedEmoji}>{acct.avatarEmoji}</Text>
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text style={s.savedName}>{acct.username}</Text>
@@ -737,7 +736,7 @@ const s = StyleSheet.create({
   input:     { flex: 1, paddingHorizontal: 16, color: '#F0F0FF', fontFamily: 'Inter_600SemiBold', fontSize: 15 },
   charCount: { paddingRight: 14, color: '#FFFFFF33', fontFamily: 'Inter_400Regular', fontSize: 11 },
   emojiRow:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  emojiBtn:  { width: 46, height: 46, borderRadius: 13, borderWidth: 1.5, borderColor: '#FFFFFF18', backgroundColor: '#FFFFFF0A', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  emojiBtn:  { width: 46, height: 46, borderRadius: 13, borderWidth: 1.5, borderColor: '#FFFFFF18', backgroundColor: '#FFFFFF0A', alignItems: 'center', justifyContent: 'center' },
   emojiText: { fontSize: 24 },
   colorRow:  { flexDirection: 'row', gap: 10 },
   colorDot:  { width: 33, height: 33, borderRadius: 17, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
