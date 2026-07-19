@@ -367,6 +367,7 @@ export default function GameScreen() {
             botSkill={effectiveBotSkill}
             arenaBg={map.arenaBg}
             playerSuperType={profile.selectedSuper ?? 1}
+            practice={config.practice}
             {...mergedCfg}
           />
         )}

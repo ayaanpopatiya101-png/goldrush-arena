@@ -323,6 +323,7 @@ export function TutorialOverlay({ onComplete }: Props) {
       variant:         'classic',
       playerRelicId:   profile.currentRelic,
       mapId:           'dustbowl',
+      practice:        true,
     });
     onComplete();
     router.push('/game');

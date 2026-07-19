@@ -104,6 +104,8 @@ interface GameArenaProps {
   phantomBalls?: boolean;
   /** Extra lives added only to the human player at game start (Warlord mode) */
   playerBonusLives?: number;
+  /** When true (tutorial practice match) screen shake and floating goal emojis are suppressed. */
+  practice?: boolean;
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
@@ -165,7 +167,7 @@ export function GameArena({
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
   initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.7, duoMode, sixPlayer,
   playerRelic, botSkill, arenaBg, playerSuperType = 1, paused = false,
-  phantomBalls = false, playerBonusLives = 0,
+  phantomBalls = false, playerBonusLives = 0, practice = false,
 }: GameArenaProps) {
 
   const szRef = useRef(arenaSize);
@@ -631,8 +633,8 @@ export function GameArena({
     if (playerId === BOTTOM) { goalsAgainstRef.current++; onPlayerLivesChange?.(player.lives); }
     setLivesState(gs.players.map(p => p.lives));
     triggerFlash(player.color);
-    if (getSettings().screenShake) triggerShake();
-    if (getSettings().showEmojis)  addEmoji(szRef.current * (0.25 + Math.random() * 0.5));
+    if (!practice && getSettings().screenShake) triggerShake();
+    if (!practice && getSettings().showEmojis)  addEmoji(szRef.current * (0.25 + Math.random() * 0.5));
     // Spark burst at the ball's current position
     const hitBall = gs.balls.find(b => b.active);
     if (hitBall) spawnSparks(hitBall.x, hitBall.y, player.color);

@@ -28,6 +28,8 @@ export interface GameSessionConfig {
   opponentNames?:  string[];
   /** Opponent ranks for the match — used to scale bot difficulty. */
   opponentRanks?:  string[];
+  /** When true this is a tutorial practice match — screen shake and goal emojis are suppressed. */
+  practice?:       boolean;
 }
 
 let _config: GameSessionConfig = {
