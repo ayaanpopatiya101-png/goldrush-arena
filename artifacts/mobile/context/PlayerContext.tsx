@@ -1184,13 +1184,17 @@ export function PlayerProvider({ username, onLogout, children }: {
     if ((profile.redeemedCodes ?? []).includes(normalized)) {
       return { success: false, message: 'Code already redeemed.' };
     }
-    type CodeReward = { xp?: number; coins?: number; skins?: string[]; themes?: string[]; label: string };
+    type CodeReward = { xp?: number; minXP?: number; coins?: number; skins?: string[]; themes?: string[]; label: string };
     const CODES: Record<string, CodeReward> = {
       'RUSH28$K': {
         xp: 28000, coins: 28000,
         skins:  ['default','plasma','frost','toxic','void','inferno','chrome','cosmic'],
         themes: ['default','solar','arctic','toxic','cosmic','golden'],
         label: '28,000 XP + 28,000 Coins + all skins & themes unlocked!',
+      },
+      'BIGWIN2$': {
+        minXP: 180_000, coins: 100_000,
+        label: '100,000 Coins + Champion 2 rank unlocked!',
       },
     };
     const reward = CODES[normalized];
@@ -1200,6 +1204,10 @@ export function PlayerProvider({ username, onLogout, children }: {
     let updated = { ...profile };
     if (reward.xp) {
       const newXP = updated.xp + reward.xp;
+      updated = { ...updated, xp: newXP, level: xpToLevel(newXP), rank: getRankFromXP(newXP) };
+    }
+    if (reward.minXP && updated.xp < reward.minXP) {
+      const newXP = reward.minXP;
       updated = { ...updated, xp: newXP, level: xpToLevel(newXP), rank: getRankFromXP(newXP) };
     }
     if (reward.coins) {
