@@ -6,6 +6,7 @@ import React from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettings } from '@/hooks/useSettings';
+import { AvatarIcon } from '@/components/AvatarIcon';
 import { usePlayer } from '@/context/PlayerContext';
 
 const SENSITIVITY_OPTIONS = [
@@ -75,7 +76,7 @@ export default function SettingsScreen() {
           <View style={s.card}>
             <View style={s.accountCard}>
               <View style={[s.accountAvatar, { backgroundColor: profile.avatarFrameColor + '22', borderColor: profile.avatarFrameColor }]}>
-                <Text style={s.accountEmoji}>{profile.avatarEmoji}</Text>
+                <AvatarIcon icon={profile.avatarEmoji} size={28} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.accountName}>{profile.name}</Text>
