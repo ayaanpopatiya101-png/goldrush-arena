@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SKINS, FORGE_ABILITIES, RELICS, getRankIndex, usePlayer } from '@/context/PlayerContext';
+import { RedeemCodeModal } from '@/components/RedeemCodeModal';
 import { useColors } from '@/hooks/useColors';
 
 const POWERUP_BUNDLES = [
@@ -39,6 +40,7 @@ export default function ShopScreen() {
   const { profile, purchaseSkin, equipSkin, spendCoins, purchaseForgeAbility, equipForgeAbility } = usePlayer();
   const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras' | 'forge'>('skins');
   const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [redeemVisible, setRedeemVisible] = useState(false);
 
   const allRelicsOwned = RELICS.every(r =>
     (profile.trophyUnlockedRelics ?? []).includes(r.id) ||
@@ -120,7 +122,7 @@ export default function ShopScreen() {
           <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</Text>
         </View>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
           {allRelicsOwned && (
             <View style={[styles.coinDisplay, { backgroundColor: '#7A50A022', borderWidth: 1, borderColor: '#7A50A044' }]}>
               <Text style={{ fontSize: 12 }}>⚡</Text>
@@ -131,6 +133,13 @@ export default function ShopScreen() {
             <Feather name="circle" size={14} color="#FFD700" />
             <Text style={styles.coinAmount}>{profile.coins}</Text>
           </View>
+          <Pressable
+            onPress={() => setRedeemVisible(true)}
+            style={({ pressed }) => [styles.redeemCodeBtn, { opacity: pressed ? 0.75 : 1 }]}
+          >
+            <Feather name="gift" size={13} color="#C8820A" />
+            <Text style={styles.redeemCodeTxt}>REDEEM</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -478,6 +487,8 @@ export default function ShopScreen() {
           </>
         )}
       </ScrollView>
+
+      <RedeemCodeModal visible={redeemVisible} onClose={() => setRedeemVisible(false)} />
     </View>
   );
 }
@@ -528,4 +539,6 @@ const styles = StyleSheet.create({
   creditsBox: { alignItems: 'center', gap: 2 },
   creditsLabel: { color: '#B9A0E0', fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 1.5 },
   creditsValue: { color: '#B9A0E0', fontFamily: 'Inter_700Bold', fontSize: 20 },
+  redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#C8820A18', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A55', paddingHorizontal: 10, paddingVertical: 6 },
+  redeemCodeTxt: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.5, color: '#C8820A' },
 });

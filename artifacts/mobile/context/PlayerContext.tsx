@@ -745,6 +745,8 @@ export interface PlayerProfile {
   luckyBlocks?: LuckyBlock[];
   // Set during addMatchResult when a win-streak block is earned; cleared on open
   pendingStreakLuckyBlockId?: string | null;
+  // Tracks which redemption codes have already been used on this account
+  redeemedCodes?: string[];
 }
 
 export interface MatchResult {
@@ -842,6 +844,7 @@ interface PlayerContextType {
     placement: number,
     rounds: QualifierRoundDef[],
   ) => Promise<{ qpEarned: number; totalQP: number; advanced: boolean; nextRoundName: string }>;
+  redeemCode: (code: string) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
 }
 
@@ -1176,6 +1179,43 @@ export function PlayerProvider({ username, onLogout, children }: {
     });
   }, [profile, save]);
 
+  const redeemCode = useCallback(async (code: string): Promise<{ success: boolean; message: string }> => {
+    const normalized = code.trim().toUpperCase();
+    if ((profile.redeemedCodes ?? []).includes(normalized)) {
+      return { success: false, message: 'Code already redeemed.' };
+    }
+    type CodeReward = { xp?: number; coins?: number; skins?: string[]; themes?: string[]; label: string };
+    const CODES: Record<string, CodeReward> = {
+      'GOLDRUSH': {
+        xp: 28000, coins: 28000,
+        skins:  ['default','plasma','frost','toxic','void','inferno','chrome','cosmic'],
+        themes: ['default','solar','arctic','toxic','cosmic','golden'],
+        label: '28,000 XP + 28,000 Coins + all skins & themes unlocked!',
+      },
+    };
+    const reward = CODES[normalized];
+    if (!reward) {
+      return { success: false, message: 'Invalid or expired code.' };
+    }
+    let updated = { ...profile };
+    if (reward.xp) {
+      const newXP = updated.xp + reward.xp;
+      updated = { ...updated, xp: newXP, level: xpToLevel(newXP), rank: getRankFromXP(newXP) };
+    }
+    if (reward.coins) {
+      updated = { ...updated, coins: updated.coins + reward.coins };
+    }
+    if (reward.skins) {
+      updated = { ...updated, ownedSkins: [...new Set([...updated.ownedSkins, ...reward.skins])] };
+    }
+    if (reward.themes) {
+      updated = { ...updated, ownedThemes: [...new Set([...(updated.ownedThemes ?? []), ...reward.themes])] };
+    }
+    updated = { ...updated, redeemedCodes: [...(updated.redeemedCodes ?? []), normalized] };
+    await save(updated);
+    return { success: true, message: reward.label };
+  }, [profile, save]);
+
   const dismissStreakModal = useCallback(() => setShowStreakModal(false), []);
 
   return (
@@ -1185,7 +1225,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial,
       setSelectedSuper, purchaseForgeAbility, equipForgeAbility,
       spendEventPlay, claimEventBonus, spendQualifierPlay, earnQualifierPoints,
-      openLuckyBlock, logout,
+      openLuckyBlock, redeemCode, logout,
     }}>
       {children}
     </PlayerContext.Provider>
