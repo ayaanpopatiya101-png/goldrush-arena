@@ -97,6 +97,16 @@ Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Ex
 - Caps that exist for balance: paddle length 1.25×, `deflectBoost` 1.3×, `botAccuracy` 0.97, bot speed `0.7+0.4*skill`. Don't remove these silently.
 - Duel-mode rendering must reference `duelBottomPlayer`/`duelTopPlayer` (not `gs.players[BOTTOM/TOP]`) for paddle width/transform/shield, or a spectated bot-vs-bot duel shows the wrong paddle length/shield.
 
+## Stripe payments architecture
+- Products seeded in Stripe via code_execution (listConnections key is `settings.secret`, not `settings.secret_key`)
+- `stripe-replit-sync` runMigrations has no `schema` param; stripe.* DB tables not created — do NOT use StripeSync for the store
+- Products/prices are fetched live from Stripe API (`GET /api/store/products`) — more reliable than DB sync
+- Purchase flow: Buy → Stripe checkout → webhook creates `GR-XXXXXX-XXXX` code in `purchase_codes` table → success page shows code → user REDEEMs in-game
+- `purchase_codes` table in public schema (not stripe schema): code PK, reward_json, used bool, created_at
+- `redeemCode` in PlayerContext handles GR- prefix codes via API call to `/api/store/verify-code`
+- Webhook (`/api/stripe/webhook`) must be registered BEFORE `express.json()` in app.ts
+- `STRIPE_WEBHOOK_SECRET` env var needed for webhook signature verification in production
+
 ## Premium UI design system (Brawl Stars polish level)
 - **Background pattern** (all tab screens): `LinearGradient ['#0B0D14', '#07090F']` base + `LinearGradient ['#C8820A10'/'#C8820A14', 'transparent']` gold top glow at height 260-280.
 - **Font rule**: ALL bold text uses `fontFamily: 'Inter_700Bold'` or `'Inter_600SemiBold'`. Zero `fontWeight: '600'/'700'/'800'/'900'` remain.

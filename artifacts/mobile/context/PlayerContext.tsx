@@ -750,6 +750,8 @@ export interface PlayerProfile {
   pendingStreakLuckyBlockId?: string | null;
   // Tracks which redemption codes have already been used on this account
   redeemedCodes?: string[];
+  // Set to true when user purchases the Season Pass via Stripe
+  seasonPassPurchased?: boolean;
 }
 
 export interface MatchResult {
@@ -1212,6 +1214,43 @@ export function PlayerProvider({ username, onLogout, children }: {
     };
     const reward = CODES[normalized];
     if (!reward) {
+      // Check server for purchase codes (GR-XXXXXX-XXXX format)
+      if (/^GR-[0-9A-F]+-[0-9A-F]+$/i.test(normalized)) {
+        try {
+          const apiBase = typeof window !== 'undefined' && window.location
+            ? '/api'
+            : (process.env.EXPO_PUBLIC_API_URL ?? '/api');
+          const resp = await fetch(`${apiBase}/store/verify-code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: normalized }),
+          });
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({})) as any;
+            return { success: false, message: err.error ?? 'Code not found or already used.' };
+          }
+          const data = await resp.json() as any;
+          const r = data.reward as {
+            rewardType?: string; rewardAmount?: number;
+            rewardSkins?: string[]; seasonPass?: boolean; label?: string;
+          };
+          let updated = { ...profile };
+          if (r.rewardType === 'coins' && r.rewardAmount) {
+            updated = { ...updated, coins: updated.coins + r.rewardAmount };
+          }
+          if (r.rewardType === 'skins' && r.rewardSkins?.length) {
+            updated = { ...updated, ownedSkins: [...new Set([...updated.ownedSkins, ...r.rewardSkins])] };
+          }
+          if (r.seasonPass || r.rewardType === 'season_pass') {
+            updated = { ...updated, seasonPassPurchased: true };
+          }
+          updated = { ...updated, redeemedCodes: [...(updated.redeemedCodes ?? []), normalized] };
+          await save(updated);
+          return { success: true, message: r.label ?? 'Purchase reward applied!' };
+        } catch {
+          return { success: false, message: 'Could not verify code — check your connection.' };
+        }
+      }
       return { success: false, message: 'Invalid or expired code.' };
     }
     let updated = { ...profile };

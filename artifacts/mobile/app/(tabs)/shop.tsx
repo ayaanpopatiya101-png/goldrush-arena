@@ -1,12 +1,31 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SKINS, FORGE_ABILITIES, RELICS, getRankIndex, usePlayer } from '@/context/PlayerContext';
 import { RedeemCodeModal } from '@/components/RedeemCodeModal';
 import { useColors } from '@/hooks/useColors';
+
+const API_BASE = Platform.OS === 'web' ? '/api' : (process.env.EXPO_PUBLIC_API_URL ?? '/api');
+
+const STORE_COIN_PACKS = [
+  { key: 'Starter Sack',    emoji: '🪙', name: 'Starter Sack',    desc: '1,000 Coins',                   usd: '$0.99',  highlight: false },
+  { key: 'Gold Pouch',      emoji: '💰', name: 'Gold Pouch',      desc: '5,000 Coins',                   usd: '$3.99',  highlight: false },
+  { key: 'Treasure Chest',  emoji: '🎁', name: 'Treasure Chest',  desc: '15,000 Coins — best deal!',     usd: '$9.99',  highlight: true  },
+  { key: 'Dragon Vault',    emoji: '🐉', name: 'Dragon Vault',    desc: '50,000 Coins',                  usd: '$24.99', highlight: false },
+];
+const STORE_SKIN_PACKS = [
+  { key: 'Void Striker Pack', emoji: '🌑', name: 'Void Striker Pack', desc: 'Exclusive Void paddle skin',         usd: '$1.99' },
+  { key: 'Inferno Pack',      emoji: '🔥', name: 'Inferno Pack',      desc: 'Blazing Inferno paddle skin',         usd: '$1.99' },
+  { key: 'Elite Bundle',      emoji: '💎', name: 'Elite Bundle',      desc: 'Chrome + Cosmic skins (2 for 1)',     usd: '$4.99' },
+];
+const STORE_SEASON_PASS = {
+  key: 'GoldRush Season Pass', emoji: '🌟', name: 'GoldRush Season Pass',
+  desc: 'Instantly unlock all Season Pass tiers — exclusive skins, coins & more',
+  usd: '$4.99',
+};
 
 const POWERUP_BUNDLES = [
   { id: 'shield3', name: 'Shield Pack', desc: '3x Shield Power-ups', icon: 'shield', price: 80, color: '#FFD700' },
@@ -38,9 +57,60 @@ export default function ShopScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { profile, purchaseSkin, equipSkin, spendCoins, purchaseForgeAbility, equipForgeAbility } = usePlayer();
-  const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras' | 'forge'>('skins');
+  const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras' | 'forge' | 'store'>('skins');
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [redeemVisible, setRedeemVisible] = useState(false);
+
+  // Store: product price ID cache (keyed by product name)
+  const priceCache = useRef<Record<string, string>>({});
+  const [storeLoading, setStoreLoading] = useState(false);
+  const [storeError, setStoreError] = useState<string | null>(null);
+  const [checkingOut, setCheckingOut] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeTab !== 'store') return;
+    if (Object.keys(priceCache.current).length > 0) return;
+    setStoreLoading(true);
+    setStoreError(null);
+    fetch(`${API_BASE}/store/products`)
+      .then(r => r.json())
+      .then((data: any) => {
+        const cache: Record<string, string> = {};
+        for (const p of (data.data ?? [])) {
+          const firstPrice = p.prices?.[0]?.id;
+          if (firstPrice) cache[p.name] = firstPrice;
+        }
+        priceCache.current = cache;
+        setStoreLoading(false);
+      })
+      .catch(() => {
+        setStoreError('Could not load store. Check your connection.');
+        setStoreLoading(false);
+      });
+  }, [activeTab]);
+
+  async function handleBuyFromStore(productName: string) {
+    const priceId = priceCache.current[productName];
+    if (!priceId) {
+      xAlert('Store unavailable', 'Could not find product. Try again in a moment.');
+      return;
+    }
+    setCheckingOut(productName);
+    try {
+      const resp = await fetch(`${API_BASE}/store/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId }),
+      });
+      const data = await resp.json() as any;
+      if (!resp.ok || !data.url) throw new Error(data.error ?? 'Checkout error');
+      await Linking.openURL(data.url);
+    } catch (err: any) {
+      xAlert('Checkout failed', err.message ?? 'Could not open checkout.');
+    } finally {
+      setCheckingOut(null);
+    }
+  }
 
   const allRelicsOwned = RELICS.every(r =>
     (profile.trophyUnlockedRelics ?? []).includes(r.id) ||
@@ -144,15 +214,15 @@ export default function ShopScreen() {
       </View>
 
       {/* Tabs */}
-      <View style={[styles.tabRow, { borderBottomColor: colors.border }]}>
-        {(['skins', 'themes', 'powerups', 'extras', ...(allRelicsOwned ? ['forge' as const] : [])] as const).map(t => (
-          <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: t === 'forge' ? '#7A50A0' : colors.primary }]}>
-            <Text style={[styles.tabText, { color: activeTab === t ? (t === 'forge' ? '#B9A0E0' : colors.primary) : colors.mutedForeground }]}>
-              {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'forge' ? '⚡ FORGE' : 'EXTRAS'}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 44 }} contentContainerStyle={[styles.tabRow, { borderBottomColor: colors.border }]}>
+        {(['skins', 'themes', 'powerups', 'extras', 'store', ...(allRelicsOwned ? ['forge' as const] : [])] as const).map(t => (
+          <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: t === 'forge' ? '#7A50A0' : t === 'store' ? '#FFD700' : colors.primary }]}>
+            <Text style={[styles.tabText, { color: activeTab === t ? (t === 'forge' ? '#B9A0E0' : t === 'store' ? '#FFD700' : colors.primary) : colors.mutedForeground }]}>
+              {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'forge' ? '⚡ FORGE' : t === 'store' ? '💳 STORE' : 'EXTRAS'}
             </Text>
           </Pressable>
         ))}
-      </View>
+      </ScrollView>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: insets.bottom + 80, gap: 10 }}>
         {activeTab === 'skins' && (
@@ -486,6 +556,128 @@ export default function ShopScreen() {
             </View>
           </>
         )}
+
+        {activeTab === 'store' && (
+          <>
+            {/* Header banner */}
+            <View style={[storeStyles.banner, { borderColor: '#C8820A44' }]}>
+              <LinearGradient colors={['#C8820A22', '#C8820A08']} style={StyleSheet.absoluteFill} />
+              <Text style={{ fontSize: 28 }}>🏆</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={storeStyles.bannerTitle}>GOLDRUSH STORE</Text>
+                <Text style={[storeStyles.bannerSub, { color: colors.mutedForeground }]}>
+                  Real-money purchases • Secure Stripe checkout • Get a code to redeem in-game
+                </Text>
+              </View>
+            </View>
+
+            {storeLoading && (
+              <View style={{ alignItems: 'center', paddingVertical: 32 }}>
+                <Text style={{ color: '#FFFFFF55', fontFamily: 'Inter_400Regular', fontSize: 13 }}>Loading store…</Text>
+              </View>
+            )}
+            {storeError && !storeLoading && (
+              <View style={[storeStyles.errorBox, { borderColor: '#FF475733' }]}>
+                <Text style={{ color: '#FF4757', fontFamily: 'Inter_400Regular', fontSize: 13, textAlign: 'center' }}>{storeError}</Text>
+                <Pressable onPress={() => { priceCache.current = {}; setActiveTab('skins'); setTimeout(() => setActiveTab('store'), 50); }}>
+                  <Text style={{ color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 12, marginTop: 8 }}>Retry</Text>
+                </Pressable>
+              </View>
+            )}
+
+            {!storeLoading && !storeError && (
+              <>
+                {/* Season Pass */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                  <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
+                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>SEASON PASS</Text>
+                </View>
+                <Pressable
+                  onPress={() => handleBuyFromStore(STORE_SEASON_PASS.key)}
+                  disabled={checkingOut === STORE_SEASON_PASS.key || !!profile.seasonPassPurchased}
+                  style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#FFD70066' }]}
+                >
+                  <LinearGradient colors={['#FFD70022', '#C8820A11']} style={StyleSheet.absoluteFill} />
+                  <Text style={{ fontSize: 32 }}>{STORE_SEASON_PASS.emoji}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={storeStyles.passName}>{STORE_SEASON_PASS.name}</Text>
+                    <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>{STORE_SEASON_PASS.desc}</Text>
+                    {profile.seasonPassPurchased && (
+                      <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFD700', letterSpacing: 1, marginTop: 4 }}>✓ OWNED</Text>
+                    )}
+                  </View>
+                  {!profile.seasonPassPurchased && (
+                    <View style={storeStyles.usdBtn}>
+                      <Text style={storeStyles.usdBtnText}>{checkingOut === STORE_SEASON_PASS.key ? '…' : STORE_SEASON_PASS.usd}</Text>
+                    </View>
+                  )}
+                </Pressable>
+
+                {/* Coin Packs */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
+                  <View style={{ width: 3, height: 16, backgroundColor: '#FFB830', borderRadius: 2 }} />
+                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFB830' }}>COIN PACKS</Text>
+                </View>
+                {STORE_COIN_PACKS.map(pack => (
+                  <Pressable
+                    key={pack.key}
+                    onPress={() => handleBuyFromStore(pack.key)}
+                    disabled={checkingOut === pack.key}
+                    style={({ pressed }) => [storeStyles.storeCard, {
+                      borderColor: pack.highlight ? '#C8820A88' : '#FFFFFF18',
+                      backgroundColor: pack.highlight ? '#C8820A14' : colors.card,
+                      opacity: pressed ? 0.82 : 1,
+                    }]}
+                  >
+                    {pack.highlight && <LinearGradient colors={['#C8820A18', '#C8820A06']} style={StyleSheet.absoluteFill} />}
+                    <Text style={{ fontSize: 26, width: 36, textAlign: 'center' }}>{pack.emoji}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[storeStyles.storeName, { color: pack.highlight ? '#FFB830' : colors.foreground }]}>{pack.name}</Text>
+                      <Text style={[storeStyles.storeDesc, { color: colors.mutedForeground }]}>{pack.desc}</Text>
+                    </View>
+                    <View style={[storeStyles.usdBtn, pack.highlight && { backgroundColor: '#C8820A33', borderColor: '#C8820A88' }]}>
+                      <Text style={[storeStyles.usdBtnText, pack.highlight && { color: '#FFD700' }]}>
+                        {checkingOut === pack.key ? '…' : pack.usd}
+                      </Text>
+                    </View>
+                  </Pressable>
+                ))}
+
+                {/* Skin Packs */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
+                  <View style={{ width: 3, height: 16, backgroundColor: '#00E5FF', borderRadius: 2 }} />
+                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#00E5FF' }}>SKIN PACKS</Text>
+                </View>
+                {STORE_SKIN_PACKS.map(pack => (
+                  <Pressable
+                    key={pack.key}
+                    onPress={() => handleBuyFromStore(pack.key)}
+                    disabled={checkingOut === pack.key}
+                    style={({ pressed }) => [storeStyles.storeCard, { borderColor: '#00E5FF22', opacity: pressed ? 0.82 : 1 }]}
+                  >
+                    <Text style={{ fontSize: 26, width: 36, textAlign: 'center' }}>{pack.emoji}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[storeStyles.storeName, { color: colors.foreground }]}>{pack.name}</Text>
+                      <Text style={[storeStyles.storeDesc, { color: colors.mutedForeground }]}>{pack.desc}</Text>
+                    </View>
+                    <View style={storeStyles.usdBtn}>
+                      <Text style={storeStyles.usdBtnText}>{checkingOut === pack.key ? '…' : pack.usd}</Text>
+                    </View>
+                  </Pressable>
+                ))}
+
+                {/* How it works */}
+                <View style={[storeStyles.howItWorks, { borderColor: '#FFFFFF12' }]}>
+                  <Text style={[storeStyles.howTitle, { color: colors.foreground }]}>How it works</Text>
+                  <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>1. Tap a product and complete secure checkout</Text>
+                  <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>2. Your receipt page shows a unique code (e.g. GR-A1B2-C3D4)</Text>
+                  <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>3. Return here → tap <Text style={{ color: '#C8820A', fontFamily: 'Inter_700Bold' }}>REDEEM</Text> → enter your code</Text>
+                  <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>4. Your reward is added instantly!</Text>
+                </View>
+              </>
+            )}
+          </>
+        )}
       </ScrollView>
 
       <RedeemCodeModal visible={redeemVisible} onClose={() => setRedeemVisible(false)} />
@@ -541,4 +733,22 @@ const styles = StyleSheet.create({
   creditsValue: { color: '#B9A0E0', fontFamily: 'Inter_700Bold', fontSize: 20 },
   redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#C8820A18', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A55', paddingHorizontal: 10, paddingVertical: 6 },
   redeemCodeTxt: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.5, color: '#C8820A' },
+});
+
+const storeStyles = StyleSheet.create({
+  banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 14, borderWidth: 1, padding: 14, overflow: 'hidden' },
+  bannerTitle: { fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 2, color: '#FFD700' },
+  bannerSub: { fontFamily: 'Inter_400Regular', fontSize: 11, lineHeight: 16, marginTop: 2 },
+  errorBox: { alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 16 },
+  passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1.5, padding: 16, overflow: 'hidden' },
+  passName: { fontFamily: 'Inter_700Bold', fontSize: 15, color: '#FFD700', letterSpacing: 0.5 },
+  passDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17, marginTop: 2 },
+  storeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, padding: 14, gap: 10, overflow: 'hidden' },
+  storeName: { fontFamily: 'Inter_700Bold', fontSize: 14 },
+  storeDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, marginTop: 1 },
+  usdBtn: { backgroundColor: '#FFFFFF0F', borderRadius: 10, borderWidth: 1, borderColor: '#FFFFFF22', paddingHorizontal: 12, paddingVertical: 7 },
+  usdBtnText: { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#FFFFFF' },
+  howItWorks: { backgroundColor: '#FFFFFF08', borderRadius: 12, borderWidth: 1, padding: 14, gap: 6 },
+  howTitle: { fontFamily: 'Inter_700Bold', fontSize: 13, marginBottom: 4 },
+  howStep: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
 });
