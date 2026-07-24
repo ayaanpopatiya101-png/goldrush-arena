@@ -55,7 +55,7 @@ function fmtTime(secs: number) {
 export default function GameScreen() {
   const { width, height } = useWindowDimensions();
   const insets   = useSafeAreaInsets();
-  const { addMatchResult, profile } = usePlayer();
+  const { addMatchResult, profile, consumeExtraLives } = usePlayer();
   const config   = getGameConfig();
   const music    = useBackgroundMusic();
   const { settings } = useSettings();
@@ -108,11 +108,14 @@ export default function GameScreen() {
   // Merge variant + map modifiers — variant rules always win over map mods.
   const { maxSkillBots, ...variantCfgRest } = variantCfg;
   const effectiveBotSkill = maxSkillBots ? 1.0 : botSkill;
+  const inventoryBonusLives = profile.extraLivesInventory ?? 0;
   const mergedCfg = {
     ...variantCfgRest,
-    startSpeedMult:  variantCfgRest.startSpeedMult  ?? mapMods.startSpeedMult,
-    ballSpawnFrames: variantCfgRest.ballSpawnFrames ?? mapMods.ballSpawnFrames,
-    noPowerups:      variantCfgRest.noPowerups      ?? mapMods.noPowerups,
+    startSpeedMult:   variantCfgRest.startSpeedMult  ?? mapMods.startSpeedMult,
+    ballSpawnFrames:  variantCfgRest.ballSpawnFrames ?? mapMods.ballSpawnFrames,
+    noPowerups:       variantCfgRest.noPowerups      ?? mapMods.noPowerups,
+    // Add 1 inventory life per match (preserve variant bonus lives like warlord's 5)
+    playerBonusLives: (variantCfgRest.playerBonusLives ?? 0) + (inventoryBonusLives > 0 ? 1 : 0),
   };
 
   const [gameOver,     setGameOver]     = useState(false);
@@ -167,6 +170,8 @@ export default function GameScreen() {
 
   function handleGameStart() {
     setTimerRunning(true);
+    // Consume 1 inventory extra life if they had one going in
+    if (inventoryBonusLives > 0) consumeExtraLives(1);
   }
 
   function ensureMusic() {

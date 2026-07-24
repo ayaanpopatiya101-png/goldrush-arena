@@ -68,7 +68,7 @@ export default function ShopScreen() {
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
 
   useEffect(() => {
-    if (activeTab !== 'store') return;
+    if (activeTab !== 'store' && activeTab !== 'extras') return;
     if (Object.keys(priceCache.current).length > 0) return;
     setStoreLoading(true);
     setStoreError(null);
@@ -415,61 +415,80 @@ export default function ShopScreen() {
 
         {activeTab === 'extras' && (
           <>
+            {/* Inventory badge */}
+            {(profile.extraLivesInventory ?? 0) > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FF69B414', borderRadius: 12, borderWidth: 1, borderColor: '#FF69B433', padding: 12, marginBottom: 4 }}>
+                <Text style={{ fontSize: 20 }}>❤️</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 13, color: '#FF69B4' }}>
+                    {profile.extraLivesInventory} Extra {(profile.extraLivesInventory ?? 0) === 1 ? 'Life' : 'Lives'} Ready
+                  </Text>
+                  <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 11, color: colors.mutedForeground, marginTop: 2 }}>
+                    You start your next {(profile.extraLivesInventory ?? 0) === 1 ? 'match' : `${profile.extraLivesInventory} matches`} with 1 bonus life.
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Extra Lives — real Stripe checkout */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <View style={{ width: 3, height: 16, backgroundColor: '#FF69B4', borderRadius: 2 }} />
               <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FF69B4' }}>EXTRA LIVES</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>COMING SOON</Text>
             </View>
 
-            {EXTRA_LIVES.map(item => (
-              <View
-                key={item.id}
-                style={[styles.bundleCard, { backgroundColor: colors.card, borderColor: '#FF69B422', opacity: 0.38 }]}
+            {[
+              { storeKey: '1 Extra Life',  emoji: '❤️',  name: '1 Extra Life',  desc: 'Start your next match with 1 bonus life',          usd: '$1.99' },
+              { storeKey: '3 Extra Lives', emoji: '💖',  name: '3 Extra Lives', desc: 'Start your next 3 matches each with 1 bonus life',   usd: '$2.99' },
+            ].map(item => (
+              <Pressable
+                key={item.storeKey}
+                onPress={() => handleBuyFromStore(item.storeKey)}
+                disabled={checkingOut === item.storeKey}
+                style={({ pressed }) => [styles.bundleCard, {
+                  backgroundColor: colors.card, borderColor: '#FF69B433', opacity: pressed ? 0.8 : 1,
+                }]}
               >
-                <LinearGradient colors={['#FF69B411', '#FF69B405']} style={StyleSheet.absoluteFill} />
-                <View style={[styles.bundleIcon, { backgroundColor: '#FF69B411', borderColor: '#FF69B422' }]}>
-                  <Feather name="heart" size={22} color="#FF69B466" />
+                <LinearGradient colors={['#FF69B418', '#FF69B408']} style={StyleSheet.absoluteFill} />
+                <View style={[styles.bundleIcon, { backgroundColor: '#FF69B418', borderColor: '#FF69B433' }]}>
+                  <Text style={{ fontSize: 22 }}>{item.emoji}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.itemName, { color: colors.foreground }]}>{item.name}</Text>
                   <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{item.desc}</Text>
                 </View>
-                <View style={[styles.iapBtn, { backgroundColor: '#FFFFFF0A', borderColor: '#FFFFFF18' }]}>
-                  <Text style={[styles.iapText, { color: '#FFFFFF33' }]}>SOON</Text>
+                <View style={[storeStyles.usdBtn, { backgroundColor: '#FF69B422', borderColor: '#FF69B466' }]}>
+                  <Text style={[storeStyles.usdBtnText, { color: '#FF69B4' }]}>
+                    {checkingOut === item.storeKey ? '…' : item.usd}
+                  </Text>
                 </View>
-              </View>
+              </Pressable>
             ))}
 
-            {/* Coin IAP */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
+            {/* Coin Packs — redirect to STORE tab */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, marginBottom: 4 }}>
               <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
-              <Text style={[styles.subsectionTitle, { color: colors.foreground, marginBottom: 0 }]}>COIN PACKS</Text>
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>COIN PACKS</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>COMING SOON</Text>
             </View>
-            {[
-              { label: '100 Coins', price: '$0.99', coins: 100 },
-              { label: '500 Coins', price: '$3.99', coins: 500 },
-              { label: '1200 Coins', price: '$7.99', coins: 1200 },
-            ].map(pack => (
-              <View
-                key={pack.label}
-                style={[styles.bundleCard, { backgroundColor: colors.card, borderColor: '#FFD70018', opacity: 0.38 }]}
-              >
-                <LinearGradient colors={['#FFD70011', '#FFD70005']} style={StyleSheet.absoluteFill} />
-                <View style={[styles.bundleIcon, { backgroundColor: '#FFD70011', borderColor: '#FFD70022' }]}>
-                  <Feather name="circle" size={22} color="#FFD70066" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.itemName, { color: colors.foreground }]}>{pack.label}</Text>
-                  <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>Coming soon</Text>
-                </View>
-                <View style={[styles.iapBtn, { backgroundColor: '#FFFFFF0A', borderColor: '#FFFFFF18' }]}>
-                  <Text style={[styles.iapText, { color: '#FFFFFF33' }]}>{pack.price}</Text>
-                </View>
+            <Pressable
+              onPress={() => setActiveTab('store')}
+              style={({ pressed }) => [styles.bundleCard, {
+                backgroundColor: '#C8820A14', borderColor: '#C8820A44', opacity: pressed ? 0.8 : 1,
+              }]}
+            >
+              <LinearGradient colors={['#C8820A18', '#C8820A06']} style={StyleSheet.absoluteFill} />
+              <View style={[styles.bundleIcon, { backgroundColor: '#C8820A22', borderColor: '#C8820A44' }]}>
+                <Text style={{ fontSize: 22 }}>🪙</Text>
               </View>
-            ))}
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.itemName, { color: '#FFB830' }]}>Coin Packs</Text>
+                <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>From $0.99 — up to 50,000 coins</Text>
+              </View>
+              <View style={[styles.buyBtn, { backgroundColor: '#C8820A22', borderColor: '#C8820A66' }]}>
+                <Text style={[styles.buyBtnText, { color: '#FFD700' }]}>STORE →</Text>
+              </View>
+            </Pressable>
           </>
         )}
         {activeTab === 'forge' && (

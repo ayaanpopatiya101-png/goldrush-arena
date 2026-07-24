@@ -752,6 +752,8 @@ export interface PlayerProfile {
   redeemedCodes?: string[];
   // Set to true when user purchases the Season Pass via Stripe
   seasonPassPurchased?: boolean;
+  // Extra lives purchased via Stripe; consumed 1-at-a-time at game start
+  extraLivesInventory?: number;
 }
 
 export interface MatchResult {
@@ -850,6 +852,7 @@ interface PlayerContextType {
     rounds: QualifierRoundDef[],
   ) => Promise<{ qpEarned: number; totalQP: number; advanced: boolean; nextRoundName: string }>;
   redeemCode: (code: string) => Promise<{ success: boolean; message: string }>;
+  consumeExtraLives: (count: number) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -1244,6 +1247,9 @@ export function PlayerProvider({ username, onLogout, children }: {
           if (r.seasonPass || r.rewardType === 'season_pass') {
             updated = { ...updated, seasonPassPurchased: true };
           }
+          if (r.rewardType === 'extra_lives' && r.rewardAmount) {
+            updated = { ...updated, extraLivesInventory: (updated.extraLivesInventory ?? 0) + r.rewardAmount };
+          }
           updated = { ...updated, redeemedCodes: [...(updated.redeemedCodes ?? []), normalized] };
           await save(updated);
           return { success: true, message: r.label ?? 'Purchase reward applied!' };
@@ -1285,6 +1291,12 @@ export function PlayerProvider({ username, onLogout, children }: {
     return { success: true, message: reward.label };
   }, [profile, save]);
 
+  const consumeExtraLives = useCallback(async (count: number) => {
+    if (!count) return;
+    const updated = { ...profile, extraLivesInventory: Math.max(0, (profile.extraLivesInventory ?? 0) - count) };
+    await save(updated);
+  }, [profile, save]);
+
   const dismissStreakModal = useCallback(() => setShowStreakModal(false), []);
 
   return (
@@ -1294,7 +1306,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial,
       setSelectedSuper, purchaseForgeAbility, equipForgeAbility,
       spendEventPlay, claimEventBonus, spendQualifierPlay, earnQualifierPoints,
-      openLuckyBlock, redeemCode, logout,
+      openLuckyBlock, redeemCode, consumeExtraLives, logout,
     }}>
       {children}
     </PlayerContext.Provider>
