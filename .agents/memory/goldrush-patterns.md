@@ -97,6 +97,17 @@ Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Ex
 - Caps that exist for balance: paddle length 1.25×, `deflectBoost` 1.3×, `botAccuracy` 0.97, bot speed `0.7+0.4*skill`. Don't remove these silently.
 - Duel-mode rendering must reference `duelBottomPlayer`/`duelTopPlayer` (not `gs.players[BOTTOM/TOP]`) for paddle width/transform/shield, or a spectated bot-vs-bot duel shows the wrong paddle length/shield.
 
+## Battle Pass system
+- Points-based: BPP earned by claiming quest rewards (daily 50, weekly 200, seasonal 500)
+- 50 tiers × 100 BPP each; free + premium track side-by-side in horizontal scroll
+- New profile fields: battlePassPoints, battlePassClaimed[], battlePassPremiumClaimed[], battlePassPremiumOwned, battlePassSeason, dailyQuestProgress/weeklyQuestProgress/seasonalQuestProgress, dailyQuestClaimed/weeklyQuestClaimed/seasonalQuestClaimed, lastDailyReset/lastWeeklyReset
+- Quest progress auto-tracked in addMatchResult (games/wins/deflections/ranked_wins/win_streak/relics_owned)
+- Daily quests reset on load if new day; weekly reset if new week
+- 2 exclusive seasonal skins: season_aurora (slot 25 premium), season_phantom (slot 45 premium)
+- Tier 50 free: 1 Ultra Drop (legendary lucky block); premium: 5 Ultra Drops
+- Premium pass activates via redeemCode with rewardType='battle_pass' (Stripe product seeded)
+- Screen at artifacts/mobile/app/(tabs)/trophyroad.tsx — tab icon changed from "map" to "gift"
+
 ## Stripe payments architecture
 - Products seeded in Stripe via code_execution (listConnections key is `settings.secret`, not `settings.secret_key`)
 - `stripe-replit-sync` runMigrations has no `schema` param; stripe.* DB tables not created — do NOT use StripeSync for the store

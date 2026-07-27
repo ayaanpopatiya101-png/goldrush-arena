@@ -26,6 +26,11 @@ const STORE_SEASON_PASS = {
   desc: 'Instantly unlock all Season Pass tiers — exclusive skins, coins & more',
   usd: '$4.99',
 };
+const STORE_BATTLE_PASS = {
+  key: 'GoldRush Battle Pass Premium', emoji: '👑', name: 'GoldRush Battle Pass Premium',
+  desc: 'Season 1 — 2× rewards on all 50 tiers · 2 exclusive skins · 5× Ultra Drop at Tier 50',
+  usd: '$4.99',
+};
 
 const POWERUP_BUNDLES = [
   { id: 'shield3', name: 'Shield Pack', desc: '3x Shield Power-ups', icon: 'shield', price: 80, color: '#FFD700' },
@@ -606,8 +611,34 @@ export default function ShopScreen() {
 
             {!storeLoading && !storeError && (
               <>
-                {/* Season Pass */}
+                {/* Battle Pass Premium */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                  <View style={{ width: 3, height: 16, backgroundColor: '#C084FC', borderRadius: 2 }} />
+                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C084FC' }}>BATTLE PASS</Text>
+                </View>
+                <Pressable
+                  onPress={() => handleBuyFromStore(STORE_BATTLE_PASS.key)}
+                  disabled={checkingOut === STORE_BATTLE_PASS.key || !!profile.battlePassPremiumOwned}
+                  style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#8B5CF666' }]}
+                >
+                  <LinearGradient colors={['#8B5CF622', '#6D28D911']} style={StyleSheet.absoluteFill} />
+                  <Text style={{ fontSize: 32 }}>{STORE_BATTLE_PASS.emoji}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[storeStyles.passName, { color: '#C084FC' }]}>{STORE_BATTLE_PASS.name}</Text>
+                    <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>{STORE_BATTLE_PASS.desc}</Text>
+                    {profile.battlePassPremiumOwned && (
+                      <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#C084FC', letterSpacing: 1, marginTop: 4 }}>✓ OWNED — SEASON 1</Text>
+                    )}
+                  </View>
+                  {!profile.battlePassPremiumOwned && (
+                    <View style={[storeStyles.usdBtn, { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' }]}>
+                      <Text style={[storeStyles.usdBtnText, { color: '#F5F3FF' }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : STORE_BATTLE_PASS.usd}</Text>
+                    </View>
+                  )}
+                </Pressable>
+
+                {/* Season Pass */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2, marginTop: 6 }}>
                   <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
                   <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>SEASON PASS</Text>
                 </View>

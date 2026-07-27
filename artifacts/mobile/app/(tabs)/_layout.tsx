@@ -102,7 +102,7 @@ export default function TabLayout() {
         name="trophyroad"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="map" color={color} label="Road" focused={focused} />
+            <TabIcon name="gift" color={color} label="Pass" focused={focused} />
           ),
         }}
       />

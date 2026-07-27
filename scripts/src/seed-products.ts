@@ -54,6 +54,16 @@ async function seedProducts() {
   });
   await upsertPrice(stripe, dragonVault.id, 2499, 'Dragon Vault');
 
+  // ── Battle Pass Premium ──────────────────────────────────────────────────────
+  console.log('\nBattle Pass:');
+
+  const battlePass = await upsertProduct(stripe, 'GoldRush Battle Pass Premium',
+    'Season 1 — 2× rewards on all 50 tiers, 2 exclusive seasonal skins, 5× Ultra Drop at Tier 50', {
+    reward_type: 'battle_pass', reward_label: 'Battle Pass Premium – Season 1',
+    category: 'battle_pass', emoji: '👑', season: '1',
+  });
+  await upsertPrice(stripe, battlePass.id, 499, 'Battle Pass Premium');
+
   // ── Season Pass ─────────────────────────────────────────────────────────────
   console.log('\nSeason Pass:');
 

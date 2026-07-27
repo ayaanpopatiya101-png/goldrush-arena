@@ -33,14 +33,17 @@ export const RANKS = [
 ];
 
 export const SKINS = [
-  { id: 'default', name: 'Classic',  color: '#FFD700', glowColor: '#FFD70055', price: 0   },
-  { id: 'plasma',  name: 'Plasma',   color: '#FF4757', glowColor: '#FF475755', price: 150 },
-  { id: 'frost',   name: 'Frost',    color: '#00BFFF', glowColor: '#00BFFF55', price: 150 },
-  { id: 'toxic',   name: 'Toxic',    color: '#00FF88', glowColor: '#00FF8855', price: 200 },
-  { id: 'void',    name: 'Void',     color: '#9B59B6', glowColor: '#9B59B655', price: 250 },
-  { id: 'inferno', name: 'Inferno',  color: '#FF6B35', glowColor: '#FF6B3555', price: 300 },
-  { id: 'chrome',  name: 'Chrome',   color: '#E0E0E8', glowColor: '#E0E0E855', price: 350 },
-  { id: 'cosmic',  name: 'Cosmic',   color: '#FF00FF', glowColor: '#FF00FF55', price: 500 },
+  { id: 'default',        name: 'Classic',       color: '#FFD700', glowColor: '#FFD70055', price: 0   },
+  { id: 'plasma',         name: 'Plasma',        color: '#FF4757', glowColor: '#FF475755', price: 150 },
+  { id: 'frost',          name: 'Frost',         color: '#00BFFF', glowColor: '#00BFFF55', price: 150 },
+  { id: 'toxic',          name: 'Toxic',         color: '#00FF88', glowColor: '#00FF8855', price: 200 },
+  { id: 'void',           name: 'Void',          color: '#9B59B6', glowColor: '#9B59B655', price: 250 },
+  { id: 'inferno',        name: 'Inferno',       color: '#FF6B35', glowColor: '#FF6B3555', price: 300 },
+  { id: 'chrome',         name: 'Chrome',        color: '#E0E0E8', glowColor: '#E0E0E855', price: 350 },
+  { id: 'cosmic',         name: 'Cosmic',        color: '#FF00FF', glowColor: '#FF00FF55', price: 500 },
+  // ── Season 1 exclusive skins (Battle Pass premium only) ─────────────────────
+  { id: 'season_aurora',  name: 'Aurora',        color: '#7FFFD4', glowColor: '#7FFFD455', price: 0, exclusive: true },
+  { id: 'season_phantom', name: 'Phantom',       color: '#B06EFF', glowColor: '#B06EFF55', price: 0, exclusive: true },
 ];
 
 // ─── Rank helpers ─────────────────────────────────────────────────────────────
@@ -632,6 +635,134 @@ export const TROPHY_ROAD: TrophyMilestone[] = [
   { id: 'tr_25', xp: 200000, reward: { type: 'relic', id: 'midas'       } },
 ];
 
+// ─── Battle Pass ──────────────────────────────────────────────────────────────
+export const BATTLE_PASS_SEASON = 1;
+export const BATTLE_PASS_POINTS_PER_TIER = 100; // 100 BPP per slot, 5000 BPP for all 50
+
+export type BPRewardType = 'coins' | 'credits' | 'luckyblock' | 'skin' | 'ultradrop';
+export interface BPReward {
+  type: BPRewardType;
+  amount?: number;      // coins / credits / ultradrop count
+  tier?: LuckyBlockTier; // luckyblock
+  id?: string;          // skin id
+  label?: string;       // display override
+}
+
+export interface BattlePassTier {
+  slot: number;           // 1–50
+  bpp: number;            // cumulative BPP required
+  free: BPReward;
+  premium: BPReward;
+  isMilestone?: boolean;  // visually highlighted
+}
+
+function bp(slot: number, free: BPReward, premium: BPReward, milestone?: boolean): BattlePassTier {
+  return { slot, bpp: slot * BATTLE_PASS_POINTS_PER_TIER, free, premium, isMilestone: milestone };
+}
+
+export const BATTLE_PASS_TIERS: BattlePassTier[] = [
+  // Slot 1-10
+  bp(1,  { type:'coins', amount:100 },                        { type:'coins', amount:200 }),
+  bp(2,  { type:'credits', amount:10 },                       { type:'credits', amount:25 }),
+  bp(3,  { type:'luckyblock', tier:'rare' },                  { type:'luckyblock', tier:'epic' }),
+  bp(4,  { type:'coins', amount:150 },                        { type:'coins', amount:300 }),
+  bp(5,  { type:'credits', amount:15 },                       { type:'credits', amount:35 }),
+  bp(6,  { type:'coins', amount:200 },                        { type:'coins', amount:400 }),
+  bp(7,  { type:'luckyblock', tier:'rare' },                  { type:'luckyblock', tier:'epic' }),
+  bp(8,  { type:'credits', amount:20 },                       { type:'credits', amount:50 }),
+  bp(9,  { type:'coins', amount:250 },                        { type:'coins', amount:500 }),
+  bp(10, { type:'luckyblock', tier:'epic' },                  { type:'luckyblock', tier:'mythic' }, true),
+  // Slot 11-20
+  bp(11, { type:'coins', amount:300 },                        { type:'coins', amount:600 }),
+  bp(12, { type:'credits', amount:25 },                       { type:'credits', amount:60 }),
+  bp(13, { type:'luckyblock', tier:'rare' },                  { type:'luckyblock', tier:'epic' }),
+  bp(14, { type:'coins', amount:350 },                        { type:'coins', amount:700 }),
+  bp(15, { type:'credits', amount:30 },                       { type:'credits', amount:75 }, true),
+  bp(16, { type:'coins', amount:400 },                        { type:'coins', amount:800 }),
+  bp(17, { type:'luckyblock', tier:'epic' },                  { type:'luckyblock', tier:'mythic' }),
+  bp(18, { type:'credits', amount:35 },                       { type:'credits', amount:90 }),
+  bp(19, { type:'coins', amount:500 },                        { type:'coins', amount:1000 }),
+  bp(20, { type:'luckyblock', tier:'mythic' },                { type:'luckyblock', tier:'legendary' }, true),
+  // Slot 21-30
+  bp(21, { type:'coins', amount:300 },                        { type:'coins', amount:600 }),
+  bp(22, { type:'credits', amount:40 },                       { type:'credits', amount:100 }),
+  bp(23, { type:'luckyblock', tier:'epic' },                  { type:'luckyblock', tier:'mythic' }),
+  bp(24, { type:'coins', amount:600 },                        { type:'coins', amount:1200 }),
+  bp(25, { type:'luckyblock', tier:'mythic' },                { type:'skin', id:'season_aurora', label:'Aurora Skin' }, true),
+  bp(26, { type:'coins', amount:400 },                        { type:'coins', amount:800 }),
+  bp(27, { type:'credits', amount:50 },                       { type:'credits', amount:125 }),
+  bp(28, { type:'luckyblock', tier:'epic' },                  { type:'luckyblock', tier:'mythic' }),
+  bp(29, { type:'coins', amount:700 },                        { type:'coins', amount:1400 }),
+  bp(30, { type:'luckyblock', tier:'legendary' },             { type:'luckyblock', tier:'legendary', amount:2 }, true),
+  // Slot 31-40
+  bp(31, { type:'credits', amount:60 },                       { type:'credits', amount:150 }),
+  bp(32, { type:'coins', amount:500 },                        { type:'coins', amount:1000 }),
+  bp(33, { type:'luckyblock', tier:'mythic' },                { type:'luckyblock', tier:'legendary' }),
+  bp(34, { type:'coins', amount:800 },                        { type:'coins', amount:1600 }),
+  bp(35, { type:'credits', amount:75 },                       { type:'credits', amount:180 }, true),
+  bp(36, { type:'luckyblock', tier:'epic' },                  { type:'luckyblock', tier:'mythic' }),
+  bp(37, { type:'coins', amount:600 },                        { type:'coins', amount:1200 }),
+  bp(38, { type:'credits', amount:100 },                      { type:'credits', amount:250 }),
+  bp(39, { type:'luckyblock', tier:'legendary' },             { type:'luckyblock', tier:'legendary' }),
+  bp(40, { type:'coins', amount:1000 },                       { type:'coins', amount:2000 }, true),
+  // Slot 41-50
+  bp(41, { type:'credits', amount:150 },                      { type:'credits', amount:375 }),
+  bp(42, { type:'luckyblock', tier:'mythic' },                { type:'luckyblock', tier:'legendary' }),
+  bp(43, { type:'coins', amount:700 },                        { type:'coins', amount:1400 }),
+  bp(44, { type:'credits', amount:200 },                      { type:'credits', amount:500 }),
+  bp(45, { type:'luckyblock', tier:'legendary' },             { type:'skin', id:'season_phantom', label:'Phantom Skin' }, true),
+  bp(46, { type:'coins', amount:1500 },                       { type:'coins', amount:3000 }),
+  bp(47, { type:'credits', amount:300 },                      { type:'credits', amount:750 }),
+  bp(48, { type:'luckyblock', tier:'legendary' },             { type:'luckyblock', tier:'legendary' }),
+  bp(49, { type:'coins', amount:2000 },                       { type:'coins', amount:4000 }),
+  bp(50, { type:'ultradrop', amount:1, label:'Ultra Drop' },  { type:'ultradrop', amount:5, label:'5× Ultra Drop' }, true),
+];
+
+// ─── Quest System ─────────────────────────────────────────────────────────────
+export type QuestPeriod = 'daily' | 'weekly' | 'seasonal';
+export type QuestTrackKey =
+  | 'games' | 'wins' | 'deflections' | 'ranked_wins'
+  | 'win_streak' | 'dailies_completed' | 'relics_owned';
+
+export interface QuestDefinition {
+  id: string;
+  title: string;
+  description: string;
+  target: number;
+  reward: number;       // BPP
+  period: QuestPeriod;
+  trackKey: QuestTrackKey;
+  premiumOnly?: boolean;
+}
+
+export const QUESTS: QuestDefinition[] = [
+  // ── Daily (4 free + 2 premium) ───────────────────────────────────────────────
+  { id:'d_play3',     title:'Warm Up',        description:'Play 3 games',           target:3,   reward:50,  period:'daily',    trackKey:'games' },
+  { id:'d_win1',      title:'Victory Lap',    description:'Win any match',          target:1,   reward:50,  period:'daily',    trackKey:'wins' },
+  { id:'d_deflect15', title:'Deflector',      description:'Deflect the ball 15×',   target:15,  reward:50,  period:'daily',    trackKey:'deflections' },
+  { id:'d_ranked1',   title:'Ranked Battle',  description:'Complete a ranked match', target:1,   reward:50,  period:'daily',    trackKey:'ranked_wins' },
+  { id:'d_win2',      title:'Double Down',    description:'Win 2 games',            target:2,   reward:75,  period:'daily',    trackKey:'wins',         premiumOnly:true },
+  { id:'d_deflect30', title:'Deflect Master', description:'Deflect the ball 30×',   target:30,  reward:75,  period:'daily',    trackKey:'deflections',  premiumOnly:true },
+  // ── Weekly (4 free + 2 premium) ─────────────────────────────────────────────
+  { id:'w_play20',    title:'Grinder',        description:'Play 20 games',          target:20,  reward:200, period:'weekly',   trackKey:'games' },
+  { id:'w_win5',      title:'5-Star Week',    description:'Win 5 matches',          target:5,   reward:200, period:'weekly',   trackKey:'wins' },
+  { id:'w_deflect100',title:'Wall of Fame',   description:'Deflect 100 times',      target:100, reward:200, period:'weekly',   trackKey:'deflections' },
+  { id:'w_ranked5',   title:'Ranked Climber', description:'Win 5 ranked matches',   target:5,   reward:200, period:'weekly',   trackKey:'ranked_wins' },
+  { id:'w_streak3',   title:'Hot Streak',     description:'Win 3 in a row',         target:3,   reward:300, period:'weekly',   trackKey:'win_streak',   premiumOnly:true },
+  { id:'w_play35',    title:'Dedicated',      description:'Play 35 games this week', target:35,  reward:300, period:'weekly',   trackKey:'games',        premiumOnly:true },
+  // ── Seasonal (8 free + 2 premium) ───────────────────────────────────────────
+  { id:'s_play50',    title:'Committed',      description:'Play 50 games this season',  target:50,  reward:500, period:'seasonal', trackKey:'games' },
+  { id:'s_win25',     title:'Champion',       description:'Win 25 matches',             target:25,  reward:500, period:'seasonal', trackKey:'wins' },
+  { id:'s_deflect500',title:'Iron Wall',      description:'Deflect 500 times',          target:500, reward:500, period:'seasonal', trackKey:'deflections' },
+  { id:'s_ranked10',  title:'Ranked Pro',     description:'Win 10 ranked matches',      target:10,  reward:500, period:'seasonal', trackKey:'ranked_wins' },
+  { id:'s_streak5',   title:'Unstoppable',    description:'Win 5 in a row',             target:5,   reward:500, period:'seasonal', trackKey:'win_streak' },
+  { id:'s_play100',   title:'Season Veteran', description:'Play 100 games this season', target:100, reward:500, period:'seasonal', trackKey:'games' },
+  { id:'s_relics3',   title:'Relic Hunter',   description:'Unlock 3 relics',            target:3,   reward:500, period:'seasonal', trackKey:'relics_owned' },
+  { id:'s_win50',     title:'Legendary',      description:'Win 50 matches',             target:50,  reward:500, period:'seasonal', trackKey:'wins' },
+  { id:'s_play200',   title:'Arena Master',   description:'Play 200 games',             target:200, reward:750, period:'seasonal', trackKey:'games',       premiumOnly:true },
+  { id:'s_ranked25',  title:'Ranked Elite',   description:'Win 25 ranked matches',      target:25,  reward:750, period:'seasonal', trackKey:'ranked_wins', premiumOnly:true },
+];
+
 // ─── Season pass ──────────────────────────────────────────────────────────────
 export const SEASON_TIERS = [
   { games: 0,   reward: '50 coins',         icon: '🪙', name: 'Rookie',    coinReward: 50,  luckyBlockTier: null as LuckyBlockTier | null },
@@ -754,6 +885,23 @@ export interface PlayerProfile {
   seasonPassPurchased?: boolean;
   // Extra lives purchased via Stripe; consumed 1-at-a-time at game start
   extraLivesInventory?: number;
+  // ── Battle Pass ────────────────────────────────────────────────────────────
+  battlePassPoints?: number;            // total BPP earned this season
+  battlePassClaimed?: string[];         // tier slot IDs claimed on free track ("bp_1" … "bp_50")
+  battlePassPremiumClaimed?: string[];  // tier slot IDs claimed on premium track
+  battlePassPremiumOwned?: boolean;     // true when premium pass purchased via Stripe
+  battlePassSeason?: number;            // current season number
+  // Quest progress — keyed by questId → current progress count
+  dailyQuestProgress?: Record<string, number>;
+  weeklyQuestProgress?: Record<string, number>;
+  seasonalQuestProgress?: Record<string, number>;
+  // Which quests have been claimed (BPP granted) this period
+  dailyQuestClaimed?: string[];
+  weeklyQuestClaimed?: string[];
+  seasonalQuestClaimed?: string[];
+  // Date strings for resetting daily/weekly progress
+  lastDailyReset?: string;   // YYYY-MM-DD
+  lastWeeklyReset?: string;  // YYYY-WNN
 }
 
 export interface MatchResult {
@@ -785,6 +933,17 @@ const DEFAULT_PROFILE: PlayerProfile = {
   luckyBlocks: [],
   pendingStreakLuckyBlockId: null,
   eventPlaysUsed: {},
+  battlePassPoints: 0,
+  battlePassClaimed: [],
+  battlePassPremiumClaimed: [],
+  battlePassPremiumOwned: false,
+  battlePassSeason: BATTLE_PASS_SEASON,
+  dailyQuestProgress: {},
+  weeklyQuestProgress: {},
+  seasonalQuestProgress: {},
+  dailyQuestClaimed: [],
+  weeklyQuestClaimed: [],
+  seasonalQuestClaimed: [],
 };
 
 // ─── Halo-style level change calculator ───────────────────────────────────────
@@ -814,6 +973,13 @@ export function xpForNextRank(xp: number) {
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function weekKeyStr() {
+  const d = new Date();
+  // ISO week number
+  const jan4 = new Date(d.getFullYear(), 0, 4);
+  const week = Math.ceil(((d.getTime() - jan4.getTime()) / 86400000 + jan4.getDay() + 1) / 7);
+  return `${d.getFullYear()}-W${String(week).padStart(2,'0')}`;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -853,6 +1019,8 @@ interface PlayerContextType {
   ) => Promise<{ qpEarned: number; totalQP: number; advanced: boolean; nextRoundName: string }>;
   redeemCode: (code: string) => Promise<{ success: boolean; message: string }>;
   consumeExtraLives: (count: number) => Promise<void>;
+  claimBattlePassTier: (slot: number, isPremium: boolean) => Promise<LuckyBlock | null>;
+  claimQuestReward: (questId: string) => Promise<{ success: boolean; bppEarned: number }>;
   logout: () => Promise<void>;
 }
 
@@ -878,6 +1046,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       }
       // Daily streak logic on load
       const today = todayStr();
+      const weekKey = weekKeyStr();
       let streak = base.loginStreak ?? 0;
       const last  = base.lastLoginDate ?? '';
       let showModal = false;
@@ -890,10 +1059,18 @@ export function PlayerProvider({ username, onLogout, children }: {
         showModal = true;
         base = { ...base, loginStreak: streak, lastLoginDate: today, streakBonusClaimed: false };
       }
+      // Reset daily quest progress if new day
+      if ((base.lastDailyReset ?? '') !== today) {
+        base = { ...base, dailyQuestProgress: {}, dailyQuestClaimed: [], lastDailyReset: today };
+      }
+      // Reset weekly quest progress if new week
+      if ((base.lastWeeklyReset ?? '') !== weekKey) {
+        base = { ...base, weeklyQuestProgress: {}, weeklyQuestClaimed: [], lastWeeklyReset: weekKey };
+      }
       setProfile(base);
       setIsLoaded(true);
       if (showModal) setShowStreakModal(true);
-      // Save updated streak
+      // Save updated streak + quest resets
       AsyncStorage.setItem(KEY, JSON.stringify(base));
     });
   }, [KEY]);
@@ -942,6 +1119,42 @@ export function PlayerProvider({ username, onLogout, children }: {
       streakBlock = { id: Date.now().toString(36) + 'lb', tier, source: 'win_streak' };
     }
 
+    // ── Quest progress tracking ──────────────────────────────────────────────
+    const today2   = todayStr();
+    const weekKey2 = weekKeyStr();
+    const isRankedWin = result.won && matchType === 'ranked';
+    // Reset periods if day/week changed since last match
+    let dQP = (profile.lastDailyReset  === today2)   ? { ...(profile.dailyQuestProgress  ?? {}) } : {};
+    let wQP = (profile.lastWeeklyReset === weekKey2)  ? { ...(profile.weeklyQuestProgress ?? {}) } : {};
+    let sQP = { ...(profile.seasonalQuestProgress ?? {}) };
+    // Accumulate counts
+    const gameInc  = 1;
+    const winInc   = result.won ? 1 : 0;
+    const deflInc  = result.deflections;
+    const rWinInc  = isRankedWin ? 1 : 0;
+    dQP['games']       = (dQP['games']       ?? 0) + gameInc;
+    dQP['wins']        = (dQP['wins']        ?? 0) + winInc;
+    dQP['deflections'] = (dQP['deflections'] ?? 0) + deflInc;
+    dQP['ranked_wins'] = (dQP['ranked_wins'] ?? 0) + rWinInc;
+    wQP['games']       = (wQP['games']       ?? 0) + gameInc;
+    wQP['wins']        = (wQP['wins']        ?? 0) + winInc;
+    wQP['deflections'] = (wQP['deflections'] ?? 0) + deflInc;
+    wQP['ranked_wins'] = (wQP['ranked_wins'] ?? 0) + rWinInc;
+    sQP['games']       = (sQP['games']       ?? 0) + gameInc;
+    sQP['wins']        = (sQP['wins']        ?? 0) + winInc;
+    sQP['deflections'] = (sQP['deflections'] ?? 0) + deflInc;
+    sQP['ranked_wins'] = (sQP['ranked_wins'] ?? 0) + rWinInc;
+    // Track win streak as max within period
+    if (newWinStreak > 0) {
+      dQP['win_streak'] = Math.max(dQP['win_streak'] ?? 0, newWinStreak);
+      wQP['win_streak'] = Math.max(wQP['win_streak'] ?? 0, newWinStreak);
+      sQP['win_streak'] = Math.max(sQP['win_streak'] ?? 0, newWinStreak);
+    }
+    // Relics owned (derived count)
+    const rankIdxAfter = getRankIndex(getRankFromXP(newXP));
+    const tRelics = profile.trophyUnlockedRelics ?? [];
+    sQP['relics_owned'] = RELICS.filter(r => tRelics.includes(r.id) || rankIdxAfter >= r.unlockRankIndex).length;
+
     await save({
       ...profile,
       xp: newXP, level: xpToLevel(newXP), rank: getRankFromXP(newXP),
@@ -959,6 +1172,11 @@ export function PlayerProvider({ username, onLogout, children }: {
         ? [...(profile.luckyBlocks ?? []), streakBlock]
         : (profile.luckyBlocks ?? []),
       pendingStreakLuckyBlockId: streakBlock ? streakBlock.id : profile.pendingStreakLuckyBlockId,
+      dailyQuestProgress:   dQP,
+      weeklyQuestProgress:  wQP,
+      seasonalQuestProgress: sQP,
+      lastDailyReset:  today2,
+      lastWeeklyReset: weekKey2,
     });
   }, [profile, save]);
 
@@ -1247,6 +1465,9 @@ export function PlayerProvider({ username, onLogout, children }: {
           if (r.seasonPass || r.rewardType === 'season_pass') {
             updated = { ...updated, seasonPassPurchased: true };
           }
+          if (r.rewardType === 'battle_pass') {
+            updated = { ...updated, battlePassPremiumOwned: true };
+          }
           if (r.rewardType === 'extra_lives' && r.rewardAmount) {
             updated = { ...updated, extraLivesInventory: (updated.extraLivesInventory ?? 0) + r.rewardAmount };
           }
@@ -1297,6 +1518,87 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save(updated);
   }, [profile, save]);
 
+  // ── Battle Pass: claim a tier reward ────────────────────────────────────────
+  const claimBattlePassTier = useCallback(async (slot: number, isPremium: boolean): Promise<LuckyBlock | null> => {
+    const tier = BATTLE_PASS_TIERS.find(t => t.slot === slot);
+    if (!tier) return null;
+    const bpp = profile.battlePassPoints ?? 0;
+    if (bpp < tier.bpp) return null;                        // not enough points
+    const tierId = `bp_${slot}`;
+    if (isPremium) {
+      if (!(profile.battlePassPremiumOwned)) return null;   // need premium pass
+      if ((profile.battlePassPremiumClaimed ?? []).includes(tierId)) return null;
+    } else {
+      if ((profile.battlePassClaimed ?? []).includes(tierId)) return null;
+    }
+    const reward = isPremium ? tier.premium : tier.free;
+    let updated = { ...profile };
+    if (isPremium) {
+      updated = { ...updated, battlePassPremiumClaimed: [...(updated.battlePassPremiumClaimed ?? []), tierId] };
+    } else {
+      updated = { ...updated, battlePassClaimed: [...(updated.battlePassClaimed ?? []), tierId] };
+    }
+    let earnedBlock: LuckyBlock | null = null;
+    if (reward.type === 'coins') {
+      updated = { ...updated, coins: updated.coins + (reward.amount ?? 0) };
+    } else if (reward.type === 'credits') {
+      updated = { ...updated, credits: (updated.credits ?? 0) + (reward.amount ?? 0) };
+    } else if (reward.type === 'luckyblock' && reward.tier) {
+      const count = reward.amount ?? 1;
+      const newBlocks: LuckyBlock[] = Array.from({ length: count }, (_, i) => ({
+        id: Date.now().toString(36) + `bp${slot}_${i}`,
+        tier: reward.tier as LuckyBlockTier,
+        source: 'trophy_road' as const,
+      }));
+      earnedBlock = newBlocks[0];
+      updated = { ...updated, luckyBlocks: [...(updated.luckyBlocks ?? []), ...newBlocks] };
+    } else if (reward.type === 'skin' && reward.id) {
+      if (!updated.ownedSkins.includes(reward.id))
+        updated = { ...updated, ownedSkins: [...updated.ownedSkins, reward.id] };
+    } else if (reward.type === 'ultradrop') {
+      // Ultra drop = legendary lucky block(s)
+      const count = reward.amount ?? 1;
+      const newBlocks: LuckyBlock[] = Array.from({ length: count }, (_, i) => ({
+        id: Date.now().toString(36) + `ud${slot}_${i}`,
+        tier: 'legendary' as LuckyBlockTier,
+        source: 'trophy_road' as const,
+      }));
+      earnedBlock = newBlocks[0];
+      updated = { ...updated, luckyBlocks: [...(updated.luckyBlocks ?? []), ...newBlocks] };
+    }
+    await save(updated);
+    return earnedBlock;
+  }, [profile, save]);
+
+  // ── Quests: claim reward for a completed quest ──────────────────────────────
+  const claimQuestReward = useCallback(async (questId: string): Promise<{ success: boolean; bppEarned: number }> => {
+    const quest = QUESTS.find(q => q.id === questId);
+    if (!quest) return { success: false, bppEarned: 0 };
+    // Premium-only quests require owning the pass
+    if (quest.premiumOnly && !profile.battlePassPremiumOwned) return { success: false, bppEarned: 0 };
+    // Check if already claimed
+    const claimedKey = quest.period === 'daily'   ? 'dailyQuestClaimed'
+                     : quest.period === 'weekly'  ? 'weeklyQuestClaimed'
+                     :                              'seasonalQuestClaimed';
+    const claimedList = (profile[claimedKey] ?? []) as string[];
+    if (claimedList.includes(questId)) return { success: false, bppEarned: 0 };
+    // Check if quest target reached
+    const progressKey = quest.period === 'daily'   ? 'dailyQuestProgress'
+                      : quest.period === 'weekly'  ? 'weeklyQuestProgress'
+                      :                              'seasonalQuestProgress';
+    const progress = ((profile[progressKey] ?? {}) as Record<string, number>)[quest.trackKey] ?? 0;
+    if (progress < quest.target) return { success: false, bppEarned: 0 };
+    // Grant BPP
+    const bppEarned = quest.reward;
+    const newBPP = (profile.battlePassPoints ?? 0) + bppEarned;
+    await save({
+      ...profile,
+      battlePassPoints: newBPP,
+      [claimedKey]: [...claimedList, questId],
+    });
+    return { success: true, bppEarned };
+  }, [profile, save]);
+
   const dismissStreakModal = useCallback(() => setShowStreakModal(false), []);
 
   return (
@@ -1306,7 +1608,8 @@ export function PlayerProvider({ username, onLogout, children }: {
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial,
       setSelectedSuper, purchaseForgeAbility, equipForgeAbility,
       spendEventPlay, claimEventBonus, spendQualifierPlay, earnQualifierPoints,
-      openLuckyBlock, redeemCode, consumeExtraLives, logout,
+      openLuckyBlock, redeemCode, consumeExtraLives,
+      claimBattlePassTier, claimQuestReward, logout,
     }}>
       {children}
     </PlayerContext.Provider>
