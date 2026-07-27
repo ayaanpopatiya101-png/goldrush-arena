@@ -6,6 +6,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RankBadge } from '@/components/RankBadge';
+import { FloatingOrbs, GlowBorder, GlowText, PulseRing, ShimmerCard } from '@/components/effects';
 import {
   ACHIEVEMENTS, AVATAR_COLORS, AVATAR_EMOJIS, RANKS, SKINS,
   getChallengeCode, usePlayer, xpForNextRank, xpToLevel,
@@ -100,6 +101,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <FloatingOrbs opacity={0.75} />
       <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
         colors={['#C8820A26', '#C8820A10', 'transparent']}
@@ -171,10 +173,10 @@ export default function ProfileScreen() {
 
           {/* Centered name / rank / streak block */}
           <View style={[styles.profileInfo, { alignItems: 'center' }]}>
-            <Text style={[styles.profileName, { color: colors.foreground }]}>{profile.name}</Text>
+            <GlowText intensity="medium" color={rankData.color} style={[styles.profileName, { color: colors.foreground }]}>{profile.name}</GlowText>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <RankBadge rank={profile.rank} size="sm" showLabel={false} />
-              <Text style={[styles.levelBadge, { color: rankData.color }]}>Lv.{xpToLevel(profile.xp)} · {profile.rank}</Text>
+              <GlowText intensity="soft" color={rankData.color} style={[styles.levelBadge, { color: rankData.color }]}>Lv.{xpToLevel(profile.xp)} · {profile.rank}</GlowText>
             </View>
             <View style={styles.loginStreakRow}>
               <Text style={styles.streakIcon}>🔥</Text>
@@ -241,9 +243,9 @@ export default function ProfileScreen() {
             )}
           </View>
           <View style={[styles.xpTrack, { backgroundColor: '#FFFFFF12' }]}>
-            <View style={[styles.xpFill, { width: `${rankInfo.progress * 100}%` as never, backgroundColor: rankData.color }]}>
+            <ShimmerCard active={true} borderRadius={3} duration={2200} shimmerColor="rgba(255,255,255,0.3)" style={[styles.xpFill, { width: `${rankInfo.progress * 100}%` as never, backgroundColor: rankData.color }]}>
               <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: '#FFFFFF28', borderRadius: 4 }} />
-            </View>
+            </ShimmerCard>
           </View>
         </View>
 
@@ -315,7 +317,7 @@ export default function ProfileScreen() {
             {ACHIEVEMENTS.map(ach => {
               const unlocked = profile.achievements.includes(ach.id);
               return (
-                <View key={ach.id} style={[styles.achCard, {
+                <ShimmerCard key={ach.id} active={unlocked} borderRadius={10} shimmerColor="rgba(200,130,10,0.1)" style={[styles.achCard, {
                   backgroundColor: unlocked ? '#FFD70012' : colors.card,
                   borderColor:     unlocked ? '#FFD70066' : colors.border,
                   opacity:         unlocked ? 1 : 0.42,
@@ -334,7 +336,7 @@ export default function ProfileScreen() {
                   }
                   <Text style={[styles.achName, { color: unlocked ? '#F8F8FF' : colors.mutedForeground }]} numberOfLines={1}>{ach.name}</Text>
                   <Text style={[styles.achDesc, { color: colors.mutedForeground }]} numberOfLines={2}>{ach.desc}</Text>
-                </View>
+                </ShimmerCard>
               );
             })}
           </View>

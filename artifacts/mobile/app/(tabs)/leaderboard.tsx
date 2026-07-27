@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
+import { FloatingOrbs, GlowBorder, GlowText, ShimmerCard } from '@/components/effects';
 import { RANKS, usePlayer } from '@/context/PlayerContext';
 import { useColors } from '@/hooks/useColors';
 
@@ -86,6 +87,7 @@ export default function LeaderboardScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <FloatingOrbs opacity={0.7} />
       <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
         colors={['#C8820A22', '#C8820A0E', 'transparent']}
@@ -122,7 +124,10 @@ export default function LeaderboardScreen() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScrollWrap} contentContainerStyle={styles.tabRow}>
         {TABS.map(t => (
           <Pressable key={t} onPress={() => setTab(t)} style={[styles.tab, tab === t && { borderBottomColor: colors.primary }]}>
-            <Text style={[styles.tabText, { color: tab === t ? colors.primary : colors.mutedForeground }]}>{t}</Text>
+            {tab === t
+              ? <GlowText intensity="soft" color={colors.primary} style={styles.tabText}>{t}</GlowText>
+              : <Text style={[styles.tabText, { color: colors.mutedForeground }]}>{t}</Text>
+            }
           </Pressable>
         ))}
       </ScrollView>
@@ -139,11 +144,11 @@ export default function LeaderboardScreen() {
                     <View style={[styles.podiumAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
                       <Text style={[styles.podiumAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
                     </View>
-                    <Text style={[styles.podiumName, { color: colors.foreground }]} numberOfLines={1}>{p.name}</Text>
+                    <GlowText intensity="soft" color={p.color} style={[styles.podiumName, { color: colors.foreground }]} numberOfLines={1}>{p.name}</GlowText>
                     <Text style={[styles.podiumLevel, { color: p.color }]}>LVL {p.level}</Text>
                     <LinearGradient colors={[p.color + '55', p.color + '18']} style={[styles.podiumBlock, { height: heights[i], borderWidth: 1, borderColor: p.color + '44', borderRadius: 10 }]}>
                       <Text style={{ fontSize: pos === 1 ? 18 : 14 }}>{pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉'}</Text>
-                      <Text style={[styles.podiumPos, { color: p.color, fontSize: pos === 1 ? 22 : 18 }]}>{pos}</Text>
+                      <GlowText intensity="strong" color={p.color} style={[styles.podiumPos, { color: p.color, fontSize: pos === 1 ? 22 : 18 }]}>{String(pos)}</GlowText>
                       <Text style={[styles.podiumWins, { color: colors.mutedForeground }]}>{p.wins}W</Text>
                     </LinearGradient>
                   </View>
@@ -157,20 +162,26 @@ export default function LeaderboardScreen() {
               <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>RANKED</Text>
             </View>
             <View style={styles.list}>
-              {GLOBAL_LEADERS.slice(3).map((p, i) => (
-                <View key={p.name} style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <Text style={[styles.rowPos, { color: colors.mutedForeground }]}>{i + 4}</Text>
-                  <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                    <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
+              {GLOBAL_LEADERS.slice(3).map((p, i) => {
+                const isMe = p.name === profile.name;
+                const rowContent = (
+                  <View key={p.name} style={[styles.row, { backgroundColor: colors.card, borderColor: isMe ? '#C8820A' : colors.border }]}>
+                    <Text style={[styles.rowPos, { color: colors.mutedForeground }]}>{i + 4}</Text>
+                    <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
+                      <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.rowName, { color: colors.foreground }]}>{p.name}</Text>
+                      <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>{p.rank} · LVL {p.level}</Text>
+                    </View>
+                    <RankBadge rank={p.rank} size="sm" showLabel={false} />
+                    <Text style={[styles.rowWins, { color: colors.foreground }]}>{p.wins}W</Text>
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.rowName, { color: colors.foreground }]}>{p.name}</Text>
-                    <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>{p.rank} · LVL {p.level}</Text>
-                  </View>
-                  <RankBadge rank={p.rank} size="sm" showLabel={false} />
-                  <Text style={[styles.rowWins, { color: colors.foreground }]}>{p.wins}W</Text>
-                </View>
-              ))}
+                );
+                return isMe
+                  ? <GlowBorder key={p.name} color="#C8820A" borderRadius={12} spread={8}>{rowContent}</GlowBorder>
+                  : rowContent;
+              })}
             </View>
           </>
         )}
@@ -277,20 +288,26 @@ export default function LeaderboardScreen() {
               <Text style={[styles.nearbyTitle, { color: colors.mutedForeground }]}>NEARBY PLAYERS</Text>
               <View style={{ height: 1, backgroundColor: '#FFFFFF10', flex: 1 }} />
             </View>
-            {[...GLOBAL_LEADERS].sort((a, b) => b.xp - a.xp).slice(Math.max(0, playerPosition - 3), playerPosition + 2).map((p, i) => (
-              <View key={p.name} style={[styles.row, {
-                backgroundColor: p.name === profile.name ? rankData.color + '22' : colors.card,
-                borderColor: p.name === profile.name ? rankData.color : colors.border,
-              }]}>
-                <Text style={[styles.rowPos, { color: colors.mutedForeground }]}>{i + Math.max(1, playerPosition - 2)}</Text>
-                <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                  <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
+            {[...GLOBAL_LEADERS].sort((a, b) => b.xp - a.xp).slice(Math.max(0, playerPosition - 3), playerPosition + 2).map((p, i) => {
+              const isMe = p.name === profile.name;
+              const nearbyRow = (
+                <View key={p.name} style={[styles.row, {
+                  backgroundColor: isMe ? rankData.color + '22' : colors.card,
+                  borderColor: isMe ? '#C8820A' : colors.border,
+                }]}>
+                  <Text style={[styles.rowPos, { color: colors.mutedForeground }]}>{i + Math.max(1, playerPosition - 2)}</Text>
+                  <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
+                    <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
+                  </View>
+                  <Text style={[styles.rowName, { color: colors.foreground, flex: 1 }]}>{p.name}</Text>
+                  <Text style={[styles.rowSub, { color: '#C8820A', marginRight: 4 }]}>LVL {p.level}</Text>
+                  <Text style={[styles.rowWins, { color: colors.mutedForeground }]}>{p.xp} XP</Text>
                 </View>
-                <Text style={[styles.rowName, { color: colors.foreground, flex: 1 }]}>{p.name}</Text>
-                <Text style={[styles.rowSub, { color: '#C8820A', marginRight: 4 }]}>LVL {p.level}</Text>
-                <Text style={[styles.rowWins, { color: colors.mutedForeground }]}>{p.xp} XP</Text>
-              </View>
-            ))}
+              );
+              return isMe
+                ? <GlowBorder key={p.name} color="#C8820A" borderRadius={12} spread={8}>{nearbyRow}</GlowBorder>
+                : nearbyRow;
+            })}
           </View>
         )}
       </ScrollView>

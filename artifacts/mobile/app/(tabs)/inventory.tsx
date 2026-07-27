@@ -8,6 +8,7 @@ import { SKINS, RELICS, RANKS, getRankIndex, usePlayer, getRelicLevel, getRelicU
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 import { RelicCharacter } from '@/components/RelicCharacter';
 import { useColors } from '@/hooks/useColors';
+import { FloatingOrbs, ORBS_ARCANE, GlowText, ShimmerCard, HolographicShimmer, GlowBorder } from '@/components/effects';
 
 const ARENA_THEMES = [
   { id: 'default', name: 'Dark Void',      desc: 'Classic deep-space arena',   color: '#6655FF', preview: ['#07090F', '#0D1428'] as [string,string] },
@@ -55,6 +56,7 @@ export default function InventoryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <FloatingOrbs orbs={ORBS_ARCANE} opacity={0.7} />
       <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
         colors={['#C8820A22', '#C8820A0E', 'transparent']}
@@ -71,7 +73,7 @@ export default function InventoryScreen() {
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
         <View>
           <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44', marginBottom: 2 }}>YOUR COLLECTION</Text>
-          <Text style={[s.title, { color: colors.foreground }]}>INVENTORY</Text>
+          <GlowText intensity="medium" color='#C8820A' style={s.title}>INVENTORY</GlowText>
         </View>
         <View style={s.countBadge}>
           <Text style={s.countText}>{ownedSkins.length + ownedThemes.length + unlockedRelics.length} items</Text>
@@ -116,7 +118,7 @@ export default function InventoryScreen() {
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C8820A' }}>PADDLE SKINS</Text>
+              <GlowText intensity="medium" color='#C8820A' style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2 }}>PADDLE SKINS</GlowText>
               <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
               <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>{ownedSkins.length}/{SKINS.length} OWNED</Text>
             </View>
@@ -127,20 +129,20 @@ export default function InventoryScreen() {
                 {ownedSkins.map(skin => {
                   const equipped = profile.currentSkin === skin.id;
                   return (
-                    <View
-                      key={skin.id}
-                      style={[s.skinCard, {
-                        backgroundColor: equipped ? skin.color + '18' : colors.card,
-                        borderColor: equipped ? skin.color : colors.border,
-                      }]}
-                    >
-                      {/* Paddle preview */}
-                      <LinearGradient colors={[skin.color + '33', skin.color + '0A']} style={s.skinPreview}>
-                        <View style={[s.paddlePreview, { backgroundColor: skin.color, shadowColor: skin.glowColor }]} />
-                      </LinearGradient>
+                    <HolographicShimmer key={skin.id} borderRadius={16} active={equipped}>
+                      <View
+                        style={[s.skinCard, {
+                          backgroundColor: equipped ? skin.color + '18' : colors.card,
+                          borderColor: equipped ? skin.color : colors.border,
+                        }]}
+                      >
+                        {/* Paddle preview */}
+                        <LinearGradient colors={[skin.color + '33', skin.color + '0A']} style={s.skinPreview}>
+                          <View style={[s.paddlePreview, { backgroundColor: skin.color, shadowColor: skin.glowColor }]} />
+                        </LinearGradient>
 
-                      {/* Info */}
-                      <Text style={[s.skinName, { color: equipped ? skin.color : colors.foreground }]}>{skin.name}</Text>
+                        {/* Info */}
+                        <GlowText intensity="soft" color={skin.color ?? '#C8820A'} style={s.skinName}>{skin.name}</GlowText>
 
                       {equipped ? (
                         <View style={[s.equippedBadge, { backgroundColor: skin.color }]}>
@@ -155,7 +157,8 @@ export default function InventoryScreen() {
                           <Text style={[s.equipBtnText, { color: skin.color }]}>EQUIP</Text>
                         </Pressable>
                       )}
-                    </View>
+                      </View>
+                    </HolographicShimmer>
                   );
                 })}
               </View>
@@ -178,7 +181,7 @@ export default function InventoryScreen() {
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#BF5FFF' }}>ARENA THEMES</Text>
+              <GlowText intensity="medium" color='#C8820A' style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2 }}>ARENA THEMES</GlowText>
               <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
               <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>{ownedThemes.length} OWNED</Text>
             </View>
@@ -240,9 +243,9 @@ export default function InventoryScreen() {
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>
+              <GlowText intensity="medium" color='#C8820A' style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2 }}>
                 {GOLD_STRIKE_NAME.toUpperCase()}S
-              </Text>
+              </GlowText>
               <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
               <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>
                 {pendingBlocks.length} PENDING
@@ -310,7 +313,7 @@ export default function InventoryScreen() {
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <View style={{ width: 3, height: 16, backgroundColor: '#AA44FF', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#AA44FF' }}>RELICS</Text>
+              <GlowText intensity="medium" color='#C8820A' style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2 }}>RELICS</GlowText>
               <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
               <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>RANK-GATED</Text>
             </View>

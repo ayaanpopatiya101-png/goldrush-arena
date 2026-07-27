@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RankBadge } from '@/components/RankBadge';
 import { useColors } from '@/hooks/useColors';
+import { ShimmerCard } from '@/components/effects';
 
 interface PlayerCardProps {
   name: string;
@@ -22,47 +23,49 @@ export function PlayerCard({
   const isSmall = size === 'sm';
 
   return (
-    <LinearGradient
-      colors={[color + '18', color + '06']}
-      style={[styles.card, isSmall && styles.cardSmall, { borderColor: color + '44' }]}
-    >
-      <View style={[styles.avatar, { backgroundColor: color + '33', borderColor: color }]}>
-        <Text style={[styles.avatarText, { color, fontSize: isSmall ? 16 : 22 }]}>
-          {name.charAt(0).toUpperCase()}
-        </Text>
-      </View>
-      <View style={styles.info}>
-        <View style={styles.nameRow}>
-          <Text style={[styles.name, { color: colors.foreground, fontSize: isSmall ? 12 : 15 }]} numberOfLines={1}>
-            {name}
+    <ShimmerCard active={isReady === true} borderRadius={isSmall ? 10 : 14} shimmerColor="rgba(0,255,136,0.1)">
+      <LinearGradient
+        colors={[color + '18', color + '06']}
+        style={[styles.card, isSmall && styles.cardSmall, { borderColor: color + '44' }]}
+      >
+        <View style={[styles.avatar, { backgroundColor: color + '33', borderColor: color }]}>
+          <Text style={[styles.avatarText, { color, fontSize: isSmall ? 16 : 22 }]}>
+            {name.charAt(0).toUpperCase()}
           </Text>
-          {isBot && (
-            <View style={[styles.botBadge, { borderColor: colors.mutedForeground }]}>
-              <Text style={[styles.botText, { color: colors.mutedForeground }]}>BOT</Text>
-            </View>
-          )}
         </View>
-        <View style={styles.stats}>
-          <RankBadge rank={rank} size="sm" showLabel={false} />
-          <Text style={[styles.rankText, { color: colors.mutedForeground, fontSize: isSmall ? 10 : 11 }]}>
-            {rank}
-          </Text>
-          {level != null && (
-            <Text style={[styles.levelText, { color: colors.mutedForeground }]}>
-              {' '}· Lv {level}
+        <View style={styles.info}>
+          <View style={styles.nameRow}>
+            <Text style={[styles.name, { color: colors.foreground, fontSize: isSmall ? 12 : 15 }]} numberOfLines={1}>
+              {name}
             </Text>
-          )}
-          {wins != null && (
-            <Text style={[styles.wins, { color: colors.mutedForeground }]}>
-              {' '}· {wins}W
+            {isBot && (
+              <View style={[styles.botBadge, { borderColor: colors.mutedForeground }]}>
+                <Text style={[styles.botText, { color: colors.mutedForeground }]}>BOT</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.stats}>
+            <RankBadge rank={rank} size="sm" showLabel={false} />
+            <Text style={[styles.rankText, { color: colors.mutedForeground, fontSize: isSmall ? 10 : 11 }]}>
+              {rank}
             </Text>
-          )}
+            {level != null && (
+              <Text style={[styles.levelText, { color: colors.mutedForeground }]}>
+                {' '}· Lv {level}
+              </Text>
+            )}
+            {wins != null && (
+              <Text style={[styles.wins, { color: colors.mutedForeground }]}>
+                {' '}· {wins}W
+              </Text>
+            )}
+          </View>
         </View>
-      </View>
-      {isReady != null && (
-        <View style={[styles.readyDot, { backgroundColor: isReady ? '#00FF88' : colors.muted }]} />
-      )}
-    </LinearGradient>
+        {isReady != null && (
+          <View style={[styles.readyDot, { backgroundColor: isReady ? '#00FF88' : colors.muted }]} />
+        )}
+      </LinearGradient>
+    </ShimmerCard>
   );
 }
 

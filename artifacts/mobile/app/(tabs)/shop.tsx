@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SKINS, FORGE_ABILITIES, RELICS, getRankIndex, usePlayer } from '@/context/PlayerContext';
 import { RedeemCodeModal } from '@/components/RedeemCodeModal';
 import { useColors } from '@/hooks/useColors';
+import { FloatingOrbs, ORBS_GOLD, GlowText, HolographicShimmer, ShimmerCard, PulseRing, GlowBorder } from '@/components/effects';
 
 const API_BASE = Platform.OS === 'web' ? '/api' : (process.env.EXPO_PUBLIC_API_URL ?? '/api');
 
@@ -179,6 +180,7 @@ export default function ShopScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <FloatingOrbs orbs={ORBS_GOLD} opacity={0.7} />
       <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
         colors={['#C8820A24', '#C8820A0E', 'transparent']}
@@ -195,7 +197,7 @@ export default function ShopScreen() {
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <View>
           <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</Text>
+          <GlowText intensity="medium" color='#C8820A' pulse style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</GlowText>
         </View>
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
           {allRelicsOwned && (
@@ -222,9 +224,15 @@ export default function ShopScreen() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 44 }} contentContainerStyle={[styles.tabRow, { borderBottomColor: colors.border }]}>
         {(['skins', 'themes', 'powerups', 'extras', 'store', ...(allRelicsOwned ? ['forge' as const] : [])] as const).map(t => (
           <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: t === 'forge' ? '#7A50A0' : t === 'store' ? '#FFD700' : colors.primary }]}>
-            <Text style={[styles.tabText, { color: activeTab === t ? (t === 'forge' ? '#B9A0E0' : t === 'store' ? '#FFD700' : colors.primary) : colors.mutedForeground }]}>
-              {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'forge' ? '⚡ FORGE' : t === 'store' ? '💳 STORE' : 'EXTRAS'}
-            </Text>
+            {activeTab === t ? (
+              <GlowText intensity="soft" color='#C8820A' style={styles.tabText}>
+                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'forge' ? '⚡ FORGE' : t === 'store' ? '💳 STORE' : 'EXTRAS'}
+              </GlowText>
+            ) : (
+              <Text style={[styles.tabText, { color: colors.mutedForeground }]}>
+                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'forge' ? '⚡ FORGE' : t === 'store' ? '💳 STORE' : 'EXTRAS'}
+              </Text>
+            )}
           </Pressable>
         ))}
       </ScrollView>
@@ -462,11 +470,13 @@ export default function ShopScreen() {
                   <Text style={[styles.itemName, { color: colors.foreground }]}>{item.name}</Text>
                   <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{item.desc}</Text>
                 </View>
-                <View style={[storeStyles.usdBtn, { backgroundColor: '#FF69B422', borderColor: '#FF69B466' }]}>
-                  <Text style={[storeStyles.usdBtnText, { color: '#FF69B4' }]}>
-                    {checkingOut === item.storeKey ? '…' : item.usd}
-                  </Text>
-                </View>
+                <ShimmerCard active={!checkingOut} borderRadius={8} shimmerColor="rgba(255,255,255,0.1)">
+                  <View style={[storeStyles.usdBtn, { backgroundColor: '#FF69B422', borderColor: '#FF69B466' }]}>
+                    <Text style={[storeStyles.usdBtnText, { color: '#FF69B4' }]}>
+                      {checkingOut === item.storeKey ? '…' : item.usd}
+                    </Text>
+                  </View>
+                </ShimmerCard>
               </Pressable>
             ))}
 
@@ -616,82 +626,93 @@ export default function ShopScreen() {
                   <View style={{ width: 3, height: 16, backgroundColor: '#C084FC', borderRadius: 2 }} />
                   <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C084FC' }}>BATTLE PASS</Text>
                 </View>
-                <Pressable
-                  onPress={() => handleBuyFromStore(STORE_BATTLE_PASS.key)}
-                  disabled={checkingOut === STORE_BATTLE_PASS.key || !!profile.battlePassPremiumOwned}
-                  style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#8B5CF666' }]}
-                >
-                  <LinearGradient colors={['#8B5CF622', '#6D28D911']} style={StyleSheet.absoluteFill} />
-                  <Text style={{ fontSize: 32 }}>{STORE_BATTLE_PASS.emoji}</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[storeStyles.passName, { color: '#C084FC' }]}>{STORE_BATTLE_PASS.name}</Text>
-                    <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>{STORE_BATTLE_PASS.desc}</Text>
-                    {profile.battlePassPremiumOwned && (
-                      <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#C084FC', letterSpacing: 1, marginTop: 4 }}>✓ OWNED — SEASON 1</Text>
-                    )}
-                  </View>
-                  {!profile.battlePassPremiumOwned && (
-                    <View style={[storeStyles.usdBtn, { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' }]}>
-                      <Text style={[storeStyles.usdBtnText, { color: '#F5F3FF' }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : STORE_BATTLE_PASS.usd}</Text>
+                <HolographicShimmer borderRadius={16}>
+                  <Pressable
+                    onPress={() => handleBuyFromStore(STORE_BATTLE_PASS.key)}
+                    disabled={checkingOut === STORE_BATTLE_PASS.key || !!profile.battlePassPremiumOwned}
+                    style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#8B5CF666' }]}
+                  >
+                    <LinearGradient colors={['#8B5CF622', '#6D28D911']} style={StyleSheet.absoluteFill} />
+                    <Text style={{ fontSize: 32 }}>{STORE_BATTLE_PASS.emoji}</Text>
+                    <View style={{ flex: 1 }}>
+                      <GlowText intensity="medium" color='#A855F7' style={storeStyles.passName}>{STORE_BATTLE_PASS.name}</GlowText>
+                      <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>{STORE_BATTLE_PASS.desc}</Text>
+                      {profile.battlePassPremiumOwned && (
+                        <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#C084FC', letterSpacing: 1, marginTop: 4 }}>✓ OWNED — SEASON 1</Text>
+                      )}
                     </View>
-                  )}
-                </Pressable>
+                    {!profile.battlePassPremiumOwned && (
+                      <View style={[storeStyles.usdBtn, { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' }]}>
+                        <Text style={[storeStyles.usdBtnText, { color: '#F5F3FF' }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : STORE_BATTLE_PASS.usd}</Text>
+                      </View>
+                    )}
+                  </Pressable>
+                </HolographicShimmer>
 
                 {/* Season Pass */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2, marginTop: 6 }}>
                   <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
                   <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>SEASON PASS</Text>
                 </View>
-                <Pressable
-                  onPress={() => handleBuyFromStore(STORE_SEASON_PASS.key)}
-                  disabled={checkingOut === STORE_SEASON_PASS.key || !!profile.seasonPassPurchased}
-                  style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#FFD70066' }]}
-                >
-                  <LinearGradient colors={['#FFD70022', '#C8820A11']} style={StyleSheet.absoluteFill} />
-                  <Text style={{ fontSize: 32 }}>{STORE_SEASON_PASS.emoji}</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={storeStyles.passName}>{STORE_SEASON_PASS.name}</Text>
-                    <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>{STORE_SEASON_PASS.desc}</Text>
-                    {profile.seasonPassPurchased && (
-                      <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFD700', letterSpacing: 1, marginTop: 4 }}>✓ OWNED</Text>
-                    )}
-                  </View>
-                  {!profile.seasonPassPurchased && (
-                    <View style={storeStyles.usdBtn}>
-                      <Text style={storeStyles.usdBtnText}>{checkingOut === STORE_SEASON_PASS.key ? '…' : STORE_SEASON_PASS.usd}</Text>
+                <ShimmerCard shimmerColor="rgba(255,215,0,0.18)" duration={1800} borderRadius={14}>
+                  <Pressable
+                    onPress={() => handleBuyFromStore(STORE_SEASON_PASS.key)}
+                    disabled={checkingOut === STORE_SEASON_PASS.key || !!profile.seasonPassPurchased}
+                    style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#FFD70066' }]}
+                  >
+                    <LinearGradient colors={['#FFD70022', '#C8820A11']} style={StyleSheet.absoluteFill} />
+                    <Text style={{ fontSize: 32 }}>{STORE_SEASON_PASS.emoji}</Text>
+                    <View style={{ flex: 1 }}>
+                      <GlowText intensity="soft" color='#C8820A' style={storeStyles.passName}>{STORE_SEASON_PASS.name}</GlowText>
+                      <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>{STORE_SEASON_PASS.desc}</Text>
+                      {profile.seasonPassPurchased && (
+                        <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFD700', letterSpacing: 1, marginTop: 4 }}>✓ OWNED</Text>
+                      )}
                     </View>
-                  )}
-                </Pressable>
+                    {!profile.seasonPassPurchased && (
+                      <View style={storeStyles.usdBtn}>
+                        <Text style={storeStyles.usdBtnText}>{checkingOut === STORE_SEASON_PASS.key ? '…' : STORE_SEASON_PASS.usd}</Text>
+                      </View>
+                    )}
+                  </Pressable>
+                </ShimmerCard>
 
                 {/* Coin Packs */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
                   <View style={{ width: 3, height: 16, backgroundColor: '#FFB830', borderRadius: 2 }} />
                   <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFB830' }}>COIN PACKS</Text>
                 </View>
-                {STORE_COIN_PACKS.map(pack => (
-                  <Pressable
-                    key={pack.key}
-                    onPress={() => handleBuyFromStore(pack.key)}
-                    disabled={checkingOut === pack.key}
-                    style={({ pressed }) => [storeStyles.storeCard, {
-                      borderColor: pack.highlight ? '#C8820A88' : '#FFFFFF18',
-                      backgroundColor: pack.highlight ? '#C8820A14' : colors.card,
-                      opacity: pressed ? 0.82 : 1,
-                    }]}
-                  >
-                    {pack.highlight && <LinearGradient colors={['#C8820A18', '#C8820A06']} style={StyleSheet.absoluteFill} />}
-                    <Text style={{ fontSize: 26, width: 36, textAlign: 'center' }}>{pack.emoji}</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[storeStyles.storeName, { color: pack.highlight ? '#FFB830' : colors.foreground }]}>{pack.name}</Text>
-                      <Text style={[storeStyles.storeDesc, { color: colors.mutedForeground }]}>{pack.desc}</Text>
-                    </View>
-                    <View style={[storeStyles.usdBtn, pack.highlight && { backgroundColor: '#C8820A33', borderColor: '#C8820A88' }]}>
-                      <Text style={[storeStyles.usdBtnText, pack.highlight && { color: '#FFD700' }]}>
-                        {checkingOut === pack.key ? '…' : pack.usd}
-                      </Text>
-                    </View>
-                  </Pressable>
-                ))}
+                {STORE_COIN_PACKS.map(pack => {
+                  const cardContent = (
+                    <Pressable
+                      key={pack.key}
+                      onPress={() => handleBuyFromStore(pack.key)}
+                      disabled={checkingOut === pack.key}
+                      style={({ pressed }) => [storeStyles.storeCard, {
+                        borderColor: pack.highlight ? '#C8820A88' : '#FFFFFF18',
+                        backgroundColor: pack.highlight ? '#C8820A14' : colors.card,
+                        opacity: pressed ? 0.82 : 1,
+                      }]}
+                    >
+                      {pack.highlight && <LinearGradient colors={['#C8820A18', '#C8820A06']} style={StyleSheet.absoluteFill} />}
+                      <Text style={{ fontSize: 26, width: 36, textAlign: 'center' }}>{pack.emoji}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[storeStyles.storeName, { color: pack.highlight ? '#FFB830' : colors.foreground }]}>{pack.name}</Text>
+                        <Text style={[storeStyles.storeDesc, { color: colors.mutedForeground }]}>{pack.desc}</Text>
+                      </View>
+                      <View style={[storeStyles.usdBtn, pack.highlight && { backgroundColor: '#C8820A33', borderColor: '#C8820A88' }]}>
+                        <Text style={[storeStyles.usdBtnText, pack.highlight && { color: '#FFD700' }]}>
+                          {checkingOut === pack.key ? '…' : pack.usd}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  );
+                  return pack.highlight ? (
+                    <GlowBorder key={pack.key} color='#FFD700' borderRadius={12} spread={8}>
+                      {cardContent}
+                    </GlowBorder>
+                  ) : cardContent;
+                })}
 
                 {/* Skin Packs */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
@@ -710,9 +731,11 @@ export default function ShopScreen() {
                       <Text style={[storeStyles.storeName, { color: colors.foreground }]}>{pack.name}</Text>
                       <Text style={[storeStyles.storeDesc, { color: colors.mutedForeground }]}>{pack.desc}</Text>
                     </View>
-                    <View style={storeStyles.usdBtn}>
-                      <Text style={storeStyles.usdBtnText}>{checkingOut === pack.key ? '…' : pack.usd}</Text>
-                    </View>
+                    <ShimmerCard active={!checkingOut} borderRadius={8} shimmerColor="rgba(255,255,255,0.1)">
+                      <View style={storeStyles.usdBtn}>
+                        <Text style={storeStyles.usdBtnText}>{checkingOut === pack.key ? '…' : pack.usd}</Text>
+                      </View>
+                    </ShimmerCard>
                   </Pressable>
                 ))}
 

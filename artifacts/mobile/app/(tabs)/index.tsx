@@ -12,6 +12,7 @@ import { DailyStreakModal } from '@/components/DailyStreakModal';
 import { RankBadge } from '@/components/RankBadge';
 import { AmbientParticles } from '@/components/AmbientParticles';
 import { LiveEventBanner } from '@/components/LiveEventBanner';
+import { FloatingOrbs, ORBS_GOLD, GlowText, ShimmerCard, PulseRing } from '@/components/effects';
 import {
   RANKS, getRankIndex, SEASON_TIERS, SKINS, SUPERS, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
@@ -77,7 +78,7 @@ function TierCard({ tier, index, totalGames, claimed, onClaim }: {
   const isCurrent  = isUnlocked && (index === SEASON_TIERS.length - 1 || totalGames < SEASON_TIERS[index + 1].games);
 
   return (
-    <View style={[
+    <ShimmerCard borderRadius={12} active={isCurrent || isUnlocked} shimmerColor="rgba(200,130,10,0.14)" style={[
       st.tierCard,
       isCurrent && { borderColor: '#C8820A66', backgroundColor: '#C8820A11' },
       !isUnlocked && { opacity: 0.45 },
@@ -103,7 +104,7 @@ function TierCard({ tier, index, totalGames, claimed, onClaim }: {
           <Feather name="lock" size={10} color="#FFFFFF44" />
         </View>
       )}
-    </View>
+    </ShimmerCard>
   );
 }
 
@@ -237,6 +238,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.root}>
+      <FloatingOrbs orbs={ORBS_GOLD} opacity={0.8} />
       {/* ── Cinematic 5-layer background depth system ─────────────────────── */}
       {/* 1. Deep base — richer midnight blue-black, not flat CSS black */}
       <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
@@ -372,13 +374,12 @@ export default function HomeScreen() {
 
         {/* Title */}
         <View style={styles.titleWrap}>
-          <Animated.Text style={[styles.gameTitle, {
+          <Animated.View style={{
             opacity: titleGlowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.88, 1] }),
-            textShadowRadius: titleGlowAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 36] }),
             transform: [{ scale: titleGlowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.99, 1.015] }) }],
-          }]}>
-            GOLDRUSH ARENA
-          </Animated.Text>
+          }}>
+            <GlowText intensity="medium" color="#C8820A" style={styles.gameTitle}>GOLDRUSH ARENA</GlowText>
+          </Animated.View>
           <Text style={styles.gameSubtitle}>4-PLAYER AIR HOCKEY · LAST ONE STANDING WINS</Text>
         </View>
 
@@ -409,7 +410,7 @@ export default function HomeScreen() {
                 }]} />
                 <Text style={styles.rankedBtnIcon}>⚔️</Text>
                 <View style={{ alignItems: 'center', gap: 3 }}>
-                  <Text style={styles.rankedBtnText}>RANKED</Text>
+                  <GlowText intensity="medium" color="#FFD700" style={styles.rankedBtnText}>RANKED</GlowText>
                   <Text style={styles.rankedBtnSub}>WIN XP · CLIMB RANKS · EARN GLORY</Text>
                 </View>
                 <Feather name="chevron-right" size={20} color="#07090F66" />
@@ -428,7 +429,7 @@ export default function HomeScreen() {
               {/* Bottom depth edge */}
               <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: '#00000035', borderBottomLeftRadius: 14, borderBottomRightRadius: 14 }} />
               <Text style={{ fontSize: 16 }}>🎮</Text>
-              <Text style={styles.casualBtnText}>CASUAL</Text>
+              <GlowText intensity="medium" color="#FFD700" style={styles.casualBtnText}>CASUAL</GlowText>
               <Text style={styles.casualBtnSub}>· No rank effect</Text>
             </LinearGradient>
           </Pressable>

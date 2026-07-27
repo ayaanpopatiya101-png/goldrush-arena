@@ -13,6 +13,7 @@ import {
   usePlayer,
 } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
+import { FloatingOrbs, ORBS_ARCANE, GlowText, ParticleField, ShimmerCard, PulseRing, HolographicShimmer, GlowBorder } from '@/components/effects';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -87,12 +88,14 @@ function BPPBadge({ bpp }: { bpp: number }) {
     ])).start();
   }, []);
   return (
-    <Animated.View style={[s.bppBadge, { transform: [{ scale: pulse }] }]}>
-      <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={s.bppGrad}>
-        <Text style={s.bppVal}>{bpp.toLocaleString()}</Text>
-        <Text style={s.bppLabel}>BP PTS</Text>
-      </LinearGradient>
-    </Animated.View>
+    <GlowBorder color='#A855F7' borderRadius={100} spread={12} pulse>
+      <Animated.View style={[s.bppBadge, { transform: [{ scale: pulse }] }]}>
+        <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={s.bppGrad}>
+          <Text style={s.bppVal}>{bpp.toLocaleString()}</Text>
+          <Text style={s.bppLabel}>BP PTS</Text>
+        </LinearGradient>
+      </Animated.View>
+    </GlowBorder>
   );
 }
 
@@ -133,56 +136,58 @@ function SlotCard({ tier, bpp, hasPremium, onClaim }: {
   const glowOp = glow.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.9] });
 
   return (
-    <Animated.View style={[s.slotWrap, isMilestone && s.slotMilestone, { transform: [{ scale }] }]}>
-      {/* Milestone glow border */}
-      {isMilestone && isUnlocked && (
-        <Animated.View style={[StyleSheet.absoluteFill, s.milestoneGlow, { borderColor: '#FFD700', opacity: glowOp }]} />
-      )}
-
-      {/* Slot number */}
-      <View style={[s.slotNum, isUnlocked && s.slotNumUnlocked, isMilestone && s.slotNumMilestone]}>
-        {isMilestone ? (
-          <Text style={s.slotNumTxt}>★{tier.slot}</Text>
-        ) : (
-          <Text style={s.slotNumTxt}>{tier.slot}</Text>
+    <ShimmerCard active={isUnlocked} borderRadius={10} shimmerColor="rgba(255,215,10,0.12)">
+      <Animated.View style={[s.slotWrap, isMilestone && s.slotMilestone, { transform: [{ scale }] }]}>
+        {/* Milestone glow border */}
+        {isMilestone && isUnlocked && (
+          <Animated.View style={[StyleSheet.absoluteFill, s.milestoneGlow, { borderColor: '#FFD700', opacity: glowOp }]} />
         )}
-      </View>
 
-      {/* Free reward (top) */}
-      <Pressable
-        onPress={() => pressHandler(false)}
-        disabled={!isUnlocked}
-        style={[s.rewardBlock, s.freeBlock, isUnlocked && { borderColor: freeColor + '44' }]}
-      >
-        <LinearGradient
-          colors={isUnlocked ? [freeColor + '22', freeColor + '08'] : ['#FFFFFF05', '#0005']}
-          style={StyleSheet.absoluteFill}
-        />
-        <Text style={[s.rewardEmoji, !isUnlocked && { opacity: 0.2 }]}>{bpRewardEmoji(tier.free)}</Text>
-        <Text style={[s.rewardLbl, { color: isUnlocked ? freeColor : '#FFFFFF22' }]} numberOfLines={2}>
-          {bpRewardLabel(tier.free)}
-        </Text>
-        {isUnlocked && <Text style={[s.trackLabel, { color: freeColor + 'BB' }]}>FREE</Text>}
-      </Pressable>
+        {/* Slot number */}
+        <View style={[s.slotNum, isUnlocked && s.slotNumUnlocked, isMilestone && s.slotNumMilestone]}>
+          {isMilestone ? (
+            <Text style={s.slotNumTxt}>★{tier.slot}</Text>
+          ) : (
+            <Text style={s.slotNumTxt}>{tier.slot}</Text>
+          )}
+        </View>
 
-      {/* Premium reward (bottom) */}
-      <Pressable
-        onPress={() => pressHandler(true)}
-        disabled={!isUnlocked || !hasPremium}
-        style={[s.rewardBlock, s.premBlock, isUnlocked && hasPremium && { borderColor: premColor + '55' }]}
-      >
-        <LinearGradient
-          colors={isUnlocked && hasPremium ? [premColor + '22', premColor + '08'] : ['#FFFFFF03', '#0003']}
-          style={StyleSheet.absoluteFill}
-        />
-        <Text style={[s.rewardEmoji, !(isUnlocked && hasPremium) && { opacity: 0.2 }]}>{bpRewardEmoji(tier.premium)}</Text>
-        <Text style={[s.rewardLbl, { color: isUnlocked && hasPremium ? premColor : '#FFFFFF22' }]} numberOfLines={2}>
-          {bpRewardLabel(tier.premium)}
-        </Text>
-        {!hasPremium && <Text style={s.lockLabel}>🔒 PREMIUM</Text>}
-        {isUnlocked && hasPremium && <Text style={[s.trackLabel, { color: premColor + 'BB' }]}>PREMIUM</Text>}
-      </Pressable>
-    </Animated.View>
+        {/* Free reward (top) */}
+        <Pressable
+          onPress={() => pressHandler(false)}
+          disabled={!isUnlocked}
+          style={[s.rewardBlock, s.freeBlock, isUnlocked && { borderColor: freeColor + '44' }]}
+        >
+          <LinearGradient
+            colors={isUnlocked ? [freeColor + '22', freeColor + '08'] : ['#FFFFFF05', '#0005']}
+            style={StyleSheet.absoluteFill}
+          />
+          <Text style={[s.rewardEmoji, !isUnlocked && { opacity: 0.2 }]}>{bpRewardEmoji(tier.free)}</Text>
+          <Text style={[s.rewardLbl, { color: isUnlocked ? freeColor : '#FFFFFF22' }]} numberOfLines={2}>
+            {bpRewardLabel(tier.free)}
+          </Text>
+          {isUnlocked && <Text style={[s.trackLabel, { color: freeColor + 'BB' }]}>FREE</Text>}
+        </Pressable>
+
+        {/* Premium reward (bottom) */}
+        <Pressable
+          onPress={() => pressHandler(true)}
+          disabled={!isUnlocked || !hasPremium}
+          style={[s.rewardBlock, s.premBlock, isUnlocked && hasPremium && { borderColor: premColor + '55' }]}
+        >
+          <LinearGradient
+            colors={isUnlocked && hasPremium ? [premColor + '22', premColor + '08'] : ['#FFFFFF03', '#0003']}
+            style={StyleSheet.absoluteFill}
+          />
+          <Text style={[s.rewardEmoji, !(isUnlocked && hasPremium) && { opacity: 0.2 }]}>{bpRewardEmoji(tier.premium)}</Text>
+          <Text style={[s.rewardLbl, { color: isUnlocked && hasPremium ? premColor : '#FFFFFF22' }]} numberOfLines={2}>
+            {bpRewardLabel(tier.premium)}
+          </Text>
+          {!hasPremium && <Text style={s.lockLabel}>🔒 PREMIUM</Text>}
+          {isUnlocked && hasPremium && <Text style={[s.trackLabel, { color: premColor + 'BB' }]}>PREMIUM</Text>}
+        </Pressable>
+      </Animated.View>
+    </ShimmerCard>
   );
 }
 
@@ -205,51 +210,53 @@ function QuestRow({ quest, progress, claimed, premiumOwned, onClaim }: {
   const periodColor = quest.period === 'daily' ? '#FFD700' : quest.period === 'weekly' ? '#00E5FF' : '#FF6B35';
 
   return (
-    <View style={[s.questRow, { borderColor: claimed ? '#00C85322' : isReady ? periodColor + '44' : '#FFFFFF0D' }]}>
-      <LinearGradient
-        colors={claimed ? ['#00C85308', '#0005'] : isReady ? [periodColor + '18', '#0005'] : ['#FFFFFF04', '#0003']}
-        style={StyleSheet.absoluteFill}
-      />
-      <Text style={s.questEmoji}>{questEmoji(quest)}</Text>
-      <View style={{ flex: 1, gap: 4 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Text style={[s.questTitle, { color: isLocked ? '#FFFFFF33' : claimed ? '#00C853' : '#FFFFFFCC' }]}>
-            {quest.title}
-          </Text>
-          {quest.premiumOnly && (
-            <View style={s.premBadge}>
-              <Text style={s.premBadgeTxt}>PREMIUM</Text>
-            </View>
-          )}
-        </View>
-        <Text style={[s.questDesc, { color: isLocked ? '#FFFFFF22' : '#FFFFFF55' }]}>{quest.description}</Text>
-        {/* Progress bar */}
-        <View style={{ gap: 3 }}>
-          <View style={s.questBarBg}>
-            <Animated.View style={[s.questBarFill, { width: barPct as never, backgroundColor: claimed ? '#00C853' : periodColor }]}>
-              <View style={s.questBarShine} />
-            </Animated.View>
+    <ShimmerCard active={claimed} borderRadius={8} shimmerColor="rgba(100,255,100,0.1)">
+      <View style={[s.questRow, { borderColor: claimed ? '#00C85322' : isReady ? periodColor + '44' : '#FFFFFF0D' }]}>
+        <LinearGradient
+          colors={claimed ? ['#00C85308', '#0005'] : isReady ? [periodColor + '18', '#0005'] : ['#FFFFFF04', '#0003']}
+          style={StyleSheet.absoluteFill}
+        />
+        <Text style={s.questEmoji}>{questEmoji(quest)}</Text>
+        <View style={{ flex: 1, gap: 4 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={[s.questTitle, { color: isLocked ? '#FFFFFF33' : claimed ? '#00C853' : '#FFFFFFCC' }]}>
+              {quest.title}
+            </Text>
+            {quest.premiumOnly && (
+              <View style={s.premBadge}>
+                <Text style={s.premBadgeTxt}>PREMIUM</Text>
+              </View>
+            )}
           </View>
-          <Text style={s.questProg}>
-            {claimed ? 'Complete!' : isLocked ? 'Requires Premium Pass' : `${Math.min(progress, quest.target)} / ${quest.target}`}
-          </Text>
+          <Text style={[s.questDesc, { color: isLocked ? '#FFFFFF22' : '#FFFFFF55' }]}>{quest.description}</Text>
+          {/* Progress bar */}
+          <View style={{ gap: 3 }}>
+            <View style={s.questBarBg}>
+              <Animated.View style={[s.questBarFill, { width: barPct as never, backgroundColor: claimed ? '#00C853' : periodColor }]}>
+                <View style={s.questBarShine} />
+              </Animated.View>
+            </View>
+            <Text style={s.questProg}>
+              {claimed ? 'Complete!' : isLocked ? 'Requires Premium Pass' : `${Math.min(progress, quest.target)} / ${quest.target}`}
+            </Text>
+          </View>
+        </View>
+        {/* BPP badge */}
+        <View style={{ alignItems: 'flex-end', gap: 5, minWidth: 54 }}>
+          <View style={[s.bppChip, { borderColor: periodColor + '55', backgroundColor: periodColor + '18' }]}>
+            <Text style={[s.bppChipTxt, { color: periodColor }]}>+{quest.reward}</Text>
+            <Text style={[s.bppChipLabel, { color: periodColor + 'AA' }]}>BP</Text>
+          </View>
+          {isReady && !isLocked && (
+            <Pressable onPress={() => onClaim(quest.id)} style={[s.claimBtn, { borderColor: periodColor, backgroundColor: periodColor + '22' }]}>
+              <Text style={[s.claimBtnTxt, { color: periodColor }]}>CLAIM</Text>
+            </Pressable>
+          )}
+          {claimed && <Text style={{ fontSize: 16 }}>✅</Text>}
+          {isLocked && <Text style={{ fontSize: 14, opacity: 0.4 }}>🔒</Text>}
         </View>
       </View>
-      {/* BPP badge */}
-      <View style={{ alignItems: 'flex-end', gap: 5, minWidth: 54 }}>
-        <View style={[s.bppChip, { borderColor: periodColor + '55', backgroundColor: periodColor + '18' }]}>
-          <Text style={[s.bppChipTxt, { color: periodColor }]}>+{quest.reward}</Text>
-          <Text style={[s.bppChipLabel, { color: periodColor + 'AA' }]}>BP</Text>
-        </View>
-        {isReady && !isLocked && (
-          <Pressable onPress={() => onClaim(quest.id)} style={[s.claimBtn, { borderColor: periodColor, backgroundColor: periodColor + '22' }]}>
-            <Text style={[s.claimBtnTxt, { color: periodColor }]}>CLAIM</Text>
-          </Pressable>
-        )}
-        {claimed && <Text style={{ fontSize: 16 }}>✅</Text>}
-        {isLocked && <Text style={{ fontSize: 14, opacity: 0.4 }}>🔒</Text>}
-      </View>
-    </View>
+    </ShimmerCard>
   );
 }
 
@@ -271,7 +278,9 @@ function QuestSection({ title, quests, profile, premiumOwned, onClaim, periodCol
       <Pressable onPress={() => setOpen(o => !o)} style={[s.sectionHeader, { borderColor: periodColor + '44' }]}>
         <LinearGradient colors={[periodColor + '18', periodColor + '06']} style={StyleSheet.absoluteFill} />
         <Text style={{ fontSize: 14 }}>{title === 'Daily' ? '☀️' : title === 'Weekly' ? '📅' : '🏆'}</Text>
-        <Text style={[s.sectionTitle, { color: periodColor }]}>{title.toUpperCase()} QUESTS</Text>
+        <GlowText intensity="soft" color='#FFD700' style={[s.sectionTitle, { color: periodColor }]}>
+          {title.toUpperCase()} QUESTS
+        </GlowText>
         <View style={s.sectionCount}>
           <Text style={[s.sectionCountTxt, { color: periodColor }]}>{claimedCount}/{totalEligible}</Text>
         </View>
@@ -383,6 +392,8 @@ export default function BattlePassScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#04060E' }}>
+      <FloatingOrbs orbs={ORBS_ARCANE} opacity={0.8} />
+      <ParticleField count={35} mode="stars" />
       <LinearGradient colors={['#0A0520', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
         colors={['#8B5CF626', '#6D28D910', 'transparent']}
@@ -396,7 +407,9 @@ export default function BattlePassScreen() {
         <View style={s.header}>
           <View style={{ flex: 1 }}>
             <Text style={s.seasonLabel}>SEASON {BATTLE_PASS_SEASON}</Text>
-            <Title3D text="BATTLE PASS" size={20} color="#C084FC" shadow="#4C1D95" />
+            <View style={{ shadowColor: '#FFD700', shadowRadius: 20, shadowOpacity: 0.8, shadowOffset: { width: 0, height: 0 } }}>
+              <Title3D text="BATTLE PASS" size={20} color="#C084FC" shadow="#4C1D95" />
+            </View>
             <Text style={s.headerSub}>Complete Quests → Earn Points → Unlock Rewards</Text>
           </View>
           <BPPBadge bpp={bpp} />
@@ -411,9 +424,11 @@ export default function BattlePassScreen() {
             </Text>
           </View>
           <View style={s.barBg}>
-            <Animated.View style={[s.barFill, { width: progressPct as never }]}>
-              <View style={s.barShine} />
-            </Animated.View>
+            <ShimmerCard active={true} borderRadius={4} duration={2200} shimmerColor="rgba(255,255,255,0.25)">
+              <Animated.View style={[s.barFill, { width: progressPct as never }]}>
+                <View style={s.barShine} />
+              </Animated.View>
+            </ShimmerCard>
           </View>
         </View>
 

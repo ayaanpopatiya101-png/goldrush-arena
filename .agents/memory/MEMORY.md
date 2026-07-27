@@ -1,2 +1,3 @@
 - [GoldRush Arena stack](goldrush-stack.md) — Expo SDK 54, expo-router tabs, Web Audio API for music/SFX (web-only, platform-guarded)
 - [GoldRush Arena patterns](goldrush-patterns.md) — storage keys, GameArena props interface, PlayerContext functions, and sharp edges.
+- [GoldRush Arena effects library](goldrush-effects.md) — 10-component visual FX library at components/effects/; no new native deps; applied to all screens.

@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { RANKS } from '@/context/PlayerContext';
+import { PulseRing, GlowBorder } from '@/components/effects';
 
 interface RankBadgeProps {
   rank: string;
@@ -42,19 +43,29 @@ export function RankBadge({ rank, size = 'md', showLabel = true }: RankBadgeProp
   const icon = RANK_ICONS[rank] ?? '🎮';
   const num  = RANK_NUM[rank]  ?? '';
 
+  const isElite    = ['Diamond', 'Master', 'Champion'].some(t => rank.startsWith(t));
+  const isChampion = rank.startsWith('Champion');
+
   return (
     <View style={styles.wrapper}>
-      <View style={[styles.badge, {
-        width: dim, height: dim, borderRadius: dim / 2,
-        borderColor: color, backgroundColor: color + '22', shadowColor: color,
-      }]}>
-        <Text style={{ fontSize: iconSize, lineHeight: iconSize + 4 }}>{icon}</Text>
-        {num ? (
-          <View style={[styles.numPip, { backgroundColor: color, borderColor: color + '66' }]}>
-            <Text style={[styles.numTxt, { fontSize: numSize, color: '#000000CC' }]}>{num}</Text>
-          </View>
-        ) : null}
-      </View>
+      {isChampion && (
+        <View style={{ position: 'absolute', top: -(10), left: -(10), right: -(10), bottom: -(10), alignItems: 'center', justifyContent: 'center' }}>
+          <PulseRing color={color} size={dim + 20} rings={2} duration={2200} opacity={0.45} />
+        </View>
+      )}
+      <GlowBorder color={color} borderRadius={dim / 2} spread={isElite ? 10 : 5} pulse={isElite} borderWidth={2}>
+        <View style={[styles.badge, {
+          width: dim, height: dim, borderRadius: dim / 2,
+          borderColor: color, backgroundColor: color + '22', shadowColor: color,
+        }]}>
+          <Text style={{ fontSize: iconSize, lineHeight: iconSize + 4 }}>{icon}</Text>
+          {num ? (
+            <View style={[styles.numPip, { backgroundColor: color, borderColor: color + '66' }]}>
+              <Text style={[styles.numTxt, { fontSize: numSize, color: '#000000CC' }]}>{num}</Text>
+            </View>
+          ) : null}
+        </View>
+      </GlowBorder>
       {showLabel && (
         <Text style={[styles.label, { color, fontSize: labelSize }]}>{rank.toUpperCase()}</Text>
       )}
@@ -63,7 +74,7 @@ export function RankBadge({ rank, size = 'md', showLabel = true }: RankBadgeProp
 }
 
 const styles = StyleSheet.create({
-  wrapper: { alignItems: 'center', gap: 3 },
+  wrapper: { alignItems: 'center', gap: 3, position: 'relative' },
   badge: {
     borderWidth: 2, alignItems: 'center', justifyContent: 'center',
     shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 6, elevation: 4,

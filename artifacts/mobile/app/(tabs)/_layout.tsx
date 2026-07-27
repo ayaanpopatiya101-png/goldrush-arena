@@ -1,8 +1,8 @@
 import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import { useColors } from '@/hooks/useColors';
 
 function TabIcon({ name, color, label, focused }: {
@@ -11,11 +11,49 @@ function TabIcon({ name, color, label, focused }: {
   label: string;
   focused: boolean;
 }) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim  = useRef(new Animated.Value(0)).current;
+  const pipScaleAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (focused) {
+      // Spring-bounce icon + fade in glow + slide-in pip
+      Animated.parallel([
+        Animated.spring(scaleAnim, { toValue: 1.18, useNativeDriver: true, bounciness: 14, speed: 16 }),
+        Animated.timing(glowAnim,  { toValue: 1,    duration: 200, useNativeDriver: true }),
+        Animated.spring(pipScaleAnim, { toValue: 1, useNativeDriver: true, bounciness: 10, speed: 14 }),
+      ]).start(() => {
+        // Gentle idle pulse
+        Animated.loop(Animated.sequence([
+          Animated.timing(scaleAnim, { toValue: 1.13, duration: 1400, useNativeDriver: true }),
+          Animated.timing(scaleAnim, { toValue: 1.18, duration: 1400, useNativeDriver: true }),
+        ])).start();
+      });
+    } else {
+      Animated.parallel([
+        Animated.spring(scaleAnim,    { toValue: 1,  useNativeDriver: true, bounciness: 6 }),
+        Animated.timing(glowAnim,     { toValue: 0,  duration: 180, useNativeDriver: true }),
+        Animated.timing(pipScaleAnim, { toValue: 0,  duration: 120, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [focused]);
+
   return (
     <View style={styles.tabItem}>
-      <View style={[styles.iconWrap, focused && { backgroundColor: color + '1E' }]}>
+      {/* Glow halo behind icon */}
+      <Animated.View style={[
+        styles.glowHalo,
+        { backgroundColor: color + '18', shadowColor: color, opacity: glowAnim },
+      ]} />
+
+      <Animated.View style={[
+        styles.iconWrap,
+        focused && { backgroundColor: color + '22' },
+        { transform: [{ scale: scaleAnim }] },
+      ]}>
         <Feather name={name} size={21} color={focused ? color : '#FFFFFF2E'} />
-      </View>
+      </Animated.View>
+
       <Text style={[styles.tabLabel, {
         color: focused ? color : '#FFFFFF26',
         fontFamily: focused ? 'Inter_700Bold' : 'Inter_400Regular',
@@ -23,7 +61,12 @@ function TabIcon({ name, color, label, focused }: {
       }]}>
         {label}
       </Text>
-      {focused && <View style={[styles.activePip, { backgroundColor: color }]} />}
+
+      {/* Animated active pip */}
+      <Animated.View style={[
+        styles.activePip,
+        { backgroundColor: color, shadowColor: color, transform: [{ scaleX: pipScaleAnim }] },
+      ]} />
     </View>
   );
 }
@@ -135,6 +178,16 @@ const styles = StyleSheet.create({
     gap: 2,
     paddingTop: 6,
   },
+  glowHalo: {
+    position: 'absolute',
+    top: 2,
+    width: 48,
+    height: 36,
+    borderRadius: 18,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 10,
+  },
   iconWrap: {
     width: 44,
     height: 30,
@@ -147,6 +200,9 @@ const styles = StyleSheet.create({
     height: 2.5,
     borderRadius: 2,
     marginTop: 1,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
   },
   tabLabel: {
     letterSpacing: 0.5,

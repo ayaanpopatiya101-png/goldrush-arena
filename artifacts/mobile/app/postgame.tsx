@@ -7,6 +7,7 @@ import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, Vie
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
 import { ConfettiRain } from '@/components/ConfettiRain';
+import { FloatingOrbs, GlowText, PulseRing, ShimmerCard } from '@/components/effects';
 import { ACHIEVEMENTS, RANKS, LUCKY_BLOCK_META, getCurrentEvents, usePlayer, xpForNextRank, xpToLevel, type LuckyBlock } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 import { useColors } from '@/hooks/useColors';
@@ -164,6 +165,7 @@ export default function PostGameScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <FloatingOrbs opacity={0.85} />
       <LinearGradient
         colors={won ? ['#0A140A', '#0A1A0A', '#0A0A14'] : ['#140A0A', '#1A0A0A', '#0A0A14']}
         style={StyleSheet.absoluteFill}
@@ -201,9 +203,9 @@ export default function PostGameScreen() {
             <Text style={[styles.positionText, { color: positionColors[position] ?? '#8B8B8B' }]}>
               {positionLabels[position] ?? '4TH'}  ·  PLACE
             </Text>
-            <Text style={[styles.resultText, { color: won ? '#FFD700' : position === 2 ? '#D8D8D8' : position === 3 ? '#CD7F32' : '#FF4757' }]}>
+            <GlowText intensity="strong" color={won ? '#00FF88' : '#C03820'} style={[styles.resultText, { color: won ? '#FFD700' : position === 2 ? '#D8D8D8' : position === 3 ? '#CD7F32' : '#FF4757' }]}>
               {won ? 'VICTORY!' : position === 2 ? 'RUNNER-UP' : position === 3 ? 'THIRD PLACE' : 'ELIMINATED'}
-            </Text>
+            </GlowText>
           </LinearGradient>
         </Animated.View>
 
@@ -222,7 +224,13 @@ export default function PostGameScreen() {
               { label: 'Coins', value: `+${coinsEarned}`, color: '#C8820A' },
             ].map(stat => (
               <View key={stat.label} style={styles.statItem}>
-                <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
+                {stat.label === 'XP Earned' ? (
+                  <GlowText intensity="medium" color='#C8820A' style={[styles.statValue, { color: stat.color }]}>{stat.value}</GlowText>
+                ) : stat.label === 'Coins' ? (
+                  <GlowText intensity="soft" color='#FFD700' style={[styles.statValue, { color: stat.color }]}>{stat.value}</GlowText>
+                ) : (
+                  <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
+                )}
                 <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
               </View>
             ))}
@@ -460,10 +468,12 @@ export default function PostGameScreen() {
             onPress={() => router.replace('/lobby')}
             style={({ pressed }) => [styles.playAgainBtn, pressed && { opacity: 0.85 }]}
           >
-            <LinearGradient colors={['#FFE020', '#FFB800']} style={styles.playAgainGrad}>
-              <Feather name="refresh-cw" size={18} color="#080814" />
-              <Text style={styles.playAgainText}>PLAY AGAIN</Text>
-            </LinearGradient>
+            <ShimmerCard active={true} borderRadius={10} style={{ flex: 1 }}>
+              <LinearGradient colors={['#FFE020', '#FFB800']} style={styles.playAgainGrad}>
+                <Feather name="refresh-cw" size={18} color="#080814" />
+                <Text style={styles.playAgainText}>PLAY AGAIN</Text>
+              </LinearGradient>
+            </ShimmerCard>
           </Pressable>
           <Pressable
             onPress={handleShare}
