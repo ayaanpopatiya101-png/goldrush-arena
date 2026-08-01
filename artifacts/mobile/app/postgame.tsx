@@ -79,9 +79,12 @@ export default function PostGameScreen() {
   const levelAfter  = profile.competitiveLevel ?? 1;
   const levelDelta  = levelAfter - levelBefore;
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim  = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.7)).current;
   const xpBarAnim = useRef(new Animated.Value(0)).current;
+  const card1Anim = useRef(new Animated.Value(0)).current; // stats card
+  const card2Anim = useRef(new Animated.Value(0)).current; // xp / level card
+  const card3Anim = useRef(new Animated.Value(0)).current; // buttons row
   const [newAchievement, setNewAchievement] = useState<string | null>(null);
   const [showXP, setShowXP] = useState(false);
   const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
@@ -112,6 +115,9 @@ export default function PostGameScreen() {
       Animated.spring(scaleAnim, { toValue: 1, friction: 5, tension: 60, useNativeDriver: true }),
       Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
     ]).start();
+    [card1Anim, card2Anim, card3Anim].forEach((anim, i) => {
+      Animated.timing(anim, { toValue: 1, duration: 380, delay: 350 + i * 150, useNativeDriver: true }).start();
+    });
 
     if (Platform.OS !== 'web') {
       if (won) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -197,9 +203,17 @@ export default function PostGameScreen() {
             style={styles.bannerGrad}
           >
             {/* Large medal / outcome emoji */}
-            <Text style={[styles.medalEmoji, { textShadowColor: positionColors[position] ?? '#8B8B8B' }]}>
-              {medalEmoji[position] ?? '💀'}
-            </Text>
+            {won ? (
+              <PulseRing color="#FFD700" size={90} rings={3} duration={1800} opacity={0.28}>
+                <Text style={[styles.medalEmoji, { textShadowColor: positionColors[position] ?? '#8B8B8B' }]}>
+                  {medalEmoji[position] ?? '💀'}
+                </Text>
+              </PulseRing>
+            ) : (
+              <Text style={[styles.medalEmoji, { textShadowColor: positionColors[position] ?? '#8B8B8B' }]}>
+                {medalEmoji[position] ?? '💀'}
+              </Text>
+            )}
             <Text style={[styles.positionText, { color: positionColors[position] ?? '#8B8B8B' }]}>
               {positionLabels[position] ?? '4TH'}  ·  PLACE
             </Text>
@@ -210,6 +224,7 @@ export default function PostGameScreen() {
         </Animated.View>
 
         {/* Stats */}
+        <Animated.View style={{ opacity: card1Anim, transform: [{ translateY: card1Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
         <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <View style={{ width: 3, height: 16, backgroundColor: rankData.color, borderRadius: 2 }} />
@@ -236,6 +251,7 @@ export default function PostGameScreen() {
             ))}
           </View>
         </View>
+        </Animated.View>
 
         {/* Event bonus card */}
         {hasEvent && (
@@ -363,6 +379,7 @@ export default function PostGameScreen() {
 
         {/* XP Progress */}
         {showXP && (
+          <Animated.View style={{ opacity: card2Anim, transform: [{ translateY: card2Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
           <View style={[styles.xpCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.xpHeader}>
               <RankBadge rank={profile.rank} size="sm" showLabel={false} />
@@ -383,6 +400,7 @@ export default function PostGameScreen() {
               Level {xpToLevel(profile.xp)} → {xpToLevel(newXP)} · Total: {newXP} XP
             </Text>
           </View>
+          </Animated.View>
         )}
 
         {/* Competitive level change (ranked only) */}
@@ -463,6 +481,7 @@ export default function PostGameScreen() {
         })()}
 
         {/* Buttons */}
+        <Animated.View style={{ opacity: card3Anim, transform: [{ translateY: card3Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
         <View style={styles.buttons}>
           <Pressable
             onPress={() => router.replace('/lobby')}
@@ -488,6 +507,7 @@ export default function PostGameScreen() {
             <Feather name="home" size={18} color={colors.foreground} />
           </Pressable>
         </View>
+        </Animated.View>
 
         {/* Win streak */}
         {profile.winStreak > 1 && !activeLuckyBlock && (

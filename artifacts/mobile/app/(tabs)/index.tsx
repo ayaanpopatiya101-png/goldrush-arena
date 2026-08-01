@@ -337,6 +337,25 @@ export default function HomeScreen() {
           </Text>
         </View>
 
+        {/* ── Quick Stats Strip ── */}
+        <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginTop: 4, marginBottom: 8 }}>
+          {([
+            { label: 'WIN RATE', value: `${winRate}%`,                                          color: '#00FF88', icon: '🎯' },
+            { label: 'GAMES',    value: String(profile.totalGames),                              color: '#1E8AAA', icon: '🎮' },
+            { label: 'STREAK',   value: profile.winStreak > 0 ? `${profile.winStreak}🔥` : '—', color: '#FF6B35', icon: '⚡' },
+          ] as const).map(stat => (
+            <View key={stat.label} style={{
+              flex: 1, backgroundColor: stat.color + '12', borderRadius: 12,
+              borderWidth: 1, borderColor: stat.color + '33',
+              paddingVertical: 10, alignItems: 'center', gap: 2,
+            }}>
+              <Text style={{ fontSize: 10 }}>{stat.icon}</Text>
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 17, color: stat.color }}>{stat.value}</Text>
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 1.5, color: stat.color + '99' }}>{stat.label}</Text>
+            </View>
+          ))}
+        </View>
+
         {/* Mini arena — 3D perspective table */}
         <View style={styles.arenaWrap}>
           {/* Arena stage glow — two concentric halos for depth */}

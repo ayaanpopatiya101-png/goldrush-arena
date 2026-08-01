@@ -15,10 +15,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerCard } from '@/components/PlayerCard';
+import { FloatingOrbs, ORBS_GOLD, GlowText } from '@/components/effects';
 import { RANKS, SKINS, MAPS, getRankIndex, getRelic, usePlayer } from '@/context/PlayerContext';
 import { getGameConfig, updateGameConfig } from '@/store/gameSession';
 import { getGauntletState } from '@/store/gauntletSession';
 import { useColors } from '@/hooks/useColors';
+import { useSettings } from '@/hooks/useSettings';
 import { apiUrl } from '@/utils/api';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -165,6 +167,7 @@ export default function LobbyScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { profile } = usePlayer();
+  const { settings } = useSettings();
   const config = getGameConfig();
 
   const playerRankIdx = getRankIndex(profile.rank);
@@ -187,6 +190,9 @@ export default function LobbyScreen() {
   selectedMapRef.current = selectedMap;
   const roomIdRef     = useRef<string | null>(null);
   const pulseAnim     = useRef(new Animated.Value(0.5)).current;
+  const dot1Anim      = useRef(new Animated.Value(0.2)).current;
+  const dot2Anim      = useRef(new Animated.Value(0.2)).current;
+  const dot3Anim      = useRef(new Animated.Value(0.2)).current;
 
   // Pulse animation
   useEffect(() => {
@@ -196,8 +202,20 @@ export default function LobbyScreen() {
         Animated.timing(pulseAnim, { toValue: 0.5, duration: 700, useNativeDriver: true }),
       ])
     );
-    pulse.start();
-    return () => pulse.stop();
+    // Staggered 3-dot bounce loader
+    const makeDot = (anim: Animated.Value, delay: number) => Animated.loop(
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.timing(anim, { toValue: 1, duration: 300, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0.2, duration: 300, useNativeDriver: true }),
+        Animated.delay(Math.max(0, 600 - delay)),
+      ])
+    );
+    const d1 = makeDot(dot1Anim, 0);
+    const d2 = makeDot(dot2Anim, 200);
+    const d3 = makeDot(dot3Anim, 400);
+    pulse.start(); d1.start(); d2.start(); d3.start();
+    return () => { pulse.stop(); d1.stop(); d2.stop(); d3.stop(); };
   }, []);
 
   // Matchmaking logic
@@ -364,6 +382,12 @@ export default function LobbyScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
+      <FloatingOrbs orbs={ORBS_GOLD} opacity={0.5} />
+      <LinearGradient
+        colors={['#C8820A1A', '#C8820A08', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 220 }}
+        pointerEvents="none"
+      />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
@@ -371,7 +395,7 @@ export default function LobbyScreen() {
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </Pressable>
         <View style={{ alignItems: 'center', gap: 4 }}>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>MATCHMAKING</Text>
+          <GlowText intensity="soft" color="#C8820A" style={[styles.headerTitle, { color: colors.foreground }]}>MATCHMAKING</GlowText>
           <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
             {(() => {
               const isGauntlet = config.matchType === 'gauntlet';
@@ -413,7 +437,15 @@ export default function LobbyScreen() {
         {/* Status row */}
         <View style={styles.statusRow}>
           {status === 'searching' ? (
-            <Animated.View style={[styles.dot, { opacity: pulseAnim, backgroundColor: '#C8820A' }]} />
+            <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+              {([dot1Anim, dot2Anim, dot3Anim] as Animated.Value[]).map((anim, i) => (
+                <Animated.View key={i} style={{
+                  width: 8, height: 8, borderRadius: 4, backgroundColor: '#C8820A',
+                  opacity: anim,
+                  transform: [{ scale: anim.interpolate({ inputRange: [0.2, 1], outputRange: [0.7, 1] }) }],
+                }} />
+              ))}
+            </View>
           ) : (
             <View style={[styles.dot, { backgroundColor: '#00FF88' }]} />
           )}
@@ -494,6 +526,11 @@ export default function LobbyScreen() {
                   style={[styles.mapCard, {
                     borderColor: selected ? map.accent : colors.border,
                     opacity: unlocked ? 1 : 0.55,
+                    shadowColor: map.accent,
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: selected ? 0.55 : 0,
+                    shadowRadius: selected ? 10 : 0,
+                    elevation: selected ? 6 : 0,
                   }]}
                 >
                   <LinearGradient colors={map.arenaBg} style={StyleSheet.absoluteFill} />

@@ -4,21 +4,25 @@ import { useCallback, useEffect, useState } from 'react';
 const SETTINGS_KEY = '@goldrush_settings_v1';
 
 export interface AppSettings {
-  musicEnabled:  boolean;
-  soundEnabled:  boolean;
-  sensitivity:   number;    // 0.5 | 1.0 | 1.5
-  colorBoard:    boolean;   // color-shifting board
-  showEmojis:    boolean;   // floating goal emojis
-  screenShake:   boolean;   // arena shake on goal
+  musicEnabled:    boolean;
+  soundEnabled:    boolean;
+  sensitivity:     number;    // 0.5 | 1.0 | 1.5
+  colorBoard:      boolean;   // color-shifting board
+  showEmojis:      boolean;   // floating goal emojis
+  screenShake:     boolean;   // arena shake on goal
+  hapticsEnabled:  boolean;   // vibration on hits, goals, events
+  showLobbyRules:  boolean;   // rules card shown in lobby
 }
 
 const DEFAULTS: AppSettings = {
-  musicEnabled: true,
-  soundEnabled: true,
-  sensitivity:  1.0,
-  colorBoard:   true,
-  showEmojis:   true,
-  screenShake:  true,
+  musicEnabled:    true,
+  soundEnabled:    true,
+  sensitivity:     1.0,
+  colorBoard:      true,
+  showEmojis:      true,
+  screenShake:     true,
+  hapticsEnabled:  true,
+  showLobbyRules:  true,
 };
 
 let _cached: AppSettings = { ...DEFAULTS };

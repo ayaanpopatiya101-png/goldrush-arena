@@ -7,6 +7,7 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettings } from '@/hooks/useSettings';
 import { usePlayer } from '@/context/PlayerContext';
+import { FloatingOrbs, GlowBorder } from '@/components/effects';
 
 const SENSITIVITY_OPTIONS = [
   { value: 0.6,  label: 'Slow',   desc: 'Easier to control' },
@@ -51,6 +52,12 @@ export default function SettingsScreen() {
   return (
     <View style={{ flex: 1 }}>
       <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
+      <FloatingOrbs opacity={0.4} />
+      <LinearGradient
+        colors={['#C8820A14', '#C8820A06', 'transparent']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 180 }}
+        pointerEvents="none"
+      />
 
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
@@ -74,9 +81,11 @@ export default function SettingsScreen() {
           </View>
           <View style={s.card}>
             <View style={s.accountCard}>
-              <View style={[s.accountAvatar, { backgroundColor: profile.avatarFrameColor + '22', borderColor: profile.avatarFrameColor }]}>
-                <Text style={s.accountEmoji}>{profile.avatarEmoji}</Text>
-              </View>
+              <GlowBorder color={profile.avatarFrameColor} borderRadius={22} spread={5} pulse style={{ borderRadius: 22 }}>
+                <View style={[s.accountAvatar, { backgroundColor: profile.avatarFrameColor + '22', borderColor: profile.avatarFrameColor }]}>
+                  <Text style={s.accountEmoji}>{profile.avatarEmoji}</Text>
+                </View>
+              </GlowBorder>
               <View style={{ flex: 1 }}>
                 <Text style={s.accountName}>{profile.name}</Text>
                 <Text style={s.accountSub}>{profile.rank} · LVL {profile.competitiveLevel ?? 1}/50</Text>
@@ -220,6 +229,44 @@ export default function SettingsScreen() {
                 </Pressable>
               ))}
             </View>
+          </View>
+        </View>
+
+        {/* ── Gameplay ── */}
+        <View style={s.section}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#FF6B35', borderRadius: 2 }} />
+            <Text style={s.sectionTitle}>GAMEPLAY</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          </View>
+          <View style={s.card}>
+            <SettingRow
+              icon="smartphone"
+              title="Haptic Feedback"
+              subtitle="Vibrations on hits, goals and match events"
+              right={
+                <Switch
+                  value={settings.hapticsEnabled ?? true}
+                  onValueChange={v => updateSetting('hapticsEnabled', v)}
+                  trackColor={{ false: '#FFFFFF22', true: '#FF6B3555' }}
+                  thumbColor={(settings.hapticsEnabled ?? true) ? '#FF6B35' : '#888'}
+                />
+              }
+            />
+            <View style={s.divider} />
+            <SettingRow
+              icon="book-open"
+              title="Show Rules in Lobby"
+              subtitle="Display variant rules before every match"
+              right={
+                <Switch
+                  value={settings.showLobbyRules ?? true}
+                  onValueChange={v => updateSetting('showLobbyRules', v)}
+                  trackColor={{ false: '#FFFFFF22', true: '#FF6B3555' }}
+                  thumbColor={(settings.showLobbyRules ?? true) ? '#FF6B35' : '#888'}
+                />
+              }
+            />
           </View>
         </View>
 
