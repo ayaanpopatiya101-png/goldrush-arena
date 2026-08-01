@@ -1,10 +1,16 @@
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, Line, Polygon, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { getSettings } from '@/hooks/useSettings';
 import { RELICS, getRankIndex, MAX_RANK_INDEX, type RelicEffect } from '@/context/PlayerContext';
+import {
+  ScreenShake, type ScreenShakeRef,
+  SparkBurst, type SparkBurstRef,
+  GlowText, PulseRing, FloatingOrbs, CounterText,
+  type OrbConfig,
+} from '@/components/effects';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const WALL_MARGIN = 24;
@@ -198,8 +204,8 @@ export function GameArena({
   ).current;
 
   const flashAnim  = useRef(new Animated.Value(0)).current;
-  const shakeX     = useRef(new Animated.Value(0)).current;
-  const shakeY     = useRef(new Animated.Value(0)).current;
+  const screenShakeRef = useRef<ScreenShakeRef>(null);
+  const sparkBurstRef  = useRef<SparkBurstRef>(null);
   const [flashColor, setFlashColor]           = useState('#FF4757');
   const [livesState, setLivesState]           = useState<number[]>([initialLivesVal,initialLivesVal,initialLivesVal,initialLivesVal,initialLivesVal,initialLivesVal]);
   const [eliminatedState, setEliminatedState] = useState<boolean[]>([false,false,false,false,false,false]);
@@ -218,6 +224,8 @@ export function GameArena({
   const [comboCount, setComboCount]           = useState(0);
   const [duelSecondsLeft, setDuelSecondsLeft] = useState(DUEL_TIME_LIMIT);
   const [isSpectating, setIsSpectating]       = useState(false);
+  const [playerScoreUI, setPlayerScoreUI]     = useState(0);
+  const [goalPulse, setGoalPulse]             = useState(false);
 
   // ── Visual FX state ─────────────────────────────────────────────────────────
   const ballTrailRef = useRef<Array<Array<{x:number;y:number}>>>(
@@ -448,30 +456,8 @@ export function GameArena({
     setTimeout(() => setSparks(prev => prev.filter(s => !newSparks.some(n => n.id===s.id))), 550);
   }
 
-  function triggerShake() {
-    Animated.sequence([
-      Animated.parallel([
-        Animated.timing(shakeX, { toValue: -9, duration: 40, useNativeDriver: true }),
-        Animated.timing(shakeY, { toValue: -5, duration: 40, useNativeDriver: true }),
-      ]),
-      Animated.parallel([
-        Animated.timing(shakeX, { toValue: 9, duration: 40, useNativeDriver: true }),
-        Animated.timing(shakeY, { toValue: 5, duration: 40, useNativeDriver: true }),
-      ]),
-      Animated.parallel([
-        Animated.timing(shakeX, { toValue: -6, duration: 35, useNativeDriver: true }),
-        Animated.timing(shakeY, { toValue: 3, duration: 35, useNativeDriver: true }),
-      ]),
-      Animated.parallel([
-        Animated.timing(shakeX, { toValue: 4, duration: 35, useNativeDriver: true }),
-        Animated.timing(shakeY, { toValue: -3, duration: 35, useNativeDriver: true }),
-      ]),
-      Animated.parallel([
-        Animated.timing(shakeX, { toValue: 0, duration: 30, useNativeDriver: true }),
-        Animated.timing(shakeY, { toValue: 0, duration: 30, useNativeDriver: true }),
-      ]),
-    ]).start();
-  }
+  // triggerShake replaced by ScreenShake ref — kept as no-op for backward compat
+  function triggerShake() { /* unused — ScreenShake ref used directly */ }
 
   function addEmoji(x: number) {
     const emoji = GOAL_EMOJIS[Math.floor(Math.random() * GOAL_EMOJIS.length)];
@@ -633,15 +619,21 @@ export function GameArena({
     if (playerId === BOTTOM) { goalsAgainstRef.current++; onPlayerLivesChange?.(player.lives); }
     setLivesState(gs.players.map(p => p.lives));
     triggerFlash(player.color);
-    if (!practice && getSettings().screenShake) triggerShake();
+    if (!practice && getSettings().screenShake) screenShakeRef.current?.shake(0.8);
     if (!practice && getSettings().showEmojis)  addEmoji(szRef.current * (0.25 + Math.random() * 0.5));
     // Spark burst at the ball's current position
     const hitBall = gs.balls.find(b => b.active);
-    if (hitBall) spawnSparks(hitBall.x, hitBall.y, player.color);
+    if (hitBall) {
+      spawnSparks(hitBall.x, hitBall.y, player.color);
+      sparkBurstRef.current?.burst(hitBall.x, hitBall.y, player.color);
+    }
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
     const msgs = ['GOAL!','POINT!','NICE SHOT!','SCORE!'];
     showAnnouncer(msgs[Math.floor(Math.random() * msgs.length)]);
+    // Trigger PulseRing on goal events
+    setGoalPulse(true);
+    setTimeout(() => setGoalPulse(false), 1800);
 
     if (player.lives <= 0) {
       // Phoenix relic: revive once instead of being eliminated.
@@ -815,6 +807,10 @@ export function GameArena({
             // Charge super on each successful block
             superChargeRef.current = Math.min(SUPER_MAX_CHARGE, superChargeRef.current + 1);
             if (gs.frame % 2 === 0) setSuperChargeUI(superChargeRef.current);
+            // Screen shake + SparkBurst on human deflection
+            if (!practice) screenShakeRef.current?.shake(0.3);
+            sparkBurstRef.current?.burst(ball.x, ball.y, defender.color);
+            setPlayerScoreUI(deflectionsRef.current);
           }
         } else {
           const isHumanGoal = isDuel ? duelHuman.id === BOTTOM : defender.id === BOTTOM;
@@ -1167,6 +1163,13 @@ export function GameArena({
     };
   }, []);
 
+  // ─── Arena orbs (memoised so they don't recreate every render) ─────────────
+  const gameOrbs = useMemo<OrbConfig[]>(() => [
+    { x: arenaSize * 0.15, y: arenaSize * 0.15, size: arenaSize * 0.65, color: '#C8820A', dur: 9000,  delay: 0,    scaleRange: [0.85, 1.1]  },
+    { x: arenaSize * 0.82, y: arenaSize * 0.55, size: arenaSize * 0.5,  color: '#1E8AAA', dur: 11500, delay: 3000, scaleRange: [0.88, 1.07] },
+    { x: arenaSize * 0.35, y: arenaSize * 0.82, size: arenaSize * 0.42, color: '#4A8A38', dur: 13000, delay: 1500, scaleRange: [0.9,  1.08] },
+  ], [arenaSize]);
+
   // ─── Derived display values ──────────────────────────────────────────────────
   const gs         = gsRef.current;
   const bgColors   = arenaBg ?? ARENA_BG[gameMode];
@@ -1192,9 +1195,12 @@ export function GameArena({
   const spectatorCoins = Math.max(10, Math.floor(spectatorXP / 6));
 
   return (
-    <Animated.View style={{ width: arenaSize, height: arenaSize, overflow: 'hidden', borderRadius: 6, transform: [{ translateX: shakeX }, { translateY: shakeY }] }}>
+    <ScreenShake ref={screenShakeRef} style={{ width: arenaSize, height: arenaSize, overflow: 'hidden', borderRadius: 6 }}>
       {/* Background */}
       <LinearGradient colors={bgColors} style={StyleSheet.absoluteFill} />
+
+      {/* Ambient floating orbs — behind all gameplay elements */}
+      <FloatingOrbs orbs={gameOrbs} opacity={0.4} />
 
       {/* Color-shifting board overlay — intensifies with more balls / fewer players */}
       {colorBoard && (() => {
@@ -1344,6 +1350,9 @@ export function GameArena({
             transform:[{ translateX:Animated.subtract(ballAnims[i].x, bv.radius) },{ translateY:Animated.subtract(ballAnims[i].y, bv.radius) }],
           }]} />
         ) : null)}
+
+        {/* SparkBurst — imperative particle effect layer */}
+        <SparkBurst ref={sparkBurstRef} />
 
         {/* Spark burst particles */}
         {sparks.map(sp => (
@@ -1497,13 +1506,38 @@ export function GameArena({
           </Animated.Text>
         ))}
 
+        {/* Player deflection score — GlowText label + CounterText value */}
+        {gamePhase === 'playing' && !gs.players[BOTTOM].isEliminated && (
+          <View style={s.scoreWrap} pointerEvents="none">
+            <GlowText style={s.scoreLabel} color="#C8820A66" intensity="soft">
+              HITS
+            </GlowText>
+            <CounterText value={playerScoreUI} style={s.scoreValue} duration={600} />
+          </View>
+        )}
+
         {/* Arena flash overlay */}
         <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor:flashColor, opacity:flashAnim, pointerEvents:'none' } as never]} />
 
-        {/* Announcer */}
+        {/* Announcer — GlowText + PulseRing on goal events */}
         {announcer !== '' && (
           <View style={[s.announcerWrap, { pointerEvents:'none' } as never]}>
-            <Text style={s.announcerText}>{announcer}</Text>
+            {goalPulse ? (
+              <PulseRing color="#C8820A" size={110} rings={2} duration={1100} opacity={0.5}>
+                <GlowText
+                  style={s.announcerText}
+                  color="#C8820A"
+                  intensity="strong"
+                  pulse
+                >
+                  {announcer}
+                </GlowText>
+              </PulseRing>
+            ) : (
+              <GlowText style={s.announcerText} color="#C8820A" intensity="medium">
+                {announcer}
+              </GlowText>
+            )}
           </View>
         )}
 
@@ -1644,7 +1678,7 @@ export function GameArena({
           )}
         </View>
       )}
-    </Animated.View>
+    </ScreenShake>
   );
 }
 
@@ -1672,6 +1706,12 @@ const s = StyleSheet.create({
   countdownText: { color:'#C8820A', fontSize:78, fontFamily:'Inter_700Bold', textShadowColor:'#C8820A', textShadowOffset:{width:0,height:0}, textShadowRadius:28 },
   countdownSub:  { color:'#FFFFFF88', fontFamily:'Inter_500Medium', fontSize:13, letterSpacing:1 },
   border: { position:'absolute', top:0, left:0, borderWidth:2, borderColor:'#FFFFFF25', borderRadius:6 },
+
+  // Player score display (deflection counter)
+  scoreWrap:  { position:'absolute', bottom: WALL_MARGIN + 20, right: 10, alignItems:'flex-end', gap: 1 },
+  scoreLabel: { fontFamily:'Inter_500Medium', fontSize:8, letterSpacing:1, color:'#C8820A66' },
+  scoreValue: { fontFamily:'Inter_700Bold', fontSize:15, color:'#C8820A', letterSpacing:0.5,
+    textShadowColor:'#C8820A', textShadowOffset:{width:0,height:0}, textShadowRadius:8 },
 
   // Spectator overlay
   spectatorOverlay: { position:'absolute', top:0,left:0,right:0,bottom:0, backgroundColor:'#00000088', alignItems:'center', justifyContent:'center', padding:16 },
