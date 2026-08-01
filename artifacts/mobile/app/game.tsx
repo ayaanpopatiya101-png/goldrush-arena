@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Modal, Platform, Pressable, StyleSheet, Text, Animated, View, useWindowDimensions } from 'react-native';
+import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
@@ -297,7 +298,7 @@ export default function GameScreen() {
   const modeColor = MODE_COLORS[gameMode];
 
   return (
-    <View style={[styles.root, { paddingTop: topPad }]} onTouchStart={ensureMusic}>
+    <Reanimated.View entering={FadeIn.duration(350)} style={[styles.root, { paddingTop: topPad }]} onTouchStart={ensureMusic}>
       <LinearGradient
         colors={map.bg}
         style={StyleSheet.absoluteFill}
@@ -456,7 +457,7 @@ export default function GameScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </Reanimated.View>
   );
 }
 

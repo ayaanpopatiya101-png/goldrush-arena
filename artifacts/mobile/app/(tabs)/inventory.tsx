@@ -3,6 +3,8 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Reanimated from 'react-native-reanimated';
+import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SKINS, RELICS, RANKS, getRankIndex, usePlayer, getRelicLevel, getRelicUpgradeCost, RELIC_MAX_LEVEL, LUCKY_BLOCK_META, GOLD_STRIKE_NAME, type LuckyBlock } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
@@ -38,6 +40,7 @@ export default function InventoryScreen() {
   const ownedThemes = ARENA_THEMES.filter(t => profile.ownedThemes.includes(t.id));
   const playerRankIdx  = getRankIndex(profile.rank);
   const unlockedRelics = RELICS.filter(r => playerRankIdx >= r.unlockRankIndex);
+  const focusStyle = useFocusAnimation();
 
   async function handleEquipSkin(skinId: string) {
     await equipSkin(skinId);
@@ -55,7 +58,7 @@ export default function InventoryScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <Reanimated.View style={[{ flex: 1, backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs orbs={ORBS_ARCANE} opacity={0.7} />
       <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
@@ -478,7 +481,7 @@ export default function InventoryScreen() {
           onClose={() => setActiveLuckyBlock(null)}
         />
       )}
-    </View>
+    </Reanimated.View>
   );
 }
 

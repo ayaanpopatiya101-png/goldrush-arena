@@ -6,6 +6,8 @@ import {
   Animated, Easing, Image, Platform, Pressable, ScrollView,
   StyleSheet, Text, View,
 } from 'react-native';
+import Reanimated from 'react-native-reanimated';
+import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DailyStreakModal } from '@/components/DailyStreakModal';
@@ -233,11 +235,12 @@ export default function HomeScreen() {
   const playerRankIdx = getRankIndex(profile.rank);
   const topPad   = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
   const winRate  = profile.totalGames > 0 ? Math.round((profile.wins / profile.totalGames) * 100) : 0;
+  const focusStyle = useFocusAnimation();
 
   if (!isLoaded) return <View style={{ flex: 1, backgroundColor: '#07090F' }} />;
 
   return (
-    <View style={styles.root}>
+    <Reanimated.View style={[styles.root, focusStyle]}>
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.8} />
       {/* ── Cinematic 5-layer background depth system ─────────────────────── */}
       {/* 1. Deep base — richer midnight blue-black, not flat CSS black */}
@@ -888,7 +891,7 @@ export default function HomeScreen() {
           </View>
         </Pressable>
       </ScrollView>
-    </View>
+    </Reanimated.View>
   );
 }
 

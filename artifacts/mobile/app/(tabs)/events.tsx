@@ -6,6 +6,8 @@ import React, { useEffect, useState } from 'react';
 import {
   Platform, Pressable, ScrollView, StyleSheet, Text, View,
 } from 'react-native';
+import Reanimated from 'react-native-reanimated';
+import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -51,6 +53,7 @@ export default function EventsScreen() {
   const rankIdx = getRankIndex(profile.rank);
   const hasRank = rankIdx >= EVENT_MIN_RANK_INDEX;
   const topPad  = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
+  const focusStyle = useFocusAnimation();
 
   function mainDrawPlaysLeft(ev: EventDefinition): number {
     const used = (profile.eventPlaysUsed ?? {})[ev.periodKey] ?? 0;
@@ -116,7 +119,7 @@ export default function EventsScreen() {
   }
 
   return (
-    <View style={[s.root, { backgroundColor: colors.background }]}>
+    <Reanimated.View style={[s.root, { backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs opacity={0.8} />
       <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
@@ -227,7 +230,7 @@ export default function EventsScreen() {
           </Text>
         </View>
       </ScrollView>
-    </View>
+    </Reanimated.View>
   );
 }
 

@@ -13,6 +13,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerCard } from '@/components/PlayerCard';
 import { FloatingOrbs, ORBS_GOLD, GlowText } from '@/components/effects';
@@ -380,7 +381,7 @@ export default function LobbyScreen() {
   const statusColor = status === 'searching' ? '#C8820A' : '#00FF88';
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <Reanimated.View entering={FadeIn.duration(350)} style={[styles.root, { backgroundColor: colors.background }]}>
       <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.5} />
       <LinearGradient
@@ -583,7 +584,7 @@ export default function LobbyScreen() {
       {countdown !== null && countdown > 0 && (
         <CountdownOverlay key={countdown} countdown={countdown} />
       )}
-    </View>
+    </Reanimated.View>
   );
 }
 

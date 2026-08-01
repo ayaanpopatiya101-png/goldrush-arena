@@ -2,6 +2,8 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Easing, Image, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import Reanimated from 'react-native-reanimated';
+import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -63,6 +65,7 @@ export default function ProfileScreen() {
   const topPad    = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
   const winRate   = profile.totalGames > 0 ? Math.round((profile.wins / profile.totalGames) * 100) : 0;
   const code      = getChallengeCode(profile.name);
+  const focusStyle = useFocusAnimation();
 
   async function handleSaveAvatar() {
     await setAvatar(tempEmoji, tempColor);
@@ -100,7 +103,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <Reanimated.View style={[styles.root, { backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs opacity={0.75} />
       <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
@@ -388,7 +391,7 @@ export default function ProfileScreen() {
           GoldRush Arena · Account saved on this device
         </Text>
       </ScrollView>
-    </View>
+    </Reanimated.View>
   );
 }
 

@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { usePlayer } from '@/context/PlayerContext';
@@ -76,7 +77,7 @@ export default function GauntletScreen() {
   }
 
   return (
-    <View style={s.root}>
+    <Reanimated.View entering={FadeIn.duration(350)} style={s.root}>
       <LinearGradient colors={['#1A1000', '#0C0800', '#0A0600']} style={StyleSheet.absoluteFill} />
 
       <ScrollView
@@ -212,7 +213,7 @@ export default function GauntletScreen() {
           </View>
         )}
       </ScrollView>
-    </View>
+    </Reanimated.View>
   );
 }
 

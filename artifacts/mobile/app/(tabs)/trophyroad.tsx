@@ -3,6 +3,8 @@ import {
   Animated, Dimensions, Pressable, ScrollView,
   StyleSheet, Text, View,
 } from 'react-native';
+import Reanimated, { FadeInRight } from 'react-native-reanimated';
+import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -389,9 +391,10 @@ export default function BattlePassScreen() {
     Animated.timing(progressAnim, { toValue: tierProgress, duration: 1000, delay: 400, useNativeDriver: false }).start();
   }, [tierProgress]);
   const progressPct = progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+  const focusStyle = useFocusAnimation();
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#04060E' }}>
+    <Reanimated.View style={[{ flex: 1, backgroundColor: '#04060E' }, focusStyle]}>
       <FloatingOrbs orbs={ORBS_ARCANE} opacity={0.8} />
       <ParticleField count={35} mode="stars" />
       <LinearGradient colors={['#0A0520', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
@@ -501,14 +504,15 @@ export default function BattlePassScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingBottom: 8 }}
             >
-              {BATTLE_PASS_TIERS.map(tier => (
-                <SlotCard
-                  key={tier.slot}
-                  tier={tier}
-                  bpp={bpp}
-                  hasPremium={hasPremium}
-                  onClaim={handleClaimTier}
-                />
+              {BATTLE_PASS_TIERS.map((tier, idx) => (
+                <Reanimated.View key={tier.slot} entering={FadeInRight.delay(idx * 25).duration(280)}>
+                  <SlotCard
+                    tier={tier}
+                    bpp={bpp}
+                    hasPremium={hasPremium}
+                    onClaim={handleClaimTier}
+                  />
+                </Reanimated.View>
               ))}
             </ScrollView>
 
@@ -552,7 +556,7 @@ export default function BattlePassScreen() {
           }}
         />
       )}
-    </View>
+    </Reanimated.View>
   );
 }
 

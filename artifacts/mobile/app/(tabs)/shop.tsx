@@ -3,7 +3,9 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Reanimated, { ZoomIn, FadeInRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { SKINS, FORGE_ABILITIES, RELICS, getRankIndex, usePlayer } from '@/context/PlayerContext';
 import { RedeemCodeModal } from '@/components/RedeemCodeModal';
 import { useColors } from '@/hooks/useColors';
@@ -66,6 +68,7 @@ export default function ShopScreen() {
   const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras' | 'forge' | 'store'>('skins');
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [redeemVisible, setRedeemVisible] = useState(false);
+  const focusStyle = useFocusAnimation();
 
   // Store: product price ID cache (keyed by product name)
   const priceCache = useRef<Record<string, string>>({});
@@ -179,7 +182,7 @@ export default function ShopScreen() {
   }
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <Reanimated.View style={[styles.root, { backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.7} />
       <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
@@ -247,19 +250,22 @@ export default function ShopScreen() {
               <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>TAP TO EQUIP</Text>
             </View>
             <View style={styles.skinGrid}>
-              {SKINS.map(skin => {
+              {SKINS.map((skin, idx) => {
                 const owned = profile.ownedSkins.includes(skin.id);
                 const equipped = profile.currentSkin === skin.id;
                 return (
-                  <Pressable
+                  <Reanimated.View
                     key={skin.id}
-                    onPress={() => handleBuySkin(skin.id, skin.price, skin.name)}
-                    disabled={purchasing === skin.id}
-                    style={({ pressed }) => [styles.skinCard, {
+                    entering={ZoomIn.delay(idx * 45).duration(300)}
+                    style={[styles.skinCard, {
                       backgroundColor: equipped ? skin.color + '22' : colors.card,
                       borderColor: equipped ? skin.color : owned ? skin.color + '55' : colors.border,
-                      opacity: pressed ? 0.8 : 1,
                     }]}
+                  >
+                  <Pressable
+                    onPress={() => handleBuySkin(skin.id, skin.price, skin.name)}
+                    disabled={purchasing === skin.id}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1, width: '100%' }]}
                   >
                     <LinearGradient colors={[skin.color + '33', skin.color + '11']} style={styles.skinPreview}>
                       <View style={[styles.paddlePreview, { backgroundColor: skin.color, shadowColor: skin.glowColor }]} />
@@ -288,6 +294,7 @@ export default function ShopScreen() {
                       )}
                     </View>
                   </Pressable>
+                  </Reanimated.View>
                 );
               })}
             </View>
@@ -327,12 +334,12 @@ export default function ShopScreen() {
               <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
               <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>VISUAL ONLY</Text>
             </View>
-            {ARENA_THEMES.map(theme => {
+            {ARENA_THEMES.map((theme, idx) => {
               const owned = (profile.ownedThemes ?? ['default']).includes(theme.id);
               const equipped = (profile.currentArenaTheme ?? 'default') === theme.id;
               return (
+                <Reanimated.View key={theme.id} entering={FadeInRight.delay(idx * 60).duration(300)}>
                 <Pressable
-                  key={theme.id}
                   onPress={async () => {
                     if (equipped) return;
                     if (owned) {
@@ -380,6 +387,7 @@ export default function ShopScreen() {
                     </View>
                   )}
                 </Pressable>
+                </Reanimated.View>
               );
             })}
           </>
@@ -754,7 +762,7 @@ export default function ShopScreen() {
       </ScrollView>
 
       <RedeemCodeModal visible={redeemVisible} onClose={() => setRedeemVisible(false)} />
-    </View>
+    </Reanimated.View>
   );
 }
 

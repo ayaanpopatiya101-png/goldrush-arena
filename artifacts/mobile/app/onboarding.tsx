@@ -6,6 +6,7 @@ import {
   Alert, Animated, Dimensions, Easing, KeyboardAvoidingView,
   Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
 } from 'react-native';
+import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, Line, Path, RadialGradient as SvgRadialGradient, Stop } from 'react-native-svg';
 import { AVATAR_COLORS, AVATAR_EMOJIS, SavedAccountMeta, deleteAccount, getSavedAccounts, loginAccount } from '@/context/PlayerContext';
@@ -456,6 +457,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
   const bottomPad = insets.bottom + 12;
 
   return (
+    <Reanimated.View entering={FadeIn.duration(350)} style={{ flex: 1 }}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
 
       {/* ── Deep space background ── */}
@@ -678,6 +680,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
         </ScrollView>
       </Animated.View>
     </KeyboardAvoidingView>
+    </Reanimated.View>
   );
 }
 

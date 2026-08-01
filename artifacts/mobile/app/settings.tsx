@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import * as StoreReview from 'expo-store-review';
 import React from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettings } from '@/hooks/useSettings';
 import { usePlayer } from '@/context/PlayerContext';
@@ -50,7 +51,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <Reanimated.View entering={FadeIn.duration(350)} style={{ flex: 1 }}>
       <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs opacity={0.4} />
       <LinearGradient
@@ -351,7 +352,7 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </Reanimated.View>
   );
 }
 

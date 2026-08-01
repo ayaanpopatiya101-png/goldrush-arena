@@ -2,7 +2,9 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Reanimated, { FadeInRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { RankBadge } from '@/components/RankBadge';
 import { FloatingOrbs, GlowBorder, GlowText, ShimmerCard } from '@/components/effects';
 import { RANKS, usePlayer } from '@/context/PlayerContext';
@@ -84,9 +86,10 @@ export default function LeaderboardScreen() {
 
   const playerPosition = findPlayerRank();
   const rankData = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
+  const focusStyle = useFocusAnimation();
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <Reanimated.View style={[styles.root, { backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs opacity={0.7} />
       <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
@@ -165,7 +168,7 @@ export default function LeaderboardScreen() {
               {GLOBAL_LEADERS.slice(3).map((p, i) => {
                 const isMe = p.name === profile.name;
                 const rowContent = (
-                  <View key={p.name} style={[styles.row, { backgroundColor: colors.card, borderColor: isMe ? '#C8820A' : colors.border }]}>
+                  <View style={[styles.row, { backgroundColor: colors.card, borderColor: isMe ? '#C8820A' : colors.border }]}>
                     <Text style={[styles.rowPos, { color: colors.mutedForeground }]}>{i + 4}</Text>
                     <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
                       <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
@@ -178,9 +181,11 @@ export default function LeaderboardScreen() {
                     <Text style={[styles.rowWins, { color: colors.foreground }]}>{p.wins}W</Text>
                   </View>
                 );
-                return isMe
-                  ? <GlowBorder key={p.name} color="#C8820A" borderRadius={12} spread={8}>{rowContent}</GlowBorder>
-                  : rowContent;
+                return (
+                  <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
+                    {isMe ? <GlowBorder color="#C8820A" borderRadius={12} spread={8}>{rowContent}</GlowBorder> : rowContent}
+                  </Reanimated.View>
+                );
               })}
             </View>
           </>
@@ -198,20 +203,22 @@ export default function LeaderboardScreen() {
               ))}
             </View>
             {(REGIONAL_LEADERS[region] ?? []).map((p, i) => (
-              <View key={p.name} style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Text style={[styles.rowPos, { color: i < 3 ? '#C8820A' : colors.mutedForeground }]}>{i + 1}</Text>
-                <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                  <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
+              <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
+                <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <Text style={[styles.rowPos, { color: i < 3 ? '#C8820A' : colors.mutedForeground }]}>{i + 1}</Text>
+                  <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
+                    <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.rowName, { color: colors.foreground }]}>{p.name}</Text>
+                    <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>{p.rank}</Text>
+                  </View>
+                  <View style={styles.levelBadge}>
+                    <Text style={styles.levelBadgeText}>LVL {p.level}</Text>
+                  </View>
+                  <Text style={[styles.rowWins, { color: colors.foreground }]}>{p.wins}W</Text>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.rowName, { color: colors.foreground }]}>{p.name}</Text>
-                  <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>{p.rank}</Text>
-                </View>
-                <View style={styles.levelBadge}>
-                  <Text style={styles.levelBadgeText}>LVL {p.level}</Text>
-                </View>
-                <Text style={[styles.rowWins, { color: colors.foreground }]}>{p.wins}W</Text>
-              </View>
+              </Reanimated.View>
             ))}
           </View>
         )}
@@ -225,18 +232,20 @@ export default function LeaderboardScreen() {
               <Text style={[styles.th, { color: colors.mutedForeground }]}>WINS</Text>
             </View>
             {SEASON_LEADERS.map((p, i) => (
-              <View key={p.name} style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Text style={[styles.rowPos, { color: i < 3 ? '#C8820A' : colors.mutedForeground }]}>{i + 1}</Text>
-                <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                  <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
+              <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
+                <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <Text style={[styles.rowPos, { color: i < 3 ? '#C8820A' : colors.mutedForeground }]}>{i + 1}</Text>
+                  <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
+                    <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.rowName, { color: colors.foreground }]}>{p.name}</Text>
+                    <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>{p.rank}</Text>
+                  </View>
+                  <Text style={[styles.rowWins, { color: '#00FF88', width: 36, textAlign: 'right' }]}>{p.level}</Text>
+                  <Text style={[styles.rowWins, { color: colors.foreground }]}>{p.wins}W</Text>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.rowName, { color: colors.foreground }]}>{p.name}</Text>
-                  <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>{p.rank}</Text>
-                </View>
-                <Text style={[styles.rowWins, { color: '#00FF88', width: 36, textAlign: 'right' }]}>{p.level}</Text>
-                <Text style={[styles.rowWins, { color: colors.foreground }]}>{p.wins}W</Text>
-              </View>
+              </Reanimated.View>
             ))}
           </View>
         )}
@@ -291,7 +300,7 @@ export default function LeaderboardScreen() {
             {[...GLOBAL_LEADERS].sort((a, b) => b.xp - a.xp).slice(Math.max(0, playerPosition - 3), playerPosition + 2).map((p, i) => {
               const isMe = p.name === profile.name;
               const nearbyRow = (
-                <View key={p.name} style={[styles.row, {
+                <View style={[styles.row, {
                   backgroundColor: isMe ? rankData.color + '22' : colors.card,
                   borderColor: isMe ? '#C8820A' : colors.border,
                 }]}>
@@ -304,14 +313,16 @@ export default function LeaderboardScreen() {
                   <Text style={[styles.rowWins, { color: colors.mutedForeground }]}>{p.xp} XP</Text>
                 </View>
               );
-              return isMe
-                ? <GlowBorder key={p.name} color="#C8820A" borderRadius={12} spread={8}>{nearbyRow}</GlowBorder>
-                : nearbyRow;
+              return (
+                <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
+                  {isMe ? <GlowBorder color="#C8820A" borderRadius={12} spread={8}>{nearbyRow}</GlowBorder> : nearbyRow}
+                </Reanimated.View>
+              );
             })}
           </View>
         )}
       </ScrollView>
-    </View>
+    </Reanimated.View>
   );
 }
 

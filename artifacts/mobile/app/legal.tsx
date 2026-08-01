@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const PRIVACY_POLICY = `Last updated: July 2026
@@ -106,7 +107,7 @@ export default function LegalScreen() {
   const content = activeTab === 'privacy' ? PRIVACY_POLICY : TERMS_OF_SERVICE;
 
   return (
-    <View style={{ flex: 1 }}>
+    <Reanimated.View entering={FadeIn.duration(350)} style={{ flex: 1 }}>
       <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
 
       {/* Header */}
@@ -148,7 +149,7 @@ export default function LegalScreen() {
         </View>
         <Text style={s.footer}>GoldRush Arena · Version 1.0.0</Text>
       </ScrollView>
-    </View>
+    </Reanimated.View>
   );
 }
 
