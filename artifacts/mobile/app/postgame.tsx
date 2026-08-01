@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
-import Reanimated, { FadeIn, SlideInUp } from 'react-native-reanimated';
+import Reanimated, { FadeIn, FadeOutDown, SlideInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
 import { ConfettiRain } from '@/components/ConfettiRain';
@@ -171,7 +171,7 @@ export default function PostGameScreen() {
   const medalEmoji     = ['', '🥇', '🥈', '🥉', '💀'];
 
   return (
-    <Reanimated.View entering={FadeIn.duration(350)} style={[styles.root, { backgroundColor: colors.background }]}>
+    <Reanimated.View entering={FadeIn.duration(350)} exiting={FadeOutDown.duration(220)} style={[styles.root, { backgroundColor: colors.background }]}>
       <FloatingOrbs opacity={0.85} />
       <LinearGradient
         colors={won ? ['#0A140A', '#0A1A0A', '#0A0A14'] : ['#140A0A', '#1A0A0A', '#0A0A14']}
