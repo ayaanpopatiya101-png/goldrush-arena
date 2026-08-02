@@ -17,6 +17,8 @@ interface PartyContextType {
   members:     PartyMember[];
   isInParty:   boolean;
   isLeader:    boolean;
+  /** Stable session-scoped ID — use this for matchmaking so party identity and room identity match. */
+  myPlayerId:  string;
   createParty: () => Promise<string | null>;
   joinParty:   (code: string) => Promise<'ok' | 'not_found' | 'full' | 'error'>;
   leaveParty:  () => void;
@@ -24,6 +26,7 @@ interface PartyContextType {
 
 const PartyContext = createContext<PartyContextType>({
   partyCode: null, members: [], isInParty: false, isLeader: false,
+  myPlayerId: 'unset',
   createParty: async () => null,
   joinParty:   async () => 'error' as const,
   leaveParty:  () => {},
@@ -141,7 +144,11 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => () => stopPoll(), []);
 
   return (
-    <PartyContext.Provider value={{ partyCode, members, isInParty, isLeader, createParty, joinParty, leaveParty }}>
+    <PartyContext.Provider value={{
+      partyCode, members, isInParty, isLeader,
+      myPlayerId: playerIdRef.current,
+      createParty, joinParty, leaveParty,
+    }}>
       {children}
     </PartyContext.Provider>
   );

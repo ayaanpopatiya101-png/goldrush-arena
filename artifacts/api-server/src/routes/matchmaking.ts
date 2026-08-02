@@ -23,9 +23,11 @@ interface Room {
 // ─── In-memory state ──────────────────────────────────────────────────────────
 const rooms      = new Map<string, Room>();
 const partyRooms = new Map<string, string>(); // partyCode → roomId
-const FILL_AFTER_MS  = 12_000;
-const PLAYER_DROP_MS =  8_000;
-const ROOM_EXPIRE_MS = 90_000;
+const partyMeta  = new Map<string, { expectedSize: number }>(); // partyCode → meta
+const FILL_AFTER_MS        = 12_000;
+const PARTY_FILL_AFTER_MS  = 35_000; // longer wait for party members to arrive
+const PLAYER_DROP_MS       =  8_000;
+const ROOM_EXPIRE_MS       = 90_000;
 
 // ─── Bot name pools by rank tier ──────────────────────────────────────────────
 // Tier decided by rank index passed from the player
@@ -143,21 +145,33 @@ function findOrCreateRoom(player: MatchPlayer, rankIndex: number, partyCode?: st
   return room;
 }
 
-function resolveRoom(room: Room, playerRankIndex: number): Room {
+function resolveRoom(room: Room, playerRankIndex: number, partyCode?: string, partySize?: number): Room {
   const now  = Date.now();
   const age  = now - room.createdAt;
   const real = room.players.filter(p => !p.isBot);
   const takenNames = new Set(room.players.map(p => p.name));
 
-  // Fill with bots after FILL_AFTER_MS, or instantly if 4 real players
+  // Track the expected party size so subsequent polls keep the same threshold
+  if (partyCode && partySize) {
+    const existing = partyMeta.get(partyCode);
+    if (!existing || partySize > existing.expectedSize) {
+      partyMeta.set(partyCode, { expectedSize: partySize });
+    }
+  }
+  const expected = partyCode ? (partyMeta.get(partyCode)?.expectedSize ?? 1) : 1;
+  const isPartyRoom  = partyCode && partyRooms.get(partyCode) === room.id;
+  const fillTimeout  = isPartyRoom ? PARTY_FILL_AFTER_MS : FILL_AFTER_MS;
+  const partyFull    = isPartyRoom ? real.length >= expected : true;
+
   if (!room.readyAt) {
     if (room.players.length === 4) {
       room.readyAt = now;
-    } else if (age >= FILL_AFTER_MS) {
+    } else if (partyFull || age >= fillTimeout) {
+      // Fill remaining slots with bots (party room waits for its members first)
       const needed = 4 - room.players.length;
       room.players.push(...makeBots(needed, playerRankIndex, takenNames));
       room.readyAt = now;
-      logger.info({ roomId: room.id, real: real.length, bots: needed }, 'matchmaking: room filled with bots');
+      logger.info({ roomId: room.id, real: real.length, bots: needed, isPartyRoom }, 'matchmaking: room filled with bots');
     }
   }
   return room;
@@ -167,8 +181,8 @@ function resolveRoom(room: Room, playerRankIndex: number): Room {
 
 // POST /api/matchmaking/join
 router.post("/matchmaking/join", (req, res) => {
-  const { playerId, playerName, playerRank, rankIndex = 0, color = '#FFD700', partyCode } = req.body as {
-    playerId: string; playerName: string; playerRank: string; rankIndex?: number; color?: string; partyCode?: string;
+  const { playerId, playerName, playerRank, rankIndex = 0, color = '#FFD700', partyCode, partySize } = req.body as {
+    playerId: string; playerName: string; playerRank: string; rankIndex?: number; color?: string; partyCode?: string; partySize?: number;
   };
   if (!playerId || !playerName) {
     res.status(400).json({ error: "playerId and playerName required" });
@@ -180,7 +194,7 @@ router.post("/matchmaking/join", (req, res) => {
     const existing = room.players.find(p => p.id === playerId);
     if (existing) {
       existing.lastSeen = Date.now();
-      const resolved = resolveRoom(room, rankIndex);
+      const resolved = resolveRoom(room, rankIndex, partyCode, partySize);
       res.json({
         roomId: resolved.id,
         players: resolved.players.map(({ isBot: _, ...rest }) => rest), // strip isBot
@@ -196,7 +210,7 @@ router.post("/matchmaking/join", (req, res) => {
     lastSeen: Date.now(), isBot: false,
   };
   const room = findOrCreateRoom(player, rankIndex, partyCode);
-  const resolved = resolveRoom(room, rankIndex);
+  const resolved = resolveRoom(room, rankIndex, partyCode, partySize);
 
   res.json({
     roomId:      resolved.id,
@@ -213,13 +227,20 @@ router.get("/matchmaking/room/:roomId", (req, res) => {
     res.status(404).json({ error: "room not found" });
     return;
   }
-  const { playerId, rankIndex = '0' } = req.query as { playerId?: string; rankIndex?: string };
+  const { playerId, rankIndex = '0', partyCode, partySize } = req.query as {
+    playerId?: string; rankIndex?: string; partyCode?: string; partySize?: string;
+  };
 
   // Heartbeat
   const player = room.players.find(p => p.id === playerId);
   if (player) player.lastSeen = Date.now();
 
-  const resolved = resolveRoom(room, parseInt(rankIndex, 10));
+  const resolved = resolveRoom(
+    room,
+    parseInt(rankIndex, 10),
+    partyCode,
+    partySize ? parseInt(partySize, 10) : undefined,
+  );
   res.json({
     roomId:      resolved.id,
     players:     resolved.players.map(({ isBot: _, ...rest }) => rest),

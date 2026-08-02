@@ -182,7 +182,7 @@ export default function LobbyScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = usePlayer();
   const { settings } = useSettings();
-  const { partyCode, isInParty, members: partyMembers } = useParty();
+  const { partyCode, isInParty, members: partyMembers, myPlayerId } = useParty();
   const config = getGameConfig();
 
   const playerRankIdx = getRankIndex(profile.rank);
@@ -192,8 +192,9 @@ export default function LobbyScreen() {
   const playerSkin    = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
   const topPad        = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
-  // Stable player ID for this session
-  const playerIdRef = useRef(genPlayerId());
+  // Use the same stable ID that PartyContext registered with the party server,
+  // so matchmaking and party membership identify the same player.
+  const playerIdRef = useRef(myPlayerId);
 
   // Matchmaking state
   const [opponents, setOpponents]   = useState<MatchPlayer[]>([]);  // up to 3 others
@@ -310,7 +311,7 @@ export default function LobbyScreen() {
             playerRank:  profile.rank,
             rankIndex:   playerRankIdx,
             color:       playerSkin.color,
-            ...(partyCode ? { partyCode } : {}),
+            ...(partyCode ? { partyCode, partySize: partyMembers.length } : {}),
           }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -325,7 +326,7 @@ export default function LobbyScreen() {
           if (cancelled || !roomIdRef.current) return;
           try {
             const pollRes = await fetch(
-              apiUrl(`/matchmaking/room/${roomIdRef.current}?playerId=${playerIdRef.current}&rankIndex=${playerRankIdx}`)
+              apiUrl(`/matchmaking/room/${roomIdRef.current}?playerId=${playerIdRef.current}&rankIndex=${playerRankIdx}${partyCode ? `&partyCode=${partyCode}&partySize=${partyMembers.length}` : ''}`)
             );
             if (!pollRes.ok) return;
             const pollData = await pollRes.json() as { players: MatchPlayer[]; isReady: boolean };
