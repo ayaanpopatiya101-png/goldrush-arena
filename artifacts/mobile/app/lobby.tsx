@@ -13,7 +13,14 @@ import {
   Text,
   View,
 } from 'react-native';
-import Reanimated, { FadeIn } from 'react-native-reanimated';
+import Reanimated, {
+  FadeIn,
+  ZoomIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerCard } from '@/components/PlayerCard';
 import { FloatingOrbs, ORBS_GOLD, GlowText } from '@/components/effects';
@@ -118,23 +125,31 @@ const VARIANT_RULES: Record<string, string[]> = {
 
 // ── 3D Countdown Overlay ──────────────────────────────────────────────────────
 function CountdownOverlay({ countdown }: { countdown: number }) {
-  const scaleAnim   = useRef(new Animated.Value(2.8)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-  const ring1Anim   = useRef(new Animated.Value(0)).current;
-  const ring2Anim   = useRef(new Animated.Value(0)).current;
+  const ring1Anim = useRef(new Animated.Value(0)).current;
+  const ring2Anim = useRef(new Animated.Value(0)).current;
+
+  // Reanimated shared values for the number
+  const numScale   = useSharedValue(2.8);
+  const numOpacity = useSharedValue(0);
 
   useEffect(() => {
-    scaleAnim.setValue(2.8);
-    opacityAnim.setValue(0);
+    // Reanimated spring-in for the digit
+    numScale.value   = 2.8;
+    numOpacity.value = 0;
+    numScale.value   = withSpring(1, { damping: 7, stiffness: 180 });
+    numOpacity.value = withTiming(1, { duration: 160 });
+
+    // RN Animated expanding rings
     ring1Anim.setValue(0);
     ring2Anim.setValue(0);
-    Animated.parallel([
-      Animated.spring(scaleAnim,  { toValue: 1, friction: 5, tension: 95, useNativeDriver: true }),
-      Animated.timing(opacityAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
-    ]).start();
     Animated.timing(ring1Anim, { toValue: 1, duration: 850, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
     Animated.timing(ring2Anim, { toValue: 1, duration: 1100, delay: 120, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
   }, [countdown]);
+
+  const numStyle = useAnimatedStyle(() => ({
+    opacity: numOpacity.value,
+    transform: [{ scale: numScale.value }],
+  }));
 
   const ring1Scale   = ring1Anim.interpolate({ inputRange: [0, 1], outputRange: [0.4, 2.8] });
   const ring1Opacity = ring1Anim.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0.9, 0.5, 0] });
@@ -153,12 +168,9 @@ function CountdownOverlay({ countdown }: { countdown: number }) {
         borderWidth: 2, borderColor: '#FFD700',
         opacity: ring2Opacity, transform: [{ scale: ring2Scale }],
       }} />
-      <Animated.Text style={[styles.countdownText, {
-        opacity: opacityAnim,
-        transform: [{ scale: scaleAnim }, { perspective: 600 }],
-      }]}>
+      <Reanimated.Text style={[styles.countdownText, numStyle]}>
         {countdown}
-      </Animated.Text>
+      </Reanimated.Text>
     </View>
   );
 }
@@ -473,14 +485,15 @@ export default function LobbyScreen() {
             />
             {/* Opponents (real or bot — no distinction shown) */}
             {opponents.map((opp) => (
-              <PlayerCard
-                key={opp.id}
-                name={opp.name}
-                rank={opp.rank}
-                color={opp.color}
-                isBot={false}
-                isReady={status !== 'searching'}
-              />
+              <Reanimated.View key={opp.id} entering={ZoomIn.springify().damping(13).stiffness(160)}>
+                <PlayerCard
+                  name={opp.name}
+                  rank={opp.rank}
+                  color={opp.color}
+                  isBot={false}
+                  isReady={status !== 'searching'}
+                />
+              </Reanimated.View>
             ))}
             {/* Empty slots */}
             {Array.from({ length: Math.max(0, 3 - opponents.length) }).map((_, i) => (

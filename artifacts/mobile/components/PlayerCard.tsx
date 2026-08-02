@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Reanimated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+} from 'react-native-reanimated';
 import { RankBadge } from '@/components/RankBadge';
 import { useColors } from '@/hooks/useColors';
 import { ShimmerCard } from '@/components/effects';
@@ -22,7 +28,25 @@ export function PlayerCard({
   const colors = useColors();
   const isSmall = size === 'sm';
 
+  // Spring-bump when transitioning to READY
+  const bumpScale = useSharedValue(1);
+  const prevReady = useRef(isReady);
+  useEffect(() => {
+    if (isReady && !prevReady.current) {
+      bumpScale.value = withSequence(
+        withSpring(1.07, { damping: 4, stiffness: 350 }),
+        withSpring(1,    { damping: 12, stiffness: 220 }),
+      );
+    }
+    prevReady.current = isReady;
+  }, [isReady]);
+
+  const bumpStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: bumpScale.value }],
+  }));
+
   return (
+    <Reanimated.View style={bumpStyle}>
     <ShimmerCard active={isReady === true} borderRadius={isSmall ? 10 : 14} shimmerColor="rgba(0,255,136,0.1)">
       <LinearGradient
         colors={[color + '18', color + '06']}
@@ -66,6 +90,7 @@ export function PlayerCard({
         )}
       </LinearGradient>
     </ShimmerCard>
+    </Reanimated.View>
   );
 }
 
