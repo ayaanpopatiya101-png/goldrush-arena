@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
-import Reanimated, { FadeIn, FadeOutDown, SlideInRight, SlideInUp, ZoomIn } from 'react-native-reanimated';
+import Reanimated, { FadeIn, FadeOutDown, SlideInRight, SlideInUp, ZoomIn, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
 import { ConfettiRain } from '@/components/ConfettiRain';
@@ -12,6 +12,35 @@ import { FloatingOrbs, GlowText, PulseRing, ShimmerCard } from '@/components/eff
 import { ACHIEVEMENTS, RANKS, LUCKY_BLOCK_META, getCurrentEvents, usePlayer, xpForNextRank, xpToLevel, type LuckyBlock } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 import { useColors } from '@/hooks/useColors';
+
+// ─── Emote strip ─────────────────────────────────────────────────────────────
+const EMOTES = ['🔥', '👏', '😤', '💀', '🤝', '👑'] as const;
+
+function EmoteButton({ emoji, selected, onPress }: { emoji: string; selected: boolean; onPress: () => void }) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  function handlePress() {
+    scale.value = withSpring(1.45, { damping: 5, stiffness: 320 }, () => {
+      scale.value = withSpring(1, { damping: 8, stiffness: 200 });
+    });
+    onPress();
+  }
+
+  return (
+    <Pressable onPress={handlePress}>
+      <Reanimated.View style={[animStyle, {
+        width: 46, height: 46, borderRadius: 23,
+        alignItems: 'center', justifyContent: 'center',
+        backgroundColor: selected ? '#FFFFFF20' : '#FFFFFF0A',
+        borderWidth: 1.5,
+        borderColor: selected ? '#C8820A' : '#FFFFFF14',
+      }]}>
+        <Text style={{ fontSize: 22 }}>{emoji}</Text>
+      </Reanimated.View>
+    </Pressable>
+  );
+}
 
 export default function PostGameScreen() {
   const colors = useColors();
@@ -79,6 +108,8 @@ export default function PostGameScreen() {
 
   const levelAfter  = profile.competitiveLevel ?? 1;
   const levelDelta  = levelAfter - levelBefore;
+
+  const [selectedEmote, setSelectedEmote] = useState<string | null>(null);
 
   const fadeAnim        = useRef(new Animated.Value(0)).current;
   const scaleAnim       = useRef(new Animated.Value(0.7)).current;
@@ -239,6 +270,23 @@ export default function PostGameScreen() {
           </LinearGradient>
         </Animated.View>
         </Reanimated.View>
+
+        {/* ── Emote strip ── */}
+        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 8, marginBottom: 4 }}>
+          {EMOTES.map(emote => (
+            <EmoteButton
+              key={emote}
+              emoji={emote}
+              selected={selectedEmote === emote}
+              onPress={() => setSelectedEmote(emote)}
+            />
+          ))}
+        </View>
+        {selectedEmote && (
+          <Text style={{ textAlign: 'center', fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#C8820A88', marginBottom: 2 }}>
+            {selectedEmote} reacted
+          </Text>
+        )}
 
         {/* Stats */}
         <Animated.View style={{ opacity: card1Anim, transform: [{ translateY: card1Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>

@@ -1,10 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated, Easing, Image, Platform, Pressable, ScrollView,
-  StyleSheet, Text, View,
+  Share, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
@@ -19,6 +19,7 @@ import {
   RANKS, getRankIndex, SEASON_TIERS, SKINS, SUPERS, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
 type SuperType = 1 | 2 | 3;
+import { useParty } from '@/context/PartyContext';
 import { setGameConfig } from '@/store/gameSession';
 import type { MatchType, GameVariant } from '@/store/gameSession';
 import { startGauntlet } from '@/store/gauntletSession';
@@ -230,12 +231,44 @@ export default function HomeScreen() {
     dismissStreakModal();
   }
 
+  const { partyCode, members: partyMembers, isInParty, createParty, joinParty, leaveParty } = useParty();
+  const [showJoinInput, setShowJoinInput] = useState(false);
+  const [joinCode,      setJoinCode]      = useState('');
+  const [joiningParty,  setJoiningParty]  = useState(false);
+  const [joinError,     setJoinError]     = useState<string | null>(null);
+
   const rankInfo     = xpForNextRank(profile.xp);
   const rankData     = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
   const playerRankIdx = getRankIndex(profile.rank);
   const topPad   = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
   const winRate  = profile.totalGames > 0 ? Math.round((profile.wins / profile.totalGames) * 100) : 0;
   const focusStyle = useFocusAnimation();
+
+  async function handleCreateParty() {
+    const code = await createParty();
+    if (code) {
+      try { await Share.share({ message: `Join my GoldRush Arena party!\nParty Code: ${code}` }); }
+      catch { /* dismissed */ }
+    }
+  }
+
+  async function handleJoinParty() {
+    if (joinCode.length < 6) return;
+    setJoiningParty(true);
+    setJoinError(null);
+    const result = await joinParty(joinCode);
+    setJoiningParty(false);
+    if (result === 'not_found') { setJoinError('Party not found. Check the code and try again.'); return; }
+    if (result === 'error')     { setJoinError('Could not connect. Try again.'); return; }
+    setShowJoinInput(false);
+    setJoinCode('');
+  }
+
+  async function handleShareParty() {
+    if (!partyCode) return;
+    try { await Share.share({ message: `Join my GoldRush Arena party!\nParty Code: ${partyCode}` }); }
+    catch { /* dismissed */ }
+  }
 
   if (!isLoaded) return <View style={{ flex: 1, backgroundColor: '#07090F' }} />;
 
@@ -455,6 +488,79 @@ export default function HomeScreen() {
               <Text style={styles.casualBtnSub}>· No rank effect</Text>
             </LinearGradient>
           </Pressable>
+        </View>
+
+        {/* ── Party Section ── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 4, marginBottom: 8 }}>
+          {!isInParty ? (
+            <>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
+                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#BF5FFF' }}>PARTY</Text>
+                <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              </View>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <Pressable onPress={handleCreateParty} style={{ flex: 1, backgroundColor: '#BF5FFF1A', borderRadius: 12, borderWidth: 1, borderColor: '#BF5FFF44', paddingVertical: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
+                  <Text style={{ fontSize: 15 }}>🎉</Text>
+                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, color: '#BF5FFF', letterSpacing: 0.5 }}>CREATE PARTY</Text>
+                </Pressable>
+                <Pressable onPress={() => { setShowJoinInput(v => !v); setJoinError(null); }} style={{ flex: 1, backgroundColor: '#FFFFFF08', borderRadius: 12, borderWidth: 1, borderColor: '#FFFFFF18', paddingVertical: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
+                  <Text style={{ fontSize: 15 }}>🔗</Text>
+                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, color: '#FFFFFF88', letterSpacing: 0.5 }}>JOIN PARTY</Text>
+                </Pressable>
+              </View>
+              {showJoinInput && (
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                  <TextInput
+                    value={joinCode}
+                    onChangeText={v => setJoinCode(v.toUpperCase().slice(0, 6))}
+                    placeholder="ENTER CODE"
+                    placeholderTextColor="#FFFFFF33"
+                    maxLength={6}
+                    autoCapitalize="characters"
+                    style={{ flex: 1, backgroundColor: '#FFFFFF0A', borderRadius: 10, borderWidth: 1, borderColor: '#BF5FFF44', color: '#FFFFFF', fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 4, textAlign: 'center', paddingVertical: 10 }}
+                  />
+                  <Pressable onPress={handleJoinParty} disabled={joiningParty || joinCode.length < 6} style={{ backgroundColor: '#BF5FFF', borderRadius: 10, paddingHorizontal: 18, justifyContent: 'center', opacity: joinCode.length < 6 ? 0.45 : 1 }}>
+                    <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, color: '#FFF' }}>{joiningParty ? '...' : 'JOIN'}</Text>
+                  </Pressable>
+                </View>
+              )}
+              {joinError ? <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#FF4757', marginTop: 6, textAlign: 'center' }}>{joinError}</Text> : null}
+            </>
+          ) : (
+            <View style={{ backgroundColor: '#BF5FFF0F', borderRadius: 14, borderWidth: 1, borderColor: '#BF5FFF33', padding: 14, gap: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
+                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#BF5FFF' }}>YOUR PARTY</Text>
+                <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+                <Pressable onPress={handleShareParty} style={{ padding: 4 }}>
+                  <Feather name="share-2" size={14} color="#BF5FFF" />
+                </Pressable>
+                <Pressable onPress={leaveParty} style={{ paddingHorizontal: 8, paddingVertical: 4, backgroundColor: '#FF475714', borderRadius: 6, borderWidth: 1, borderColor: '#FF475733' }}>
+                  <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#FF475799' }}>LEAVE</Text>
+                </Pressable>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#BF5FFF12', borderRadius: 8, padding: 10 }}>
+                <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 11, color: '#BF5FFF88', flex: 1 }}>PARTY CODE</Text>
+                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 20, color: '#BF5FFF', letterSpacing: 4 }}>{partyCode}</Text>
+                <Pressable onPress={handleShareParty}><Feather name="share" size={13} color="#BF5FFF88" /></Pressable>
+              </View>
+              <View style={{ gap: 6 }}>
+                {partyMembers.map(m => (
+                  <View key={m.playerId} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#BF5FFF22', borderWidth: 1, borderColor: m.isLeader ? '#BF5FFF66' : '#FFFFFF22', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontSize: 16 }}>{m.avatarEmoji}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 13, color: '#FFFFFF' }}>{m.name}</Text>
+                      <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF66' }}>{m.rank}{m.winStreak > 0 ? ` · 🔥${m.winStreak}` : ''}</Text>
+                    </View>
+                    {m.isLeader && <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 9, color: '#BF5FFF', letterSpacing: 1 }}>LEADER</Text>}
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
 
         {/* ── Super Ability Selector ── */}

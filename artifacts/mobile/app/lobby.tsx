@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerCard } from '@/components/PlayerCard';
 import { FloatingOrbs, ORBS_GOLD, GlowText } from '@/components/effects';
 import { RANKS, SKINS, MAPS, getRankIndex, getRelic, usePlayer } from '@/context/PlayerContext';
+import { useParty } from '@/context/PartyContext';
 import { getGameConfig, updateGameConfig } from '@/store/gameSession';
 import { getGauntletState } from '@/store/gauntletSession';
 import { useColors } from '@/hooks/useColors';
@@ -181,6 +182,7 @@ export default function LobbyScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = usePlayer();
   const { settings } = useSettings();
+  const { partyCode, isInParty, members: partyMembers } = useParty();
   const config = getGameConfig();
 
   const playerRankIdx = getRankIndex(profile.rank);
@@ -308,6 +310,7 @@ export default function LobbyScreen() {
             playerRank:  profile.rank,
             rankIndex:   playerRankIdx,
             color:       playerSkin.color,
+            ...(partyCode ? { partyCode } : {}),
           }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -464,6 +467,31 @@ export default function LobbyScreen() {
           )}
           <Text style={[styles.statusText, { color: statusColor }]}>{searchingLabel}</Text>
         </View>
+
+        {/* Party panel — only visible when player is in a party */}
+        {isInParty && (
+          <View style={{ marginBottom: 8, backgroundColor: '#BF5FFF0F', borderRadius: 14, borderWidth: 1, borderColor: '#BF5FFF44', padding: 12, gap: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ width: 3, height: 14, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 2, color: '#BF5FFF' }}>YOUR PARTY</Text>
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#BF5FFF88', letterSpacing: 1.5 }}>· {partyCode}</Text>
+              <View style={{ flex: 1 }} />
+              <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF55' }}>Queueing together</Text>
+            </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {partyMembers.map(m => (
+                <View key={m.playerId} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFFFFF08', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}>
+                  <Text style={{ fontSize: 14 }}>{m.avatarEmoji}</Text>
+                  <View>
+                    <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#FFFFFF' }}>{m.name}</Text>
+                    <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 9, color: '#FFFFFF55' }}>{m.rank}</Text>
+                  </View>
+                  {m.isLeader && <Text style={{ fontSize: 10 }}>👑</Text>}
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* Players */}
         <View style={styles.section}>

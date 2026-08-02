@@ -16,6 +16,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { PlayerProvider, getSavedAccounts, getLoggedInUser } from '@/context/PlayerContext';
+import { PartyProvider } from '@/context/PartyContext';
 import OnboardingScreen from '@/app/onboarding';
 import { CinematicSplash, cinemaHasShown } from '@/components/CinematicSplash';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
@@ -105,6 +106,7 @@ export default function RootLayout() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <PlayerProvider username={authUser!.username} onLogout={handleLogout}>
+            <PartyProvider>
             <GestureHandlerRootView style={{ flex: 1 }}>
               <KeyboardProvider>
                 <RootLayoutNav />
@@ -116,6 +118,7 @@ export default function RootLayout() {
                 )}
               </KeyboardProvider>
             </GestureHandlerRootView>
+            </PartyProvider>
           </PlayerProvider>
         </QueryClientProvider>
       </ErrorBoundary>

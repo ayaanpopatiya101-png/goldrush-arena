@@ -21,7 +21,8 @@ interface Room {
 }
 
 // ─── In-memory state ──────────────────────────────────────────────────────────
-const rooms = new Map<string, Room>();
+const rooms      = new Map<string, Room>();
+const partyRooms = new Map<string, string>(); // partyCode → roomId
 const FILL_AFTER_MS  = 12_000;
 const PLAYER_DROP_MS =  8_000;
 const ROOM_EXPIRE_MS = 90_000;
@@ -102,9 +103,28 @@ function cleanRooms() {
   }
 }
 
-function findOrCreateRoom(player: MatchPlayer, rankIndex: number): Room {
+function findOrCreateRoom(player: MatchPlayer, rankIndex: number, partyCode?: string): Room {
   cleanRooms();
   const now = Date.now();
+
+  // Party matchmaking: all members share one dedicated room
+  if (partyCode) {
+    const existingId = partyRooms.get(partyCode);
+    if (existingId) {
+      const existing = rooms.get(existingId);
+      if (existing && !existing.readyAt && existing.players.length < 4) {
+        if (!existing.players.some(p => p.id === player.id)) existing.players.push(player);
+        return existing;
+      }
+    }
+    const id = `room-party-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const room: Room = { id, players: [player], createdAt: now, readyAt: null };
+    rooms.set(id, room);
+    partyRooms.set(partyCode, id);
+    logger.info({ roomId: id, partyCode }, 'matchmaking: party room created');
+    return room;
+  }
+
   // Find an open room (not ready, not expired, has space)
   for (const room of rooms.values()) {
     if (room.readyAt) continue;
@@ -147,8 +167,8 @@ function resolveRoom(room: Room, playerRankIndex: number): Room {
 
 // POST /api/matchmaking/join
 router.post("/matchmaking/join", (req, res) => {
-  const { playerId, playerName, playerRank, rankIndex = 0, color = '#FFD700' } = req.body as {
-    playerId: string; playerName: string; playerRank: string; rankIndex?: number; color?: string;
+  const { playerId, playerName, playerRank, rankIndex = 0, color = '#FFD700', partyCode } = req.body as {
+    playerId: string; playerName: string; playerRank: string; rankIndex?: number; color?: string; partyCode?: string;
   };
   if (!playerId || !playerName) {
     res.status(400).json({ error: "playerId and playerName required" });
@@ -175,7 +195,7 @@ router.post("/matchmaking/join", (req, res) => {
     id: playerId, name: playerName, rank: playerRank, color,
     lastSeen: Date.now(), isBot: false,
   };
-  const room = findOrCreateRoom(player, rankIndex);
+  const room = findOrCreateRoom(player, rankIndex, partyCode);
   const resolved = resolveRoom(room, rankIndex);
 
   res.json({
