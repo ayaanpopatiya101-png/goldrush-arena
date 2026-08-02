@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
-import Reanimated, { FadeIn, FadeOutDown, SlideInUp } from 'react-native-reanimated';
+import Reanimated, { FadeIn, FadeOutDown, SlideInRight, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
 import { ConfettiRain } from '@/components/ConfettiRain';
@@ -80,12 +80,13 @@ export default function PostGameScreen() {
   const levelAfter  = profile.competitiveLevel ?? 1;
   const levelDelta  = levelAfter - levelBefore;
 
-  const fadeAnim  = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.7)).current;
-  const xpBarAnim = useRef(new Animated.Value(0)).current;
-  const card1Anim = useRef(new Animated.Value(0)).current; // stats card
-  const card2Anim = useRef(new Animated.Value(0)).current; // xp / level card
-  const card3Anim = useRef(new Animated.Value(0)).current; // buttons row
+  const fadeAnim        = useRef(new Animated.Value(0)).current;
+  const scaleAnim       = useRef(new Animated.Value(0.7)).current;
+  const xpBarAnim       = useRef(new Animated.Value(0)).current;
+  const card1Anim       = useRef(new Animated.Value(0)).current; // stats card
+  const card2Anim       = useRef(new Animated.Value(0)).current; // xp / level card
+  const card3Anim       = useRef(new Animated.Value(0)).current; // buttons row
+  const promotedFlashAnim = useRef(new Animated.Value(0)).current;
   const [newAchievement, setNewAchievement] = useState<string | null>(null);
   const [showXP, setShowXP] = useState(false);
   const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
@@ -123,6 +124,19 @@ export default function PostGameScreen() {
     if (Platform.OS !== 'web') {
       if (won) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       else Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+
+    // Rank-up full-screen glow flash
+    if (promoted) {
+      setTimeout(() => {
+        Animated.sequence([
+          Animated.timing(promotedFlashAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
+          Animated.timing(promotedFlashAnim, { toValue: 0.6, duration: 180, useNativeDriver: true }),
+          Animated.timing(promotedFlashAnim, { toValue: 0.9, duration: 160, useNativeDriver: true }),
+          Animated.timing(promotedFlashAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+        ]).start();
+        if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      }, 750);
     }
 
     setTimeout(() => {
@@ -177,7 +191,7 @@ export default function PostGameScreen() {
         colors={won ? ['#0A140A', '#0A1A0A', '#0A0A14'] : ['#140A0A', '#1A0A0A', '#0A0A14']}
         style={StyleSheet.absoluteFill}
       />
-      <ConfettiRain active={won} />
+      <ConfettiRain active={won || promoted} />
 
       {/* Stars/particles background */}
       {won && Array.from({ length: 8 }).map((_, i) => (
@@ -385,11 +399,21 @@ export default function PostGameScreen() {
           <Animated.View style={{ opacity: card2Anim, transform: [{ translateY: card2Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
           <View style={[styles.xpCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.xpHeader}>
-              <RankBadge rank={profile.rank} size="sm" showLabel={false} />
+              {promoted ? (
+                <Reanimated.View entering={ZoomIn.springify().damping(10).stiffness(120).delay(800)}>
+                  <RankBadge rank={newRank.name} size="sm" showLabel={false} />
+                </Reanimated.View>
+              ) : (
+                <RankBadge rank={profile.rank} size="sm" showLabel={false} />
+              )}
               <Text style={[styles.xpLabel, { color: colors.foreground }]}>
                 {promoted ? `RANK UP! → ${newRank.name}` : `${profile.rank} Rank`}
               </Text>
-              {promoted && <Text style={[styles.rankUpBadge, { color: '#00FF88', borderColor: '#00FF88' }]}>↑ PROMOTED</Text>}
+              {promoted && (
+                <Reanimated.View entering={SlideInRight.springify().damping(14).stiffness(120).delay(900)}>
+                  <Text style={[styles.rankUpBadge, { color: '#00FF88', borderColor: '#00FF88' }]}>↑ PROMOTED</Text>
+                </Reanimated.View>
+              )}
             </View>
             <View style={[styles.xpTrack, { backgroundColor: '#FFFFFF12' }]}>
               <Animated.View style={[styles.xpFill, {
@@ -525,6 +549,21 @@ export default function PostGameScreen() {
           block={activeLuckyBlock}
           onClose={() => setActiveLuckyBlock(null)}
         />
+      )}
+
+      {/* Rank-up: full-screen glow flash overlay */}
+      {promoted && (
+        <Animated.View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { opacity: promotedFlashAnim }]}
+        >
+          <LinearGradient
+            colors={['#FFD70066', '#00FF8844', '#C8820055', '#FFD70066']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
       )}
     </Reanimated.View>
   );
