@@ -15,6 +15,8 @@ import {
 } from 'react-native';
 import Reanimated, {
   FadeIn,
+  SlideInRight,
+  SlideOutRight,
   ZoomIn,
   useAnimatedStyle,
   useSharedValue,
@@ -397,7 +399,7 @@ export default function LobbyScreen() {
   const statusColor = status === 'searching' ? '#C8820A' : '#00FF88';
 
   return (
-    <Reanimated.View entering={FadeIn.duration(350)} style={[styles.root, { backgroundColor: colors.background }]}>
+    <Reanimated.View entering={SlideInRight.duration(260)} exiting={SlideOutRight.duration(220)} style={[styles.root, { backgroundColor: colors.background }]}>
       <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.5} />
       <LinearGradient
