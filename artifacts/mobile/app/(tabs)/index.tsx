@@ -259,6 +259,7 @@ export default function HomeScreen() {
     const result = await joinParty(joinCode);
     setJoiningParty(false);
     if (result === 'not_found') { setJoinError('Party not found. Check the code and try again.'); return; }
+    if (result === 'full')      { setJoinError('That party is full (max 4 players).'); return; }
     if (result === 'error')     { setJoinError('Could not connect. Try again.'); return; }
     setShowJoinInput(false);
     setJoinCode('');

@@ -18,14 +18,14 @@ interface PartyContextType {
   isInParty:   boolean;
   isLeader:    boolean;
   createParty: () => Promise<string | null>;
-  joinParty:   (code: string) => Promise<'ok' | 'not_found' | 'error'>;
+  joinParty:   (code: string) => Promise<'ok' | 'not_found' | 'full' | 'error'>;
   leaveParty:  () => void;
 }
 
 const PartyContext = createContext<PartyContextType>({
   partyCode: null, members: [], isInParty: false, isLeader: false,
   createParty: async () => null,
-  joinParty:   async () => 'error',
+  joinParty:   async () => 'error' as const,
   leaveParty:  () => {},
 });
 
@@ -44,7 +44,8 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
   const playerIdRef = useRef(`${profile.name}-${Date.now()}`);
 
   const isInParty = partyCode !== null;
-  const isLeader  = members.some(m => m.isLeader && m.name === profile.name);
+  // Use the stable playerId, not the mutable display name
+  const isLeader  = members.some(m => m.isLeader && m.playerId === playerIdRef.current);
 
   function stopPoll() {
     if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
@@ -94,7 +95,7 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function joinParty(code: string): Promise<'ok' | 'not_found' | 'error'> {
+  async function joinParty(code: string): Promise<'ok' | 'not_found' | 'full' | 'error'> {
     const upper = code.toUpperCase().trim();
     try {
       const res = await fetch(apiUrl('/party/join'), {
@@ -110,6 +111,7 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
         }),
       });
       if (res.status === 404) return 'not_found';
+      if (res.status === 409) return 'full';
       if (!res.ok) return 'error';
       const data = await res.json() as { members: PartyMember[] };
       setPartyCode(upper);
@@ -125,10 +127,11 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
   function leaveParty() {
     stopPoll();
     if (partyCode) {
+      // Identify by stable playerId — name is a mutable display string
       fetch(apiUrl('/party/leave'), {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ partyCode, playerName: profile.name }),
+        body: JSON.stringify({ partyCode, playerId: playerIdRef.current }),
       }).catch(() => {});
     }
     setPartyCode(null);

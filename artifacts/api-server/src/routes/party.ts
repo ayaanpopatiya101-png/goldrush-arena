@@ -94,15 +94,22 @@ router.post('/party/join', (req, res) => {
   const party = parties.get(partyCode.toUpperCase());
   if (!party) { res.status(404).json({ error: 'party not found' }); return; }
 
+  // Already in the party — idempotent re-join
   const existing = party.members.find(m => m.playerId === playerId);
-  if (!existing) {
-    const joiner: PartyMember = {
-      playerId, playerName, avatarEmoji, rank, winStreak,
-      isLeader: false, joinedAt: Date.now(),
-    };
-    party.members.push(joiner);
-    logger.info({ partyCode, playerName }, 'party: member joined');
+  if (existing) { res.json({ members: party.members.map(memberView) }); return; }
+
+  // Matches cap at 4 — reject a 5th member before they queue
+  if (party.members.length >= 4) {
+    res.status(409).json({ error: 'party is full' });
+    return;
   }
+
+  const joiner: PartyMember = {
+    playerId, playerName, avatarEmoji, rank, winStreak,
+    isLeader: false, joinedAt: Date.now(),
+  };
+  party.members.push(joiner);
+  logger.info({ partyCode, playerName }, 'party: member joined');
   res.json({ members: party.members.map(memberView) });
 });
 
@@ -116,16 +123,17 @@ router.get('/party/:code/members', (req, res) => {
 
 // ─── DELETE /party/leave ──────────────────────────────────────────────────────
 router.delete('/party/leave', (req, res) => {
-  const { partyCode, playerName } = req.body as { partyCode?: string; playerName?: string };
-  if (!partyCode) { res.json({ ok: true }); return; }
+  // Use playerId (stable) — NOT playerName (mutable display string)
+  const { partyCode, playerId } = req.body as { partyCode?: string; playerId?: string };
+  if (!partyCode || !playerId) { res.json({ ok: true }); return; }
 
   const party = parties.get(partyCode.toUpperCase());
   if (party) {
-    party.members = party.members.filter(m => m.playerName !== playerName);
+    party.members = party.members.filter(m => m.playerId !== playerId);
     if (party.members.length === 0) {
       parties.delete(partyCode.toUpperCase());
     } else if (!party.members.some(m => m.isLeader)) {
-      party.members[0]!.isLeader = true; // promote next in line
+      party.members[0]!.isLeader = true; // promote earliest joiner to leader
     }
   }
   res.json({ ok: true });
