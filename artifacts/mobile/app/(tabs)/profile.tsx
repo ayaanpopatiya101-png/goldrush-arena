@@ -181,6 +181,17 @@ export default function ProfileScreen() {
               <RankBadge rank={profile.rank} size="sm" showLabel={false} />
               <GlowText intensity="soft" color={rankData.color} style={[styles.levelBadge, { color: rankData.color }]}>Lv.{xpToLevel(profile.xp)} · {profile.rank}</GlowText>
             </View>
+            {/* Skill tier badge */}
+            {profile.skillTier && (() => {
+              const tierColor = profile.skillTier === 'Pro' ? '#C8820A' : profile.skillTier === 'Veteran' ? '#A8A9B4' : '#CD7F32';
+              const tierIcon  = profile.skillTier === 'Pro' ? '🏆' : profile.skillTier === 'Veteran' ? '🥈' : '🥉';
+              return (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: tierColor + '1E', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: tierColor + '44' }}>
+                  <Text style={{ fontSize: 12 }}>{tierIcon}</Text>
+                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: tierColor, letterSpacing: 0.8 }}>{profile.skillTier.toUpperCase()}</Text>
+                </View>
+              );
+            })()}
             <View style={styles.loginStreakRow}>
               <Text style={styles.streakIcon}>🔥</Text>
               <Text style={[styles.streakText, { color: '#FF6B35' }]}>{profile.loginStreak} day streak</Text>

@@ -858,6 +858,8 @@ export interface PlayerProfile {
   relicLevels?: Record<string, number>;
   // Onboarding: false = never shown tutorial, true = completed
   tutorialComplete?: boolean;
+  // Skill tier set during the onboarding quiz ('Rookie' | 'Veteran' | 'Pro')
+  skillTier?: 'Rookie' | 'Veteran' | 'Pro';
   // Super ability equipped for matches: 1=Rampart, 2=Dead Zone, 3=Shatter
   selectedSuper?: 1 | 2 | 3;
   // Credits earned once all relics are unlocked (Brawl Stars-style overflow currency)
@@ -1006,6 +1008,7 @@ interface PlayerContextType {
   openLuckyBlock: (blockId: string, reward: LuckyBlockReward) => Promise<void>;
   completeTutorial: () => Promise<void>;
   setSelectedSuper: (type: 1 | 2 | 3) => Promise<void>;
+  setSkillTier: (tier: 'Rookie' | 'Veteran' | 'Pro') => Promise<void>;
   purchaseForgeAbility: (id: string) => Promise<boolean>;
   equipForgeAbility: (id: string | null) => Promise<void>;
   spendEventPlay: (periodKey: string) => Promise<boolean>;
@@ -1303,6 +1306,10 @@ export function PlayerProvider({ username, onLogout, children }: {
 
   const setSelectedSuper = useCallback(async (type: 1 | 2 | 3) => {
     await save({ ...profile, selectedSuper: type });
+  }, [profile, save]);
+
+  const setSkillTier = useCallback(async (tier: 'Rookie' | 'Veteran' | 'Pro') => {
+    await save({ ...profile, skillTier: tier });
   }, [profile, save]);
 
   const purchaseForgeAbility = useCallback(async (id: string): Promise<boolean> => {
@@ -1606,7 +1613,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       profile, isLoaded, currentUsername: username, showStreakModal, dismissStreakModal,
       updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic, upgradeRelic,
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial,
-      setSelectedSuper, purchaseForgeAbility, equipForgeAbility,
+      setSelectedSuper, setSkillTier, purchaseForgeAbility, equipForgeAbility,
       spendEventPlay, claimEventBonus, spendQualifierPlay, earnQualifierPoints,
       openLuckyBlock, redeemCode, consumeExtraLives,
       claimBattlePassTier, claimQuestReward, logout,

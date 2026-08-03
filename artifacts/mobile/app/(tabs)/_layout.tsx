@@ -1,5 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BlurView } from 'expo-blur';
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
@@ -74,6 +75,13 @@ function TabIcon({ name, color, label, focused }: {
 export default function TabLayout() {
   const colors = useColors();
   const isIOS = Platform.OS === 'ios';
+
+  // Show onboarding flow once on first launch after login
+  useEffect(() => {
+    AsyncStorage.getItem('@onboarding_flow_done').then(val => {
+      if (!val) router.push('/onboarding-flow' as never);
+    });
+  }, []);
 
   return (
     <Tabs

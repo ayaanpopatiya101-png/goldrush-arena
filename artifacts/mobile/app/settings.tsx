@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -322,6 +323,23 @@ export default function SettingsScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={s.rowTitle}>Terms of Service</Text>
                 <Text style={s.rowSub}>Rules and license agreement</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#FFFFFF33" />
+            </Pressable>
+            <View style={s.divider} />
+            <Pressable
+              onPress={async () => {
+                await AsyncStorage.removeItem('@onboarding_flow_done');
+                router.push('/onboarding-flow' as never);
+              }}
+              style={s.row}
+            >
+              <View style={[s.rowIcon, { backgroundColor: '#00BFFF15' }]}>
+                <Feather name="book-open" size={18} color="#00BFFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.rowTitle}>Replay Tutorial</Text>
+                <Text style={s.rowSub}>Re-watch the ability guide and skill quiz</Text>
               </View>
               <Feather name="chevron-right" size={16} color="#FFFFFF33" />
             </Pressable>
