@@ -1507,8 +1507,8 @@ export function GameArena({
         ))}
 
         {/* Player deflection score — GlowText label + CounterText value */}
-        {gamePhase === 'playing' && !gs.players[BOTTOM].isEliminated && (
-          <View style={s.scoreWrap} pointerEvents="none">
+        {gamePhase === 'playing' && (
+          <View style={[s.scoreWrap, gs.players[BOTTOM].isEliminated && { opacity: 0.4 }]} pointerEvents="none">
             <GlowText style={s.scoreLabel} color="#C8820A66" intensity="soft">
               HITS
             </GlowText>
