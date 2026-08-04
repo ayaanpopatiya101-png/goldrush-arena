@@ -1086,6 +1086,10 @@ export function GameArena({
           pu.active = false;
           applyPowerup(gs, pu.type, p0, size);
           setPowerUpsUI([...gs.powerups]);
+          // Visual feedback: spark burst at pickup position + mild screen shake
+          const puColor = POWERUP_COLORS[pu.type];
+          sparkBurstRef.current?.burst(pu.x, pu.y, puColor);
+          if (!practice) screenShakeRef.current?.shake(0.4);
         }
       }
     }
