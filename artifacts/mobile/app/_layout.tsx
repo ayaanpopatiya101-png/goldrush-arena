@@ -5,6 +5,10 @@ import {
   Inter_700Bold,
   useFonts,
 } from '@expo-google-fonts/inter';
+import {
+  Rajdhani_600SemiBold,
+  Rajdhani_700Bold,
+} from '@expo-google-fonts/rajdhani';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -30,7 +34,7 @@ function AppLoadingScreen() {
     <SafeAreaProvider>
       <View style={{ flex: 1, backgroundColor: '#080812', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
         <Text style={{ fontSize: 48 }}>👑</Text>
-        <Text style={{ color: '#C8820A', fontSize: 12, letterSpacing: 3, fontFamily: 'Inter_700Bold' }}>
+        <Text style={{ color: '#C8820A', fontSize: 14, letterSpacing: 4, fontFamily: 'Rajdhani_700Bold' }}>
           GOLDRUSH ARENA
         </Text>
         <ActivityIndicator color="#C8820A55" size="small" style={{ marginTop: 8 }} />
@@ -59,6 +63,7 @@ interface AuthUser { username: string; emoji: string; color: string }
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold,
+    Rajdhani_600SemiBold, Rajdhani_700Bold,
   });
   const [authState, setAuthState] = useState<'loading' | 'in' | 'out'>('loading');
   const [authUser,  setAuthUser]  = useState<AuthUser | null>(null);

@@ -19,3 +19,6 @@ export { HolographicCard }  from './HolographicCard';
 export { SparkBurst }       from './SparkBurst';
 export type { SparkBurstRef } from './SparkBurst';
 export { ScanlineOverlay }  from './ScanlineOverlay';
+
+export { PressableScale }   from './PressableScale';
+export type { PressableScaleProps, HapticStrength } from './PressableScale';

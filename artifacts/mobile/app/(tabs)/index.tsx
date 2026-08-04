@@ -14,7 +14,7 @@ import { DailyStreakModal } from '@/components/DailyStreakModal';
 import { RankBadge } from '@/components/RankBadge';
 import { AmbientParticles } from '@/components/AmbientParticles';
 import { LiveEventBanner } from '@/components/LiveEventBanner';
-import { FloatingOrbs, ORBS_GOLD, GlowText, ShimmerCard, PulseRing } from '@/components/effects';
+import { FloatingOrbs, ORBS_GOLD, GlowText, ShimmerCard, PulseRing, PressableScale } from '@/components/effects';
 import {
   RANKS, getRankIndex, SEASON_TIERS, SKINS, SUPERS, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
@@ -448,9 +448,12 @@ export default function HomeScreen() {
             shadowColor: '#C8820A', shadowOffset: { width: 0, height: 12 },
             shadowOpacity: 0.9, shadowRadius: 32, elevation: 18,
           }}>
-            <Pressable
+            <PressableScale
               onPress={() => handlePlay('ranked')}
-              style={({ pressed }) => [styles.rankedBtn, pressed && { transform: [{ scale: 0.97 }, { translateY: 2 }], opacity: 0.94 }]}
+              haptic="medium"
+              scaleTo={0.97}
+              sinkTo={2}
+              style={styles.rankedBtn}
             >
               <LinearGradient colors={['#F0A428', '#D08A14', '#A86008', '#7A4800']} style={styles.rankedBtnGrad}>
                 {/* Top highlight edge */}
@@ -471,13 +474,15 @@ export default function HomeScreen() {
                 </View>
                 <Feather name="chevron-right" size={20} color="#07090F66" />
               </LinearGradient>
-            </Pressable>
+            </PressableScale>
           </Animated.View>
 
           {/* CASUAL — Secondary CTA */}
-          <Pressable
+          <PressableScale
             onPress={() => handlePlay('casual')}
-            style={({ pressed }) => [styles.casualBtn, pressed && { opacity: 0.86, transform: [{ scale: 0.97 }, { translateY: 1 }] }]}
+            haptic="light"
+            scaleTo={0.97}
+            style={styles.casualBtn}
           >
             <LinearGradient colors={['#0D2533', '#081828', '#0A1E2A']} style={styles.casualBtnGrad}>
               {/* Top highlight edge */}
@@ -488,7 +493,7 @@ export default function HomeScreen() {
               <GlowText intensity="medium" color="#FFD700" style={styles.casualBtnText}>CASUAL</GlowText>
               <Text style={styles.casualBtnSub}>· No rank effect</Text>
             </LinearGradient>
-          </Pressable>
+          </PressableScale>
         </View>
 
         {/* ── Party Section ── */}
@@ -864,14 +869,15 @@ export default function HomeScreen() {
               { id: 'pinball',      emoji: '🎰', name: 'PINBALL',      sub: 'Ball Every 3s',    color: '#FF69B4', desc: 'Up to 8 balls\nin play at once' },
               { id: 'six_player',   emoji: '6️⃣', name: '6-PLAYER',     sub: '6 Zones · Split',  color: '#FF9500', desc: 'Split walls,\n6 fighters' },
             ] as const).map(m => (
-              <Pressable
+              <PressableScale
                 key={m.id}
                 onPress={() => handlePlayMode(m.id)}
-                style={({ pressed }) => [styles.modePickCard, {
+                haptic="light"
+                scaleTo={0.95}
+                sinkTo={2}
+                style={[styles.modePickCard, {
                   borderColor: m.color + '55',
                   backgroundColor: m.color + '0E',
-                  opacity: pressed ? 0.85 : 1,
-                  transform: [{ scale: pressed ? 0.96 : 1 }, { translateY: pressed ? 2 : 0 }],
                 }]}
               >
                 {/* Per-mode top color strip */}
@@ -890,7 +896,7 @@ export default function HomeScreen() {
                   <Feather name="play" size={8} color={m.color} />
                   <Text style={[styles.modePlayChipText, { color: m.color }]}>PLAY</Text>
                 </View>
-              </Pressable>
+              </PressableScale>
             ))}
           </ScrollView>
         </View>
@@ -1048,7 +1054,7 @@ const styles = StyleSheet.create({
   xpText:     { fontFamily: 'Inter_400Regular', fontSize: 10 },
   arenaWrap:  { alignItems: 'center', marginBottom: 6 },
   titleWrap:  { alignItems: 'center', gap: 3, marginBottom: 14, paddingHorizontal: 20 },
-  gameTitle:  { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 30, letterSpacing: 4, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 28, textAlign: 'center' },
+  gameTitle:  { color: '#C8820A', fontFamily: 'Rajdhani_700Bold', fontSize: 34, letterSpacing: 4, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 28, textAlign: 'center' },
   gameSubtitle: { color: '#FFFFFF7A', fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 2, textAlign: 'center' },
   playWrap:   { paddingHorizontal: 20, marginBottom: 20 },
   settingsBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
@@ -1057,21 +1063,21 @@ const styles = StyleSheet.create({
   rankedBtnGrad:      { paddingVertical: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
   rankedBtnHighlight: { position: 'absolute', top: 0, left: 0, right: 0, height: 1.5, backgroundColor: '#FFFFFF50', borderTopLeftRadius: 18, borderTopRightRadius: 18 },
   rankedBtnIcon:      { fontSize: 24 },
-  rankedBtnText:      { fontFamily: 'Inter_700Bold', fontSize: 21, color: '#07090F', letterSpacing: 2 },
+  rankedBtnText:      { fontFamily: 'Rajdhani_700Bold', fontSize: 24, color: '#07090F', letterSpacing: 2 },
   rankedBtnSub:       { fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#07090F77', letterSpacing: 1 },
   // Secondary CASUAL button
   casualBtn:     { borderRadius: 14, overflow: 'hidden', borderWidth: 1.5, borderColor: '#1E8AAA44' },
   casualBtnGrad: { paddingVertical: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  casualBtnText: { fontFamily: 'Inter_700Bold', fontSize: 14, color: '#5BB8D4', letterSpacing: 1.5 },
+  casualBtnText: { fontFamily: 'Rajdhani_700Bold', fontSize: 16, color: '#5BB8D4', letterSpacing: 1.5 },
   casualBtnSub:  { fontFamily: 'Inter_400Regular', fontSize: 12, color: '#1E8AAA66' },
   shimmerSweep:  { position: 'absolute', top: 0, bottom: 0, width: '45%', backgroundColor: '#FFFFFF', opacity: 0.15, borderRadius: 22 },
   modesSection: { gap: 8, marginBottom: 16 },
   modesSectionHeader: { paddingHorizontal: 20, gap: 2 },
-  modesSectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#F0F0FF', letterSpacing: 1.5 },
+  modesSectionTitle: { fontFamily: 'Rajdhani_700Bold', fontSize: 15, color: '#F0F0FF', letterSpacing: 1.5 },
   modesSectionSub: { fontFamily: 'Inter_400Regular', fontSize: 11 },
   modePickCard: { width: 118, borderRadius: 14, borderWidth: 1.5, padding: 12, gap: 4, overflow: 'hidden' },
   modePickEmoji: { fontSize: 24 },
-  modePickName: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.2 },
+  modePickName: { fontFamily: 'Rajdhani_700Bold', fontSize: 12, letterSpacing: 1.2 },
   modePickSub: { fontFamily: 'Inter_600SemiBold', fontSize: 8, letterSpacing: 0.3 },
   modePickDesc: { fontFamily: 'Inter_400Regular', fontSize: 9, lineHeight: 13 },
   modePlayChip: { flexDirection: 'row', alignItems: 'center', gap: 3, borderRadius: 5, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 2 },

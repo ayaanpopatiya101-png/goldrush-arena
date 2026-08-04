@@ -625,7 +625,7 @@ const styles = StyleSheet.create({
   bannerGrad: { width: '100%', alignItems: 'center', paddingVertical: 30, paddingHorizontal: 20, gap: 6, borderRadius: 22 },
   medalEmoji: { fontSize: 68, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24 },
   positionText: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 5 },
-  resultText: { fontFamily: 'Inter_700Bold', fontSize: 32, letterSpacing: 3 },
+  resultText: { fontFamily: 'Rajdhani_700Bold', fontSize: 38, letterSpacing: 3 },
   victoryEmoji: { fontSize: 40, marginTop: 4 },
   statsCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 14 },
   statsTitle: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2 },
