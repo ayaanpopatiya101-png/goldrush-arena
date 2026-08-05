@@ -8,6 +8,10 @@ import { Text, TextProps } from 'react-native';
 
 interface CounterTextProps extends TextProps {
   value: number;
+  /** Seed the display counter at this value on first render instead of 0.
+   *  Prevents a visible 0 → N animation when the component mounts or re-mounts
+   *  mid-game (e.g. after a pause). */
+  initialValue?: number;
   /** Format the number to string (default: toLocaleString) */
   format?: (n: number) => string;
   /** Animation duration ms */
@@ -22,6 +26,7 @@ function easeOutCubic(t: number): number {
 
 export function CounterText({
   value,
+  initialValue,
   format,
   duration = 1200,
   prefix = '',
@@ -29,9 +34,9 @@ export function CounterText({
   style,
   ...rest
 }: CounterTextProps) {
-  const [display, setDisplay] = useState(0);
+  const [display, setDisplay] = useState(() => initialValue ?? 0);
   const startRef   = useRef<number | null>(null);
-  const fromRef    = useRef(0);
+  const fromRef    = useRef(initialValue ?? 0);
   const rafRef     = useRef<number | null>(null);
 
   useEffect(() => {

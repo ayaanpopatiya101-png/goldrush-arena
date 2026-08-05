@@ -1516,7 +1516,7 @@ export function GameArena({
             <GlowText style={s.scoreLabel} color="#C8820A66" intensity="soft">
               HITS
             </GlowText>
-            <CounterText value={playerScoreUI} style={s.scoreValue} duration={600} />
+            <CounterText value={playerScoreUI} initialValue={deflectionsRef.current} style={s.scoreValue} duration={600} />
           </View>
         )}
 
