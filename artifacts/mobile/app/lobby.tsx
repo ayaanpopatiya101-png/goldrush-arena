@@ -20,6 +20,7 @@ import Reanimated, {
   ZoomIn,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
@@ -127,6 +128,40 @@ const VARIANT_RULES: Record<string, string[]> = {
   ],
 };
 
+// ── GO! Flash Overlay ─────────────────────────────────────────────────────────
+function GoFlash() {
+  const scale   = useSharedValue(0.3);
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value   = withSpring(1, { damping: 7, stiffness: 220 });
+    opacity.value = withDelay(150, withTiming(0, { duration: 250 }));
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity:   opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <View style={goFlashStyles.overlay} pointerEvents="none">
+      <Reanimated.Text style={[goFlashStyles.text, animStyle]}>GO!</Reanimated.Text>
+    </View>
+  );
+}
+
+const goFlashStyles = StyleSheet.create({
+  overlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#00000055',
+  },
+  text: {
+    fontFamily: 'Inter_700Bold', fontSize: 112, color: '#00FF88',
+    textShadowColor: '#00FF88', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 40,
+  },
+});
+
 // ── 3D Countdown Overlay ──────────────────────────────────────────────────────
 function CountdownOverlay({ countdown }: { countdown: number }) {
   const ring1Anim = useRef(new Animated.Value(0)).current;
@@ -203,6 +238,7 @@ export default function LobbyScreen() {
   const [opponents, setOpponents]   = useState<MatchPlayer[]>([]);  // up to 3 others
   const [status, setStatus]         = useState<'searching' | 'found' | 'countdown'>('searching');
   const [countdown, setCountdown]   = useState<number | null>(null);
+  const [showGoFlash, setShowGoFlash] = useState(false);
   const [apiAvailable, setApiAvailable] = useState<boolean | null>(null); // null = unknown
   const [selectedMap, setSelectedMap]   = useState(defaultMapId);
   const selectedMapRef = useRef(selectedMap);
@@ -261,7 +297,10 @@ export default function LobbyScreen() {
         if (c <= 0) {
           if (countdownTimer) clearInterval(countdownTimer);
           updateGameConfig({ mapId: selectedMapRef.current });
-          router.replace('/game');
+          setShowGoFlash(true);
+          setTimeout(() => {
+            if (!cancelled) router.replace('/game');
+          }, 400);
         }
       }, 1000);
     }
@@ -638,6 +677,9 @@ export default function LobbyScreen() {
       {countdown !== null && countdown > 0 && (
         <CountdownOverlay key={countdown} countdown={countdown} />
       )}
+
+      {/* GO! flash — shown when countdown hits zero */}
+      {showGoFlash && <GoFlash key="go-flash" />}
     </Reanimated.View>
   );
 }
