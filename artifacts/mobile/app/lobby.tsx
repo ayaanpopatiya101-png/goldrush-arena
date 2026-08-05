@@ -27,6 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerCard } from '@/components/PlayerCard';
 import { FloatingOrbs, ORBS_GOLD, GlowText } from '@/components/effects';
 import { RANKS, SKINS, MAPS, getRankIndex, getRelic, usePlayer } from '@/context/PlayerContext';
+import { getActiveFeaturedMode } from '@/utils/featuredModes';
 import { useParty } from '@/context/PartyContext';
 import { getGameConfig, updateGameConfig } from '@/store/gameSession';
 import { getGauntletState } from '@/store/gauntletSession';
@@ -437,6 +438,15 @@ export default function LobbyScreen() {
                   <Text style={[styles.modeBadgeText, { color: c }]}>
                     {vm?.emoji} {vm?.name}
                   </Text>
+                </View>
+              );
+            })()}
+            {config.featuredModeId && (() => {
+              const fm = getActiveFeaturedMode();
+              if (!fm || fm.id !== config.featuredModeId) return null;
+              return (
+                <View style={[styles.modeBadge, { backgroundColor: fm.color + '22', borderColor: fm.color + '55' }]}>
+                  <Text style={[styles.modeBadgeText, { color: fm.color }]}>{fm.emoji} {fm.name.toUpperCase()}</Text>
                 </View>
               );
             })()}

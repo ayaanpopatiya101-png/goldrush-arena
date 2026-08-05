@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { getGameConfig } from '@/store/gameSession';
 
 // ─── Ranks & Skins ────────────────────────────────────────────────────────────
 // 20 ranks: Bronze/Silver/Gold/Diamond/Master (×3 each) + Champion (×5, top-100 leaderboard)
@@ -1099,10 +1100,16 @@ export function PlayerProvider({ username, onLogout, children }: {
     const matchType = result.matchType ?? 'casual';
     const levelDelta = calcLevelDelta(result.position, matchType);
     const newCompLevel = Math.max(1, Math.min(50, profile.competitiveLevel + levelDelta));
-    const newXP  = profile.xp + result.xpEarned;
+    // Apply featured mode multipliers (set when player opts in via Events tab)
+    const { featuredCoinMult: _fcm = 1, featuredXpMult: _fxm = 1 } = getGameConfig();
+    const finalXpEarned    = _fxm !== 1 ? Math.round(result.xpEarned   * _fxm) : result.xpEarned;
+    const finalCoinsEarned = _fcm !== 1 ? Math.round(result.coinsEarned * _fcm) : result.coinsEarned;
+    const newXP  = profile.xp + finalXpEarned;
     const newWinStreak = result.won ? profile.winStreak + 1 : 0;
     const match: MatchResult = {
-      ...result, id, timestamp: Date.now(),
+      ...result,
+      xpEarned: finalXpEarned, coinsEarned: finalCoinsEarned,
+      id, timestamp: Date.now(),
       levelBefore: profile.competitiveLevel, levelAfter: newCompLevel,
     };
     // Award credits when all relics are unlocked (Brawl Stars overflow mechanic)
@@ -1161,7 +1168,7 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({
       ...profile,
       xp: newXP, level: xpToLevel(newXP), rank: getRankFromXP(newXP),
-      coins: profile.coins + result.coinsEarned,
+      coins: profile.coins + finalCoinsEarned,
       credits: (profile.credits ?? 0) + creditsEarned,
       wins:  result.won ? profile.wins + 1 : profile.wins,
       losses: !result.won ? profile.losses + 1 : profile.losses,

@@ -30,6 +30,14 @@ export interface GameSessionConfig {
   opponentRanks?:  string[];
   /** When true this is a tutorial practice match — screen shake and goal emojis are suppressed. */
   practice?:       boolean;
+  /** Featured mode id — set when the player opts in via the Events tab. */
+  featuredModeId?:          string;
+  /** Coin multiplier from the active featured mode (e.g. 2.0 = double coins). */
+  featuredCoinMult?:        number;
+  /** XP multiplier from the active featured mode (e.g. 2.0 = double XP). */
+  featuredXpMult?:          number;
+  /** Ball speed factor from the active featured mode (applied on top of variant defaults). */
+  featuredBallSpeedFactor?: number;
 }
 
 let _config: GameSessionConfig = {

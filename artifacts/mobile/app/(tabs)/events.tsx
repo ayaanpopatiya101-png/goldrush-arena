@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   EVENT_MIN_RANK_INDEX,
-  getCurrentEvents, getEventQualifierState, getRankIndex, RANKS, usePlayer,
+  getCurrentEvents, getEventQualifierState, getRankIndex, RANKS, SKINS, usePlayer,
   type EventDefinition, type QualifierRoundDef,
 } from '@/context/PlayerContext';
 import { useColors } from '@/hooks/useColors';
@@ -20,6 +20,7 @@ import {
   setActiveEvent, setGameConfig, setQualifierContext,
   type ActiveEventBonus, type GameVariant,
 } from '@/store/gameSession';
+import { getActiveFeaturedMode, useFeaturedModeCountdown, type FeaturedMode } from '@/utils/featuredModes';
 import { FloatingOrbs, GlowText, PulseRing, ShimmerCard, GlowBorder } from '@/components/effects';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -54,6 +55,25 @@ export default function EventsScreen() {
   const hasRank = rankIdx >= EVENT_MIN_RANK_INDEX;
   const topPad  = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
   const focusStyle = useFocusAnimation();
+
+  function handlePlayFeaturedMode(mode: FeaturedMode) {
+    const skin = SKINS.find(sk => sk.id === profile.currentSkin) ?? SKINS[0];
+    setGameConfig({
+      playerName:      profile.name,
+      playerSkinId:    skin.id,
+      playerColor:     skin.color,
+      playerGlowColor: skin.glowColor,
+      playerRelicId:   profile.currentRelic ?? 'none',
+      matchType:       'casual',
+      variant:         'classic',
+      featuredModeId:          mode.id,
+      featuredCoinMult:        mode.overrides.coinMultiplier,
+      featuredXpMult:          mode.overrides.xpMultiplier,
+      featuredBallSpeedFactor: mode.overrides.ballSpeedFactor,
+    });
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    router.push('/lobby');
+  }
 
   function mainDrawPlaysLeft(ev: EventDefinition): number {
     const used = (profile.eventPlaysUsed ?? {})[ev.periodKey] ?? 0;
@@ -175,6 +195,9 @@ export default function EventsScreen() {
           </View>
         )}
 
+        {/* ── Featured Mode ── */}
+        <FeaturedModeSection onPlay={handlePlayFeaturedMode} />
+
         {/* Weekly — direct entry, no qualifier */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <View style={{ width: 3, height: 16, backgroundColor: '#00FF88', borderRadius: 2 }} />
@@ -231,6 +254,98 @@ export default function EventsScreen() {
         </View>
       </ScrollView>
     </Reanimated.View>
+  );
+}
+
+// ─── Featured Mode Section ────────────────────────────────────────────────────
+function FeaturedModeSection({ onPlay }: { onPlay: (mode: FeaturedMode) => void }) {
+  const { mode, timeLeft } = useFeaturedModeCountdown();
+  if (!mode) return null;
+
+  const { d, h, m: min, s: sec } = timeLeft;
+  const timeStr = d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${min}m` : `${min}m ${sec}s`;
+  const color = mode.color;
+
+  return (
+    <View style={{ gap: 8, marginBottom: 4 }}>
+      {/* Section header */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 0 }}>
+        <View style={{ width: 3, height: 16, backgroundColor: color, borderRadius: 2 }} />
+        <GlowText intensity="medium" color={color} style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color }}>FEATURED THIS WEEK</GlowText>
+        <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+        <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>OPT-IN · CASUAL</Text>
+      </View>
+
+      {/* Card */}
+      <View style={[s.card, { backgroundColor: color + '10', borderColor: color + '40' }]}>
+        <LinearGradient colors={[color + '14', 'transparent']} style={StyleSheet.absoluteFill} />
+
+        {/* Top row */}
+        <View style={s.cardTop}>
+          <View style={[s.typeBadge, { borderColor: color + '55', backgroundColor: color + '18' }]}>
+            <Text style={{ fontSize: 11, marginRight: 3 }}>{mode.emoji}</Text>
+            <Text style={[s.badgeText, { color }]}>FEATURED</Text>
+          </View>
+          <View style={[s.timePill, { borderColor: '#FFFFFF14' }]}>
+            <Feather name="clock" size={9} color={color + 'AA'} />
+            <Text style={[s.timeText, { color: color + 'AA' }]}>{timeStr} left</Text>
+          </View>
+        </View>
+
+        {/* Name row */}
+        <View style={s.nameRow}>
+          <Text style={s.eventEmoji}>{mode.emoji}</Text>
+          <View style={{ flex: 1 }}>
+            <GlowText intensity="medium" color={color} style={s.eventName}>{mode.name}</GlowText>
+            <Text style={[s.eventDesc, { color: '#FFFFFF66' }]}>{mode.descriptor}</Text>
+          </View>
+        </View>
+
+        {/* Rule summary */}
+        <View style={{ gap: 5 }}>
+          {mode.ruleSummary.map((rule, i) => (
+            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color + '99' }} />
+              <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 12, color: '#FFFFFFAA', lineHeight: 18 }}>{rule}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Override pills */}
+        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+          {mode.overrides.coinMultiplier != null && (
+            <View style={[s.rewardPill]}>
+              <Text style={[s.rewardValue, { color: '#FFD700' }]}>{mode.overrides.coinMultiplier}× 🪙</Text>
+              <Text style={s.rewardLabel}>COINS</Text>
+            </View>
+          )}
+          {mode.overrides.xpMultiplier != null && (
+            <View style={[s.rewardPill]}>
+              <Text style={[s.rewardValue, { color: '#00FF88' }]}>{mode.overrides.xpMultiplier}× ⚡</Text>
+              <Text style={s.rewardLabel}>XP</Text>
+            </View>
+          )}
+          {mode.overrides.ballSpeedFactor != null && (
+            <View style={[s.rewardPill]}>
+              <Text style={[s.rewardValue, { color: '#FF6B35' }]}>{mode.overrides.ballSpeedFactor}× 🎯</Text>
+              <Text style={s.rewardLabel}>BALL SPEED</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Play button */}
+        <Pressable
+          onPress={() => onPlay(mode)}
+          style={({ pressed }) => [
+            s.playBtn,
+            { backgroundColor: color + '20', borderColor: color + '66',
+              opacity: pressed ? 0.75 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
+          ]}
+        >
+          <Text style={[s.playBtnText, { color }]}>▶  PLAY {mode.name.toUpperCase()}</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
