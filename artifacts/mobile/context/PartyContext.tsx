@@ -1,6 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { usePlayer } from './PlayerContext';
+import { router } from 'expo-router';
+import { usePlayer, SKINS } from './PlayerContext';
 import { apiUrl } from '@/utils/api';
+import { setGameConfig } from '@/store/gameSession';
+import type { MatchType, GameVariant } from '@/store/gameSession';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface PartyMember {
@@ -10,6 +13,20 @@ export interface PartyMember {
   rank:        string;
   winStreak:   number;
   isLeader:    boolean;
+}
+
+/** Shape the leader sends when launching a game mode for the whole party. */
+export interface PartyLaunchConfig {
+  matchType:              string;
+  variant:                string;
+  featuredModeId?:        string;
+  featuredCoinMult?:      number;
+  featuredXpMult?:        number;
+  featuredBallSpeedFactor?: number;
+}
+
+interface ServerLaunchConfig extends PartyLaunchConfig {
+  launchTime: number;
 }
 
 interface PartyContextType {
@@ -22,6 +39,8 @@ interface PartyContextType {
   createParty: () => Promise<string | null>;
   joinParty:   (code: string) => Promise<'ok' | 'not_found' | 'full' | 'error'>;
   leaveParty:  () => void;
+  /** Leader only: broadcasts a game-mode launch to all party members, who auto-navigate to /lobby. */
+  launchParty: (cfg: PartyLaunchConfig) => void;
 }
 
 const PartyContext = createContext<PartyContextType>({
@@ -30,6 +49,7 @@ const PartyContext = createContext<PartyContextType>({
   createParty: async () => null,
   joinParty:   async () => 'error' as const,
   leaveParty:  () => {},
+  launchParty: () => {},
 });
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -43,12 +63,19 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
   const { profile } = usePlayer();
   const [partyCode, setPartyCode] = useState<string | null>(null);
   const [members,   setMembers]   = useState<PartyMember[]>([]);
-  const pollRef   = useRef<ReturnType<typeof setInterval> | null>(null);
-  const playerIdRef = useRef(`${profile.name}-${Date.now()}`);
+  const pollRef          = useRef<ReturnType<typeof setInterval> | null>(null);
+  const playerIdRef      = useRef(`${profile.name}-${Date.now()}`);
+  const profileRef       = useRef(profile);
+  const isLeaderRef      = useRef(false);
+  const lastLaunchTimeRef = useRef<number>(0);
+
+  // Keep profileRef fresh so async polling callbacks always see latest profile
+  useEffect(() => { profileRef.current = profile; }, [profile]);
 
   const isInParty = partyCode !== null;
-  // Use the stable playerId, not the mutable display name
   const isLeader  = members.some(m => m.isLeader && m.playerId === playerIdRef.current);
+  // Sync ref so async callbacks can read current value without stale closure
+  isLeaderRef.current = isLeader;
 
   function stopPoll() {
     if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
@@ -58,9 +85,35 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch(apiUrl(`/party/${code}/members`));
       if (!res.ok) return;
-      const data = await res.json() as { members: PartyMember[] };
+      const data = await res.json() as { members: PartyMember[]; launchConfig: ServerLaunchConfig | null };
       setMembers(data.members);
-    } catch { /* network hiccup, keep polling */ }
+
+      // Non-leaders auto-follow when leader launches a mode
+      if (data.launchConfig && !isLeaderRef.current) {
+        const lc = data.launchConfig;
+        const isStale     = Date.now() - lc.launchTime > 30_000; // ignore launches older than 30s
+        const alreadyActed = lastLaunchTimeRef.current === lc.launchTime;
+        if (!isStale && !alreadyActed) {
+          lastLaunchTimeRef.current = lc.launchTime;
+          const p    = profileRef.current;
+          const skin = SKINS.find(sk => sk.id === p.currentSkin) ?? SKINS[0];
+          setGameConfig({
+            playerName:   p.name,
+            playerSkinId: skin.id,
+            playerColor:  skin.color,
+            playerGlowColor: skin.glowColor,
+            playerRelicId: p.currentRelic,
+            matchType: lc.matchType as MatchType,
+            variant:   lc.variant   as GameVariant,
+            featuredModeId:          lc.featuredModeId,
+            featuredCoinMult:        lc.featuredCoinMult,
+            featuredXpMult:          lc.featuredXpMult,
+            featuredBallSpeedFactor: lc.featuredBallSpeedFactor,
+          });
+          router.push('/lobby');
+        }
+      }
+    } catch { /* network hiccup — keep polling */ }
   }, []);
 
   async function createParty(): Promise<string | null> {
@@ -130,7 +183,6 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
   function leaveParty() {
     stopPoll();
     if (partyCode) {
-      // Identify by stable playerId — name is a mutable display string
       fetch(apiUrl('/party/leave'), {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -139,6 +191,17 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
     }
     setPartyCode(null);
     setMembers([]);
+    lastLaunchTimeRef.current = 0;
+  }
+
+  /** Leader broadcasts the chosen game mode; all non-leader members auto-navigate to /lobby. */
+  function launchParty(cfg: PartyLaunchConfig) {
+    if (!partyCode) return;
+    fetch(apiUrl(`/party/${partyCode}/launch`), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: playerIdRef.current, ...cfg }),
+    }).catch(() => {}); // fire-and-forget; leader navigates immediately in the calling component
   }
 
   useEffect(() => () => stopPoll(), []);
@@ -147,7 +210,7 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
     <PartyContext.Provider value={{
       partyCode, members, isInParty, isLeader,
       myPlayerId: playerIdRef.current,
-      createParty, joinParty, leaveParty,
+      createParty, joinParty, leaveParty, launchParty,
     }}>
       {children}
     </PartyContext.Provider>

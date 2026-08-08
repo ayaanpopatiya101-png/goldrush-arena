@@ -182,6 +182,8 @@ export default function HomeScreen() {
   }, []);
 
   function handlePlay(matchType: MatchType) {
+    // Non-leaders in a party can't pick the mode — leader controls it
+    if (isInParty && !isLeader) return;
     const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
@@ -189,10 +191,12 @@ export default function HomeScreen() {
       playerRelicId: profile.currentRelic,
       matchType, variant: 'classic',
     });
+    if (isInParty && isLeader) launchParty({ matchType, variant: 'classic' });
     router.push('/lobby');
   }
 
   function handlePlayMode(variant: GameVariant) {
+    if (isInParty && !isLeader) return;
     const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
@@ -200,10 +204,12 @@ export default function HomeScreen() {
       playerRelicId: profile.currentRelic,
       matchType: 'casual', variant,
     });
+    if (isInParty && isLeader) launchParty({ matchType: 'casual', variant });
     router.push('/lobby');
   }
 
   function handlePlayEliteMode(variant: GameVariant) {
+    if (isInParty && !isLeader) return;
     const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
@@ -211,6 +217,7 @@ export default function HomeScreen() {
       playerRelicId: profile.currentRelic,
       matchType: 'ranked', variant,
     });
+    if (isInParty && isLeader) launchParty({ matchType: 'ranked', variant });
     router.push('/lobby');
   }
 
@@ -231,7 +238,7 @@ export default function HomeScreen() {
     dismissStreakModal();
   }
 
-  const { partyCode, members: partyMembers, isInParty, createParty, joinParty, leaveParty } = useParty();
+  const { partyCode, members: partyMembers, isInParty, isLeader, createParty, joinParty, leaveParty, launchParty } = useParty();
   const [showJoinInput, setShowJoinInput] = useState(false);
   const [joinCode,      setJoinCode]      = useState('');
   const [joiningParty,  setJoiningParty]  = useState(false);
@@ -440,7 +447,17 @@ export default function HomeScreen() {
         </View>
 
         {/* Play buttons — Hero RANKED + Secondary CASUAL */}
-        <View style={styles.playWrap}>
+        {/* Non-leaders see a "waiting for leader" banner and buttons are inert */}
+        {isInParty && !isLeader && (
+          <View style={{ marginHorizontal: 20, marginBottom: 8, backgroundColor: '#BF5FFF10', borderRadius: 10, borderWidth: 1, borderColor: '#BF5FFF33', paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={{ fontSize: 14 }}>👑</Text>
+            <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 12, color: '#BF5FFFAA', flex: 1 }}>Waiting for your party leader to pick a mode…</Text>
+          </View>
+        )}
+        <View
+          style={[styles.playWrap, isInParty && !isLeader && { opacity: 0.38 }]}
+          pointerEvents={isInParty && !isLeader ? 'none' : 'auto'}
+        >
           {/* RANKED — Hero CTA */}
           <Animated.View style={{
             marginBottom: 10,
@@ -561,10 +578,20 @@ export default function HomeScreen() {
                       <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 13, color: '#FFFFFF' }}>{m.name}</Text>
                       <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF66' }}>{m.rank}{m.winStreak > 0 ? ` · 🔥${m.winStreak}` : ''}</Text>
                     </View>
-                    {m.isLeader && <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 9, color: '#BF5FFF', letterSpacing: 1 }}>LEADER</Text>}
+                    {m.isLeader && <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 9, color: '#BF5FFF', letterSpacing: 1 }}>👑 LEADER</Text>}
                   </View>
                 ))}
               </View>
+              {/* Leader hint / member waiting status */}
+              {isLeader ? (
+                <View style={{ backgroundColor: '#BF5FFF12', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#BF5FFF99' }}>You're the leader — pick RANKED or CASUAL above to launch for your whole party.</Text>
+                </View>
+              ) : (
+                <View style={{ backgroundColor: '#BF5FFF12', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#BF5FFF88' }}>Waiting for your leader to pick a mode…</Text>
+                </View>
+              )}
             </View>
           )}
         </View>

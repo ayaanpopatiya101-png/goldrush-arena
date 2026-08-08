@@ -14,10 +14,21 @@ interface PartyMember {
   joinedAt:    number;
 }
 
+interface LaunchConfig {
+  matchType:              string;
+  variant:                string;
+  featuredModeId?:        string;
+  featuredCoinMult?:      number;
+  featuredXpMult?:        number;
+  featuredBallSpeedFactor?: number;
+  launchTime:             number;
+}
+
 interface Party {
-  code:      string;
-  members:   PartyMember[];
-  createdAt: number;
+  code:          string;
+  members:       PartyMember[];
+  createdAt:     number;
+  launchConfig?: LaunchConfig;
 }
 
 // ─── In-memory state ──────────────────────────────────────────────────────────
@@ -118,7 +129,36 @@ router.get('/party/:code/members', (req, res) => {
   cleanParties();
   const party = parties.get((req.params.code ?? '').toUpperCase());
   if (!party) { res.status(404).json({ error: 'party not found' }); return; }
-  res.json({ members: party.members.map(memberView) });
+  res.json({ members: party.members.map(memberView), launchConfig: party.launchConfig ?? null });
+});
+
+// ─── PATCH /party/:code/launch — leader sets the game mode for the whole party ─
+router.patch('/party/:code/launch', (req, res) => {
+  const party = parties.get((req.params.code ?? '').toUpperCase());
+  if (!party) { res.status(404).json({ error: 'party not found' }); return; }
+
+  const {
+    playerId, matchType, variant,
+    featuredModeId, featuredCoinMult, featuredXpMult, featuredBallSpeedFactor,
+  } = req.body as {
+    playerId: string; matchType: string; variant: string;
+    featuredModeId?: string; featuredCoinMult?: number;
+    featuredXpMult?: number; featuredBallSpeedFactor?: number;
+  };
+
+  const leader = party.members.find(m => m.isLeader);
+  if (!leader || leader.playerId !== playerId) {
+    res.status(403).json({ error: 'only the party leader can launch' });
+    return;
+  }
+
+  party.launchConfig = {
+    matchType, variant,
+    featuredModeId, featuredCoinMult, featuredXpMult, featuredBallSpeedFactor,
+    launchTime: Date.now(),
+  };
+  logger.info({ partyCode: party.code, matchType, variant }, 'party: leader launched mode');
+  res.json({ ok: true });
 });
 
 // ─── DELETE /party/leave ──────────────────────────────────────────────────────
