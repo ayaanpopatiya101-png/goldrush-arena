@@ -1,3 +1,4 @@
 - [GoldRush Arena stack](goldrush-stack.md) — Expo SDK 54, expo-router tabs, Web Audio API for music/SFX (web-only, platform-guarded)
 - [GoldRush Arena patterns](goldrush-patterns.md) — storage keys, GameArena props interface, PlayerContext functions, and sharp edges.
 - [GoldRush Arena effects library](goldrush-effects.md) — 10-component visual FX library at components/effects/; no new native deps; applied to all screens.
+- [Lives Bank system](lives-bank.md) — extraLivesInventory is the bank; player picks 0–cap in lobby; Champion+ cap=2, others cap=3; consumed in game.tsx at handleGameStart.

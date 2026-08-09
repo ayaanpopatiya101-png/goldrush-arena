@@ -30,6 +30,8 @@ export interface GameSessionConfig {
   opponentRanks?:  string[];
   /** When true this is a tutorial practice match — screen shake and goal emojis are suppressed. */
   practice?:       boolean;
+  /** Lives taken from the bank for this match (chosen in the lobby). */
+  bankLivesUsed?:           number;
   /** Featured mode id — set when the player opts in via the Events tab. */
   featuredModeId?:          string;
   /** Coin multiplier from the active featured mode (e.g. 2.0 = double coins). */

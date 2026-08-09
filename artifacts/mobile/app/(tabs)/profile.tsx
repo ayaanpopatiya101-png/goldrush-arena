@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Easing, Image, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, Easing, Image, Platform, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import Svg, { Circle } from 'react-native-svg';
@@ -11,8 +11,9 @@ import { RankBadge } from '@/components/RankBadge';
 import { FloatingOrbs, GlowBorder, GlowText, PulseRing, ShimmerCard } from '@/components/effects';
 import {
   ACHIEVEMENTS, AVATAR_COLORS, AVATAR_EMOJIS, RANKS, SKINS,
-  getChallengeCode, usePlayer, xpForNextRank, xpToLevel,
+  getChallengeCode, getRankIndex, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
+import { apiUrl } from '@/utils/api';
 import { useColors } from '@/hooks/useColors';
 
 // ─── AI-generated achievement artwork — replaces generic award icon ──────────
@@ -36,8 +37,82 @@ export default function ProfileScreen() {
   const colors    = useColors();
   const insets    = useSafeAreaInsets();
   const {
-    profile, logout, setAvatar,
+    profile, logout, setAvatar, claimReferralReward,
   } = usePlayer();
+
+  // ── Referral system state ──
+  const [myReferralCode,   setMyReferralCode]   = useState<string | null>(null);
+  const [pendingReferrals, setPendingReferrals] = useState(0);
+  const [referralInput,    setReferralInput]    = useState('');
+  const [referralStatus,   setReferralStatus]   = useState<string | null>(null);
+  const [loadingReferral,  setLoadingReferral]  = useState(false);
+  const referralPlayerId = profile.name; // stable ID per player
+
+  useEffect(() => {
+    // Fetch / generate this player's referral code
+    fetch(apiUrl(`/referral/code/${encodeURIComponent(referralPlayerId)}`))
+      .then(r => r.json())
+      .then((d: { code?: string }) => { if (d.code) setMyReferralCode(d.code); })
+      .catch(() => {});
+    // Check for pending rewards
+    fetch(apiUrl(`/referral/pending/${encodeURIComponent(referralPlayerId)}`))
+      .then(r => r.json())
+      .then((d: { pending?: number }) => setPendingReferrals(d.pending ?? 0))
+      .catch(() => {});
+  }, [referralPlayerId]);
+
+  async function handleRedeemReferral() {
+    const code = referralInput.trim().toUpperCase();
+    if (code.length < 4) return;
+    setLoadingReferral(true);
+    setReferralStatus(null);
+    try {
+      const res = await fetch(apiUrl('/referral/redeem'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, redeemerPlayerId: referralPlayerId }),
+      });
+      const data = await res.json() as { ok?: boolean; error?: string };
+      if (data.ok) {
+        setReferralStatus('✅ Code applied! Your friend will get their reward.');
+        setReferralInput('');
+      } else {
+        setReferralStatus(`❌ ${data.error ?? 'Could not apply code.'}`);
+      }
+    } catch {
+      setReferralStatus('❌ No connection — try again.');
+    }
+    setLoadingReferral(false);
+  }
+
+  async function handleClaimReferralReward() {
+    Alert.alert(
+      '🎉 Referral Reward',
+      'A friend joined using your code! Choose your reward:',
+      [
+        {
+          text: '🪙 10,000 Coins',
+          onPress: async () => {
+            try {
+              await fetch(apiUrl(`/referral/claim/${encodeURIComponent(referralPlayerId)}`), { method: 'POST' });
+              await claimReferralReward('coins');
+              setPendingReferrals(p => Math.max(0, p - 1));
+            } catch { /* apply locally even if server call fails */ await claimReferralReward('coins'); setPendingReferrals(p => Math.max(0, p - 1)); }
+          },
+        },
+        {
+          text: '❤️ 1 Bank Life',
+          onPress: async () => {
+            try {
+              await fetch(apiUrl(`/referral/claim/${encodeURIComponent(referralPlayerId)}`), { method: 'POST' });
+              await claimReferralReward('life');
+              setPendingReferrals(p => Math.max(0, p - 1));
+            } catch { await claimReferralReward('life'); setPendingReferrals(p => Math.max(0, p - 1)); }
+          },
+        },
+      ]
+    );
+  }
 
   const [avatarEditing, setAvatarEditing] = useState(false);
   const [tempEmoji, setTempEmoji]         = useState(profile.avatarEmoji);
@@ -391,6 +466,111 @@ export default function ProfileScreen() {
             </View>
           </View>
         )}
+
+        {/* ── Lives Bank summary ── */}
+        <View style={{ backgroundColor: '#FF475710', borderRadius: 14, borderWidth: 1, borderColor: '#FF475733', padding: 14, gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#FF6B88', borderRadius: 2 }} />
+            <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FF6B88' }}>LIVES BANK</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 4 }}>
+              {Array.from({ length: Math.min(profile.extraLivesInventory ?? 0, 8) }).map((_, i) => (
+                <Text key={i} style={{ fontSize: 18 }}>❤️</Text>
+              ))}
+              {(profile.extraLivesInventory ?? 0) > 8 && (
+                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 14, color: '#FF6B88' }}>+{(profile.extraLivesInventory ?? 0) - 8}</Text>
+              )}
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 22, color: '#FF6B88' }}>
+                {profile.extraLivesInventory ?? 0}
+              </Text>
+              <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF55' }}>
+                {getRankIndex(profile.rank) >= 15 ? 'Champion+ · max 2/match' : 'Up to 3 lives per match'}
+              </Text>
+            </View>
+          </View>
+          <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF44', lineHeight: 17 }}>
+            Earn from Dragon Cache / Nexus Core Gold Strikes, Premium Pass milestones, the Shop, or friend referrals.
+          </Text>
+        </View>
+
+        {/* ── Referral ── */}
+        <View style={{ backgroundColor: '#00BFFF0A', borderRadius: 14, borderWidth: 1, borderColor: '#00BFFF33', padding: 14, gap: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#00BFFF', borderRadius: 2 }} />
+            <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#00BFFF' }}>REFER A FRIEND</Text>
+          </View>
+
+          {/* Pending reward claim */}
+          {pendingReferrals > 0 && (
+            <Pressable
+              onPress={handleClaimReferralReward}
+              style={{ backgroundColor: '#00FF8818', borderRadius: 10, borderWidth: 1, borderColor: '#00FF8844', paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}
+            >
+              <Text style={{ fontSize: 18 }}>🎉</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 13, color: '#00FF88' }}>
+                  {pendingReferrals} Friend{pendingReferrals > 1 ? 's' : ''} Joined!
+                </Text>
+                <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 11, color: '#00FF8888' }}>Tap to claim your reward</Text>
+              </View>
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, color: '#00FF88' }}>CLAIM →</Text>
+            </Pressable>
+          )}
+
+          {/* Your referral code */}
+          <View style={{ gap: 4 }}>
+            <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#FFFFFF55', letterSpacing: 1.5 }}>YOUR CODE</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ flex: 1, backgroundColor: '#00BFFF14', borderRadius: 10, borderWidth: 1, borderColor: '#00BFFF44', paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}>
+                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 20, color: '#00BFFF', letterSpacing: 4 }}>
+                  {myReferralCode ?? '···'}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => {
+                  if (!myReferralCode) return;
+                  Share.share({ message: `Join me on GoldRush Arena! Use my referral code: ${myReferralCode}\nWhen you sign up and enter my code, I get a bonus reward 🎮` });
+                }}
+                style={{ backgroundColor: '#00BFFF22', borderRadius: 10, borderWidth: 1, borderColor: '#00BFFF55', padding: 12 }}
+              >
+                <Text style={{ fontSize: 18 }}>📤</Text>
+              </Pressable>
+            </View>
+            <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF44', lineHeight: 17 }}>
+              Share this code with friends. When they enter it after signing up, you'll earn your choice of 10,000 Coins or 1 Bank Life.
+            </Text>
+          </View>
+
+          {/* Enter a friend's referral code */}
+          <View style={{ gap: 6 }}>
+            <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#FFFFFF55', letterSpacing: 1.5 }}>ENTER A FRIEND'S CODE</Text>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TextInput
+                value={referralInput}
+                onChangeText={v => setReferralInput(v.toUpperCase().slice(0, 8))}
+                placeholder="FRIEND'S CODE"
+                placeholderTextColor="#FFFFFF22"
+                autoCapitalize="characters"
+                style={{ flex: 1, backgroundColor: '#FFFFFF08', borderRadius: 10, borderWidth: 1, borderColor: '#00BFFF33', color: '#FFFFFF', fontFamily: 'Inter_700Bold', fontSize: 15, letterSpacing: 3, textAlign: 'center', paddingVertical: 10 }}
+              />
+              <Pressable
+                onPress={handleRedeemReferral}
+                disabled={loadingReferral || referralInput.length < 4}
+                style={{ backgroundColor: '#00BFFF', borderRadius: 10, paddingHorizontal: 16, justifyContent: 'center', opacity: referralInput.length < 4 ? 0.4 : 1 }}
+              >
+                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, color: '#07090F' }}>{loadingReferral ? '...' : 'APPLY'}</Text>
+              </Pressable>
+            </View>
+            {referralStatus && (
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 11, color: referralStatus.startsWith('✅') ? '#00FF88' : '#FF4757', textAlign: 'center' }}>
+                {referralStatus}
+              </Text>
+            )}
+          </View>
+        </View>
 
         {/* ── Sign out ── */}
         <Pressable onPress={handleLogout} style={styles.logoutBtn}>

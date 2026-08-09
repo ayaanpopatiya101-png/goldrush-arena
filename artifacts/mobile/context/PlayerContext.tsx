@@ -545,6 +545,8 @@ export interface LuckyBlock {
 export interface LuckyBlockReward {
   coins: number;
   xp: number;
+  /** Bank lives awarded — 1 for Dragon Cache (legendary), 2 for Nexus Core (ultra). */
+  lives?: number;
   label: string;
 }
 
@@ -586,11 +588,11 @@ export function generateLuckyBlockReward(tier: LuckyBlockTier): LuckyBlockReward
     }
     case 'legendary': {
       const c = rnd(2500, 5000); const x = rnd(1200, 3000);
-      return { coins: c, xp: x, label: `${c} Coins + ${x} XP` };
+      return { coins: c, xp: x, lives: 1, label: `${c} Coins + ${x} XP + ❤️ 1 Bank Life` };
     }
     case 'ultra': {
       const c = rnd(5000, 12000); const x = rnd(3000, 8000);
-      return { coins: c, xp: x, label: `${c} Coins + ${x} XP` };
+      return { coins: c, xp: x, lives: 2, label: `${c} Coins + ${x} XP + ❤️❤️ 2 Bank Lives` };
     }
   }
 }
@@ -640,7 +642,7 @@ export const TROPHY_ROAD: TrophyMilestone[] = [
 export const BATTLE_PASS_SEASON = 1;
 export const BATTLE_PASS_POINTS_PER_TIER = 100; // 100 BPP per slot, 5000 BPP for all 50
 
-export type BPRewardType = 'coins' | 'credits' | 'luckyblock' | 'skin' | 'ultradrop';
+export type BPRewardType = 'coins' | 'credits' | 'luckyblock' | 'skin' | 'ultradrop' | 'bank_life';
 export interface BPReward {
   type: BPRewardType;
   amount?: number;      // coins / credits / ultradrop count
@@ -683,7 +685,7 @@ export const BATTLE_PASS_TIERS: BattlePassTier[] = [
   bp(17, { type:'luckyblock', tier:'epic' },                  { type:'luckyblock', tier:'mythic' }),
   bp(18, { type:'credits', amount:35 },                       { type:'credits', amount:90 }),
   bp(19, { type:'coins', amount:500 },                        { type:'coins', amount:1000 }),
-  bp(20, { type:'luckyblock', tier:'mythic' },                { type:'luckyblock', tier:'legendary' }, true),
+  bp(20, { type:'luckyblock', tier:'mythic' },                { type:'bank_life', amount: 1, label: '1 Bank Life ❤️' }, true),
   // Slot 21-30
   bp(21, { type:'coins', amount:300 },                        { type:'coins', amount:600 }),
   bp(22, { type:'credits', amount:40 },                       { type:'credits', amount:100 }),
@@ -700,7 +702,7 @@ export const BATTLE_PASS_TIERS: BattlePassTier[] = [
   bp(32, { type:'coins', amount:500 },                        { type:'coins', amount:1000 }),
   bp(33, { type:'luckyblock', tier:'mythic' },                { type:'luckyblock', tier:'legendary' }),
   bp(34, { type:'coins', amount:800 },                        { type:'coins', amount:1600 }),
-  bp(35, { type:'credits', amount:75 },                       { type:'credits', amount:180 }, true),
+  bp(35, { type:'credits', amount:75 },                       { type:'bank_life', amount: 1, label: '1 Bank Life ❤️' }, true),
   bp(36, { type:'luckyblock', tier:'epic' },                  { type:'luckyblock', tier:'mythic' }),
   bp(37, { type:'coins', amount:600 },                        { type:'coins', amount:1200 }),
   bp(38, { type:'credits', amount:100 },                      { type:'credits', amount:250 }),
@@ -716,7 +718,7 @@ export const BATTLE_PASS_TIERS: BattlePassTier[] = [
   bp(47, { type:'credits', amount:300 },                      { type:'credits', amount:750 }),
   bp(48, { type:'luckyblock', tier:'legendary' },             { type:'luckyblock', tier:'legendary' }),
   bp(49, { type:'coins', amount:2000 },                       { type:'coins', amount:4000 }),
-  bp(50, { type:'ultradrop', amount:1, label:'Ultra Drop' },  { type:'ultradrop', amount:5, label:'5× Ultra Drop' }, true),
+  bp(50, { type:'bank_life', amount:1, label:'1 Bank Life ❤️' }, { type:'ultradrop', amount:5, label:'5× Ultra Drop' }, true),
 ];
 
 // ─── Quest System ─────────────────────────────────────────────────────────────
@@ -1066,6 +1068,8 @@ interface PlayerContextType {
   consumeExtraLives: (count: number) => Promise<void>;
   claimBattlePassTier: (slot: number, isPremium: boolean) => Promise<LuckyBlock | null>;
   claimQuestReward: (questId: string) => Promise<{ success: boolean; bppEarned: number }>;
+  /** Apply a chosen referral reward — called after the server confirms a pending reward. */
+  claimReferralReward: (choice: 'coins' | 'life') => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -1165,6 +1169,7 @@ export function PlayerProvider({ username, onLogout, children }: {
     let streakBlock: LuckyBlock | null = null;
     if (result.won && newWinStreak > 0 && newWinStreak % 5 === 0) {
       const tier: LuckyBlockTier =
+        newWinStreak >= 25 ? 'ultra'     :
         newWinStreak >= 20 ? 'legendary' :
         newWinStreak >= 15 ? 'mythic'    :
         newWinStreak >= 10 ? 'epic'      : 'rare';
@@ -1458,6 +1463,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       coins: profile.coins + reward.coins,
       xp: reward.xp > 0 ? newXP : profile.xp,
       rank: reward.xp > 0 ? newRank : profile.rank,
+      extraLivesInventory: (profile.extraLivesInventory ?? 0) + (reward.lives ?? 0),
     });
   }, [profile, save]);
 
@@ -1621,6 +1627,9 @@ export function PlayerProvider({ username, onLogout, children }: {
       }));
       earnedBlock = newBlocks[0];
       updated = { ...updated, luckyBlocks: [...(updated.luckyBlocks ?? []), ...newBlocks] };
+    } else if (reward.type === 'bank_life') {
+      const count = reward.amount ?? 1;
+      updated = { ...updated, extraLivesInventory: (updated.extraLivesInventory ?? 0) + count };
     }
     await save(updated);
     return earnedBlock;
@@ -1655,6 +1664,14 @@ export function PlayerProvider({ username, onLogout, children }: {
     return { success: true, bppEarned };
   }, [profile, save]);
 
+  const claimReferralReward = useCallback(async (choice: 'coins' | 'life') => {
+    if (choice === 'coins') {
+      await save({ ...profile, coins: profile.coins + 10_000 });
+    } else {
+      await save({ ...profile, extraLivesInventory: (profile.extraLivesInventory ?? 0) + 1 });
+    }
+  }, [profile, save]);
+
   const dismissStreakModal = useCallback(() => setShowStreakModal(false), []);
 
   return (
@@ -1665,7 +1682,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       setSelectedSuper, setSkillTier, purchaseForgeAbility, equipForgeAbility,
       spendEventPlay, claimEventBonus, spendQualifierPlay, earnQualifierPoints,
       openLuckyBlock, redeemCode, consumeExtraLives,
-      claimBattlePassTier, claimQuestReward, logout,
+      claimBattlePassTier, claimQuestReward, claimReferralReward, logout,
     }}>
       {children}
     </PlayerContext.Provider>

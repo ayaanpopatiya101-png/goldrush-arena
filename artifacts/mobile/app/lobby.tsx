@@ -273,6 +273,16 @@ export default function LobbyScreen() {
     return () => { pulse.stop(); d1.stop(); d2.stop(); d3.stop(); };
   }, []);
 
+  // Lives bank — player chooses how many bank lives to spend this match
+  const bankLives       = profile.extraLivesInventory ?? 0;
+  const isChampionPlus  = getRankIndex(profile.rank) >= 15; // Champion 1–5 = index 15–19
+  const maxLivesPerGame = isChampionPlus ? 2 : 3;
+  const livesCap        = Math.min(bankLives, maxLivesPerGame);
+  const [livesUsed, setLivesUsed] = useState(0);
+
+  // Keep game config in sync whenever the selection changes
+  useEffect(() => { updateGameConfig({ bankLivesUsed: livesUsed }); }, [livesUsed]);
+
   // Matchmaking logic
   useEffect(() => {
     let cancelled = false;
@@ -518,6 +528,61 @@ export default function LobbyScreen() {
             <View style={[styles.dot, { backgroundColor: '#00FF88' }]} />
           )}
           <Text style={[styles.statusText, { color: statusColor }]}>{searchingLabel}</Text>
+        </View>
+
+        {/* ── Lives Bank ── */}
+        <View style={{ marginBottom: 8, backgroundColor: '#FF475710', borderRadius: 14, borderWidth: 1, borderColor: '#FF475733', padding: 14, gap: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 3, height: 14, backgroundColor: '#FF6B88', borderRadius: 2 }} />
+            <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 2, color: '#FF6B88' }}>LIVES BANK</Text>
+            <View style={{ flex: 1 }} />
+            {bankLives > 0 ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                {Array.from({ length: Math.min(bankLives, 6) }).map((_, i) => (
+                  <Text key={i} style={{ fontSize: 11 }}>❤️</Text>
+                ))}
+                {bankLives > 6 && <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#FF6B88AA' }}>+{bankLives - 6}</Text>}
+              </View>
+            ) : (
+              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#FFFFFF33' }}>Empty</Text>
+            )}
+          </View>
+
+          {bankLives > 0 ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 12, color: '#FFFFFF99' }}>
+                  Use {livesUsed} {livesUsed === 1 ? 'life' : 'lives'} this match
+                </Text>
+                {isChampionPlus && (
+                  <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FF6B8866', marginTop: 2 }}>
+                    👑 Champion+ cap: 2 lives per match
+                  </Text>
+                )}
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Pressable
+                  onPress={() => { setLivesUsed(v => Math.max(0, v - 1)); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                  style={[{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#FF475720', borderWidth: 1, borderColor: '#FF475744', alignItems: 'center', justifyContent: 'center' }, livesUsed === 0 && { opacity: 0.35 }]}
+                  disabled={livesUsed === 0}
+                >
+                  <Text style={{ color: '#FF6B88', fontFamily: 'Inter_700Bold', fontSize: 20, lineHeight: 22 }}>−</Text>
+                </Pressable>
+                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 24, color: '#FF6B88', minWidth: 22, textAlign: 'center' }}>{livesUsed}</Text>
+                <Pressable
+                  onPress={() => { setLivesUsed(v => Math.min(livesCap, v + 1)); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                  style={[{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#FF475720', borderWidth: 1, borderColor: '#FF475744', alignItems: 'center', justifyContent: 'center' }, livesUsed >= livesCap && { opacity: 0.35 }]}
+                  disabled={livesUsed >= livesCap}
+                >
+                  <Text style={{ color: '#FF6B88', fontFamily: 'Inter_700Bold', fontSize: 20, lineHeight: 22 }}>+</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 12, color: '#FFFFFF44', lineHeight: 18 }}>
+              Earn lives from Gold Strikes (Dragon Cache &amp; Nexus Core), the Premium Pass, the Shop, or by referring friends.
+            </Text>
+          )}
         </View>
 
         {/* Party panel — only visible when player is in a party */}
