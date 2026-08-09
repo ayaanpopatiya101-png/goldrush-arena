@@ -912,6 +912,8 @@ export interface MatchResult {
   deflections: number; goalsAgainst: number; position: number; timestamp: number;
   matchType?: 'ranked' | 'casual';
   levelBefore?: number; levelAfter?: number;
+  /** Opponent competitive levels (1–50) used for TrueSkill delta calculation. */
+  opponentLevels?: number[];
 }
 
 const DEFAULT_PROFILE: PlayerProfile = {
@@ -949,12 +951,51 @@ const DEFAULT_PROFILE: PlayerProfile = {
   seasonalQuestClaimed: [],
 };
 
-// ─── Halo-style level change calculator ───────────────────────────────────────
-export function calcLevelDelta(position: number, matchType: 'ranked' | 'casual'): number {
-  if (matchType === 'casual') return 0; // casual never affects rank
-  if (position === 1) return 2;         // champion → +2 levels
-  if (position === 2) return 0;         // runner-up → no change
-  return -1;                            // eliminated early → -1 level
+// ─── Skill level ↔ rank conversion ────────────────────────────────────────────
+/**
+ * Maps a rank name (e.g. "Gold 1") to a 1–50 competitive skill level so that
+ * bot/opponent ranks can feed into the TrueSkill delta calculation.
+ */
+export function levelFromRank(rankName: string): number {
+  const idx = getRankIndex(rankName); // 0-based, 0–19
+  return Math.round((idx / (RANKS.length - 1)) * 49) + 1; // → 1–50
+}
+
+// ─── TrueSkill-inspired level change calculator ───────────────────────────────
+/**
+ * Returns the integer level delta (+/-) after a ranked match.
+ *
+ * Inspired by Halo 3's dual-rank system:
+ *  - Casual matches never affect skill rank.
+ *  - Placement score vs. Elo-style expected score determines the delta.
+ *  - Beating higher-skilled opponents gives more; losing to weaker ones costs more.
+ *  - Variable K-factor: faster climb at lower levels, slower at the top.
+ *  - The caller should clamp the result to [1, 50] and separately track highestLevel.
+ */
+export function calcTrueSkillDelta(
+  position: number,
+  myLevel: number,
+  opponentLevels: number[],
+  matchType: 'ranked' | 'casual',
+): number {
+  if (matchType !== 'ranked') return 0;
+
+  // Placement score for a 4-player FFA: pos1=1.0, pos2=0.667, pos3=0.333, pos4=0
+  const actualScore = (4 - position) / 3;
+
+  // Average opponent level; fall back to mid-range (25) when no data
+  const opponentAvg = opponentLevels.length
+    ? opponentLevels.reduce((s, v) => s + v, 0) / opponentLevels.length
+    : 25;
+
+  // Elo-style expected score: positive skillGap = you're the underdog
+  const skillGap     = opponentAvg - myLevel;
+  const expectedScore = 1 / (1 + Math.pow(10, skillGap / 20));
+
+  // K-factor: faster progression at low levels, tighter at the top
+  const K = myLevel < 15 ? 6 : myLevel < 30 ? 4 : 3;
+
+  return Math.round(K * (actualScore - expectedScore));
 }
 
 // ─── Utility fns ──────────────────────────────────────────────────────────────
@@ -1098,7 +1139,8 @@ export function PlayerProvider({ username, onLogout, children }: {
   const addMatchResult = useCallback(async (result: Omit<MatchResult, 'id'|'timestamp'>) => {
     const id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
     const matchType = result.matchType ?? 'casual';
-    const levelDelta = calcLevelDelta(result.position, matchType);
+    const opponentLevels = result.opponentLevels ?? [];
+    const levelDelta = calcTrueSkillDelta(result.position, profile.competitiveLevel, opponentLevels, matchType);
     const newCompLevel = Math.max(1, Math.min(50, profile.competitiveLevel + levelDelta));
     // Apply featured mode multipliers (set when player opts in via Events tab)
     const { featuredCoinMult: _fcm = 1, featuredXpMult: _fxm = 1 } = getGameConfig();

@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
-import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, RANKS, MAPS, getScaledRelicEffect, getRelicLevel, getStreakMultiplier, getDifficultyMultiplier, getForgeAbility, mergeRelicEffects } from '@/context/PlayerContext';
+import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, RANKS, MAPS, getScaledRelicEffect, getRelicLevel, getStreakMultiplier, getDifficultyMultiplier, getForgeAbility, mergeRelicEffects, levelFromRank } from '@/context/PlayerContext';
 import { getGameConfig, getActiveEvent, clearActiveEvent, getQualifierContext, clearQualifierContext } from '@/store/gameSession';
 import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
@@ -208,6 +208,11 @@ export default function GameScreen() {
     let finalXP       = Math.round(result.xpEarned * totalMult);
     let finalCoins    = Math.round(result.coinsEarned * totalMult);
 
+    // Resolve the 3 opponent ranks (matchmaker or generated), convert to 1–50 skill levels
+    // so calcTrueSkillDelta can weight the outcome by lobby strength.
+    const resolvedBotRanks = (config.opponentRanks?.length ? config.opponentRanks : generatedBotRanks).slice(0, 3);
+    const opponentLevels   = resolvedBotRanks.map(r => levelFromRank(r));
+
     // ── Gauntlet round completion ─────────────────────────────────────────────
     if (matchType === 'gauntlet') {
       const { gauntletWon, gauntletOver } = recordRoundResult(result.won, finalXP, finalCoins);
@@ -216,7 +221,7 @@ export default function GameScreen() {
       addMatchResult({
         won: result.won, xpEarned: finalXP, coinsEarned: finalCoins,
         deflections: result.deflections, goalsAgainst: result.goalsAgainst,
-        position: result.position, matchType: 'ranked',
+        position: result.position, matchType: 'ranked', opponentLevels,
       });
       const gs = getGauntletState();
       router.replace({
@@ -245,7 +250,7 @@ export default function GameScreen() {
     addMatchResult({
       won: result.won, xpEarned: finalXP, coinsEarned: finalCoins,
       deflections: result.deflections, goalsAgainst: result.goalsAgainst,
-      position: result.position, matchType: mt,
+      position: result.position, matchType: mt, opponentLevels,
     });
     router.replace({
       pathname: '/postgame',
