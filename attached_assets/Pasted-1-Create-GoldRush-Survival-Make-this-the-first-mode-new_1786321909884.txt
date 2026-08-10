@@ -1,0 +1,75 @@
+1. Create “GoldRush Survival”
+Make this the first mode new players see:
+One player paddle.
+One ball.
+One life.
+Score increases with every successful deflection.
+Ball speed gradually increases.
+A match begins immediately—no lobby.
+Losing opens the results screen within a fraction of a second.
+A large RETRY button starts another game instantly.
+Implement the rules inside GameArena.tsx, with the mode configuration stored in gameSession.ts.
+The deeper four-player battle mode can remain available after players understand the controls.
+2. Make one score socially important
+Display only the numbers players immediately understand:
+Current score
+Personal best
+Today’s best
+Friend’s challenged score
+Global daily rank
+Add a seeded daily challenge so everyone encounters the same ball-speed pattern. That makes scores feel comparable instead of random.
+3. Redesign the post-game loop
+Update postgame.tsx so the primary actions are:
+Retry
+Challenge a friend
+Share score
+Generate an attractive share card containing:
+“I survived 47 hits”
+Personal-best indicator
+GoldRush Arena logo
+Challenge code or deep link
+“Can you beat 47?”
+When someone opens the link, launch them directly into the same challenge—not the home screen or store.
+4. Add fair, restrained advertising
+A sensible model would be:
+No advertisement during gameplay.
+Optional rewarded advertisement for one revive.
+Interstitial advertisement after every three to five completed rounds.
+Permanent “Remove Ads” purchase.
+Cosmetic purchases that do not improve competitive performance.
+Flappy Bird’s income came from huge advertising volume, not expensive purchases. Showing an advertisement after every five-second loss would likely frustrate players and damage retention.
+5. Simplify the first session
+The current game advertises six modes, 23 ranks, relics, supers, Trophy Road, events, and multiple currencies. These are useful for long-term retention but overwhelming before a player enjoys the basic interaction.
+The initial experience should be:
+Open game → Play immediately → Lose → See score → Retry
+Introduce the store, relics, events, ranks, and battle pass gradually after several games.
+6. Add real leaderboards and challenges
+The repository is currently described as offline-first, although it already contains API routes for matchmaking, parties, and referrals. Extend the backend with:
+Anonymous player identity
+Daily challenge seed
+Signed score submission
+Daily and all-time leaderboards
+Friend challenge links
+Basic anti-cheat validation
+Score replay metadata
+Do not trust a score sent directly from the phone without validating match duration, score progression, and challenge seed.
+7. Correct the mobile payment system
+The current shop appears to use Stripe checkout and redemption codes for digital game items. On iOS, digital content generally needs Apple’s in-app purchase system rather than an external Stripe flow. Use StoreKit through a React Native purchasing library on iOS and Google Play Billing on Android. Stripe can remain for a web version where permitted. Review Apple’s current App Review Guidelines before launch.
+8. Measure the loop before adding more content
+Instrument these events:
+App opened
+First game started
+First game completed
+Retry selected
+Score shared
+Challenge link opened
+Rewarded advertisement watched
+Purchase started/completed
+The most important indicators are:
+Percentage starting a game within 10 seconds
+Percentage immediately playing again
+Median games per session
+Share and challenge-link rate
+Day-one and day-seven retention
+Advertising revenue per active player
+Crash-free sessions and frame rate
