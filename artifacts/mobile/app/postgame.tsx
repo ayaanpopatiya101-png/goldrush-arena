@@ -11,6 +11,7 @@ import { ConfettiRain } from '@/components/ConfettiRain';
 import { FloatingOrbs, GlowText, PulseRing, ShimmerCard } from '@/components/effects';
 import { ACHIEVEMENTS, RANKS, LUCKY_BLOCK_META, getCurrentEvents, usePlayer, xpForNextRank, xpToLevel, type LuckyBlock } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
+import { RankCeremonyOverlay } from '@/components/RankCeremonyOverlay';
 import { useColors } from '@/hooks/useColors';
 
 // ─── Emote strip ─────────────────────────────────────────────────────────────
@@ -117,7 +118,6 @@ export default function PostGameScreen() {
   const card1Anim       = useRef(new Animated.Value(0)).current; // stats card
   const card2Anim       = useRef(new Animated.Value(0)).current; // xp / level card
   const card3Anim       = useRef(new Animated.Value(0)).current; // buttons row
-  const promotedFlashAnim = useRef(new Animated.Value(0)).current;
   const [newAchievement, setNewAchievement] = useState<string | null>(null);
   const [showXP, setShowXP] = useState(false);
   const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
@@ -132,6 +132,9 @@ export default function PostGameScreen() {
     return r;
   })();
   const promoted = newRank.name !== profile.rank;
+
+  // Ceremony overlay — initialized after `promoted` is computed
+  const [showCeremony, setShowCeremony] = useState(promoted);
 
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
@@ -155,19 +158,6 @@ export default function PostGameScreen() {
     if (Platform.OS !== 'web') {
       if (won) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       else Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    }
-
-    // Rank-up full-screen glow flash
-    if (promoted) {
-      setTimeout(() => {
-        Animated.sequence([
-          Animated.timing(promotedFlashAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
-          Animated.timing(promotedFlashAnim, { toValue: 0.6, duration: 180, useNativeDriver: true }),
-          Animated.timing(promotedFlashAnim, { toValue: 0.9, duration: 160, useNativeDriver: true }),
-          Animated.timing(promotedFlashAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
-        ]).start();
-        if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-      }, 750);
     }
 
     setTimeout(() => {
@@ -599,20 +589,12 @@ export default function PostGameScreen() {
         />
       )}
 
-      {/* Rank-up: full-screen glow flash overlay */}
-      {promoted && (
-        <Animated.View
-          pointerEvents="none"
-          style={[StyleSheet.absoluteFill, { opacity: promotedFlashAnim }]}
-        >
-          <LinearGradient
-            colors={['#FFD70066', '#00FF8844', '#C8820055', '#FFD70066']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-        </Animated.View>
-      )}
+      {/* Rank promotion ceremony overlay */}
+      <RankCeremonyOverlay
+        newRank={newRank.name}
+        visible={showCeremony}
+        onDismiss={() => setShowCeremony(false)}
+      />
     </Reanimated.View>
   );
 }
