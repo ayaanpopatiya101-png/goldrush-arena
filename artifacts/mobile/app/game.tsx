@@ -126,7 +126,9 @@ export default function GameScreen() {
     rampRate:         isChallenge ? config.challengeRampRate : undefined,
     rngSeed:          isChallenge ? config.challengeSeedHash : undefined,
     ballSpawnFrames:  variantCfgRest.ballSpawnFrames ?? mapMods.ballSpawnFrames,
-    noPowerups:       variantCfgRest.noPowerups      ?? mapMods.noPowerups,
+    // Challenge: disable power-ups entirely so extra-life pickups can't break
+    // the 1-life rule and so scores aren't affected by different power-up luck.
+    noPowerups:       isChallenge ? true : (variantCfgRest.noPowerups ?? mapMods.noPowerups),
     // Challenge: locked config — 1 life (one miss ends the run), no bank lives.
     // This overrides the survival variant's default 12 lives so every challenger
     // faces identical starting conditions regardless of inventory.

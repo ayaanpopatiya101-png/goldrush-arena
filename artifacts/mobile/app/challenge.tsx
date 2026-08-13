@@ -12,7 +12,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FloatingOrbs, ORBS_GOLD, GlowText, PulseRing } from '@/components/effects';
@@ -54,6 +54,17 @@ export default function ChallengeScreen() {
     // params and seedHash (used as client PRNG seed in GameArena).
     const deviceId  = await getDeviceId();
     const challenge = await fetchTodayChallenge(deviceId);
+
+    // Require valid server config — without a nonce the run would be random and
+    // ineligible for the leaderboard; show a recoverable error instead.
+    if (!challenge?.matchNonce || !challenge?.seedHash) {
+      Alert.alert(
+        'Challenge Unavailable',
+        "Could not reach the server to load today's challenge config. Please check your connection and try again.",
+        [{ text: 'OK' }],
+      );
+      return;
+    }
 
     setGameConfig({
       playerName:              profile.name,

@@ -736,6 +736,7 @@ export function GameArena({
 
   // ── Super ability activation ──
   function activateSuper() {
+    if (soloModeRef.current) return; // supers disabled in solo/challenge mode — different supers across players would break comparability
     if (superChargeRef.current < SUPER_MAX_CHARGE) return;
     if (superActiveFramesRef.current > 0) return;
     superChargeRef.current = 0;

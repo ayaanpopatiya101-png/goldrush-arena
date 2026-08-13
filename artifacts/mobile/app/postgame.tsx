@@ -520,6 +520,10 @@ export default function PostGameScreen() {
               <Text style={{ fontSize: 16 }}>⚡</Text>
               <Text style={[styles.bonusTitle, { color: '#C8820A' }]}>DAILY CHALLENGE</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              {/* Beta badge: scores are self-reported; this is not a verified leaderboard */}
+              <View style={{ backgroundColor: '#FFFFFF10', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 }}>
+                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 8, color: '#FFFFFF44', letterSpacing: 1 }}>BETA</Text>
+              </View>
               <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF33' }}>{dailySeed}</Text>
             </View>
             <View style={styles.bonusRows}>

@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Animated, Easing, Image, Platform, Pressable, ScrollView,
+  Alert, Animated, Easing, Image, Platform, Pressable, ScrollView,
   Share, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import Reanimated from 'react-native-reanimated';
@@ -241,6 +241,18 @@ export default function HomeScreen() {
     try {
       const deviceId  = await getDeviceId();
       const challenge = await fetchTodayChallenge(deviceId);
+
+      // Require a valid server-issued nonce before starting — without it the run
+      // would be unseeded and ineligible for the leaderboard.
+      if (!challenge?.matchNonce || !challenge?.seedHash) {
+        Alert.alert(
+          'Challenge Unavailable',
+          "Could not load today's challenge from the server. Check your connection and try again.",
+          [{ text: 'OK' }],
+        );
+        return;
+      }
+
       const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0]!;
       setGameConfig({
         playerName:              profile.name,
