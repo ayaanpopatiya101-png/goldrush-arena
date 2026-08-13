@@ -16,7 +16,8 @@ import { useColors } from '@/hooks/useColors';
 import { useSettings } from '@/hooks/useSettings';
 import { useSoundFX } from '@/hooks/useSoundFX';
 import { ShareCard } from '@/components/ShareCard';
-import { fetchTodayChallenge, submitChallengeScore } from '@/utils/dailyChallenge';
+import { submitChallengeScore } from '@/utils/dailyChallenge';
+import { getDeviceId } from '@/utils/deviceId';
 
 // ─── Emote strip ─────────────────────────────────────────────────────────────
 const EMOTES = ['🔥', '👏', '😤', '💀', '🤝', '👑'] as const;
@@ -229,11 +230,12 @@ export default function PostGameScreen() {
     if (isChallengeRun && deflections > 0) {
       setDailySeed(challengeSeed);
       async function submitToChallenge() {
+        const deviceId    = await getDeviceId();
         // Estimate match duration — 2.5 s/deflection average safely clears the
         // 300 ms/deflection anti-cheat floor; task #48 will pass the real timer.
         const estimatedMs = Math.max(deflections * 2500, 30_000);
         const result = await submitChallengeScore(
-          profile.name, deflections, estimatedMs, matchNonce, challengeSeed,
+          deviceId, profile.name, deflections, estimatedMs, matchNonce, challengeSeed,
         );
         if (result.rank !== null)         setChallengeRank(result.rank);
         if (result.personalBest !== null) setChallengePB(result.personalBest);

@@ -36,6 +36,8 @@ export interface GameSessionConfig {
   challengeSeed?:           string;
   /** Server-issued single-use nonce that authorises score submission for this run. */
   matchNonce?:              string;
+  /** SHA-256 hex of the daily seed — used as the client PRNG seed in GameArena. */
+  challengeSeedHash?:       string;
   /** Deterministic start-speed multiplier from the daily challenge seed. */
   challengeStartSpeedMult?: number;
   /** Deterministic per-deflection speed ramp rate from the daily challenge seed. */

@@ -113,6 +113,8 @@ export default function GameScreen() {
   const bankLivesUsed = Math.max(0, config.bankLivesUsed ?? 0);
   // When running a daily challenge, override speed params with deterministic values
   // derived from the daily seed — so every player plays under identical conditions.
+  // The rngSeed (seedHash) further seeds ball/powerup spawning in GameArena so
+  // every player's run follows the same exact sequence of ball angles and positions.
   const isChallenge = Boolean(config.challengeSeed);
   const mergedCfg = {
     ...variantCfgRest,
@@ -120,6 +122,7 @@ export default function GameScreen() {
                         ? (config.challengeStartSpeedMult ?? variantCfgRest.startSpeedMult ?? mapMods.startSpeedMult)
                         : (variantCfgRest.startSpeedMult  ?? mapMods.startSpeedMult),
     rampRate:         isChallenge ? config.challengeRampRate : undefined,
+    rngSeed:          isChallenge ? config.challengeSeedHash : undefined,
     ballSpawnFrames:  variantCfgRest.ballSpawnFrames ?? mapMods.ballSpawnFrames,
     noPowerups:       variantCfgRest.noPowerups      ?? mapMods.noPowerups,
     // Bank lives stack on top of variant bonus lives (e.g. warlord's 5)

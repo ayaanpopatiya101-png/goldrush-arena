@@ -21,6 +21,8 @@ import {
 type SuperType = 1 | 2 | 3;
 import { useParty } from '@/context/PartyContext';
 import { setGameConfig } from '@/store/gameSession';
+import { fetchTodayChallenge } from '@/utils/dailyChallenge';
+import { getDeviceId } from '@/utils/deviceId';
 import type { MatchType, GameVariant } from '@/store/gameSession';
 import { startGauntlet } from '@/store/gauntletSession';
 import { useColors } from '@/hooks/useColors';
@@ -233,16 +235,44 @@ export default function HomeScreen() {
     router.push('/lobby');
   }
 
+  async function handleStartChallenge() {
+    if (challengeLoading) return;
+    setChallengeLoading(true);
+    try {
+      const deviceId  = await getDeviceId();
+      const challenge = await fetchTodayChallenge(deviceId);
+      const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0]!;
+      setGameConfig({
+        playerName:              profile.name,
+        playerSkinId:            skin.id,
+        playerColor:             skin.color,
+        playerGlowColor:         skin.glowColor,
+        playerRelicId:           profile.currentRelic,
+        matchType:               'casual',
+        variant:                 'survival',
+        challengeSeed:           challenge?.seed        ?? '',
+        matchNonce:              challenge?.matchNonce  ?? '',
+        challengeSeedHash:       challenge?.seedHash    ?? '',
+        challengeStartSpeedMult: challenge?.startSpeedMult,
+        challengeRampRate:       challenge?.rampRate,
+      });
+      router.push('/lobby');
+    } finally {
+      setChallengeLoading(false);
+    }
+  }
+
   async function handleClaimStreak() {
     await claimDailyStreak();
     dismissStreakModal();
   }
 
   const { partyCode, members: partyMembers, isInParty, isLeader, createParty, joinParty, leaveParty, launchParty } = useParty();
-  const [showJoinInput, setShowJoinInput] = useState(false);
-  const [joinCode,      setJoinCode]      = useState('');
-  const [joiningParty,  setJoiningParty]  = useState(false);
-  const [joinError,     setJoinError]     = useState<string | null>(null);
+  const [showJoinInput,     setShowJoinInput]     = useState(false);
+  const [joinCode,          setJoinCode]          = useState('');
+  const [joiningParty,      setJoiningParty]      = useState(false);
+  const [joinError,         setJoinError]         = useState<string | null>(null);
+  const [challengeLoading,  setChallengeLoading]  = useState(false);
 
   const rankInfo     = xpForNextRank(profile.xp);
   const rankData     = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
@@ -979,38 +1009,37 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* Daily challenge */}
-        <View style={[styles.challengeCard, { borderColor: '#C8820A44', overflow: 'hidden' }]}>
+        {/* Daily challenge — real seeded survival run */}
+        <Pressable
+          onPress={handleStartChallenge}
+          disabled={challengeLoading}
+          style={({ pressed }) => [
+            styles.challengeCard,
+            { borderColor: '#C8820A44', overflow: 'hidden', opacity: pressed || challengeLoading ? 0.82 : 1 },
+          ]}
+        >
           <LinearGradient colors={['#1E1000', '#130C00', '#0E0900']} style={StyleSheet.absoluteFill} />
           <LinearGradient colors={['#C8820A20', 'transparent']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 50 }} />
           <View style={styles.challengeHeader}>
             <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#C8820A22', borderWidth: 1, borderColor: '#C8820A44', alignItems: 'center', justifyContent: 'center' }}>
-              <Feather name="sun" size={15} color="#C8820A" />
+              <Text style={{ fontSize: 14 }}>⚡</Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.challengeTitle}>DAILY CHALLENGE</Text>
-              <Text style={styles.challengeDesc}>Win 3 matches today</Text>
+              <Text style={styles.challengeDesc}>Beat today's seed — same for everyone</Text>
             </View>
-            <View style={{ backgroundColor: '#C8820A22', borderRadius: 8, borderWidth: 1, borderColor: '#C8820A44', paddingHorizontal: 8, paddingVertical: 4, alignItems: 'center' }}>
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 13, color: '#C8820A' }}>+100</Text>
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#C8820A88' }}>COINS</Text>
+            <View style={{ backgroundColor: '#C8820A22', borderRadius: 8, borderWidth: 1, borderColor: '#C8820A44', paddingHorizontal: 10, paddingVertical: 6, alignItems: 'center', gap: 1 }}>
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, color: '#C8820A' }}>
+                {challengeLoading ? '…' : 'PLAY'}
+              </Text>
+              {!challengeLoading && <Feather name="chevron-right" size={10} color="#C8820A88" />}
             </View>
           </View>
-          {/* Segmented progress bar */}
-          <View style={{ flexDirection: 'row', gap: 5, marginTop: 4 }}>
-            {[0, 1, 2].map(i => {
-              const filled = i < (profile.wins % 3);
-              return (
-                <View key={i} style={{ flex: 1, height: 8, borderRadius: 4, backgroundColor: filled ? '#C8820A' : '#FFFFFF12', overflow: 'hidden' }}>
-                  {filled && <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: '#FFFFFF30', borderRadius: 4 }} />}
-                </View>
-              );
-            })}
-          </View>
-          <Text style={{ fontFamily: 'Inter_500Medium', fontSize: 10, color: '#FFFFFF44', marginTop: 4 }}>
-            {(profile.wins % 3)}/3 wins today
+          <View style={{ height: 1, backgroundColor: '#C8820A18', marginTop: 2 }} />
+          <Text style={{ fontFamily: 'Inter_500Medium', fontSize: 10, color: '#FFFFFF44' }}>
+            Survival mode · deflect as long as you can · share your result
           </Text>
-        </View>
+        </Pressable>
 
         {/* Login streak card */}
         <Pressable onPress={() => dismissStreakModal()} style={styles.streakCard}>

@@ -1,9 +1,10 @@
 /**
  * Daily challenge utilities.
  *
- * The server returns a deterministic seed (YYYYMMDD) and derived speed
- * parameters so every player encounters the same ball-speed pattern each day,
- * making scores directly comparable.
+ * The server returns a deterministic seed (YYYYMMDD) whose SHA-256 hash is
+ * used both to derive fixed speed parameters AND as the client-side PRNG seed
+ * (via utils/prng.ts), making ball spawn angles and power-up positions
+ * identical across all players running the same day's challenge.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,17 +13,18 @@ import { apiUrl } from './api';
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface DailyChallengeData {
   seed:           string;   // YYYYMMDD
-  seedHash:       string;   // hex SHA-256 of seed
+  seedHash:       string;   // hex SHA-256 — used as client PRNG seed
   startSpeedMult: number;   // initial ball speed multiplier
-  rampRate:       number;   // speed increase per deflection
+  rampRate:       number;   // speed increase per ball spawn
   fetchedAt:      number;   // Date.now() at fetch time
-  /** Single-use match nonce issued by the server — required on score submission. */
+  /** Single-use match nonce bound to the deviceId that fetched it. */
   matchNonce:     string;
 }
 
 export interface ChallengeRankData {
   rank:         number | null;
   score:        number | null;
+  displayName:  string | null;
   totalPlayers: number;
 }
 
@@ -33,7 +35,7 @@ export interface ChallengeScoreResult {
 }
 
 // ─── Internal cache ───────────────────────────────────────────────────────────
-const CACHE_KEY = 'daily_challenge_v1';
+const CACHE_KEY = 'daily_challenge_v2';
 let _memCache: DailyChallengeData | null = null;
 
 function todayKey(): string {
@@ -46,16 +48,17 @@ function todayKey(): string {
 
 /**
  * Fetch today's daily challenge parameters.
- * Pass `playerId` to receive a server-issued match nonce — required for score
- * submission and needed only when starting an actual challenge match.
- * Results are cached in memory and AsyncStorage; a fresh nonce is always
- * re-fetched when playerId is provided to prevent nonce reuse across runs.
+ *
+ * Pass the device's stable UUID (`deviceId`) to receive a server-issued
+ * single-use match nonce — required for score submission.  Every call with a
+ * deviceId hits the server fresh (no caching) so a new nonce is issued for
+ * each run.  Calls without a deviceId may use the local cache (read-only).
  */
-export async function fetchTodayChallenge(playerId?: string): Promise<DailyChallengeData | null> {
+export async function fetchTodayChallenge(deviceId?: string): Promise<DailyChallengeData | null> {
   const today = todayKey();
 
-  // Without a playerId we can use the cache (no nonce needed — read-only context)
-  if (!playerId) {
+  if (!deviceId) {
+    // Read-only context — use cache
     if (_memCache?.seed === today) return _memCache;
     try {
       const raw = await AsyncStorage.getItem(CACHE_KEY);
@@ -66,16 +69,16 @@ export async function fetchTodayChallenge(playerId?: string): Promise<DailyChall
     } catch { /* ignore */ }
   }
 
-  // Fetch from server — always fresh when a nonce is needed
+  // Always fetch fresh when a nonce is needed
   try {
-    const url = playerId
-      ? apiUrl(`/challenge/today?playerId=${encodeURIComponent(playerId)}`)
+    const url = deviceId
+      ? apiUrl(`/challenge/today?deviceId=${encodeURIComponent(deviceId)}`)
       : apiUrl('/challenge/today');
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json() as Omit<DailyChallengeData, 'fetchedAt'>;
     const entry: DailyChallengeData = { ...data, matchNonce: data.matchNonce ?? '', fetchedAt: Date.now() };
-    if (!playerId) {
+    if (!deviceId) {
       _memCache = entry;
       await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(entry)).catch(() => {});
     }
@@ -86,22 +89,29 @@ export async function fetchTodayChallenge(playerId?: string): Promise<DailyChall
 }
 
 /**
- * Submit a completed challenge-match score to the daily leaderboard.
- * Requires the matchNonce previously returned by fetchTodayChallenge(playerId).
+ * Submit a completed challenge-match score.
+ *
+ * @param deviceId   The device's stable UUID (returned by getDeviceId()).
+ * @param displayName Human-readable name shown on the leaderboard.
+ * @param score      Deflection count.
+ * @param durationMs Elapsed match time in milliseconds.
+ * @param matchNonce Single-use nonce from fetchTodayChallenge(deviceId).
+ * @param seed       The YYYYMMDD seed the match was played under.
  */
 export async function submitChallengeScore(
-  playerId:   string,
-  score:      number,
-  durationMs: number,
-  matchNonce: string,
-  seed:       string,
+  deviceId:    string,
+  displayName: string,
+  score:       number,
+  durationMs:  number,
+  matchNonce:  string,
+  seed:        string,
 ): Promise<ChallengeScoreResult> {
-  if (!matchNonce || !seed) return { rank: null, personalBest: null, totalPlayers: 0 };
+  if (!matchNonce || !seed || !deviceId) return { rank: null, personalBest: null, totalPlayers: 0 };
   try {
     const res = await fetch(apiUrl('/challenge/score'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId, score, seed, durationMs, matchNonce }),
+      body: JSON.stringify({ deviceId, displayName, score, seed, durationMs, matchNonce }),
     });
     if (!res.ok) return { rank: null, personalBest: null, totalPlayers: 0 };
     const d = await res.json() as { rank: number; personalBest: number; totalPlayers: number };
@@ -111,10 +121,11 @@ export async function submitChallengeScore(
   }
 }
 
-/** Fetch this player's current daily rank without submitting a new score. */
-export async function fetchMyRank(playerId: string): Promise<ChallengeRankData | null> {
+/** Fetch this device's current daily rank without submitting a new score. */
+export async function fetchMyRank(deviceId: string): Promise<ChallengeRankData | null> {
+  if (!deviceId) return null;
   try {
-    const res = await fetch(apiUrl(`/challenge/rank/${encodeURIComponent(playerId)}`));
+    const res = await fetch(apiUrl(`/challenge/rank/${encodeURIComponent(deviceId)}`));
     if (!res.ok) return null;
     return (await res.json()) as ChallengeRankData;
   } catch {

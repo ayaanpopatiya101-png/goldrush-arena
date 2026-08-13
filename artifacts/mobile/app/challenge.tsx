@@ -19,6 +19,7 @@ import { FloatingOrbs, ORBS_GOLD, GlowText, PulseRing } from '@/components/effec
 import { setGameConfig } from '@/store/gameSession';
 import { SKINS, usePlayer } from '@/context/PlayerContext';
 import { fetchTodayChallenge } from '@/utils/dailyChallenge';
+import { getDeviceId } from '@/utils/deviceId';
 
 export default function ChallengeScreen() {
   const insets = useSafeAreaInsets();
@@ -48,10 +49,11 @@ export default function ChallengeScreen() {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0]!;
 
-    // Fetch today's challenge config with the player's ID so the server issues a
-    // single-use match nonce. This also gives us the deterministic speed params
-    // (startSpeedMult, rampRate) that make everyone's run comparable.
-    const challenge = await fetchTodayChallenge(profile.name);
+    // Fetch today's challenge config with the device's stable UUID so the server
+    // issues a single-use match nonce. This also gives us the deterministic speed
+    // params and seedHash (used as client PRNG seed in GameArena).
+    const deviceId  = await getDeviceId();
+    const challenge = await fetchTodayChallenge(deviceId);
 
     setGameConfig({
       playerName:              profile.name,
@@ -63,6 +65,7 @@ export default function ChallengeScreen() {
       variant:                 'survival',
       challengeSeed:           challenge?.seed        ?? seed,
       matchNonce:              challenge?.matchNonce  ?? '',
+      challengeSeedHash:       challenge?.seedHash    ?? '',
       challengeStartSpeedMult: challenge?.startSpeedMult,
       challengeRampRate:       challenge?.rampRate,
       challengeTargetScore:    targetScore,

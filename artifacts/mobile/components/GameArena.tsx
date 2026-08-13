@@ -94,6 +94,12 @@ interface GameArenaProps {
   startSpeedMult?: number;
   /** Speed increase added to the global multiplier each time a new ball spawns (default 0.07). */
   rampRate?: number;
+  /**
+   * Hex SHA-256 seed for the challenge PRNG.  When provided, ball spawn angles,
+   * ball types, and power-up positions are deterministic so every player running
+   * the same daily seed encounters an identical sequence of events.
+   */
+  rngSeed?: string;
   /** Team 2v2: [BOTTOM,RIGHT] vs [TOP,LEFT]. Skip triangle/duel transitions; team elimination wins. */
   duoMode?: boolean;
   /** 6-player mode: top & bottom walls each split into left/right halves, giving 6 independent zones. */
@@ -174,6 +180,7 @@ export function GameArena({
   colorBoard = true, soundEnabled = true,
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
   initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.55, rampRate = 0.07,
+  rngSeed,
   duoMode, sixPlayer, playerRelic, botSkill, arenaBg, playerSuperType = 1, paused = false,
   phantomBalls = false, playerBonusLives = 0, practice = false,
 }: GameArenaProps) {
@@ -190,6 +197,20 @@ export function GameArena({
   const duoModeRef           = useRef(duoMode           ?? false);
   const sixPlayerRef         = useRef(sixPlayer         ?? false);
   const rampRateRef          = useRef(rampRate);
+  // Seeded PRNG for challenge mode — makes ball angles/types/powerup positions
+  // deterministic so every player running the same daily seed sees the same sequence.
+  // Initialized once from rngSeed (a hex hash); falls back to Math.random when absent.
+  const rngRef = useRef<(() => number) | null>((() => {
+    if (!rngSeed) return null;
+    // Mulberry32 inline — avoids a dynamic import in the hot game-loop path.
+    let s = (parseInt(rngSeed.slice(0, 8), 16) || 1) >>> 0;
+    return () => {
+      s = (s + 0x6d2b79f5) >>> 0;
+      let t = Math.imul(s ^ (s >>> 15), s | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
+    };
+  })());
   const initialLivesVal      = initialLives ?? INITIAL_LIVES;
   const startSpeedMultVal    = startSpeedMult ?? 1.0;
 
@@ -581,14 +602,15 @@ export function GameArena({
   function spawnBall(gs: GameStateRef, size: number, speedMult = 1.0) {
     let idx = gs.balls.findIndex(b => !b.active);
     if (idx === -1) { if (gs.balls.length >= MAX_BALLS) return; idx = gs.balls.length; }
+    const rand   = rngRef.current ?? Math.random;
     const types: BallType[] = ['normal','normal','normal','fire','heavy','tiny'];
-    const type   = types[Math.floor(Math.random() * types.length)];
+    const type   = types[Math.floor(rand() * types.length)];
     const spd    = INITIAL_SPEED * gs.speedMultiplier * speedMult;
     let radius   = 10, color = '#FFFFFF';
     if (type === 'fire')  { radius = 10; color = '#FF6B35'; }
     if (type === 'heavy') { radius = 15; color = '#BF5FFF'; }
     if (type === 'tiny')  { radius = 6;  color = '#00E5FF'; }
-    const angle  = (Math.random() * Math.PI * 1.5) + Math.PI * 0.25;
+    const angle  = (rand() * Math.PI * 1.5) + Math.PI * 0.25;
     let vx = Math.cos(angle) * spd, vy = Math.sin(angle) * spd;
     if (Math.abs(vy) < 1.5) vy = vy >= 0 ? 1.5 : -1.5;
     const ball: BallRef = { id: Date.now() + idx, x: size/2, y: size/2, vx, vy, radius, type, color, active: true };
@@ -598,10 +620,11 @@ export function GameArena({
   }
 
   function spawnPowerup(gs: GameStateRef, size: number) {
+    const rand = rngRef.current ?? Math.random;
     const types: PowerUpType[] = ['shield','speed','shrink','extralife','multiball'];
-    const type = types[Math.floor(Math.random() * types.length)];
+    const type = types[Math.floor(rand() * types.length)];
     const m    = 80;
-    const pu: PowerUpRef = { id: gs.frame, x: m + Math.random()*(size-m*2), y: m + Math.random()*(size-m*2), type, active: true };
+    const pu: PowerUpRef = { id: gs.frame, x: m + rand()*(size-m*2), y: m + rand()*(size-m*2), type, active: true };
     gs.powerups = gs.powerups.filter(p => p.active).concat(pu).slice(-4);
     setPowerUpsUI([...gs.powerups]);
   }
@@ -1062,7 +1085,7 @@ export function GameArena({
     // ── Spawn power-up ──
     if (!noPowerupsRef.current && gs.frame >= gs.nextPowerupFrame && gs.powerups.filter(p => p.active).length < 3) {
       spawnPowerup(gs, size);
-      gs.nextPowerupFrame = gs.frame + POWERUP_SPAWN_FRAMES + Math.floor(Math.random() * 120);
+      gs.nextPowerupFrame = gs.frame + POWERUP_SPAWN_FRAMES + Math.floor((rngRef.current?.() ?? Math.random()) * 120);
     }
 
     // ── Magnet relic (human only): pull power-ups toward the paddle ──
