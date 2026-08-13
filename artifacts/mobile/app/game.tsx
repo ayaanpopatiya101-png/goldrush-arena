@@ -311,6 +311,8 @@ export default function GameScreen() {
   }
 
   function handleBuyExtraLife() {
+    // Challenge runs enforce a strict 1-life rule — no extra lives allowed.
+    if (isChallenge) return;
     if (extraLifeUsed.current) {
       return;
     }
@@ -422,7 +424,7 @@ export default function GameScreen() {
           {playerLives <= 0 && <Text style={styles.elimText}>ELIMINATED</Text>}
         </View>
 
-        {playerLives > 0 && playerLives <= 4 && !extraLifeUsed.current && (
+        {!isChallenge && playerLives > 0 && playerLives <= 4 && !extraLifeUsed.current && (
           <Pressable onPress={handleBuyExtraLife} style={styles.extraLifeBtn}>
             <Feather name="heart" size={12} color="#FF69B4" />
             <Text style={styles.extraLifeText}>+3 Lives</Text>
@@ -476,7 +478,7 @@ export default function GameScreen() {
               <Feather name="home" size={14} color="#FF475788" />
               <Text style={styles.quitText}>Quit to Menu</Text>
             </Pressable>
-            {playerLives > 0 && playerLives <= 4 && !extraLifeUsed.current && (
+            {!isChallenge && playerLives > 0 && playerLives <= 4 && !extraLifeUsed.current && (
               <Pressable onPress={() => { handleBuyExtraLife(); setPaused(false); }} style={styles.lifeBtn}>
                 <Feather name="heart" size={13} color="#FF69B4" />
                 <Text style={styles.lifeBtnText}>Buy +3 Lives · $0.99</Text>

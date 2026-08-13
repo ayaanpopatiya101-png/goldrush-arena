@@ -1647,7 +1647,8 @@ export function GameArena({
       </View>
 
       {/* ── Super charge bar (outside panResponder so Pressable works cleanly) ── */}
-      {gamePhase === 'playing' && !isSpectating && !gs.players[BOTTOM].isEliminated && (
+      {/* Super charge bar — hidden in soloMode (supers are disabled there so the UI would be misleading) */}
+      {gamePhase === 'playing' && !isSpectating && !gs.players[BOTTOM].isEliminated && !soloMode && (
         <View style={{
           position: 'absolute',
           bottom: WALL_MARGIN + 6,
