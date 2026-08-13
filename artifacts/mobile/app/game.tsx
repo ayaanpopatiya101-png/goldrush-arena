@@ -127,7 +127,10 @@ export default function GameScreen() {
     rngSeed:          isChallenge ? config.challengeSeedHash : undefined,
     ballSpawnFrames:  variantCfgRest.ballSpawnFrames ?? mapMods.ballSpawnFrames,
     noPowerups:       variantCfgRest.noPowerups      ?? mapMods.noPowerups,
-    // Challenge: lock bank lives to 0; non-challenge: add lobby-chosen bank lives
+    // Challenge: locked config — 1 life (one miss ends the run), no bank lives.
+    // This overrides the survival variant's default 12 lives so every challenger
+    // faces identical starting conditions regardless of inventory.
+    initialLives:     isChallenge ? 1 : variantCfgRest.initialLives,
     playerBonusLives: isChallenge ? 0 : ((variantCfgRest.playerBonusLives ?? 0) + bankLivesUsed),
   };
 
@@ -373,7 +376,9 @@ export default function GameScreen() {
             playerColor={config.playerColor}
             playerGlowColor={config.playerGlowColor}
             botNames={config.opponentNames ?? BOT_NAMES}
-            // Challenge: solo run — no bots, no relic, no terrain
+            // Challenge: soloMode pre-eliminates bots in GameArena's state init;
+            // passing [] for botRanks is belt-and-suspenders (provides empty fallbacks).
+            soloMode={isChallenge}
             botRanks={isChallenge ? [] : (config.opponentRanks ?? generatedBotRanks)}
             onGameOver={handleGameOver}
             onGameModeChange={handleGameModeChange}

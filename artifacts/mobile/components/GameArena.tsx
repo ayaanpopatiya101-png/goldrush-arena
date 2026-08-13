@@ -100,6 +100,13 @@ interface GameArenaProps {
    * the same daily seed encounters an identical sequence of events.
    */
   rngSeed?: string;
+  /**
+   * Solo / challenge mode: pre-eliminates all bot sides (TOP, LEFT, RIGHT) so
+   * balls bounce off those walls instead of being intercepted.  Bot AI is never
+   * run for eliminated players, and the game ends the instant the human loses
+   * their last life — no spectating transition.
+   */
+  soloMode?: boolean;
   /** Team 2v2: [BOTTOM,RIGHT] vs [TOP,LEFT]. Skip triangle/duel transitions; team elimination wins. */
   duoMode?: boolean;
   /** 6-player mode: top & bottom walls each split into left/right halves, giving 6 independent zones. */
@@ -180,7 +187,7 @@ export function GameArena({
   colorBoard = true, soundEnabled = true,
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
   initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.55, rampRate = 0.07,
-  rngSeed,
+  rngSeed, soloMode = false,
   duoMode, sixPlayer, playerRelic, botSkill, arenaBg, playerSuperType = 1, paused = false,
   phantomBalls = false, playerBonusLives = 0, practice = false,
 }: GameArenaProps) {
@@ -197,6 +204,7 @@ export function GameArena({
   const duoModeRef           = useRef(duoMode           ?? false);
   const sixPlayerRef         = useRef(sixPlayer         ?? false);
   const rampRateRef          = useRef(rampRate);
+  const soloModeRef          = useRef(soloMode);
   // Seeded PRNG for challenge mode — makes ball angles/types/powerup positions
   // deterministic so every player running the same daily seed sees the same sequence.
   // Initialized once from rngSeed (a hex hash); falls back to Math.random when absent.
@@ -416,9 +424,12 @@ export function GameArena({
     duelTopId: TOP, duelBottomId: BOTTOM, duelFrames: 0,
     players: [
       { id:BOTTOM,   name:playerName,              paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:false, isEliminated:false,              score:0, color:playerColor,      glowColor:playerGlowColor, rank:'Gold',              botSpeed:0,   botAccuracy:1,    hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
-      { id:TOP,      name:botNames[0]??'Blaze_99',  paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[1], glowColor:PLAYER_GLOW[1],  rank:botRanks[0]??'Gold',      botSpeed:4.8, botAccuracy:0.86, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
-      { id:LEFT,     name:botNames[1]??'IceQueen',  paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[2], glowColor:PLAYER_GLOW[2],  rank:botRanks[1]??'Platinum',   botSpeed:5.2, botAccuracy:0.88, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
-      { id:RIGHT,    name:botNames[2]??'Venom_X',   paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:false,              score:0, color:PLAYER_COLORS[3], glowColor:PLAYER_GLOW[3],  rank:botRanks[2]??'Diamond',    botSpeed:5.6, botAccuracy:0.91, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      // soloMode: bots start pre-eliminated — balls bounce off their walls,
+      // bot AI is skipped (isEliminated guard in the loop), and the game ends
+      // immediately when the human's last life is lost (no spectating).
+      { id:TOP,      name:botNames[0]??'Blaze_99',  paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:true,  isEliminated:soloMode,           score:0, color:PLAYER_COLORS[1], glowColor:PLAYER_GLOW[1],  rank:botRanks[0]??'Gold',      botSpeed:4.8, botAccuracy:0.86, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      { id:LEFT,     name:botNames[1]??'IceQueen',  paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:soloMode,           score:0, color:PLAYER_COLORS[2], glowColor:PLAYER_GLOW[2],  rank:botRanks[1]??'Platinum',   botSpeed:5.2, botAccuracy:0.88, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
+      { id:RIGHT,    name:botNames[2]??'Venom_X',   paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:soloMode,           score:0, color:PLAYER_COLORS[3], glowColor:PLAYER_GLOW[3],  rank:botRanks[2]??'Diamond',    botSpeed:5.6, botAccuracy:0.91, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
       { id:BOTTOM_R, name:botNames[3]??'ShadowFox', paddleCenter:arenaSize*3/4,                                prevPaddleCenter:arenaSize*3/4,                                lives:initialLivesVal, isBot:true,  isEliminated:!(sixPlayer??false), score:0, color:PLAYER_COLORS[4], glowColor:PLAYER_GLOW[4],  rank:botRanks[3]??'Master 1',   botSpeed:4.6, botAccuracy:0.84, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
       { id:TOP_R,    name:botNames[4]??'CyberWolf',  paddleCenter:arenaSize*3/4,                                prevPaddleCenter:arenaSize*3/4,                                lives:initialLivesVal, isBot:true,  isEliminated:!(sixPlayer??false), score:0, color:PLAYER_COLORS[5], glowColor:PLAYER_GLOW[5],  rank:botRanks[4]??'Grandmaster', botSpeed:5.0, botAccuracy:0.87, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
     ],
@@ -674,9 +685,17 @@ export function GameArena({
         return;
       }
       player.isEliminated = true;
-      if (playerId !== BOTTOM) finishPositionRef.current = Math.max(2, finishPositionRef.current - 1);
-      else {
-        // Human eliminated — enter spectating
+      if (playerId !== BOTTOM) {
+        finishPositionRef.current = Math.max(2, finishPositionRef.current - 1);
+      } else if (soloModeRef.current) {
+        // Solo / challenge mode: human lost their last life — end immediately,
+        // no spectating.  Use forceWin with a non-BOTTOM id so won=false.
+        setEliminatedState(gs.players.map(p => p.isEliminated));
+        showAnnouncer('💀 RUN OVER!');
+        forceWin(gs, TOP);
+        return;
+      } else {
+        // Multi-player: human enters spectating while bots finish
         setIsSpectating(true);
       }
       setEliminatedState(gs.players.map(p => p.isEliminated));
