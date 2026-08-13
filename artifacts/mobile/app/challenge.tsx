@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FloatingOrbs, ORBS_GOLD, GlowText, PulseRing } from '@/components/effects';
 import { setGameConfig } from '@/store/gameSession';
 import { SKINS, usePlayer } from '@/context/PlayerContext';
+import { fetchTodayChallenge } from '@/utils/dailyChallenge';
 
 export default function ChallengeScreen() {
   const insets = useSafeAreaInsets();
@@ -43,19 +44,28 @@ export default function ChallengeScreen() {
     return () => loop.stop();
   }, []);
 
-  function handlePlay() {
+  async function handlePlay() {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0]!;
+
+    // Fetch today's challenge config with the player's ID so the server issues a
+    // single-use match nonce. This also gives us the deterministic speed params
+    // (startSpeedMult, rampRate) that make everyone's run comparable.
+    const challenge = await fetchTodayChallenge(profile.name);
+
     setGameConfig({
-      playerName:           profile.name,
-      playerSkinId:         skin.id,
-      playerColor:          skin.color,
-      playerGlowColor:      skin.glowColor,
-      playerRelicId:        profile.currentRelic,
-      matchType:            'casual',
-      variant:              'survival',
-      challengeSeed:        seed,
-      challengeTargetScore: targetScore,
+      playerName:              profile.name,
+      playerSkinId:            skin.id,
+      playerColor:             skin.color,
+      playerGlowColor:         skin.glowColor,
+      playerRelicId:           profile.currentRelic,
+      matchType:               'casual',
+      variant:                 'survival',
+      challengeSeed:           challenge?.seed        ?? seed,
+      matchNonce:              challenge?.matchNonce  ?? '',
+      challengeStartSpeedMult: challenge?.startSpeedMult,
+      challengeRampRate:       challenge?.rampRate,
+      challengeTargetScore:    targetScore,
     });
     router.push('/lobby');
   }

@@ -34,6 +34,12 @@ export interface GameSessionConfig {
   bankLivesUsed?:           number;
   /** Daily challenge seed (YYYYMMDD) — set when entering via a challenge deep link. */
   challengeSeed?:           string;
+  /** Server-issued single-use nonce that authorises score submission for this run. */
+  matchNonce?:              string;
+  /** Deterministic start-speed multiplier from the daily challenge seed. */
+  challengeStartSpeedMult?: number;
+  /** Deterministic per-deflection speed ramp rate from the daily challenge seed. */
+  challengeRampRate?:       number;
   /** Target score to beat from a friend's challenge link. */
   challengeTargetScore?:    number;
   /** Featured mode id — set when the player opts in via the Events tab. */

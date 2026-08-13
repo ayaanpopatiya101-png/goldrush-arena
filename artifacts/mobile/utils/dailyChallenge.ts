@@ -16,6 +16,8 @@ export interface DailyChallengeData {
   startSpeedMult: number;   // initial ball speed multiplier
   rampRate:       number;   // speed increase per deflection
   fetchedAt:      number;   // Date.now() at fetch time
+  /** Single-use match nonce issued by the server — required on score submission. */
+  matchNonce:     string;
 }
 
 export interface ChallengeRankData {
@@ -42,33 +44,41 @@ function todayKey(): string {
   return `${y}${m}${d}`;
 }
 
-/** Fetch and cache today's daily challenge parameters. */
-export async function fetchTodayChallenge(): Promise<DailyChallengeData | null> {
+/**
+ * Fetch today's daily challenge parameters.
+ * Pass `playerId` to receive a server-issued match nonce — required for score
+ * submission and needed only when starting an actual challenge match.
+ * Results are cached in memory and AsyncStorage; a fresh nonce is always
+ * re-fetched when playerId is provided to prevent nonce reuse across runs.
+ */
+export async function fetchTodayChallenge(playerId?: string): Promise<DailyChallengeData | null> {
   const today = todayKey();
 
-  // In-memory cache
-  if (_memCache?.seed === today) return _memCache;
-
-  // AsyncStorage cache
-  try {
-    const raw = await AsyncStorage.getItem(CACHE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as DailyChallengeData;
-      if (parsed.seed === today) {
-        _memCache = parsed;
-        return _memCache;
+  // Without a playerId we can use the cache (no nonce needed — read-only context)
+  if (!playerId) {
+    if (_memCache?.seed === today) return _memCache;
+    try {
+      const raw = await AsyncStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as DailyChallengeData;
+        if (parsed.seed === today) { _memCache = parsed; return _memCache; }
       }
-    }
-  } catch { /* ignore */ }
+    } catch { /* ignore */ }
+  }
 
-  // Fetch from server
+  // Fetch from server — always fresh when a nonce is needed
   try {
-    const res = await fetch(apiUrl('/challenge/today'));
+    const url = playerId
+      ? apiUrl(`/challenge/today?playerId=${encodeURIComponent(playerId)}`)
+      : apiUrl('/challenge/today');
+    const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json() as Omit<DailyChallengeData, 'fetchedAt'>;
-    const entry: DailyChallengeData = { ...data, fetchedAt: Date.now() };
-    _memCache = entry;
-    await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(entry)).catch(() => {});
+    const entry: DailyChallengeData = { ...data, matchNonce: data.matchNonce ?? '', fetchedAt: Date.now() };
+    if (!playerId) {
+      _memCache = entry;
+      await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(entry)).catch(() => {});
+    }
     return entry;
   } catch {
     return null;
@@ -76,22 +86,22 @@ export async function fetchTodayChallenge(): Promise<DailyChallengeData | null> 
 }
 
 /**
- * Submit a completed-match score to the daily leaderboard.
- * The server validates the seed and applies basic anti-cheat.
+ * Submit a completed challenge-match score to the daily leaderboard.
+ * Requires the matchNonce previously returned by fetchTodayChallenge(playerId).
  */
 export async function submitChallengeScore(
   playerId:   string,
   score:      number,
   durationMs: number,
+  matchNonce: string,
+  seed:       string,
 ): Promise<ChallengeScoreResult> {
-  const challenge = await fetchTodayChallenge();
-  if (!challenge) return { rank: null, personalBest: null, totalPlayers: 0 };
-
+  if (!matchNonce || !seed) return { rank: null, personalBest: null, totalPlayers: 0 };
   try {
     const res = await fetch(apiUrl('/challenge/score'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerId, score, seed: challenge.seed, durationMs }),
+      body: JSON.stringify({ playerId, score, seed, durationMs, matchNonce }),
     });
     if (!res.ok) return { rank: null, personalBest: null, totalPlayers: 0 };
     const d = await res.json() as { rank: number; personalBest: number; totalPlayers: number };

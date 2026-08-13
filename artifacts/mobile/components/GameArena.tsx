@@ -92,6 +92,8 @@ interface GameArenaProps {
   noPowerups?: boolean;
   /** Speed multiplier applied to the very first ball (default 1.0) */
   startSpeedMult?: number;
+  /** Speed increase added to the global multiplier each time a new ball spawns (default 0.07). */
+  rampRate?: number;
   /** Team 2v2: [BOTTOM,RIGHT] vs [TOP,LEFT]. Skip triangle/duel transitions; team elimination wins. */
   duoMode?: boolean;
   /** 6-player mode: top & bottom walls each split into left/right halves, giving 6 independent zones. */
@@ -171,8 +173,8 @@ export function GameArena({
   onPlayerLivesChange, grantExtraLifeRef, onEliminatedSpectating,
   colorBoard = true, soundEnabled = true,
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart,
-  initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.55, duoMode, sixPlayer,
-  playerRelic, botSkill, arenaBg, playerSuperType = 1, paused = false,
+  initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.55, rampRate = 0.07,
+  duoMode, sixPlayer, playerRelic, botSkill, arenaBg, playerSuperType = 1, paused = false,
   phantomBalls = false, playerBonusLives = 0, practice = false,
 }: GameArenaProps) {
 
@@ -187,6 +189,7 @@ export function GameArena({
   const startingBallCountRef = useRef(startingBallCount ?? 1);
   const duoModeRef           = useRef(duoMode           ?? false);
   const sixPlayerRef         = useRef(sixPlayer         ?? false);
+  const rampRateRef          = useRef(rampRate);
   const initialLivesVal      = initialLives ?? INITIAL_LIVES;
   const startSpeedMultVal    = startSpeedMult ?? 1.0;
 
@@ -1053,7 +1056,7 @@ export function GameArena({
     if (gs.frame >= gs.nextBallFrame && gs.balls.filter(b => b.active).length < MAX_BALLS) {
       spawnBall(gs, size);
       gs.nextBallFrame    = gs.frame + ballSpawnFramesRef.current;
-      gs.speedMultiplier  = Math.min(gs.speedMultiplier + 0.07, 2.0);
+      gs.speedMultiplier  = Math.min(gs.speedMultiplier + rampRateRef.current, 2.0);
     }
 
     // ── Spawn power-up ──

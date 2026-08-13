@@ -111,9 +111,15 @@ export default function GameScreen() {
   const effectiveBotSkill = maxSkillBots ? 1.0 : botSkill;
   // How many lives the player chose to spend from their bank this match (set in lobby)
   const bankLivesUsed = Math.max(0, config.bankLivesUsed ?? 0);
+  // When running a daily challenge, override speed params with deterministic values
+  // derived from the daily seed — so every player plays under identical conditions.
+  const isChallenge = Boolean(config.challengeSeed);
   const mergedCfg = {
     ...variantCfgRest,
-    startSpeedMult:   variantCfgRest.startSpeedMult  ?? mapMods.startSpeedMult,
+    startSpeedMult:   isChallenge
+                        ? (config.challengeStartSpeedMult ?? variantCfgRest.startSpeedMult ?? mapMods.startSpeedMult)
+                        : (variantCfgRest.startSpeedMult  ?? mapMods.startSpeedMult),
+    rampRate:         isChallenge ? config.challengeRampRate : undefined,
     ballSpawnFrames:  variantCfgRest.ballSpawnFrames ?? mapMods.ballSpawnFrames,
     noPowerups:       variantCfgRest.noPowerups      ?? mapMods.noPowerups,
     // Bank lives stack on top of variant bonus lives (e.g. warlord's 5)
@@ -259,6 +265,9 @@ export default function GameScreen() {
         won: result.won ? '1' : '0',
         position: String(result.position),
         deflections: String(result.deflections),
+        // Challenge context — only non-empty when the match was seeded by the daily challenge
+        challengeSeed: config.challengeSeed ?? '',
+        matchNonce:    config.matchNonce    ?? '',
         goalsAgainst: String(result.goalsAgainst),
         xpEarned: String(finalXP),
         coinsEarned: String(finalCoins),

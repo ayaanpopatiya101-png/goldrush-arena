@@ -11,9 +11,18 @@ interface ScoreEntry {
   submittedAt: number;
 }
 
+interface NonceEntry {
+  playerId:  string;
+  seed:      string;
+  issuedAt:  number;
+  consumed:  boolean;
+}
+
 // ─── In-memory store (resets on restart; fine for dev/beta) ──────────────────
 // Map<dateKey YYYYMMDD, Map<playerId, ScoreEntry>>
 const dailyScores = new Map<string, Map<string, ScoreEntry>>();
+// Map<nonce UUID, NonceEntry> — one-time tokens that tie a score to a player identity
+const matchNonces = new Map<string, NonceEntry>();
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function todayKey(): string {
@@ -63,26 +72,67 @@ function getRank(day: Map<string, ScoreEntry>, playerId: string): number {
   return rank;
 }
 
-// ─── GET /challenge/today ─────────────────────────────────────────────────────
-router.get("/challenge/today", (_req, res) => {
-  const seed = todayKey();
-  const hash = seedHash(seed);
+// ─── Nonce helpers ────────────────────────────────────────────────────────────
+function issueNonce(playerId: string, seed: string): string {
+  const nonce = crypto.randomUUID();
+  matchNonces.set(nonce, { playerId, seed, issuedAt: Date.now(), consumed: false });
+  // Prune nonces older than 48 h to avoid unbounded growth
+  if (matchNonces.size > 10_000) {
+    const cutoff = Date.now() - 48 * 3600 * 1000;
+    for (const [k, v] of matchNonces) {
+      if (v.issuedAt < cutoff) matchNonces.delete(k);
+    }
+  }
+  return nonce;
+}
+
+function validateAndConsumeNonce(nonce: string, playerId: string, seed: string): boolean {
+  const entry = matchNonces.get(nonce);
+  if (!entry) return false;
+  if (entry.consumed)         return false;
+  if (entry.playerId !== playerId) return false;
+  if (entry.seed     !== seed)     return false;
+  // Nonces expire after 24 hours (one full gaming day)
+  if (Date.now() - entry.issuedAt > 24 * 3600 * 1000) return false;
+  entry.consumed = true;
+  return true;
+}
+
+// ─── GET /challenge/today?playerId=<id> ──────────────────────────────────────
+// Returns today's seed + deterministic speed params.
+// When playerId is supplied, also issues a single-use match nonce that the
+// client must present on score submission — this binds the score to a specific
+// player identity without requiring full auth.
+router.get("/challenge/today", (req, res) => {
+  const seed   = todayKey();
+  const hash   = seedHash(seed);
   const params = deriveSpeedParams(hash);
-  res.json({ seed, seedHash: hash, ...params });
+  const { playerId } = req.query as { playerId?: string };
+  const matchNonce = playerId ? issueNonce(playerId, seed) : undefined;
+  res.json({ seed, seedHash: hash, ...params, ...(matchNonce ? { matchNonce } : {}) });
 });
 
 // ─── POST /challenge/score ────────────────────────────────────────────────────
+// Requires a matchNonce previously issued by GET /challenge/today?playerId=...
+// The nonce is single-use and expires after 24 h, preventing replay and
+// ensuring the score is attributed to the same player who fetched the challenge.
 router.post("/challenge/score", (req, res) => {
-  const { playerId, score, seed, durationMs } = req.body as {
-    playerId?: string; score?: number; seed?: string; durationMs?: number;
+  const { playerId, score, seed, durationMs, matchNonce } = req.body as {
+    playerId?: string; score?: number; seed?: string;
+    durationMs?: number; matchNonce?: string;
   };
 
-  if (!playerId || typeof score !== "number" || !seed || typeof durationMs !== "number") {
-    res.status(400).json({ error: "playerId, score, seed, and durationMs required" });
+  if (!playerId || typeof score !== "number" || !seed || typeof durationMs !== "number" || !matchNonce) {
+    res.status(400).json({ error: "playerId, score, seed, durationMs, and matchNonce required" });
     return;
   }
   if (seed !== todayKey()) {
     res.status(400).json({ error: "stale seed — only today's challenge accepted" });
+    return;
+  }
+  // Validate nonce — binds this submission to the player who fetched the challenge
+  if (!validateAndConsumeNonce(matchNonce, playerId, seed)) {
+    res.status(403).json({ error: "invalid or already-used match token" });
     return;
   }
   if (score < 0 || score > 10_000) {

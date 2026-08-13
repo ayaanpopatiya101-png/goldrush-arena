@@ -71,6 +71,8 @@ export default function PostGameScreen() {
     qTotalRounds: string; qThreshold: string;
     qpFor1: string; qpFor2: string; qpFor3: string; qpFor4: string;
     qEventName: string; qEventEmoji: string; qEventColor: string;
+    // Daily challenge — empty string when this was not a challenge run
+    challengeSeed: string; matchNonce: string;
   }>();
   const { profile, unlockAchievement, claimEventBonus, earnQualifierPoints } = usePlayer();
 
@@ -110,7 +112,12 @@ export default function PostGameScreen() {
   const qEventName  = params.qEventName  ?? '';
   const qEventEmoji = params.qEventEmoji ?? '';
   const qEventColor = params.qEventColor ?? '#FFD700';
-  const isQualifier = qPeriodKey.length > 0 && qRoundIdx >= 0;
+  const isQualifier  = qPeriodKey.length > 0 && qRoundIdx >= 0;
+
+  // Daily challenge — only truthy when the match was seeded by the challenge config
+  const challengeSeed = params.challengeSeed ?? '';
+  const matchNonce    = params.matchNonce    ?? '';
+  const isChallengeRun = challengeSeed.length > 0 && matchNonce.length > 0;
   const qpEarnedThisMatch = isQualifier ? (qpPerPlace[Math.min(Math.max(position - 1, 0), 3)] ?? 0) : 0;
 
   const levelAfter  = profile.competitiveLevel ?? 1;
@@ -218,20 +225,22 @@ export default function PostGameScreen() {
     }
     checkAchievements();
 
-    // Auto-submit to daily challenge leaderboard (non-blocking)
-    async function submitToChallenge() {
-      const ch = await fetchTodayChallenge();
-      if (!ch) return;
-      setDailySeed(ch.seed);
-      // Estimate match duration (no timer passed from game screen yet);
-      // 2.5 s/deflection avg passes anti-cheat's 300 ms/deflection minimum.
-      const estimatedMs = Math.max(deflections * 2500, 30_000);
-      const result = await submitChallengeScore(profile.name, deflections, estimatedMs);
-      if (result.rank !== null)        setChallengeRank(result.rank);
-      if (result.personalBest !== null) setChallengePB(result.personalBest);
-      setChallengeTotal(result.totalPlayers);
+    // Only submit to leaderboard when this was an actual challenge run (has nonce + seed)
+    if (isChallengeRun && deflections > 0) {
+      setDailySeed(challengeSeed);
+      async function submitToChallenge() {
+        // Estimate match duration — 2.5 s/deflection average safely clears the
+        // 300 ms/deflection anti-cheat floor; task #48 will pass the real timer.
+        const estimatedMs = Math.max(deflections * 2500, 30_000);
+        const result = await submitChallengeScore(
+          profile.name, deflections, estimatedMs, matchNonce, challengeSeed,
+        );
+        if (result.rank !== null)         setChallengeRank(result.rank);
+        if (result.personalBest !== null) setChallengePB(result.personalBest);
+        setChallengeTotal(result.totalPlayers);
+      }
+      submitToChallenge();
     }
-    submitToChallenge();
   }, []);
 
   const positionLabels = ['', '1ST', '2ND', '3RD', '4TH'];
@@ -501,8 +510,8 @@ export default function PostGameScreen() {
           </Animated.View>
         )}
 
-        {/* Daily challenge rank */}
-        {dailySeed.length > 0 && deflections > 0 && (
+        {/* Daily challenge rank — only shown for challenge runs */}
+        {isChallengeRun && dailySeed.length > 0 && deflections > 0 && (
           <Reanimated.View entering={FadeIn.duration(600).delay(1400)}>
           <View style={[styles.bonusCard, { backgroundColor: colors.card, borderColor: '#C8820A33' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
@@ -636,6 +645,7 @@ export default function PostGameScreen() {
           </Pressable>
           {/* Secondary row: Challenge + Share + Home */}
           <View style={styles.buttons}>
+            {isChallengeRun && (
             <Pressable
               onPress={() => setShowShareCard(true)}
               style={({ pressed }) => [styles.challengeBtn, pressed && { opacity: 0.82 }]}
@@ -644,6 +654,7 @@ export default function PostGameScreen() {
                 <Text style={styles.challengeBtnText}>⚡  CHALLENGE</Text>
               </LinearGradient>
             </Pressable>
+            )}
             <Pressable
               onPress={handleShare}
               style={({ pressed }) => [styles.homeBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
@@ -681,8 +692,8 @@ export default function PostGameScreen() {
         onDismiss={() => setShowCeremony(false)}
       />
 
-      {/* Viral share card */}
-      <ShareCard
+      {/* Viral share card — only rendered for challenge runs */}
+      {isChallengeRun && <ShareCard
         visible={showShareCard}
         score={deflections}
         personalBest={challengePB ?? deflections}
@@ -691,7 +702,7 @@ export default function PostGameScreen() {
         totalPlayers={challengeTotal}
         seed={dailySeed}
         onClose={() => setShowShareCard(false)}
-      />
+      />}
     </Reanimated.View>
   );
 }
