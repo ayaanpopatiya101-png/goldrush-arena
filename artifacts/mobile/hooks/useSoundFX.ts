@@ -75,6 +75,8 @@ export function prewarmNativeAudio(): void {
       [660, 0.07], [880, 0.1],
       // lobby sounds
       [660, 0.06], [1047, 0.1],
+      // rank-up fanfare
+      [523, 0.1], [659, 0.1], [784, 0.1], [1047, 0.18], [1319, 0.32],
     ];
     for (const [f, d] of tones) getNativeToneUri(f, d);
   } catch { /* best-effort */ }
@@ -127,6 +129,7 @@ export interface SoundFX {
   powerUp:           () => void;
   countdown:         () => void;
   playerJoin:        () => void;
+  rankUp:            () => void;
 }
 
 export function useSoundFX(enabled: boolean): SoundFX {
@@ -144,6 +147,11 @@ export function useSoundFX(enabled: boolean): SoundFX {
       countdown:        fire(() => nativeTone(523, 0.1)),
       // Short ascending ping — 660 Hz pop followed by a 1047 Hz chime
       playerJoin:       fire(() => nativeSeq([{ f: 660, d: 0.06 }, { f: 1047, d: 0.1 }], 0.07)),
+      // Triumphant 5-note fanfare for rank promotion
+      rankUp:           fire(() => nativeSeq([
+        { f: 523, d: 0.1 }, { f: 659, d: 0.1 }, { f: 784, d: 0.1 },
+        { f: 1047, d: 0.18 }, { f: 1319, d: 0.32 },
+      ], 0.1)),
     };
   }
 
@@ -160,5 +168,13 @@ export function useSoundFX(enabled: boolean): SoundFX {
     countdown:        g(() => tone(523, 0.1, 'square', 0.1)),
     // Short ascending ping — sine wave feels cleaner for a lobby UI event
     playerJoin:       g(() => seq([{ f: 660, d: 0.06, t: 'sine', v: 0.12 }, { f: 1047, d: 0.1, t: 'sine', v: 0.1 }], 0.07)),
+    // Triumphant 5-note fanfare — triangle waves feel warm/musical
+    rankUp:           g(() => seq([
+      { f: 523, d: 0.1, t: 'triangle', v: 0.11 },
+      { f: 659, d: 0.1, t: 'triangle', v: 0.11 },
+      { f: 784, d: 0.1, t: 'triangle', v: 0.12 },
+      { f: 1047, d: 0.18, t: 'triangle', v: 0.13 },
+      { f: 1319, d: 0.32, t: 'triangle', v: 0.14 },
+    ], 0.1)),
   };
 }

@@ -13,6 +13,8 @@ import { ACHIEVEMENTS, RANKS, LUCKY_BLOCK_META, getCurrentEvents, usePlayer, xpF
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 import { RankCeremonyOverlay } from '@/components/RankCeremonyOverlay';
 import { useColors } from '@/hooks/useColors';
+import { useSettings } from '@/hooks/useSettings';
+import { useSoundFX } from '@/hooks/useSoundFX';
 
 // ─── Emote strip ─────────────────────────────────────────────────────────────
 const EMOTES = ['🔥', '👏', '😤', '💀', '🤝', '👑'] as const;
@@ -46,6 +48,8 @@ function EmoteButton({ emoji, selected, onPress }: { emoji: string; selected: bo
 export default function PostGameScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { settings } = useSettings();
+  const sfx = useSoundFX(settings.soundEnabled);
 
   // ── Guard: if params are missing (e.g. hard-refresh on web), go home ──────
   const rawParams = useLocalSearchParams();
@@ -158,6 +162,11 @@ export default function PostGameScreen() {
     if (Platform.OS !== 'web') {
       if (won) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       else Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+
+    // Rank-up fanfare — fires at ~750 ms, same timing as the flash/ceremony
+    if (promoted) {
+      setTimeout(() => sfx.rankUp(), 750);
     }
 
     setTimeout(() => {
