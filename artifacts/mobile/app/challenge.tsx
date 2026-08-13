@@ -69,8 +69,10 @@ export default function ChallengeScreen() {
       challengeStartSpeedMult: challenge?.startSpeedMult,
       challengeRampRate:       challenge?.rampRate,
       challengeTargetScore:    targetScore,
+      // Lobby is bypassed so it cannot override the locked challenge config
+      bankLivesUsed:           0,
     });
-    router.push('/lobby');
+    router.push('/game');
   }
 
   return (

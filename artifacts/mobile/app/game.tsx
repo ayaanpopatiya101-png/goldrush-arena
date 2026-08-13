@@ -105,17 +105,19 @@ export default function GameScreen() {
     return rankSkill * ramp;
   })();
 
-  const mapMods  = map.mods ?? {};
-  // Merge variant + map modifiers — variant rules always win over map mods.
+  // ── Challenge mode: all player-progression variables are locked out so every
+  // player faces identical conditions regardless of rank, relic, or inventory.
+  const isChallenge = Boolean(config.challengeSeed);
+
+  // For challenge, ignore the equipped map and always use the default arena
+  // (no terrain modifiers that could affect ball physics).
+  const effectiveMap = isChallenge ? MAPS[0] : map;
+  const mapMods      = effectiveMap.mods ?? {};
+
   const { maxSkillBots, ...variantCfgRest } = variantCfg;
   const effectiveBotSkill = maxSkillBots ? 1.0 : botSkill;
-  // How many lives the player chose to spend from their bank this match (set in lobby)
   const bankLivesUsed = Math.max(0, config.bankLivesUsed ?? 0);
-  // When running a daily challenge, override speed params with deterministic values
-  // derived from the daily seed — so every player plays under identical conditions.
-  // The rngSeed (seedHash) further seeds ball/powerup spawning in GameArena so
-  // every player's run follows the same exact sequence of ball angles and positions.
-  const isChallenge = Boolean(config.challengeSeed);
+
   const mergedCfg = {
     ...variantCfgRest,
     startSpeedMult:   isChallenge
@@ -125,8 +127,8 @@ export default function GameScreen() {
     rngSeed:          isChallenge ? config.challengeSeedHash : undefined,
     ballSpawnFrames:  variantCfgRest.ballSpawnFrames ?? mapMods.ballSpawnFrames,
     noPowerups:       variantCfgRest.noPowerups      ?? mapMods.noPowerups,
-    // Bank lives stack on top of variant bonus lives (e.g. warlord's 5)
-    playerBonusLives: (variantCfgRest.playerBonusLives ?? 0) + bankLivesUsed,
+    // Challenge: lock bank lives to 0; non-challenge: add lobby-chosen bank lives
+    playerBonusLives: isChallenge ? 0 : ((variantCfgRest.playerBonusLives ?? 0) + bankLivesUsed),
   };
 
   const [gameOver,     setGameOver]     = useState(false);
@@ -371,7 +373,8 @@ export default function GameScreen() {
             playerColor={config.playerColor}
             playerGlowColor={config.playerGlowColor}
             botNames={config.opponentNames ?? BOT_NAMES}
-            botRanks={config.opponentRanks ?? generatedBotRanks}
+            // Challenge: solo run — no bots, no relic, no terrain
+            botRanks={isChallenge ? [] : (config.opponentRanks ?? generatedBotRanks)}
             onGameOver={handleGameOver}
             onGameModeChange={handleGameModeChange}
             onPlayerLivesChange={handleLivesChange}
@@ -384,12 +387,12 @@ export default function GameScreen() {
             botDifficulty={botDifficulty}
             onGameStart={handleGameStart}
             paused={paused}
-            playerRelic={mergeRelicEffects(
+            playerRelic={isChallenge ? undefined : mergeRelicEffects(
               relic ? getScaledRelicEffect(relic.id, getRelicLevel(profile, relic.id)) : undefined,
               getForgeAbility(profile.equippedForgeAbility)?.effect
             )}
-            botSkill={effectiveBotSkill}
-            arenaBg={map.arenaBg}
+            botSkill={isChallenge ? 0 : effectiveBotSkill}
+            arenaBg={effectiveMap.arenaBg}
             playerSuperType={profile.selectedSuper ?? 1}
             practice={config.practice}
             {...mergedCfg}

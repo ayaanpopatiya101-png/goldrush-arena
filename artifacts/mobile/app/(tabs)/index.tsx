@@ -247,7 +247,7 @@ export default function HomeScreen() {
         playerSkinId:            skin.id,
         playerColor:             skin.color,
         playerGlowColor:         skin.glowColor,
-        playerRelicId:           profile.currentRelic,
+        playerRelicId:           profile.currentRelic,  // locked out in game.tsx when isChallenge
         matchType:               'casual',
         variant:                 'survival',
         challengeSeed:           challenge?.seed        ?? '',
@@ -255,8 +255,10 @@ export default function HomeScreen() {
         challengeSeedHash:       challenge?.seedHash    ?? '',
         challengeStartSpeedMult: challenge?.startSpeedMult,
         challengeRampRate:       challenge?.rampRate,
+        // Lobby is bypassed — explicitly zero so game.tsx doesn't read a stale value
+        bankLivesUsed:           0,
       });
-      router.push('/lobby');
+      router.push('/game');
     } finally {
       setChallengeLoading(false);
     }
