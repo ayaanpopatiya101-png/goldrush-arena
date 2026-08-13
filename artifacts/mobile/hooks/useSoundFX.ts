@@ -73,6 +73,8 @@ export function prewarmNativeAudio(): void {
       [261, 0.12], [329, 0.12], [392, 0.12], [523, 0.22],
       [659, 0.14], [784, 0.14], [1047, 0.28],
       [660, 0.07], [880, 0.1],
+      // lobby sounds
+      [660, 0.06], [1047, 0.1],
     ];
     for (const [f, d] of tones) getNativeToneUri(f, d);
   } catch { /* best-effort */ }
@@ -124,6 +126,7 @@ export interface SoundFX {
   matchEnd:          () => void;
   powerUp:           () => void;
   countdown:         () => void;
+  playerJoin:        () => void;
 }
 
 export function useSoundFX(enabled: boolean): SoundFX {
@@ -139,6 +142,8 @@ export function useSoundFX(enabled: boolean): SoundFX {
       matchEnd:         fire(() => nativeSeq([{ f: 523, d: 0.14 }, { f: 659, d: 0.14 }, { f: 784, d: 0.14 }, { f: 1047, d: 0.28 }], 0.13)),
       powerUp:          fire(() => nativeSeq([{ f: 660, d: 0.07 }, { f: 880, d: 0.1 }], 0.07)),
       countdown:        fire(() => nativeTone(523, 0.1)),
+      // Short ascending ping — 660 Hz pop followed by a 1047 Hz chime
+      playerJoin:       fire(() => nativeSeq([{ f: 660, d: 0.06 }, { f: 1047, d: 0.1 }], 0.07)),
     };
   }
 
@@ -153,5 +158,7 @@ export function useSoundFX(enabled: boolean): SoundFX {
     matchEnd:         g(() => seq([{ f: 523, d: 0.14 }, { f: 659, d: 0.14 }, { f: 784, d: 0.14 }, { f: 1047, d: 0.28 }], 0.13)),
     powerUp:          g(() => seq([{ f: 660, d: 0.07 }, { f: 880, d: 0.1 }], 0.07)),
     countdown:        g(() => tone(523, 0.1, 'square', 0.1)),
+    // Short ascending ping — sine wave feels cleaner for a lobby UI event
+    playerJoin:       g(() => seq([{ f: 660, d: 0.06, t: 'sine', v: 0.12 }, { f: 1047, d: 0.1, t: 'sine', v: 0.1 }], 0.07)),
   };
 }

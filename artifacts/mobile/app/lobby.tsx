@@ -34,6 +34,7 @@ import { getGameConfig, updateGameConfig } from '@/store/gameSession';
 import { getGauntletState } from '@/store/gauntletSession';
 import { useColors } from '@/hooks/useColors';
 import { useSettings } from '@/hooks/useSettings';
+import { useSoundFX } from '@/hooks/useSoundFX';
 import { apiUrl } from '@/utils/api';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -220,6 +221,10 @@ export default function LobbyScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = usePlayer();
   const { settings } = useSettings();
+  const sfx = useSoundFX(settings.soundEnabled);
+  // Stable ref so the matchmaking effect closure always reads the latest sfx/settings
+  const sfxRef = useRef(sfx);
+  sfxRef.current = sfx;
   const { partyCode, isInParty, members: partyMembers, myPlayerId } = useParty();
   const config = getGameConfig();
 
@@ -299,11 +304,13 @@ export default function LobbyScreen() {
       let c = 3;
       setCountdown(c);
       if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      sfxRef.current.countdown();
       countdownTimer = setInterval(() => {
         if (cancelled) { if (countdownTimer) clearInterval(countdownTimer); return; }
         c -= 1;
         setCountdown(c);
         if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (c > 0) sfxRef.current.countdown();
         if (c <= 0) {
           if (countdownTimer) clearInterval(countdownTimer);
           updateGameConfig({ mapId: selectedMapRef.current });
@@ -332,6 +339,7 @@ export default function LobbyScreen() {
                 const updated = [...o];
                 while (updated.length <= idx) updated.push(others[updated.length]!);
                 if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                sfxRef.current.playerJoin();
                 return updated;
               }
               return o;
@@ -412,6 +420,7 @@ export default function LobbyScreen() {
           if (cancelled) return;
           setOpponents(prev => [...prev, p]);
           if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          sfxRef.current.playerJoin();
         }, (i + 1) * 900));
       });
       timers.push(setTimeout(() => {
