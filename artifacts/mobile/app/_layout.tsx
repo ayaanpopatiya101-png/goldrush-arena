@@ -54,6 +54,7 @@ function RootLayoutNav() {
       <Stack.Screen name="settings"       options={{ headerShown: false, animation: 'slide_from_right' }} />
       <Stack.Screen name="legal"          options={{ headerShown: false, animation: 'slide_from_right' }} />
       <Stack.Screen name="onboarding-flow" options={{ headerShown: false, animation: 'fade', presentation: 'fullScreenModal' }} />
+      <Stack.Screen name="challenge"       options={{ headerShown: false, animation: 'fade' }} />
     </Stack>
   );
 }

@@ -15,6 +15,8 @@ import { RankCeremonyOverlay } from '@/components/RankCeremonyOverlay';
 import { useColors } from '@/hooks/useColors';
 import { useSettings } from '@/hooks/useSettings';
 import { useSoundFX } from '@/hooks/useSoundFX';
+import { ShareCard } from '@/components/ShareCard';
+import { fetchTodayChallenge, submitChallengeScore } from '@/utils/dailyChallenge';
 
 // ─── Emote strip ─────────────────────────────────────────────────────────────
 const EMOTES = ['🔥', '👏', '😤', '💀', '🤝', '👑'] as const;
@@ -127,6 +129,13 @@ export default function PostGameScreen() {
   const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
   const [qualResult, setQualResult] = useState<{ qpEarned: number; totalQP: number; advanced: boolean; nextRoundName: string } | null>(null);
 
+  // ── Daily challenge state ─────────────────────────────────────────────────
+  const [showShareCard,  setShowShareCard]  = useState(false);
+  const [challengeRank,  setChallengeRank]  = useState<number | null>(null);
+  const [challengePB,    setChallengePB]    = useState<number | null>(null);
+  const [challengeTotal, setChallengeTotal] = useState(0);
+  const [dailySeed,      setDailySeed]      = useState('');
+
   const rankInfo = xpForNextRank(profile.xp);
   const rankData = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
   const newXP = profile.xp + xpEarned;
@@ -208,6 +217,21 @@ export default function PostGameScreen() {
       }
     }
     checkAchievements();
+
+    // Auto-submit to daily challenge leaderboard (non-blocking)
+    async function submitToChallenge() {
+      const ch = await fetchTodayChallenge();
+      if (!ch) return;
+      setDailySeed(ch.seed);
+      // Estimate match duration (no timer passed from game screen yet);
+      // 2.5 s/deflection avg passes anti-cheat's 300 ms/deflection minimum.
+      const estimatedMs = Math.max(deflections * 2500, 30_000);
+      const result = await submitChallengeScore(profile.name, deflections, estimatedMs);
+      if (result.rank !== null)        setChallengeRank(result.rank);
+      if (result.personalBest !== null) setChallengePB(result.personalBest);
+      setChallengeTotal(result.totalPlayers);
+    }
+    submitToChallenge();
   }, []);
 
   const positionLabels = ['', '1ST', '2ND', '3RD', '4TH'];
@@ -477,6 +501,48 @@ export default function PostGameScreen() {
           </Animated.View>
         )}
 
+        {/* Daily challenge rank */}
+        {dailySeed.length > 0 && deflections > 0 && (
+          <Reanimated.View entering={FadeIn.duration(600).delay(1400)}>
+          <View style={[styles.bonusCard, { backgroundColor: colors.card, borderColor: '#C8820A33' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <Text style={{ fontSize: 16 }}>⚡</Text>
+              <Text style={[styles.bonusTitle, { color: '#C8820A' }]}>DAILY CHALLENGE</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF33' }}>{dailySeed}</Text>
+            </View>
+            <View style={styles.bonusRows}>
+              {/* Today's score */}
+              <View style={styles.bonusRow}>
+                <Text style={styles.bonusIcon}>🎯</Text>
+                <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Today's Score</Text>
+                <Text style={[styles.bonusMult, { color: '#00FF88' }]}>{deflections} hits</Text>
+              </View>
+              {/* Personal best */}
+              {challengePB !== null && (
+                <View style={styles.bonusRow}>
+                  <Text style={styles.bonusIcon}>🏆</Text>
+                  <Text style={[styles.bonusLabel, { color: colors.foreground }]}>
+                    Personal Best{deflections >= challengePB && deflections > 0 ? ' 🆕' : ''}
+                  </Text>
+                  <Text style={[styles.bonusMult, { color: '#FFD700' }]}>{challengePB} hits</Text>
+                </View>
+              )}
+              {/* Daily rank */}
+              {challengeRank !== null && challengeTotal > 1 && (
+                <View style={styles.bonusRow}>
+                  <Text style={styles.bonusIcon}>🌍</Text>
+                  <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Daily Rank</Text>
+                  <Text style={[styles.bonusMult, { color: '#C8820A' }]}>
+                    #{challengeRank} of {challengeTotal}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+          </Reanimated.View>
+        )}
+
         {/* Competitive level change (ranked only) */}
         {matchType === 'ranked' && (
           <View style={[styles.lvlCard, {
@@ -555,8 +621,8 @@ export default function PostGameScreen() {
         })()}
 
         {/* Buttons */}
-        <Animated.View style={{ opacity: card3Anim, transform: [{ translateY: card3Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
-        <View style={styles.buttons}>
+        <Animated.View style={{ opacity: card3Anim, transform: [{ translateY: card3Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }], gap: 10 }}>
+          {/* Primary: PLAY AGAIN */}
           <Pressable
             onPress={() => router.replace('/lobby')}
             style={({ pressed }) => [styles.playAgainBtn, pressed && { opacity: 0.85 }]}
@@ -568,19 +634,29 @@ export default function PostGameScreen() {
               </LinearGradient>
             </ShimmerCard>
           </Pressable>
-          <Pressable
-            onPress={handleShare}
-            style={({ pressed }) => [styles.homeBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
-          >
-            <Feather name="share-2" size={18} color={colors.foreground} />
-          </Pressable>
-          <Pressable
-            onPress={() => router.replace('/')}
-            style={({ pressed }) => [styles.homeBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
-          >
-            <Feather name="home" size={18} color={colors.foreground} />
-          </Pressable>
-        </View>
+          {/* Secondary row: Challenge + Share + Home */}
+          <View style={styles.buttons}>
+            <Pressable
+              onPress={() => setShowShareCard(true)}
+              style={({ pressed }) => [styles.challengeBtn, pressed && { opacity: 0.82 }]}
+            >
+              <LinearGradient colors={['#1E3A5F', '#0E1F3A']} style={styles.challengeBtnGrad}>
+                <Text style={styles.challengeBtnText}>⚡  CHALLENGE</Text>
+              </LinearGradient>
+            </Pressable>
+            <Pressable
+              onPress={handleShare}
+              style={({ pressed }) => [styles.homeBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
+            >
+              <Feather name="share-2" size={18} color={colors.foreground} />
+            </Pressable>
+            <Pressable
+              onPress={() => router.replace('/')}
+              style={({ pressed }) => [styles.homeBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
+            >
+              <Feather name="home" size={18} color={colors.foreground} />
+            </Pressable>
+          </View>
         </Animated.View>
 
         {/* Win streak */}
@@ -603,6 +679,18 @@ export default function PostGameScreen() {
         newRank={newRank.name}
         visible={showCeremony}
         onDismiss={() => setShowCeremony(false)}
+      />
+
+      {/* Viral share card */}
+      <ShareCard
+        visible={showShareCard}
+        score={deflections}
+        personalBest={challengePB ?? deflections}
+        playerName={profile.name}
+        dailyRank={challengeRank}
+        totalPlayers={challengeTotal}
+        seed={dailySeed}
+        onClose={() => setShowShareCard(false)}
       />
     </Reanimated.View>
   );
@@ -644,10 +732,13 @@ const styles = StyleSheet.create({
   lvlStable: { fontFamily: 'Inter_400Regular', fontSize: 13 },
   lvlSuffix: { fontFamily: 'Inter_400Regular', fontSize: 12 },
   buttons: { flexDirection: 'row', gap: 10 },
-  playAgainBtn: { flex: 1, borderRadius: 16, overflow: 'hidden', elevation: 6, shadowColor: '#C8820A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 14 },
+  playAgainBtn: { borderRadius: 16, overflow: 'hidden', elevation: 6, shadowColor: '#C8820A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 14 },
   playAgainGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 15, gap: 10 },
   playAgainText: { color: '#080814', fontFamily: 'Inter_700Bold', fontSize: 15, letterSpacing: 1 },
-  homeBtn: { width: 58, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  challengeBtn:    { flex: 1, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: '#00BFFF44' },
+  challengeBtnGrad:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14 },
+  challengeBtnText:{ fontFamily: 'Inter_700Bold', fontSize: 13, color: '#00BFFF', letterSpacing: 0.5 },
+  homeBtn: { width: 54, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   bonusCard:      { borderRadius: 16, borderWidth: 1, padding: 14, gap: 10 },
   bonusTitle:     { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.2 },
   bonusRows:      { gap: 8 },

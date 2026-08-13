@@ -32,6 +32,10 @@ export interface GameSessionConfig {
   practice?:       boolean;
   /** Lives taken from the bank for this match (chosen in the lobby). */
   bankLivesUsed?:           number;
+  /** Daily challenge seed (YYYYMMDD) — set when entering via a challenge deep link. */
+  challengeSeed?:           string;
+  /** Target score to beat from a friend's challenge link. */
+  challengeTargetScore?:    number;
   /** Featured mode id — set when the player opts in via the Events tab. */
   featuredModeId?:          string;
   /** Coin multiplier from the active featured mode (e.g. 2.0 = double coins). */
