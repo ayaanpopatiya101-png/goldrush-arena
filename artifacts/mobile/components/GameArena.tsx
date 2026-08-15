@@ -27,10 +27,6 @@ const MAX_SPEED = 14;
 const DUEL_TIME_LIMIT = 60;     // seconds before sudden-death winner declared
 
 const BOTTOM = 0; const TOP = 1; const LEFT = 2; const RIGHT = 3;
-const BOTTOM = 0; const TOP = 1; const LEFT = 2; const RIGHT = 3;
-const BOTTOM = 0; const TOP = 1; const LEFT = 2; const RIGHT = 3;
-const BOTTOM = 0; const TOP = 1; const LEFT = 2; const RIGHT = 3;
-const BOTTOM_R = 4; const TOP_R = 5;
 const BOTTOM_R = 4; const TOP_R = 5;
 
 type BallType   = 'normal' | 'fire' | 'heavy' | 'tiny';
