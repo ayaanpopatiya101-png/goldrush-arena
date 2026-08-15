@@ -183,6 +183,10 @@ export default function HomeScreen() {
     return () => { pulse.stop(); glow.stop(); shimmer.stop(); titleGlow.stop(); crownFloat.stop(); crownRotate.stop(); };
   }, []);
 
+  function handlePlayArcade() {
+    router.push('/arcade');
+  }
+
   function handlePlay(matchType: MatchType) {
     // Non-leaders in a party can't pick the mode — leader controls it
     if (isInParty && !isLeader) return;
@@ -489,6 +493,53 @@ export default function HomeScreen() {
           </Animated.View>
           <Text style={styles.gameSubtitle}>4-PLAYER AIR HOCKEY · LAST ONE STANDING WINS</Text>
         </View>
+
+        {/* ── GoldRush Survival — new player entry point (< 5 games) ── */}
+        {profile.totalGames < 5 && (
+          <Pressable
+            onPress={handlePlayArcade}
+            style={({ pressed }) => [{ marginHorizontal: 20, marginBottom: 10, borderRadius: 20, overflow: 'hidden', opacity: pressed ? 0.88 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] }]}
+          >
+            <LinearGradient colors={['#0D2A12', '#0A1E0E', '#061008']} style={{ borderRadius: 20, borderWidth: 1.5, borderColor: '#00FF8833' }}>
+              <LinearGradient
+                colors={['#00FF8818', 'transparent']}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 80, borderRadius: 20 }}
+                pointerEvents="none"
+              />
+              <View style={{ padding: 18, gap: 10 }}>
+                {/* Header */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Text style={{ fontSize: 28 }}>⚡</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 18, color: '#00FF88', letterSpacing: 0.5 }}>
+                      SURVIVAL MODE
+                    </Text>
+                    <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 12, color: '#FFFFFF66', marginTop: 2 }}>
+                      Solo · Deflect the ball · Don't miss
+                    </Text>
+                  </View>
+                  <View style={{ backgroundColor: '#00FF8822', borderRadius: 8, borderWidth: 1, borderColor: '#00FF8855', paddingHorizontal: 8, paddingVertical: 4 }}>
+                    <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#00FF88' }}>START HERE</Text>
+                  </View>
+                </View>
+                {/* Feature chips */}
+                <View style={{ flexDirection: 'row', gap: 6 }}>
+                  {['No opponents', 'Speed ramps up', 'Beat your best'].map(chip => (
+                    <View key={chip} style={{ backgroundColor: '#00FF8814', borderRadius: 6, borderWidth: 1, borderColor: '#00FF8830', paddingHorizontal: 8, paddingVertical: 4 }}>
+                      <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#00FF8899' }}>{chip}</Text>
+                    </View>
+                  ))}
+                </View>
+                {/* Play CTA */}
+                <LinearGradient colors={['#00FF88', '#00CC66']} style={{ borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 13, gap: 8 }}>
+                  <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1.5, backgroundColor: '#FFFFFF40', borderTopLeftRadius: 12, borderTopRightRadius: 12 }} />
+                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 15, color: '#080814', letterSpacing: 1 }}>PLAY NOW</Text>
+                  <Text style={{ fontSize: 16 }}>⚡</Text>
+                </LinearGradient>
+              </View>
+            </LinearGradient>
+          </Pressable>
+        )}
 
         {/* Play buttons — Hero RANKED + Secondary CASUAL */}
         {/* Non-leaders see a "waiting for leader" banner and buttons are inert */}
@@ -930,6 +981,26 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 10, paddingHorizontal: 20, paddingVertical: 4 }}
           >
+            {/* ── GoldRush Survival card ── */}
+            <PressableScale
+              onPress={handlePlayArcade}
+              haptic="medium"
+              scaleTo={0.95}
+              sinkTo={2}
+              style={[styles.modePickCard, { borderColor: '#00FF8855', backgroundColor: '#00FF880E' }]}
+            >
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2.5, backgroundColor: '#00FF88', borderTopLeftRadius: 14, borderTopRightRadius: 14, opacity: 0.9 }} />
+              <LinearGradient colors={['#00FF8828', '#00FF8808', '#00000000']} style={StyleSheet.absoluteFill} />
+              <Text style={styles.modePickEmoji}>⚡</Text>
+              <Text style={[styles.modePickName, { color: '#00FF88' }]}>SURVIVAL</Text>
+              <Text style={[styles.modePickSub, { color: colors.mutedForeground }]}>Solo · Arcade</Text>
+              <Text style={[styles.modePickDesc, { color: '#00FF88BB' }]}>{'Beat your\npersonal best'}</Text>
+              <View style={[styles.modePlayChip, { backgroundColor: '#00FF8828', borderColor: '#00FF8866' }]}>
+                <Feather name="play" size={8} color="#00FF88" />
+                <Text style={[styles.modePlayChipText, { color: '#00FF88' }]}>SOLO</Text>
+              </View>
+            </PressableScale>
+
             {([
               { id: 'duos',         emoji: '👥', name: 'DUOS',         sub: '2v2 Teams',       color: '#00E5FF', desc: 'Bottom+Right vs\nTop+Left' },
               { id: 'blitz',        emoji: '⚡', name: 'BLITZ',        sub: '1 Life · Fast',   color: '#C8820A', desc: '1 hit = out.\nLightning fast' },

@@ -76,6 +76,8 @@ export default function PostGameScreen() {
     qEventName: string; qEventEmoji: string; qEventColor: string;
     // Daily challenge — empty string when this was not a challenge run
     challengeSeed: string; matchNonce: string;
+    // Arcade params
+    arcadeBest: string;
   }>();
   const { profile, unlockAchievement, claimEventBonus, earnQualifierPoints } = usePlayer();
 
@@ -86,6 +88,8 @@ export default function PostGameScreen() {
   const xpEarned = parseInt(params.xpEarned ?? '50', 10);
   const coinsEarned = parseInt(params.coinsEarned ?? '15', 10);
   const matchType   = params.matchType ?? 'casual';
+  const isArcade    = matchType === 'arcade';
+  const arcadeBest  = parseInt(params.arcadeBest ?? String(0), 10);
   const levelBefore = parseInt(params.levelBefore ?? String(profile.competitiveLevel ?? 1), 10);
   const streakMult  = parseFloat(params.streakMult ?? '1');
   const diffMult    = parseFloat(params.diffMult ?? '1');
@@ -116,21 +120,17 @@ export default function PostGameScreen() {
   const qEventEmoji = params.qEventEmoji ?? '';
   const qEventColor = params.qEventColor ?? '#FFD700';
   const isQualifier  = qPeriodKey.length > 0 && qRoundIdx >= 0;
+  const qpEarnedThisMatch = isQualifier ? (qpPerPlace[Math.min(Math.max(position - 1, 0), 3)] ?? 0) : 0;
 
   // Daily challenge — only truthy when the match was seeded by the challenge config
-  const challengeSeed = params.challengeSeed ?? '';
-  const matchNonce    = params.matchNonce    ?? '';
+  const challengeSeed  = params.challengeSeed ?? '';
+  const matchNonce     = params.matchNonce    ?? '';
   const isChallengeRun = challengeSeed.length > 0 && matchNonce.length > 0;
-  const qpEarnedThisMatch = isQualifier ? (qpPerPlace[Math.min(Math.max(position - 1, 0), 3)] ?? 0) : 0;
 
   const levelAfter  = profile.competitiveLevel ?? 1;
   const levelDelta  = levelAfter - levelBefore;
 
   const [selectedEmote, setSelectedEmote] = useState<string | null>(null);
-  const [showHighlightModal, setShowHighlightModal] = useState(false);
-  // Read pending highlight clip once at mount; clear when this screen unmounts
-  const highlightClip = useRef(getPendingClip()).current;
-  useEffect(() => () => clearPendingClip(), []);
 
   const fadeAnim        = useRef(new Animated.Value(0)).current;
   const scaleAnim       = useRef(new Animated.Value(0.7)).current;
@@ -232,8 +232,8 @@ export default function PostGameScreen() {
     }
     checkAchievements();
 
-    // Only submit to leaderboard when this was an actual challenge run (has nonce + seed)
-    if (isChallengeRun && deflections > 0) {
+    // Only submit to leaderboard when this was an actual challenge run (has nonce + seed) and NOT arcade
+    if (!isArcade && isChallengeRun && deflections > 0) {
       setDailySeed(challengeSeed);
       async function submitToChallenge() {
         const deviceId    = await getDeviceId();
@@ -280,82 +280,139 @@ export default function PostGameScreen() {
         {/* Result banner */}
         <Reanimated.View entering={SlideInUp.springify().damping(14).stiffness(100)}>
         <Animated.View style={[styles.resultBanner, { transform: [{ scale: scaleAnim }] }]}>
-          <LinearGradient
-            colors={
-              won       ? ['#C8820A55', '#C8820A22', '#C8820A08']
-              : position === 2 ? ['#C0C0C033', '#C0C0C011', '#00000000']
-              : position === 3 ? ['#CD7F3233', '#CD7F3211', '#00000000']
-              :                  ['#FF475744', '#FF475722', '#FF475708']
-            }
-            style={styles.bannerGrad}
-          >
-            {/* Large medal / outcome emoji */}
-            {won ? (
-              <PulseRing color="#FFD700" size={90} rings={3} duration={1800} opacity={0.28}>
+          {isArcade ? (
+            /* ── Arcade banner ── */
+            <LinearGradient
+              colors={deflections >= arcadeBest && arcadeBest > 0 ? ['#00FF8844', '#00FF8820', '#00FF8808'] : ['#1E8AAA44', '#1E8AAA20', '#1E8AAA08']}
+              style={styles.bannerGrad}
+            >
+              <Text style={[styles.medalEmoji]}>⚡</Text>
+              <Text style={[styles.positionText, { color: '#00FF8888', letterSpacing: 3 }]}>SOLO ARCADE · GAME OVER</Text>
+              <GlowText intensity="strong" color={deflections >= arcadeBest && arcadeBest > 0 ? '#00FF88' : '#FFD700'} style={[styles.scoreDisplay]}>
+                {deflections}
+              </GlowText>
+              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 11, color: '#FFFFFF66', letterSpacing: 3 }}>
+                HITS
+              </Text>
+              {deflections >= arcadeBest && arcadeBest > 0 && (
+                <View style={{ backgroundColor: '#00FF8822', borderRadius: 10, borderWidth: 1, borderColor: '#00FF8855', paddingHorizontal: 14, paddingVertical: 6, marginTop: 4 }}>
+                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 13, color: '#00FF88', letterSpacing: 2 }}>🏆 NEW PERSONAL BEST!</Text>
+                </View>
+              )}
+            </LinearGradient>
+          ) : (
+            /* ── Standard multi-player banner ── */
+            <LinearGradient
+              colors={
+                won       ? ['#C8820A55', '#C8820A22', '#C8820A08']
+                : position === 2 ? ['#C0C0C033', '#C0C0C011', '#00000000']
+                : position === 3 ? ['#CD7F3233', '#CD7F3211', '#00000000']
+                :                  ['#FF475744', '#FF475722', '#FF475708']
+              }
+              style={styles.bannerGrad}
+            >
+              {/* Large medal / outcome emoji */}
+              {won ? (
+                <PulseRing color="#FFD700" size={90} rings={3} duration={1800} opacity={0.28}>
+                  <Text style={[styles.medalEmoji, { textShadowColor: positionColors[position] ?? '#8B8B8B' }]}>
+                    {medalEmoji[position] ?? '💀'}
+                  </Text>
+                </PulseRing>
+              ) : (
                 <Text style={[styles.medalEmoji, { textShadowColor: positionColors[position] ?? '#8B8B8B' }]}>
                   {medalEmoji[position] ?? '💀'}
                 </Text>
-              </PulseRing>
-            ) : (
-              <Text style={[styles.medalEmoji, { textShadowColor: positionColors[position] ?? '#8B8B8B' }]}>
-                {medalEmoji[position] ?? '💀'}
+              )}
+              <Text style={[styles.positionText, { color: positionColors[position] ?? '#8B8B8B' }]}>
+                {positionLabels[position] ?? '4TH'}  ·  PLACE
               </Text>
-            )}
-            <Text style={[styles.positionText, { color: positionColors[position] ?? '#8B8B8B' }]}>
-              {positionLabels[position] ?? '4TH'}  ·  PLACE
-            </Text>
-            <GlowText intensity="strong" color={won ? '#00FF88' : '#C03820'} style={[styles.resultText, { color: won ? '#FFD700' : position === 2 ? '#D8D8D8' : position === 3 ? '#CD7F32' : '#FF4757' }]}>
-              {won ? 'VICTORY!' : position === 2 ? 'RUNNER-UP' : position === 3 ? 'THIRD PLACE' : 'ELIMINATED'}
-            </GlowText>
-          </LinearGradient>
+              <GlowText intensity="strong" color={won ? '#00FF88' : '#C03820'} style={[styles.resultText, { color: won ? '#FFD700' : position === 2 ? '#D8D8D8' : position === 3 ? '#CD7F32' : '#FF4757' }]}>
+                {won ? 'VICTORY!' : position === 2 ? 'RUNNER-UP' : position === 3 ? 'THIRD PLACE' : 'ELIMINATED'}
+              </GlowText>
+            </LinearGradient>
+          )}
         </Animated.View>
         </Reanimated.View>
 
-        {/* ── Emote strip ── */}
-        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 8, marginBottom: 4 }}>
-          {EMOTES.map(emote => (
-            <EmoteButton
-              key={emote}
-              emoji={emote}
-              selected={selectedEmote === emote}
-              onPress={() => setSelectedEmote(emote)}
-            />
-          ))}
-        </View>
-        {selectedEmote && (
-          <Text style={{ textAlign: 'center', fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#C8820A88', marginBottom: 2 }}>
-            {selectedEmote} reacted
-          </Text>
+        {/* ── Emote strip (hidden in arcade) ── */}
+        {!isArcade && (
+          <>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 8, marginBottom: 4 }}>
+              {EMOTES.map(emote => (
+                <EmoteButton
+                  key={emote}
+                  emoji={emote}
+                  selected={selectedEmote === emote}
+                  onPress={() => setSelectedEmote(emote)}
+                />
+              ))}
+            </View>
+            {selectedEmote && (
+              <Text style={{ textAlign: 'center', fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#C8820A88', marginBottom: 2 }}>
+                {selectedEmote} reacted
+              </Text>
+            )}
+          </>
         )}
 
         {/* Stats */}
         <Animated.View style={{ opacity: card1Anim, transform: [{ translateY: card1Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
-        <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <View style={{ width: 3, height: 16, backgroundColor: rankData.color, borderRadius: 2 }} />
-            <Text style={[styles.statsTitle, { color: colors.foreground }]}>MATCH STATS</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-          </View>
-          <View style={styles.statsGrid}>
-            {[
-              { label: 'Deflections', value: String(deflections), color: '#00FF88' },
-              { label: 'Goals Against', value: String(goalsAgainst), color: '#FF4757' },
-              { label: 'XP Earned', value: `+${xpEarned}`, color: rankData.color },
-              { label: 'Coins', value: `+${coinsEarned}`, color: '#C8820A' },
-            ].map(stat => (
-              <View key={stat.label} style={styles.statItem}>
-                {stat.label === 'XP Earned' ? (
-                  <GlowText intensity="medium" color='#C8820A' style={[styles.statValue, { color: stat.color }]}>{stat.value}</GlowText>
-                ) : stat.label === 'Coins' ? (
-                  <GlowText intensity="soft" color='#FFD700' style={[styles.statValue, { color: stat.color }]}>{stat.value}</GlowText>
-                ) : (
-                  <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
-                )}
-                <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
+        {isArcade ? (
+          /* ── Arcade stats card ── */
+          <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: '#00FF8822' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: '#00FF88', borderRadius: 2 }} />
+              <Text style={[styles.statsTitle, { color: '#00FF88' }]}>ARCADE STATS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+            </View>
+            <View style={styles.statsGrid}>
+              {[
+                { label: 'Score (Hits)',   value: String(deflections), color: '#FFD700' },
+                { label: 'Personal Best',  value: String(arcadeBest),  color: '#00FF88' },
+              ].map(stat => (
+                <View key={stat.label} style={[styles.statItem, { minWidth: '45%' }]}>
+                  <GlowText intensity="medium" color={stat.color} style={[styles.statValue, { color: stat.color, fontSize: 28 }]}>{stat.value}</GlowText>
+                  <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
+                </View>
+              ))}
+            </View>
+            {deflections < arcadeBest && arcadeBest > 0 && (
+              <View style={{ marginTop: 10, backgroundColor: '#FFD70010', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#FFD70022' }}>
+                <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 12, color: '#FFD70099', textAlign: 'center' }}>
+                  🎯 {arcadeBest - deflections} more hits to beat your best
+                </Text>
               </View>
-            ))}
+            )}
           </View>
-        </View>
+        ) : (
+          /* ── Standard match stats card ── */
+          <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <View style={{ width: 3, height: 16, backgroundColor: rankData.color, borderRadius: 2 }} />
+              <Text style={[styles.statsTitle, { color: colors.foreground }]}>MATCH STATS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+            </View>
+            <View style={styles.statsGrid}>
+              {[
+                { label: 'Deflections', value: String(deflections), color: '#00FF88' },
+                { label: 'Goals Against', value: String(goalsAgainst), color: '#FF4757' },
+                { label: 'XP Earned', value: `+${xpEarned}`, color: rankData.color },
+                { label: 'Coins', value: `+${coinsEarned}`, color: '#C8820A' },
+              ].map(stat => (
+                <View key={stat.label} style={styles.statItem}>
+                  {stat.label === 'XP Earned' ? (
+                    <GlowText intensity="medium" color='#C8820A' style={[styles.statValue, { color: stat.color }]}>{stat.value}</GlowText>
+                  ) : stat.label === 'Coins' ? (
+                    <GlowText intensity="soft" color='#FFD700' style={[styles.statValue, { color: stat.color }]}>{stat.value}</GlowText>
+                  ) : (
+                    <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
+                  )}
+                  <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
         </Animated.View>
 
         {/* Event bonus card */}
@@ -482,8 +539,8 @@ export default function PostGameScreen() {
           </View>
         )}
 
-        {/* XP Progress */}
-        {showXP && (
+        {/* XP Progress — hidden in arcade mode */}
+        {showXP && !isArcade && (
           <Animated.View style={{ opacity: card2Anim, transform: [{ translateY: card2Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
           <View style={[styles.xpCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.xpHeader}>
@@ -518,18 +575,14 @@ export default function PostGameScreen() {
           </Animated.View>
         )}
 
-        {/* Daily challenge rank — only shown for challenge runs */}
-        {isChallengeRun && dailySeed.length > 0 && deflections > 0 && (
+        {/* Daily challenge rank — only shown for challenge runs (not arcade) */}
+        {!isArcade && isChallengeRun && dailySeed.length > 0 && deflections > 0 && (
           <Reanimated.View entering={FadeIn.duration(600).delay(1400)}>
           <View style={[styles.bonusCard, { backgroundColor: colors.card, borderColor: '#C8820A33' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
               <Text style={{ fontSize: 16 }}>⚡</Text>
               <Text style={[styles.bonusTitle, { color: '#C8820A' }]}>DAILY CHALLENGE</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              {/* Beta badge: scores are self-reported; this is not a verified leaderboard */}
-              <View style={{ backgroundColor: '#FFFFFF10', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 }}>
-                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 8, color: '#FFFFFF44', letterSpacing: 1 }}>BETA</Text>
-              </View>
               <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF33' }}>{dailySeed}</Text>
             </View>
             <View style={styles.bonusRows}>
@@ -643,48 +696,52 @@ export default function PostGameScreen() {
 
         {/* Buttons */}
         <Animated.View style={{ opacity: card3Anim, transform: [{ translateY: card3Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }], gap: 10 }}>
-          {/* Primary: PLAY AGAIN */}
-          <Pressable
-            onPress={() => router.replace('/lobby')}
-            style={({ pressed }) => [styles.playAgainBtn, pressed && { opacity: 0.85 }]}
-          >
-            <ShimmerCard active={true} borderRadius={10} style={{ flex: 1 }}>
-              <LinearGradient colors={['#FFE020', '#FFB800']} style={styles.playAgainGrad}>
-                <Feather name="refresh-cw" size={18} color="#080814" />
-                <Text style={styles.playAgainText}>PLAY AGAIN</Text>
-              </LinearGradient>
-            </ShimmerCard>
-          </Pressable>
-          {/* Highlight clip share — only shown when a clip was captured this run */}
-          {highlightClip && (
+          {/* Primary: RETRY (arcade) or PLAY AGAIN (multiplayer) */}
+          {isArcade ? (
             <Pressable
-              onPress={() => setShowHighlightModal(true)}
-              style={({ pressed }) => [styles.highlightBtn, pressed && { opacity: 0.82 }]}
+              onPress={() => router.replace('/arcade' as never)}
+              style={({ pressed }) => [styles.playAgainBtn, { shadowColor: '#00FF88' }, pressed && { opacity: 0.85 }]}
             >
-              <LinearGradient colors={['#2A1A00', '#1A1008']} style={styles.highlightBtnGrad}>
-                <Text style={styles.highlightBtnText}>🎬  Share Highlight Clip</Text>
-              </LinearGradient>
+              <ShimmerCard active={true} borderRadius={10} style={{ flex: 1 }}>
+                <LinearGradient colors={['#00DD66', '#00AA44']} style={styles.playAgainGrad}>
+                  <Feather name="refresh-cw" size={18} color="#080814" />
+                  <Text style={styles.playAgainText}>RETRY</Text>
+                </LinearGradient>
+              </ShimmerCard>
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => router.replace('/lobby')}
+              style={({ pressed }) => [styles.playAgainBtn, pressed && { opacity: 0.85 }]}
+            >
+              <ShimmerCard active={true} borderRadius={10} style={{ flex: 1 }}>
+                <LinearGradient colors={['#FFE020', '#FFB800']} style={styles.playAgainGrad}>
+                  <Feather name="refresh-cw" size={18} color="#080814" />
+                  <Text style={styles.playAgainText}>PLAY AGAIN</Text>
+                </LinearGradient>
+              </ShimmerCard>
             </Pressable>
           )}
-
-          {/* Secondary row: Challenge + Share + Home */}
+          {/* Secondary row: Challenge (non-arcade only) + Share + Home */}
           <View style={styles.buttons}>
-            {isChallengeRun && (
-            <Pressable
-              onPress={() => setShowShareCard(true)}
-              style={({ pressed }) => [styles.challengeBtn, pressed && { opacity: 0.82 }]}
-            >
-              <LinearGradient colors={['#1E3A5F', '#0E1F3A']} style={styles.challengeBtnGrad}>
-                <Text style={styles.challengeBtnText}>⚡  CHALLENGE</Text>
-              </LinearGradient>
-            </Pressable>
+            {!isArcade && isChallengeRun && (
+              <Pressable
+                onPress={() => setShowShareCard(true)}
+                style={({ pressed }) => [styles.challengeBtn, pressed && { opacity: 0.82 }]}
+              >
+                <LinearGradient colors={['#1E3A5F', '#0E1F3A']} style={styles.challengeBtnGrad}>
+                  <Text style={styles.challengeBtnText}>⚡  CHALLENGE</Text>
+                </LinearGradient>
+              </Pressable>
             )}
-            <Pressable
-              onPress={handleShare}
-              style={({ pressed }) => [styles.homeBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
-            >
-              <Feather name="share-2" size={18} color={colors.foreground} />
-            </Pressable>
+            {!isArcade && (
+              <Pressable
+                onPress={handleShare}
+                style={({ pressed }) => [styles.homeBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
+              >
+                <Feather name="share-2" size={18} color={colors.foreground} />
+              </Pressable>
+            )}
             <Pressable
               onPress={() => router.replace('/')}
               style={({ pressed }) => [styles.homeBtn, { borderColor: colors.border }, pressed && { opacity: 0.7 }]}
@@ -716,19 +773,8 @@ export default function PostGameScreen() {
         onDismiss={() => setShowCeremony(false)}
       />
 
-      {/* Highlight clip share modal */}
-      {highlightClip && (
-        <HighlightShareModal
-          visible={showHighlightModal}
-          onClose={() => setShowHighlightModal(false)}
-          frames={highlightClip.frames}
-          highlightType={highlightClip.type as HighlightType}
-          score={highlightClip.score}
-        />
-      )}
-
-      {/* Viral share card — only rendered for challenge runs */}
-      {isChallengeRun && <ShareCard
+      {/* Viral share card — only rendered for non-arcade challenge runs */}
+      {!isArcade && isChallengeRun && <ShareCard
         visible={showShareCard}
         score={deflections}
         personalBest={challengePB ?? deflections}
@@ -750,7 +796,8 @@ const styles = StyleSheet.create({
   bannerGrad: { width: '100%', alignItems: 'center', paddingVertical: 30, paddingHorizontal: 20, gap: 6, borderRadius: 22 },
   medalEmoji: { fontSize: 68, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24 },
   positionText: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 5 },
-  resultText: { fontFamily: 'Rajdhani_700Bold', fontSize: 38, letterSpacing: 3 },
+  resultText:   { fontFamily: 'Rajdhani_700Bold', fontSize: 38, letterSpacing: 3 },
+  scoreDisplay: { fontFamily: 'Inter_700Bold', fontSize: 64, letterSpacing: -2, lineHeight: 68 },
   victoryEmoji: { fontSize: 40, marginTop: 4 },
   statsCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 14 },
   statsTitle: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2 },

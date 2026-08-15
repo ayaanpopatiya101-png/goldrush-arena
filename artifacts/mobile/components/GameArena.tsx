@@ -27,6 +27,10 @@ const MAX_SPEED = 14;
 const DUEL_TIME_LIMIT = 60;     // seconds before sudden-death winner declared
 
 const BOTTOM = 0; const TOP = 1; const LEFT = 2; const RIGHT = 3;
+const BOTTOM = 0; const TOP = 1; const LEFT = 2; const RIGHT = 3;
+const BOTTOM = 0; const TOP = 1; const LEFT = 2; const RIGHT = 3;
+const BOTTOM = 0; const TOP = 1; const LEFT = 2; const RIGHT = 3;
+const BOTTOM_R = 4; const TOP_R = 5;
 const BOTTOM_R = 4; const TOP_R = 5;
 
 type BallType   = 'normal' | 'fire' | 'heavy' | 'tiny';
@@ -63,42 +67,62 @@ export interface GameResult {
 
 interface GameArenaProps {
   arenaSize: number;
+
   playerName: string; playerColor: string; playerGlowColor: string;
+
   botNames: string[]; botRanks: string[];
+
   onGameOver: (result: GameResult) => void;
+
   onGameModeChange?: (mode: GameMode) => void;
+
   onPlayerLivesChange?: (lives: number) => void;
+
   grantExtraLifeRef?: React.MutableRefObject<(() => void) | null>;
+
   onEliminatedSpectating?: (earn: { xp: number; coins: number }) => void;
   /** Gradually shifts arena hue during gameplay */
+
   colorBoard?: boolean;
   /** Enable Web-Audio sound effects */
+
   soundEnabled?: boolean;
   /** Paddle sensitivity multiplier: 1.0 = normal, 1.5 = fast, 0.6 = slow */
+
   sensitivity?: number;
   /** Called whenever the active ball count changes */
+
   onActiveBallsChange?: (count: number) => void;
   /** Bot difficulty: easy = Casual mode, normal = Ranked mode */
+
   botDifficulty?: 'easy' | 'normal';
   /** Called once the countdown finishes and gameplay begins */
+
   onGameStart?: () => void;
   /** Lives each player starts with (default 5) */
+
   initialLives?: number;
   /** Extra balls spawned immediately at game start in addition to the first (default 0) */
+
   startingBallCount?: number;
   /** Frames between automatic ball spawns (default 420 = 7 s at 60 fps) */
+
   ballSpawnFrames?: number;
   /** When true, power-up pickups never spawn */
+
   noPowerups?: boolean;
   /** Speed multiplier applied to the very first ball (default 1.0) */
+
   startSpeedMult?: number;
   /** Speed increase added to the global multiplier each time a new ball spawns (default 0.07). */
+
   rampRate?: number;
   /**
    * Hex SHA-256 seed for the challenge PRNG.  When provided, ball spawn angles,
    * ball types, and power-up positions are deterministic so every player running
    * the same daily seed encounters an identical sequence of events.
    */
+
   rngSeed?: string;
   /**
    * Solo / challenge mode: pre-eliminates all bot sides (TOP, LEFT, RIGHT) so
@@ -106,29 +130,47 @@ interface GameArenaProps {
    * run for eliminated players, and the game ends the instant the human loses
    * their last life — no spectating transition.
    */
+
   soloMode?: boolean;
   /** Team 2v2: [BOTTOM,RIGHT] vs [TOP,LEFT]. Skip triangle/duel transitions; team elimination wins. */
+
   duoMode?: boolean;
   /** 6-player mode: top & bottom walls each split into left/right halves, giving 6 independent zones. */
+
   sixPlayer?: boolean;
   /** Relic effect equipped by the human player (applied in-match). */
+
   playerRelic?: RelicEffect;
   /** 0..1 skill scalar from the human's rank; scales bot speed & accuracy. */
+
   botSkill?: number;
   /** Inner arena gradient from the selected map; falls back to mode-based. */
+
   arenaBg?: [string, string, string];
   /** Player's chosen super ability: 1=Rampart, 2=Dead Zone, 3=Shatter */
+
   playerSuperType?: 1 | 2 | 3;
   /** When true the game loop freezes (paused menu or app backgrounded). */
+
   paused?: boolean;
   /** Ghost Protocol mode: balls flash invisible for 1.5 s every 3 s cycle */
+
   phantomBalls?: boolean;
   /** Extra lives added only to the human player at game start (Warlord mode) */
+
   playerBonusLives?: number;
   /** When true (tutorial practice match) screen shake and floating goal emojis are suppressed. */
+
   practice?: boolean;
-  /** Fires when the player makes a highlight-worthy play (multi-ball block, near-death save, hot streak ≥5). */
+  /** Solo arcade mode: all bots eliminated, speed ramps per deflection, first miss = game over. */
+
+
   onHighlight?: (type: 'multi_block' | 'near_death' | 'hot_streak') => void;
+
+  arcadeMode?: boolean;
+  /** Called whenever the player's deflection score changes (arcade mode). */
+
+  onScoreChange?: (score: number) => void;
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
@@ -193,6 +235,7 @@ export function GameArena({
   duoMode, sixPlayer, playerRelic, botSkill, arenaBg, playerSuperType = 1, paused = false,
   phantomBalls = false, playerBonusLives = 0, practice = false,
   onHighlight,
+  arcadeMode = false, onScoreChange,
 }: GameArenaProps) {
 
   const szRef = useRef(arenaSize);
@@ -200,9 +243,6 @@ export function GameArena({
 
   const pausedRef = useRef(paused);
   useEffect(() => { pausedRef.current = paused; }, [paused]);
-
-  const onHighlightRef = useRef(onHighlight);
-  useEffect(() => { onHighlightRef.current = onHighlight; }, [onHighlight]);
 
   const ballSpawnFramesRef   = useRef(ballSpawnFrames   ?? BALL_SPAWN_FRAMES);
   const noPowerupsRef        = useRef(noPowerups        ?? false);
@@ -311,6 +351,11 @@ export function GameArena({
   const botDifficultyRef  = useRef(botDifficulty);
   useEffect(() => { botDifficultyRef.current = botDifficulty; }, [botDifficulty]);
   useEffect(() => { onGameOverRef.current = onGameOver; }, [onGameOver]);
+  const onHighlightRef    = useRef(onHighlight);
+  useEffect(() => { onHighlightRef.current = onHighlight; }, [onHighlight]);
+  const arcadeModeRef     = useRef(arcadeMode);
+  const onScoreChangeRef  = useRef(onScoreChange);
+  useEffect(() => { onScoreChangeRef.current = onScoreChange; }, [onScoreChange]);
 
   // ── Animated countdown: scale-in + flash on each number ─────────────────────
   useEffect(() => {
@@ -430,9 +475,6 @@ export function GameArena({
     duelTopId: TOP, duelBottomId: BOTTOM, duelFrames: 0,
     players: [
       { id:BOTTOM,   name:playerName,              paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:false, isEliminated:false,              score:0, color:playerColor,      glowColor:playerGlowColor, rank:'Gold',              botSpeed:0,   botAccuracy:1,    hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
-      // soloMode: bots start pre-eliminated — balls bounce off their walls,
-      // bot AI is skipped (isEliminated guard in the loop), and the game ends
-      // immediately when the human's last life is lost (no spectating).
       { id:TOP,      name:botNames[0]??'Blaze_99',  paddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   prevPaddleCenter:(sixPlayer??false)?arenaSize/4:arenaSize/2,   lives:initialLivesVal, isBot:true,  isEliminated:soloMode,           score:0, color:PLAYER_COLORS[1], glowColor:PLAYER_GLOW[1],  rank:botRanks[0]??'Gold',      botSpeed:4.8, botAccuracy:0.86, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
       { id:LEFT,     name:botNames[1]??'IceQueen',  paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:soloMode,           score:0, color:PLAYER_COLORS[2], glowColor:PLAYER_GLOW[2],  rank:botRanks[1]??'Platinum',   botSpeed:5.2, botAccuracy:0.88, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
       { id:RIGHT,    name:botNames[2]??'Venom_X',   paddleCenter:arenaSize/2,                                  prevPaddleCenter:arenaSize/2,                                  lives:initialLivesVal, isBot:true,  isEliminated:soloMode,           score:0, color:PLAYER_COLORS[3], glowColor:PLAYER_GLOW[3],  rank:botRanks[2]??'Diamond',    botSpeed:5.6, botAccuracy:0.91, hasShield:false, speedBoostFrames:0, shrunkFrames:0, relicEffect:{}, paddleLenMult:1, paddleSpeedMult:1, reviveLives:0, shrinkImmune:false },
@@ -461,6 +503,13 @@ export function GameArena({
     }
     // Warlord mode: grant extra lives to the human player only.
     if (playerBonusLives > 0) gs.players[BOTTOM].lives += playerBonusLives;
+    // Arcade mode: eliminate all bots so their walls act as bounce surfaces.
+    if (arcadeModeRef.current) {
+      for (const pid of [TOP, LEFT, RIGHT, BOTTOM_R, TOP_R]) {
+        gs.players[pid].isEliminated = true;
+      }
+      setEliminatedState(gs.players.map(p => p.isEliminated));
+    }
     // Reflect starting shields / bonus lives in the UI.
     setShieldActive(gs.players.map(p => p.hasShield));
     setLivesState(gs.players.map(p => p.lives));
@@ -518,8 +567,8 @@ export function GameArena({
       setComboCount(n);
       if (comboTimer.current) clearTimeout(comboTimer.current);
       comboTimer.current = setTimeout(() => setComboCount(0), 2200);
-      if (n >= 5) onHighlightRef.current?.('hot_streak');
     }
+    if (n >= 5) onHighlightRef.current?.('hot_streak');
   }
 
   // ── Setup duel mode ──
@@ -692,17 +741,9 @@ export function GameArena({
         return;
       }
       player.isEliminated = true;
-      if (playerId !== BOTTOM) {
-        finishPositionRef.current = Math.max(2, finishPositionRef.current - 1);
-      } else if (soloModeRef.current) {
-        // Solo / challenge mode: human lost their last life — end immediately,
-        // no spectating.  Use forceWin with a non-BOTTOM id so won=false.
-        setEliminatedState(gs.players.map(p => p.isEliminated));
-        showAnnouncer('💀 RUN OVER!');
-        forceWin(gs, TOP);
-        return;
-      } else {
-        // Multi-player: human enters spectating while bots finish
+      if (playerId !== BOTTOM) finishPositionRef.current = Math.max(2, finishPositionRef.current - 1);
+      else {
+        // Human eliminated — enter spectating
         setIsSpectating(true);
       }
       setEliminatedState(gs.players.map(p => p.isEliminated));
@@ -743,7 +784,6 @@ export function GameArena({
 
   // ── Super ability activation ──
   function activateSuper() {
-    if (soloModeRef.current) return; // supers disabled in solo/challenge mode — different supers across players would break comparability
     if (superChargeRef.current < SUPER_MAX_CHARGE) return;
     if (superActiveFramesRef.current > 0) return;
     superChargeRef.current = 0;
@@ -864,7 +904,19 @@ export function GameArena({
             if (!practice) screenShakeRef.current?.shake(0.3);
             sparkBurstRef.current?.burst(ball.x, ball.y, defender.color);
             setPlayerScoreUI(deflectionsRef.current);
-            // Highlight detection: multi-ball block or near-death save
+            onScoreChangeRef.current?.(deflectionsRef.current);
+            // Arcade: ramp ball speed on every deflection — scale velocity immediately
+            if (arcadeModeRef.current) {
+              const prevMult = gs.speedMultiplier;
+              gs.speedMultiplier = Math.min(gs.speedMultiplier + 0.045, 3.5);
+              const curSpd = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+              if (curSpd > 0 && prevMult > 0) {
+                const targetSpd = Math.min(curSpd * (gs.speedMultiplier / prevMult), gs.speedMultiplier * MAX_SPEED);
+                ball.vx = (ball.vx / curSpd) * targetSpd;
+                ball.vy = (ball.vy / curSpd) * targetSpd;
+              }
+            }
+            // Highlights for multi-block and near-death saves
             const activeBalls = gs.balls.filter(b => b.active).length;
             if (activeBalls >= 2) onHighlightRef.current?.('multi_block');
             else if (gs.players[BOTTOM].lives === 1) onHighlightRef.current?.('near_death');
@@ -880,6 +932,19 @@ export function GameArena({
             ball.active = false;
             setBallVisuals(gs.balls.map(b => ({ active: b.active, color: b.color, radius: b.radius })));
             showAnnouncer('💥 BANISHED!');
+          } else if (arcadeModeRef.current) {
+            // Arcade mode: first miss = instant game over
+            ball.vy = -Math.abs(ball.vy);
+            if (gs.phase !== 'gameover') {
+              gs.phase = 'gameover';
+              isRunningRef.current = false;
+              setGamePhase('gameover');
+              showAnnouncer('💀 GAME OVER!');
+              if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+              setTimeout(() => {
+                onGameOverRef.current({ won: false, position: 1, deflections: deflectionsRef.current, goalsAgainst: 1, xpEarned: 0, coinsEarned: 0 });
+              }, 1200);
+            }
           } else {
             ball.vy = -Math.abs(ball.vy);
             handleGoal(gs, isDuel ? duelHuman.id : defender.id);
@@ -1657,8 +1722,7 @@ export function GameArena({
         } as never]} />
       </View>
 
-      {/* ── Super charge bar (outside panResponder so Pressable works cleanly) ── */}
-      {/* Super charge bar — hidden in soloMode (supers are disabled there so the UI would be misleading) */}
+      {/* ── Super charge bar — hidden in soloMode (supers disabled for comparability) ── */}
       {gamePhase === 'playing' && !isSpectating && !gs.players[BOTTOM].isEliminated && !soloMode && (
         <View style={{
           position: 'absolute',
