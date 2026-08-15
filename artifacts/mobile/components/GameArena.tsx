@@ -127,6 +127,8 @@ interface GameArenaProps {
   playerBonusLives?: number;
   /** When true (tutorial practice match) screen shake and floating goal emojis are suppressed. */
   practice?: boolean;
+  /** Fires when the player makes a highlight-worthy play (multi-ball block, near-death save, hot streak ≥5). */
+  onHighlight?: (type: 'multi_block' | 'near_death' | 'hot_streak') => void;
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
@@ -190,6 +192,7 @@ export function GameArena({
   rngSeed, soloMode = false,
   duoMode, sixPlayer, playerRelic, botSkill, arenaBg, playerSuperType = 1, paused = false,
   phantomBalls = false, playerBonusLives = 0, practice = false,
+  onHighlight,
 }: GameArenaProps) {
 
   const szRef = useRef(arenaSize);
@@ -197,6 +200,9 @@ export function GameArena({
 
   const pausedRef = useRef(paused);
   useEffect(() => { pausedRef.current = paused; }, [paused]);
+
+  const onHighlightRef = useRef(onHighlight);
+  useEffect(() => { onHighlightRef.current = onHighlight; }, [onHighlight]);
 
   const ballSpawnFramesRef   = useRef(ballSpawnFrames   ?? BALL_SPAWN_FRAMES);
   const noPowerupsRef        = useRef(noPowerups        ?? false);
@@ -512,6 +518,7 @@ export function GameArena({
       setComboCount(n);
       if (comboTimer.current) clearTimeout(comboTimer.current);
       comboTimer.current = setTimeout(() => setComboCount(0), 2200);
+      if (n >= 5) onHighlightRef.current?.('hot_streak');
     }
   }
 
@@ -857,6 +864,10 @@ export function GameArena({
             if (!practice) screenShakeRef.current?.shake(0.3);
             sparkBurstRef.current?.burst(ball.x, ball.y, defender.color);
             setPlayerScoreUI(deflectionsRef.current);
+            // Highlight detection: multi-ball block or near-death save
+            const activeBalls = gs.balls.filter(b => b.active).length;
+            if (activeBalls >= 2) onHighlightRef.current?.('multi_block');
+            else if (gs.players[BOTTOM].lives === 1) onHighlightRef.current?.('near_death');
           }
         } else {
           const isHumanGoal = isDuel ? duelHuman.id === BOTTOM : defender.id === BOTTOM;

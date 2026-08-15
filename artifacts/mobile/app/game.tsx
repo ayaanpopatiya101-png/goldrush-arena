@@ -12,6 +12,8 @@ import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, RANKS, MAPS,
 import { getGameConfig, getActiveEvent, clearActiveEvent, getQualifierContext, clearQualifierContext } from '@/store/gameSession';
 import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
+import { useHighlightCapture } from '@/hooks/useHighlightCapture';
+import { setPendingClip } from '@/store/highlightClip';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
 const BOT_RANKS  = ['Gold', 'Platinum', 'Diamond', 'Master 1', 'Master 2'];
@@ -149,6 +151,10 @@ export default function GameScreen() {
   const musicStarted      = useRef(false);
   const extraLifeUsed     = useRef(false);
   const timerRef          = useRef<ReturnType<typeof setInterval> | null>(null);
+  const arenaWrapRef      = useRef<View>(null);
+
+  // Highlight clip capture (no-op on web via platform file split)
+  const { startCapture, triggerHighlight, stopAndGetClip } = useHighlightCapture();
 
   // Training period always forces easy bots; after that matchType decides.
   const botDifficulty: 'easy' | 'normal' = isTraining || config.matchType === 'casual' ? 'easy' : 'normal';
@@ -188,8 +194,13 @@ export default function GameScreen() {
 
   function handleGameStart() {
     setTimerRunning(true);
+    startCapture(arenaWrapRef as any);
     // Deduct the chosen bank lives — consumed once at match start, non-refundable
     if (bankLivesUsed > 0) consumeExtraLives(bankLivesUsed);
+  }
+
+  function handleHighlight(type: 'multi_block' | 'near_death' | 'hot_streak') {
+    triggerHighlight(type);
   }
 
   function ensureMusic() {
@@ -214,6 +225,10 @@ export default function GameScreen() {
   }, [gameMode]);
 
   function handleGameOver(result: GameResult) {
+    // Capture highlight clip before navigating away (no-op on web)
+    const hlClip = stopAndGetClip();
+    if (hlClip) setPendingClip(hlClip.frames, hlClip.type, result.deflections);
+
     setGameOver(true);
     setTimerRunning(false);
     music.stop();
@@ -374,6 +389,9 @@ export default function GameScreen() {
         </View>
 
         {!gameOver && (
+          /* arenaWrapRef — used by useHighlightCapture to screen-capture frames */
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          <View ref={arenaWrapRef as any} style={{ alignSelf: 'stretch' }}>
           <GameArena
             arenaSize={arenaSize}
             playerName={config.playerName}
@@ -404,8 +422,10 @@ export default function GameScreen() {
             arenaBg={effectiveMap.arenaBg}
             playerSuperType={profile.selectedSuper ?? 1}
             practice={config.practice}
+            onHighlight={handleHighlight}
             {...mergedCfg}
           />
+          </View>
         )}
 
         <View style={styles.topBotLabel}>

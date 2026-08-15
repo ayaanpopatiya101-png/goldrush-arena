@@ -16,6 +16,8 @@ import { useColors } from '@/hooks/useColors';
 import { useSettings } from '@/hooks/useSettings';
 import { useSoundFX } from '@/hooks/useSoundFX';
 import { ShareCard } from '@/components/ShareCard';
+import { HighlightShareModal, type HighlightType } from '@/components/HighlightShareModal';
+import { getPendingClip, clearPendingClip } from '@/store/highlightClip';
 import { submitChallengeScore } from '@/utils/dailyChallenge';
 import { getDeviceId } from '@/utils/deviceId';
 
@@ -125,6 +127,10 @@ export default function PostGameScreen() {
   const levelDelta  = levelAfter - levelBefore;
 
   const [selectedEmote, setSelectedEmote] = useState<string | null>(null);
+  const [showHighlightModal, setShowHighlightModal] = useState(false);
+  // Read pending highlight clip once at mount; clear when this screen unmounts
+  const highlightClip = useRef(getPendingClip()).current;
+  useEffect(() => () => clearPendingClip(), []);
 
   const fadeAnim        = useRef(new Animated.Value(0)).current;
   const scaleAnim       = useRef(new Animated.Value(0.7)).current;
@@ -649,6 +655,18 @@ export default function PostGameScreen() {
               </LinearGradient>
             </ShimmerCard>
           </Pressable>
+          {/* Highlight clip share — only shown when a clip was captured this run */}
+          {highlightClip && (
+            <Pressable
+              onPress={() => setShowHighlightModal(true)}
+              style={({ pressed }) => [styles.highlightBtn, pressed && { opacity: 0.82 }]}
+            >
+              <LinearGradient colors={['#2A1A00', '#1A1008']} style={styles.highlightBtnGrad}>
+                <Text style={styles.highlightBtnText}>🎬  Share Highlight Clip</Text>
+              </LinearGradient>
+            </Pressable>
+          )}
+
           {/* Secondary row: Challenge + Share + Home */}
           <View style={styles.buttons}>
             {isChallengeRun && (
@@ -697,6 +715,17 @@ export default function PostGameScreen() {
         visible={showCeremony}
         onDismiss={() => setShowCeremony(false)}
       />
+
+      {/* Highlight clip share modal */}
+      {highlightClip && (
+        <HighlightShareModal
+          visible={showHighlightModal}
+          onClose={() => setShowHighlightModal(false)}
+          frames={highlightClip.frames}
+          highlightType={highlightClip.type as HighlightType}
+          score={highlightClip.score}
+        />
+      )}
 
       {/* Viral share card — only rendered for challenge runs */}
       {isChallengeRun && <ShareCard
@@ -748,6 +777,9 @@ const styles = StyleSheet.create({
   lvlNum: { fontFamily: 'Inter_700Bold', fontSize: 20 },
   lvlStable: { fontFamily: 'Inter_400Regular', fontSize: 13 },
   lvlSuffix: { fontFamily: 'Inter_400Regular', fontSize: 12 },
+  highlightBtn:     { borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: '#C8820A55' },
+  highlightBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14 },
+  highlightBtnText: { fontFamily: 'Inter_700Bold', fontSize: 14, color: '#C8820A', letterSpacing: 0.5 },
   buttons: { flexDirection: 'row', gap: 10 },
   playAgainBtn: { borderRadius: 16, overflow: 'hidden', elevation: 6, shadowColor: '#C8820A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 14 },
   playAgainGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 15, gap: 10 },
