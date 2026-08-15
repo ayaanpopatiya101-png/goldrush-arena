@@ -131,6 +131,10 @@ export default function PostGameScreen() {
   const levelDelta  = levelAfter - levelBefore;
 
   const [selectedEmote, setSelectedEmote] = useState<string | null>(null);
+  const [showHighlightModal, setShowHighlightModal] = useState(false);
+  // Read the pending highlight clip once at mount; clear when screen unmounts
+  const highlightClip = useRef(getPendingClip()).current;
+  useEffect(() => () => clearPendingClip(), []);
 
   const fadeAnim        = useRef(new Animated.Value(0)).current;
   const scaleAnim       = useRef(new Animated.Value(0.7)).current;
@@ -722,6 +726,18 @@ export default function PostGameScreen() {
               </ShimmerCard>
             </Pressable>
           )}
+          {/* Highlight clip share — shown when a clip was captured this run */}
+          {highlightClip && (
+            <Pressable
+              onPress={() => setShowHighlightModal(true)}
+              style={({ pressed }) => [styles.highlightBtn, pressed && { opacity: 0.82 }]}
+            >
+              <LinearGradient colors={['#2A1A00', '#1A1008']} style={styles.highlightBtnGrad}>
+                <Text style={styles.highlightBtnText}>🎬  Share Highlight Clip</Text>
+              </LinearGradient>
+            </Pressable>
+          )}
+
           {/* Secondary row: Challenge (non-arcade only) + Share + Home */}
           <View style={styles.buttons}>
             {!isArcade && isChallengeRun && (
@@ -772,6 +788,18 @@ export default function PostGameScreen() {
         visible={showCeremony}
         onDismiss={() => setShowCeremony(false)}
       />
+
+      {/* Highlight clip share modal */}
+      {highlightClip && (
+        <HighlightShareModal
+          visible={showHighlightModal}
+          onClose={() => setShowHighlightModal(false)}
+          frames={highlightClip.frames}
+          highlightType={highlightClip.type as HighlightType}
+          score={highlightClip.score}
+          clipScore={highlightClip.clipScore}
+        />
+      )}
 
       {/* Viral share card — only rendered for non-arcade challenge runs */}
       {!isArcade && isChallengeRun && <ShareCard

@@ -13,7 +13,8 @@ import { getGameConfig, getActiveEvent, clearActiveEvent, getQualifierContext, c
 import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
 import { useHighlightCapture } from '@/hooks/useHighlightCapture';
-import { setPendingClip } from '@/store/highlightClip';
+import { setPendingClip, getPendingClip } from '@/store/highlightClip';
+import { computeClipScore } from '@/utils/clipRewards';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
 const BOT_RANKS  = ['Gold', 'Platinum', 'Diamond', 'Master 1', 'Master 2'];
@@ -152,9 +153,12 @@ export default function GameScreen() {
   const extraLifeUsed     = useRef(false);
   const timerRef          = useRef<ReturnType<typeof setInterval> | null>(null);
   const arenaWrapRef      = useRef<View>(null);
+  const clipScoreRef      = useRef(0);
+  const [captureStarted, setCaptureStarted] = useState(false);
+  const [clipSaved,      setClipSaved]      = useState(false);
 
   // Highlight clip capture (no-op on web via platform file split)
-  const { startCapture, triggerHighlight, stopAndGetClip } = useHighlightCapture();
+  const { startCapture, triggerHighlight, snapshotClip, stopAndGetClip } = useHighlightCapture();
 
   // Training period always forces easy bots; after that matchType decides.
   const botDifficulty: 'easy' | 'normal' = isTraining || config.matchType === 'casual' ? 'easy' : 'normal';
@@ -195,12 +199,25 @@ export default function GameScreen() {
   function handleGameStart() {
     setTimerRunning(true);
     startCapture(arenaWrapRef as any);
+    setCaptureStarted(true);
     // Deduct the chosen bank lives — consumed once at match start, non-refundable
     if (bankLivesUsed > 0) consumeExtraLives(bankLivesUsed);
   }
 
   function handleHighlight(type: 'multi_block' | 'near_death' | 'hot_streak') {
+    // Snapshot clip score at the moment the highlight fires (game state may change by game-over)
+    clipScoreRef.current = computeClipScore(activeBalls, playerLives);
     triggerHighlight(type);
+  }
+
+  function handleManualRecord() {
+    const frames = snapshotClip();
+    if (!frames || frames.length < 4) return;
+    const cs = computeClipScore(activeBalls, playerLives);
+    clipScoreRef.current = cs;
+    setPendingClip(frames, 'manual', 0, cs); // score=0 placeholder; updated at game-over
+    setClipSaved(true);
+    setTimeout(() => setClipSaved(false), 2000);
   }
 
   function ensureMusic() {
@@ -225,9 +242,16 @@ export default function GameScreen() {
   }, [gameMode]);
 
   function handleGameOver(result: GameResult) {
-    // Capture highlight clip before navigating away (no-op on web)
+    // Store the best clip for the post-game share button (no-op on web)
     const hlClip = stopAndGetClip();
-    if (hlClip) setPendingClip(hlClip.frames, hlClip.type, result.deflections);
+    const existing = getPendingClip();
+    if (existing?.type === 'manual') {
+      // Player manually triggered — preserve their clip, just attach the final score
+      setPendingClip(existing.frames, 'manual', result.deflections, existing.clipScore);
+    } else if (hlClip) {
+      // Auto-highlight — use the clip-score captured at trigger time
+      setPendingClip(hlClip.frames, hlClip.type, result.deflections, clipScoreRef.current);
+    }
 
     setGameOver(true);
     setTimerRunning(false);
@@ -351,6 +375,13 @@ export default function GameScreen() {
         <Pressable onPress={() => setPaused(true)} style={styles.iconBtn}>
           <Feather name="pause" size={20} color="#FFFFFF88" />
         </Pressable>
+        {captureStarted && !gameOver && (
+          <Pressable onPress={handleManualRecord} style={styles.iconBtn} hitSlop={8}>
+            <Text style={{ fontSize: 17, opacity: clipSaved ? 1 : 0.7 }}>
+              {clipSaved ? '✅' : '📹'}
+            </Text>
+          </Pressable>
+        )}
 
         <Animated.View style={[styles.modeChip, { borderColor: modeColor+'88', backgroundColor: modeColor+'22', transform:[{scale:modePulse}] }]}>
           <Text style={[styles.modeText, { color: modeColor }]}>{MODE_LABELS[gameMode]}</Text>
