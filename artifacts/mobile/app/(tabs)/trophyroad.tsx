@@ -669,7 +669,7 @@ export default function BattlePassScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { profile, claimBattlePassTier, claimQuestReward, claimTrophyRoad } = usePlayer();
-  const [innerTab, setInnerTab] = useState<'quests' | 'pass' | 'road'>('pass');
+  const [innerTab, setInnerTab] = useState<'quests' | 'pass'>('pass');
   const [toasts, setToasts] = useState<{ id: string; label: string; color: string }[]>([]);
   const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
   const passScrollRef = useRef<ScrollView>(null);
@@ -811,7 +811,6 @@ export default function BattlePassScreen() {
           {([
             { id: 'pass',   emoji: '🎫', label: 'PASS'   },
             { id: 'quests', emoji: '📋', label: 'QUESTS' },
-            { id: 'road',   emoji: '🗺️', label: 'ROAD'   },
           ] as const).map(tab => (
             <Pressable
               key={tab.id}
@@ -819,21 +818,19 @@ export default function BattlePassScreen() {
               style={[s.tabBtn, innerTab === tab.id && s.tabBtnActive]}
             >
               <Text style={{ fontSize: 13 }}>{tab.emoji}</Text>
-              <Text style={[s.tabBtnTxt, innerTab === tab.id && { color: '#FFD700' }]}>
+              <Text style={[s.tabBtnTxt, innerTab === tab.id && { color: '#C084FC' }]}>
                 {tab.label}
               </Text>
             </Pressable>
           ))}
+          <Pressable
+            onPress={() => router.push('/trophyroad-map')}
+            style={s.tabBtn}
+          >
+            <Text style={{ fontSize: 13 }}>🗺️</Text>
+            <Text style={s.tabBtnTxt}>ROAD</Text>
+          </Pressable>
         </View>
-
-        {/* ── ROAD Tab ── */}
-        {innerTab === 'road' && (
-          <TrophyRoadTab
-            profile={profile}
-            onClaim={handleClaimTrophyMilestone}
-            insets={insets}
-          />
-        )}
 
         {/* ── QUESTS Tab ── */}
         {innerTab === 'quests' && (
