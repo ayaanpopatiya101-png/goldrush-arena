@@ -16,7 +16,6 @@ import { useColors } from '@/hooks/useColors';
 import { useSettings } from '@/hooks/useSettings';
 import { useSoundFX } from '@/hooks/useSoundFX';
 import { ShareCard } from '@/components/ShareCard';
-import { HighlightShareModal, type HighlightType } from '@/components/HighlightShareModal';
 import { getPendingClip, clearPendingClip } from '@/store/highlightClip';
 import { submitChallengeScore } from '@/utils/dailyChallenge';
 import { getDeviceId } from '@/utils/deviceId';
@@ -131,7 +130,6 @@ export default function PostGameScreen() {
   const levelDelta  = levelAfter - levelBefore;
 
   const [selectedEmote, setSelectedEmote] = useState<string | null>(null);
-  const [showHighlightModal, setShowHighlightModal] = useState(false);
   // Read the pending highlight clip once at mount; clear when screen unmounts
   const highlightClip = useRef(getPendingClip()).current;
   useEffect(() => () => clearPendingClip(), []);
@@ -726,15 +724,25 @@ export default function PostGameScreen() {
               </ShimmerCard>
             </Pressable>
           )}
-          {/* Highlight clip share — shown when a clip was captured this run */}
+          {/* ── SEE YOUR CLIP banner ── */}
           {highlightClip && (
             <Pressable
-              onPress={() => setShowHighlightModal(true)}
-              style={({ pressed }) => [styles.highlightBtn, pressed && { opacity: 0.82 }]}
+              onPress={() => router.push('/clip-viewer')}
+              style={({ pressed }) => [styles.seeClipBtn, { opacity: pressed ? 0.88 : 1 }]}
             >
-              <LinearGradient colors={['#2A1A00', '#1A1008']} style={styles.highlightBtnGrad}>
-                <Text style={styles.highlightBtnText}>🎬  Share Highlight Clip</Text>
-              </LinearGradient>
+              <LinearGradient colors={['#1A0C00', '#2A1500', '#1A0C00']} style={StyleSheet.absoluteFill} />
+              {/* Pulsing accent border overlay */}
+              <View style={styles.seeClipBorder} />
+              <View style={styles.seeClipInner}>
+                <Text style={{ fontSize: 28 }}>🎬</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.seeClipTitle}>SEE YOUR CLIP</Text>
+                  <Text style={styles.seeClipSub}>Watch · Edit · Share · Save</Text>
+                </View>
+                <View style={styles.seeClipArrow}>
+                  <Text style={{ fontSize: 18, color: '#FFD700' }}>›</Text>
+                </View>
+              </View>
             </Pressable>
           )}
 
@@ -789,17 +797,6 @@ export default function PostGameScreen() {
         onDismiss={() => setShowCeremony(false)}
       />
 
-      {/* Highlight clip share modal */}
-      {highlightClip && (
-        <HighlightShareModal
-          visible={showHighlightModal}
-          onClose={() => setShowHighlightModal(false)}
-          frames={highlightClip.frames}
-          highlightType={highlightClip.type as HighlightType}
-          score={highlightClip.score}
-          clipScore={highlightClip.clipScore}
-        />
-      )}
 
       {/* Viral share card — only rendered for non-arcade challenge runs */}
       {!isArcade && isChallengeRun && <ShareCard
@@ -852,9 +849,12 @@ const styles = StyleSheet.create({
   lvlNum: { fontFamily: 'Inter_700Bold', fontSize: 20 },
   lvlStable: { fontFamily: 'Inter_400Regular', fontSize: 13 },
   lvlSuffix: { fontFamily: 'Inter_400Regular', fontSize: 12 },
-  highlightBtn:     { borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: '#C8820A55' },
-  highlightBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14 },
-  highlightBtnText: { fontFamily: 'Inter_700Bold', fontSize: 14, color: '#C8820A', letterSpacing: 0.5 },
+  seeClipBtn:    { borderRadius: 16, overflow: 'hidden', borderWidth: 1.5, borderColor: '#FFD70044' },
+  seeClipBorder: { position: 'absolute', inset: 0, borderRadius: 16, borderWidth: 1, borderColor: '#FFD70022' },
+  seeClipInner:  { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12 },
+  seeClipTitle:  { fontFamily: 'Rajdhani_700Bold', fontSize: 20, color: '#FFD700', letterSpacing: 1.5 },
+  seeClipSub:    { fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFD70099', letterSpacing: 0.3, marginTop: 1 },
+  seeClipArrow:  { width: 28, height: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFD70015', borderRadius: 14 },
   buttons: { flexDirection: 'row', gap: 10 },
   playAgainBtn: { borderRadius: 16, overflow: 'hidden', elevation: 6, shadowColor: '#C8820A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 14 },
   playAgainGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 15, gap: 10 },
