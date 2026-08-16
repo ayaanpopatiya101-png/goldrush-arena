@@ -10,8 +10,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
   BATTLE_PASS_TIERS, BATTLE_PASS_POINTS_PER_TIER, BATTLE_PASS_SEASON,
-  QUESTS, LUCKY_BLOCK_META,
+  TROPHY_ROAD, QUESTS, LUCKY_BLOCK_META,
   type BattlePassTier, type BPReward, type QuestDefinition, type LuckyBlock,
+  type TrophyReward, type TrophyMilestone,
   usePlayer,
 } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
@@ -324,6 +325,341 @@ function Toast({ label, color, onDone }: { label: string; color: string; onDone:
   );
 }
 
+// ─── Trophy Road ──────────────────────────────────────────────────────────────
+
+interface RoadZone {
+  name: string;
+  subtitle: string;
+  gradColors: [string, string];
+  accent: string;
+  decor: string[];
+  milestones: TrophyMilestone[];
+}
+
+const ROAD_ZONES: RoadZone[] = [
+  {
+    name: 'Dusty Trail',
+    subtitle: 'Where legends begin…',
+    gradColors: ['#1E0C00', '#0A0400'],
+    accent: '#C87820',
+    decor: ['🌵', '⛺', '🏜️', '🌅', '🌵'],
+    milestones: TROPHY_ROAD.slice(0, 5),
+  },
+  {
+    name: 'Gold Rush Gulch',
+    subtitle: 'Strike it rich',
+    gradColors: ['#1A1200', '#080600'],
+    accent: '#FFD700',
+    decor: ['⛏️', '🪨', '💰', '🔦', '💎'],
+    milestones: TROPHY_ROAD.slice(5, 10),
+  },
+  {
+    name: 'Crimson Canyon',
+    subtitle: 'Heat rises — do you?',
+    gradColors: ['#1E0400', '#080100'],
+    accent: '#FF5520',
+    decor: ['🌋', '🔥', '💥', '🏔️', '🌋'],
+    milestones: TROPHY_ROAD.slice(10, 15),
+  },
+  {
+    name: 'Crystal Caverns',
+    subtitle: 'Beneath the surface',
+    gradColors: ['#001616', '#000808'],
+    accent: '#00E5FF',
+    decor: ['💎', '🔮', '✨', '🫧', '💎'],
+    milestones: TROPHY_ROAD.slice(15, 20),
+  },
+  {
+    name: 'Summit of Champions',
+    subtitle: 'Only the elite reach here',
+    gradColors: ['#0C0020', '#030008'],
+    accent: '#C084FC',
+    decor: ['👑', '⚡', '🏆', '🌟', '⚡'],
+    milestones: TROPHY_ROAD.slice(20, 25),
+  },
+];
+
+function trEmoji(r: TrophyReward): string {
+  if (r.type === 'coins')     return '🪙';
+  if (r.type === 'skin')      return '🎨';
+  if (r.type === 'relic')     return '⚔️';
+  if (r.type === 'luckyblock') return LUCKY_BLOCK_META[r.tier].emoji;
+  return '🎁';
+}
+function trLabel(r: TrophyReward): string {
+  if (r.type === 'coins')     return `${r.amount.toLocaleString()} Coins`;
+  if (r.type === 'skin')      return r.id[0].toUpperCase() + r.id.slice(1) + ' Skin';
+  if (r.type === 'relic')     return r.id[0].toUpperCase() + r.id.slice(1) + ' Relic';
+  if (r.type === 'luckyblock') return LUCKY_BLOCK_META[r.tier].name;
+  return 'Reward';
+}
+function trColor(r: TrophyReward): string {
+  if (r.type === 'coins')     return '#FFD700';
+  if (r.type === 'skin')      return '#00E5FF';
+  if (r.type === 'relic')     return '#FF6B35';
+  if (r.type === 'luckyblock') return LUCKY_BLOCK_META[r.tier].color;
+  return '#FFFFFF';
+}
+function fmtXP(n: number): string {
+  if (n >= 1000) return (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'K';
+  return String(n);
+}
+
+// Z-shaped connector between zigzag nodes
+function PathConnector({ fromRight, color }: { fromRight: boolean; color: string }) {
+  const c = color + '70';
+  const v: any = { backgroundColor: c, position: 'absolute' };
+  return (
+    <View style={{ height: 52, marginHorizontal: 40, marginTop: -2, marginBottom: -2 }}>
+      {fromRight ? (
+        <>
+          <View style={[v, { right: 2, top: 0, height: 24, width: 2 }]} />
+          <View style={[v, { right: 2, left: 2, top: 24, height: 2 }]} />
+          <View style={[v, { left: 2, top: 24, bottom: 0, width: 2 }]} />
+        </>
+      ) : (
+        <>
+          <View style={[v, { left: 2, top: 0, height: 24, width: 2 }]} />
+          <View style={[v, { left: 2, right: 2, top: 24, height: 2 }]} />
+          <View style={[v, { right: 2, top: 24, bottom: 0, width: 2 }]} />
+        </>
+      )}
+    </View>
+  );
+}
+
+// Decorative floating emojis inside a zone banner
+function ZoneDecor({ emojis, color }: { emojis: string[]; color: string }) {
+  const floats = emojis.slice(0, 4).map((e, i) => {
+    const anim = useRef(new Animated.Value(0)).current;
+    useEffect(() => {
+      Animated.loop(Animated.sequence([
+        Animated.timing(anim, { toValue: -5, duration: 1600 + i * 400, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0,  duration: 1600 + i * 400, useNativeDriver: true }),
+      ])).start();
+    }, []);
+    return { e, anim, x: 12 + i * 26 };
+  });
+  return (
+    <View style={{ position: 'absolute', right: 10, top: 0, bottom: 0, width: 120, overflow: 'hidden' }}>
+      {floats.map(({ e, anim, x }, i) => (
+        <Animated.Text key={i}
+          style={{
+            position: 'absolute',
+            fontSize: i === 0 ? 28 : i === 1 ? 20 : 14,
+            right: x,
+            top: i % 2 === 0 ? 6 : 16,
+            transform: [{ translateY: anim }],
+            opacity: 1 - i * 0.15,
+          }}
+        >{e}</Animated.Text>
+      ))}
+    </View>
+  );
+}
+
+function ZoneBanner({ zone, zoneIdx }: { zone: RoadZone; zoneIdx: number }) {
+  return (
+    <View style={{ marginHorizontal: 16, marginTop: zoneIdx === 0 ? 8 : 20, marginBottom: 16 }}>
+      <LinearGradient
+        colors={[zone.accent + '35', zone.accent + '0A']}
+        style={{
+          borderRadius: 18, padding: 16, borderWidth: 1.5,
+          borderColor: zone.accent + '55', overflow: 'hidden',
+        }}
+      >
+        <ZoneDecor emojis={zone.decor} color={zone.accent} />
+        <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 8, color: zone.accent, letterSpacing: 3, marginBottom: 3 }}>
+          ZONE {zoneIdx + 1} · 5 MILESTONES
+        </Text>
+        <Text style={{ fontFamily: 'Rajdhani_700Bold', fontSize: 24, color: '#FFFFFF', letterSpacing: 1.5, lineHeight: 28 }}>
+          {zone.name.toUpperCase()}
+        </Text>
+        <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: zone.accent + 'CC', marginTop: 2 }}>
+          {zone.subtitle}
+        </Text>
+        {/* XP range pill */}
+        <View style={{
+          alignSelf: 'flex-start', marginTop: 8,
+          backgroundColor: zone.accent + '22', borderRadius: 8,
+          paddingHorizontal: 8, paddingVertical: 3,
+          borderWidth: 1, borderColor: zone.accent + '44',
+        }}>
+          <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 9, color: zone.accent, letterSpacing: 0.5 }}>
+            {fmtXP(zone.milestones[0].xp)} – {fmtXP(zone.milestones[4].xp)} XP
+          </Text>
+        </View>
+      </LinearGradient>
+    </View>
+  );
+}
+
+function MilestoneNode({ ms, globalIdx, zone, claimed, canClaim, isLeft, onClaim }: {
+  ms: TrophyMilestone; globalIdx: number; zone: RoadZone;
+  claimed: boolean; canClaim: boolean; isLeft: boolean;
+  onClaim: (id: string) => void;
+}) {
+  const pulse = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (!canClaim) return;
+    const a = Animated.loop(Animated.sequence([
+      Animated.timing(pulse, { toValue: 1.06, duration: 800, useNativeDriver: true }),
+      Animated.timing(pulse, { toValue: 1,    duration: 800, useNativeDriver: true }),
+    ]));
+    a.start();
+    return () => a.stop();
+  }, [canClaim]);
+
+  const borderColor = claimed ? zone.accent + '60' : canClaim ? zone.accent : '#FFFFFF1A';
+  const bg1 = claimed ? zone.accent + '20' : canClaim ? zone.accent + '38' : zone.accent + '08';
+  const opacity = claimed ? 0.65 : canClaim ? 1 : 0.32;
+  const rc = trColor(ms.reward);
+
+  return (
+    <View style={[tr.nodeRow, { justifyContent: isLeft ? 'flex-start' : 'flex-end' }]}>
+      <Animated.View style={{ transform: [{ scale: canClaim ? pulse : 1 }] }}>
+        <Pressable
+          onPress={() => canClaim && onClaim(ms.id)}
+          style={({ pressed }) => [
+            tr.nodeCard,
+            { borderColor, opacity: pressed ? 0.75 : opacity },
+            canClaim && { shadowColor: zone.accent, shadowRadius: 18, shadowOpacity: 0.7, shadowOffset: { width: 0, height: 0 }, elevation: 12 },
+          ]}
+        >
+          <LinearGradient colors={[bg1, 'transparent']} style={StyleSheet.absoluteFill} />
+
+          {/* Milestone number badge */}
+          <View style={[tr.numBadge, { backgroundColor: zone.accent + '25', borderColor: zone.accent + '40' }]}>
+            <Text style={[tr.numTxt, { color: zone.accent }]}>#{globalIdx + 1}</Text>
+          </View>
+
+          {/* Reward icon */}
+          <Text style={{ fontSize: 32, marginVertical: 6 }}>{trEmoji(ms.reward)}</Text>
+
+          {/* Reward name */}
+          <Text style={[tr.rewardTxt, { color: rc }]} numberOfLines={2}>{trLabel(ms.reward)}</Text>
+
+          {/* XP threshold */}
+          <Text style={tr.xpTxt}>{fmtXP(ms.xp)} XP</Text>
+
+          {/* State chip */}
+          {claimed ? (
+            <View style={[tr.chip, { backgroundColor: '#00CC5520', borderColor: '#00CC5540' }]}>
+              <Text style={[tr.chipTxt, { color: '#00CC55' }]}>✓ CLAIMED</Text>
+            </View>
+          ) : canClaim ? (
+            <View style={[tr.chip, { backgroundColor: zone.accent + '28', borderColor: zone.accent + '88' }]}>
+              <Text style={[tr.chipTxt, { color: zone.accent }]}>TAP TO CLAIM</Text>
+            </View>
+          ) : (
+            <View style={[tr.chip, { backgroundColor: '#FFFFFF08', borderColor: '#FFFFFF18' }]}>
+              <Text style={[tr.chipTxt, { color: '#FFFFFF33' }]}>🔒 {fmtXP(ms.xp)} XP</Text>
+            </View>
+          )}
+        </Pressable>
+      </Animated.View>
+    </View>
+  );
+}
+
+function ZoneEndArrow({ accentA, accentB }: { accentA: string; accentB: string }) {
+  return (
+    <View style={{ alignItems: 'center', paddingVertical: 12 }}>
+      <LinearGradient
+        colors={[accentA + '00', accentA + '44', accentB + '44', accentB + '00']}
+        style={{ height: 2, width: 80, marginBottom: 6 }}
+      />
+      <Text style={{ fontSize: 14, opacity: 0.45 }}>⬇</Text>
+      <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 7, color: '#FFFFFF25', letterSpacing: 2.5, marginTop: 3 }}>
+        NEXT ZONE
+      </Text>
+    </View>
+  );
+}
+
+function TrophyRoadTab({
+  profile,
+  onClaim,
+  insets,
+}: {
+  profile: ReturnType<typeof usePlayer>['profile'];
+  onClaim: (id: string) => void;
+  insets: { bottom: number };
+}) {
+  const claimed = profile.trophyRoadClaimed ?? [];
+  const playerXP = profile.xp ?? 0;
+  const total    = TROPHY_ROAD.length;
+  const done     = claimed.length;
+
+  return (
+    <ScrollView showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}>
+
+      {/* Overall progress bar */}
+      <View style={{ marginHorizontal: 16, marginTop: 8, marginBottom: 4 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+          <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFD700', letterSpacing: 1 }}>
+            TROPHY ROAD
+          </Text>
+          <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#FFFFFF55' }}>
+            {done} / {total} claimed
+          </Text>
+        </View>
+        <View style={{ height: 5, backgroundColor: '#FFFFFF0D', borderRadius: 3, overflow: 'hidden' }}>
+          <LinearGradient
+            colors={['#FFD700', '#FF8C00']}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            style={{ height: 5, width: `${(done / total) * 100}%` as any, borderRadius: 3 }}
+          />
+        </View>
+      </View>
+
+      {/* Zones */}
+      {ROAD_ZONES.map((zone, zi) => (
+        <View key={zone.name}>
+          <ZoneBanner zone={zone} zoneIdx={zi} />
+          {zone.milestones.map((ms, mi) => {
+            const globalIdx = zi * 5 + mi;
+            const isLeft    = globalIdx % 2 === 0;
+            const isClaimed = claimed.includes(ms.id);
+            const isUnlocked = playerXP >= ms.xp;
+            return (
+              <React.Fragment key={ms.id}>
+                <MilestoneNode
+                  ms={ms} globalIdx={globalIdx} zone={zone}
+                  claimed={isClaimed} canClaim={isUnlocked && !isClaimed}
+                  isLeft={isLeft} onClaim={onClaim}
+                />
+                {mi < zone.milestones.length - 1 && (
+                  <PathConnector fromRight={!isLeft} color={zone.accent} />
+                )}
+              </React.Fragment>
+            );
+          })}
+          {zi < ROAD_ZONES.length - 1 && (
+            <ZoneEndArrow accentA={zone.accent} accentB={ROAD_ZONES[zi + 1].accent} />
+          )}
+        </View>
+      ))}
+
+      {/* Completion banner */}
+      {done === total && (
+        <View style={{ margin: 20, borderRadius: 18, overflow: 'hidden', borderWidth: 1.5, borderColor: '#FFD70066' }}>
+          <LinearGradient colors={['#2A1A0060', '#1A1000']} style={{ padding: 20, alignItems: 'center', gap: 4 }}>
+            <Text style={{ fontSize: 40 }}>🏆</Text>
+            <Text style={{ fontFamily: 'Rajdhani_700Bold', fontSize: 20, color: '#FFD700', letterSpacing: 2 }}>
+              ROAD COMPLETE!
+            </Text>
+            <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF66', textAlign: 'center' }}>
+              You've conquered every zone. True GoldRush Champion.
+            </Text>
+          </LinearGradient>
+        </View>
+      )}
+    </ScrollView>
+  );
+}
+
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 const DAILY_QUESTS   = QUESTS.filter(q => q.period === 'daily');
 const WEEKLY_QUESTS  = QUESTS.filter(q => q.period === 'weekly');
@@ -332,8 +668,8 @@ const SEASONAL_QUESTS = QUESTS.filter(q => q.period === 'seasonal');
 export default function BattlePassScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { profile, claimBattlePassTier, claimQuestReward } = usePlayer();
-  const [innerTab, setInnerTab] = useState<'quests' | 'pass'>('pass');
+  const { profile, claimBattlePassTier, claimQuestReward, claimTrophyRoad } = usePlayer();
+  const [innerTab, setInnerTab] = useState<'quests' | 'pass' | 'road'>('pass');
   const [toasts, setToasts] = useState<{ id: string; label: string; color: string }[]>([]);
   const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
   const passScrollRef = useRef<ScrollView>(null);
@@ -370,6 +706,19 @@ export default function BattlePassScreen() {
       }]);
     }
   }, [claimBattlePassTier, freeClaimed, premClaimed]);
+
+  const handleClaimTrophyMilestone = useCallback(async (id: string) => {
+    const block = await claimTrophyRoad(id);
+    if (block) {
+      setActiveLuckyBlock(block);
+    } else {
+      const ms = TROPHY_ROAD.find(m => m.id === id);
+      if (ms) {
+        const label = trLabel(ms.reward);
+        setToasts(prev => [...prev, { id: id + Date.now(), label: `${label} collected!`, color: trColor(ms.reward) }]);
+      }
+    }
+  }, [claimTrophyRoad]);
 
   const handleClaimQuest = useCallback(async (questId: string) => {
     const result = await claimQuestReward(questId);
@@ -459,19 +808,32 @@ export default function BattlePassScreen() {
 
         {/* ── Inner Tabs ── */}
         <View style={s.tabBar}>
-          {(['pass', 'quests'] as const).map(tab => (
+          {([
+            { id: 'pass',   emoji: '🎫', label: 'PASS'   },
+            { id: 'quests', emoji: '📋', label: 'QUESTS' },
+            { id: 'road',   emoji: '🗺️', label: 'ROAD'   },
+          ] as const).map(tab => (
             <Pressable
-              key={tab}
-              onPress={() => setInnerTab(tab)}
-              style={[s.tabBtn, innerTab === tab && s.tabBtnActive]}
+              key={tab.id}
+              onPress={() => setInnerTab(tab.id)}
+              style={[s.tabBtn, innerTab === tab.id && s.tabBtnActive]}
             >
-              <Text style={{ fontSize: 13 }}>{tab === 'pass' ? '🎫' : '📋'}</Text>
-              <Text style={[s.tabBtnTxt, innerTab === tab && { color: '#C084FC' }]}>
-                {tab === 'pass' ? 'PASS' : 'QUESTS'}
+              <Text style={{ fontSize: 13 }}>{tab.emoji}</Text>
+              <Text style={[s.tabBtnTxt, innerTab === tab.id && { color: '#FFD700' }]}>
+                {tab.label}
               </Text>
             </Pressable>
           ))}
         </View>
+
+        {/* ── ROAD Tab ── */}
+        {innerTab === 'road' && (
+          <TrophyRoadTab
+            profile={profile}
+            onClaim={handleClaimTrophyMilestone}
+            insets={insets}
+          />
+        )}
 
         {/* ── QUESTS Tab ── */}
         {innerTab === 'quests' && (
@@ -648,6 +1010,32 @@ const s = StyleSheet.create({
   legend:     { flexDirection: 'row', justifyContent: 'center', gap: 16, paddingHorizontal: 20, paddingTop: 8 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   legendTxt:  { color: '#FFFFFF44', fontFamily: 'Inter_400Regular', fontSize: 9 },
+});
+
+// ─── Trophy Road Styles ───────────────────────────────────────────────────────
+const tr = StyleSheet.create({
+  nodeRow:    { paddingHorizontal: 28, marginVertical: 0 },
+  nodeCard:   {
+    width: 128, borderRadius: 20, borderWidth: 2,
+    overflow: 'hidden', alignItems: 'center',
+    paddingVertical: 12, paddingHorizontal: 10,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  numBadge:   {
+    borderRadius: 8, borderWidth: 1,
+    paddingHorizontal: 8, paddingVertical: 2, marginBottom: 2,
+  },
+  numTxt:     { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
+  rewardTxt:  {
+    fontFamily: 'Inter_700Bold', fontSize: 11,
+    textAlign: 'center', letterSpacing: 0.3, lineHeight: 14,
+  },
+  xpTxt:      { fontFamily: 'Inter_600SemiBold', fontSize: 8, color: '#FFFFFF44', letterSpacing: 0.3, marginTop: 3 },
+  chip:       {
+    borderRadius: 6, borderWidth: 1,
+    paddingHorizontal: 7, paddingVertical: 3, marginTop: 7,
+  },
+  chipTxt:    { fontFamily: 'Inter_700Bold', fontSize: 7, letterSpacing: 1 },
 
   // Toast
   toast: {
