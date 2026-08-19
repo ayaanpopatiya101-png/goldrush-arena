@@ -14,7 +14,9 @@ import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
 import { useHighlightCapture } from '@/hooks/useHighlightCapture';
 import { setPendingClip, getPendingClip } from '@/store/highlightClip';
-import { computeClipScore } from '@/utils/clipRewards';
+import { computeClipScore, getClipTier } from '@/utils/clipRewards';
+import { startMatchTracking, getCurrentMatchId, recordMatchEvent, getBestMatchEvents } from '@/store/matchEvents';
+import { saveClipToLibrary } from '@/store/clipLibrary';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
 const BOT_RANKS  = ['Gold', 'Platinum', 'Diamond', 'Master 1', 'Master 2'];
@@ -200,14 +202,19 @@ export default function GameScreen() {
     setTimerRunning(true);
     startCapture(arenaWrapRef as any);
     setCaptureStarted(true);
+    startMatchTracking(); // begin the per-match event log
     // Deduct the chosen bank lives — consumed once at match start, non-refundable
     if (bankLivesUsed > 0) consumeExtraLives(bankLivesUsed);
   }
 
   function handleHighlight(type: 'multi_block' | 'near_death' | 'hot_streak') {
-    // Snapshot clip score at the moment the highlight fires (game state may change by game-over)
-    clipScoreRef.current = computeClipScore(activeBalls, playerLives);
+    // Snapshot clip score at the moment the highlight fires
+    const cs = computeClipScore(activeBalls, playerLives);
+    clipScoreRef.current = cs;
     triggerHighlight(type);
+    // Also log it in the multi-clip event store
+    const frames = snapshotClip();
+    if (frames) recordMatchEvent(type, frames, cs);
   }
 
   function handleManualRecord() {
@@ -215,7 +222,8 @@ export default function GameScreen() {
     if (!frames || frames.length < 4) return;
     const cs = computeClipScore(activeBalls, playerLives);
     clipScoreRef.current = cs;
-    setPendingClip(frames, 'manual', 0, cs); // score=0 placeholder; updated at game-over
+    recordMatchEvent('manual', frames, cs); // log to event store
+    setPendingClip(frames, 'manual', 0, cs); // keep single-clip fallback
     setClipSaved(true);
     setTimeout(() => setClipSaved(false), 2000);
   }
@@ -252,6 +260,27 @@ export default function GameScreen() {
       // Auto-highlight — use the clip-score captured at trigger time
       setPendingClip(hlClip.frames, hlClip.type, result.deflections, clipScoreRef.current);
     }
+
+    // ── Auto-save top match moments to the clip library ───────────────────────
+    const bestEvents   = getBestMatchEvents(5);
+    const matchId      = getCurrentMatchId();
+    const momentCount  = bestEvents.length;
+    // Save the top 3 worth-saving clips in the background (no GIF yet — encoded lazily in viewer)
+    bestEvents.slice(0, 3).forEach(ev => {
+      if (ev.clipScore < 25) return; // skip very low-quality moments
+      const { label: tierLabel, color: tierColor } = getClipTier(ev.clipScore);
+      saveClipToLibrary({
+        frames:    ev.frames,
+        gifBase64: '',            // encoded lazily when the user opens the clip
+        type:      ev.type,
+        score:     result.deflections,
+        clipScore: ev.clipScore,
+        tier:      tierLabel,
+        tierColor,
+        matchId,
+        autoSaved: true,
+      }).catch(() => {});
+    });
 
     setGameOver(true);
     setTimerRunning(false);
@@ -345,6 +374,9 @@ export default function GameScreen() {
         qEventName:   qCtx?.eventName   ?? '',
         qEventEmoji:  qCtx?.eventEmoji  ?? '',
         qEventColor:  qCtx?.eventColor  ?? '',
+        // Match highlights — multi-clip auto-detected moments
+        momentCount:       String(momentCount),
+        matchHighlightsId: matchId,
       },
     });
   }

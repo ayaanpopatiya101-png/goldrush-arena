@@ -77,6 +77,8 @@ export default function PostGameScreen() {
     challengeSeed: string; matchNonce: string;
     // Arcade params
     arcadeBest: string;
+    // Match highlights — multi-clip auto-detected moments
+    momentCount: string; matchHighlightsId: string;
   }>();
   const { profile, unlockAchievement, claimEventBonus, earnQualifierPoints } = usePlayer();
 
@@ -88,7 +90,8 @@ export default function PostGameScreen() {
   const coinsEarned = parseInt(params.coinsEarned ?? '15', 10);
   const matchType   = params.matchType ?? 'casual';
   const isArcade    = matchType === 'arcade';
-  const arcadeBest  = parseInt(params.arcadeBest ?? String(0), 10);
+  const arcadeBest   = parseInt(params.arcadeBest ?? String(0), 10);
+  const momentCount  = parseInt(params.momentCount ?? '0', 10);
   const levelBefore = parseInt(params.levelBefore ?? String(profile.competitiveLevel ?? 1), 10);
   const streakMult  = parseFloat(params.streakMult ?? '1');
   const diffMult    = parseFloat(params.diffMult ?? '1');
@@ -724,14 +727,35 @@ export default function PostGameScreen() {
               </ShimmerCard>
             </Pressable>
           )}
-          {/* ── SEE YOUR CLIP banner ── */}
-          {highlightClip && (
+          {/* ── MATCH HIGHLIGHTS banner (multi-clip auto-detected moments) ── */}
+          {momentCount > 0 && (
+            <Pressable
+              onPress={() => router.push('/match-highlights')}
+              style={({ pressed }) => [styles.seeClipBtn, { opacity: pressed ? 0.88 : 1 }]}
+            >
+              <LinearGradient colors={['#0D0800', '#1C1000', '#0D0800']} style={StyleSheet.absoluteFill} />
+              <View style={styles.seeClipBorder} />
+              <View style={styles.seeClipInner}>
+                <Text style={{ fontSize: 26 }}>🎬</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.seeClipTitle}>MATCH HIGHLIGHTS</Text>
+                  <Text style={styles.seeClipSub}>
+                    {momentCount} moment{momentCount > 1 ? 's' : ''} detected · Edit · Share · Earn
+                  </Text>
+                </View>
+                <View style={[styles.seeClipArrow, { backgroundColor: '#FFD70020' }]}>
+                  <Text style={{ fontSize: 18, color: '#FFD700' }}>›</Text>
+                </View>
+              </View>
+            </Pressable>
+          )}
+          {/* ── Fallback: SEE YOUR CLIP (single clip, no auto-detect) ── */}
+          {momentCount === 0 && highlightClip && (
             <Pressable
               onPress={() => router.push('/clip-viewer')}
               style={({ pressed }) => [styles.seeClipBtn, { opacity: pressed ? 0.88 : 1 }]}
             >
               <LinearGradient colors={['#1A0C00', '#2A1500', '#1A0C00']} style={StyleSheet.absoluteFill} />
-              {/* Pulsing accent border overlay */}
               <View style={styles.seeClipBorder} />
               <View style={styles.seeClipInner}>
                 <Text style={{ fontSize: 28 }}>🎬</Text>

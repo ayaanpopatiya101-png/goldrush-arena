@@ -175,7 +175,7 @@ export default function ClipViewer() {
         setSticker(c.sticker ?? null);
         setTrimStart(0); setTrimEnd(c.frames.length - 1);
         setPendingStart(0); setPendingEnd(c.frames.length - 1);
-        setGifBase64(c.gifBase64); // instant display
+        setGifBase64(c.gifBase64 ?? null); // instant display (gifBase64 may be absent on auto-saved clips)
       });
     } else {
       // Fresh clip from game

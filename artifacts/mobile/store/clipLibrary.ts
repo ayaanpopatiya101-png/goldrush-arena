@@ -8,20 +8,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { type HighlightType } from './highlightClip';
 
 const LIBRARY_KEY = '@goldrush_clip_library_v1';
-const MAX_CLIPS   = 10;
+const MAX_CLIPS   = 50;  // plenty of room for auto-saved match highlights
 
 export interface SavedClip {
   id: string;
   timestamp: number;
+  matchId?: string;       // links clips from the same match together
   frames: string[];       // raw base64 JPEG frames — kept for re-encoding on edits
-  gifBase64: string;      // pre-encoded GIF for instant playback
+  gifBase64?: string;     // pre-encoded GIF for instant playback ('' or absent = encode lazily)
   type: HighlightType;
   score: number;          // deflection count
   clipScore: number;      // quality score 0–200+
-  tier: string;           // 'Basic' | 'Nice' | 'Epic' | 'Legendary'
+  tier: string;           // 'BASIC' | 'NICE' | 'EPIC' | 'LEGENDARY' | 'GOD MODE'
   tierColor: string;      // hex accent colour for the tier
   caption?: string;
   sticker?: string;       // single emoji sticker
+  autoSaved?: boolean;    // true when saved automatically at game-over (not user-initiated)
 }
 
 export async function getClipLibrary(): Promise<SavedClip[]> {

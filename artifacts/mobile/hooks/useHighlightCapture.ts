@@ -11,8 +11,8 @@ export function useHighlightCapture() {
   return {
     startCapture:     (_ref: RefObject<View>) => {},
     triggerHighlight: (_type: HighlightType) => {},
-    snapshotClip:     (): null => null,
-    stopAndGetClip:   (): null => null,
+    snapshotClip:     (): string[] | null => null,
+    stopAndGetClip:   (): { frames: string[]; type: HighlightType } | null => null,
     isCapturing:      (): boolean => false,
   };
 }

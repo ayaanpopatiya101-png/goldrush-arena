@@ -691,6 +691,31 @@ export default function HomeScreen() {
           )}
         </View>
 
+        {/* ── Quick Links: My Clips & Trophy Road ── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 4, marginBottom: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
+            <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>CLIPS &amp; REWARDS</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+          </View>
+          <Pressable
+            onPress={() => router.push('/my-clips')}
+            style={({ pressed }) => ({
+              flexDirection: 'row', alignItems: 'center', gap: 12,
+              backgroundColor: '#1A1000', borderRadius: 14, borderWidth: 1,
+              borderColor: '#FFD70033', paddingHorizontal: 16, paddingVertical: 13,
+              opacity: pressed ? 0.82 : 1,
+            })}
+          >
+            <Text style={{ fontSize: 22 }}>🎬</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: 'Rajdhani_700Bold', fontSize: 15, color: '#FFD700', letterSpacing: 1 }}>MY CLIPS</Text>
+              <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF55', marginTop: 1 }}>Watch, edit &amp; share your best match moments</Text>
+            </View>
+            <Text style={{ fontSize: 16, color: '#FFD70088' }}>›</Text>
+          </Pressable>
+        </View>
+
         {/* ── Super Ability Selector ── */}
         <View style={styles.superSection}>
           {(() => {
