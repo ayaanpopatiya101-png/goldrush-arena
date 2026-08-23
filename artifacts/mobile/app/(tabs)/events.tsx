@@ -63,7 +63,7 @@ export default function EventsScreen() {
       playerSkinId:    skin.id,
       playerColor:     skin.color,
       playerGlowColor: skin.glowColor,
-      playerRelicId:   profile.currentRelic ?? 'none',
+      playerRelicId:   'none',
       matchType:       'casual',
       variant:         'classic',
       featuredModeId:          mode.id,
@@ -102,7 +102,7 @@ export default function EventsScreen() {
       playerGlowColor: (profile.avatarFrameColor ?? '#FFD700') + '55',
       matchType:       'ranked',
       variant:         ev.mode as GameVariant,
-      playerRelicId:   profile.currentRelic ?? 'none',
+      playerRelicId:   'none',
     });
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     router.push('/game');
@@ -132,7 +132,7 @@ export default function EventsScreen() {
       playerGlowColor: (profile.avatarFrameColor ?? '#FFD700') + '55',
       matchType:       'ranked',
       variant:         ev.mode as GameVariant,
-      playerRelicId:   profile.currentRelic ?? 'none',
+      playerRelicId:   'none',
     });
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     router.push('/game');

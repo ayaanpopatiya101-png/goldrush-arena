@@ -6,9 +6,8 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-n
 import Reanimated from 'react-native-reanimated';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SKINS, RELICS, RANKS, getRankIndex, usePlayer, getRelicLevel, getRelicUpgradeCost, RELIC_MAX_LEVEL, LUCKY_BLOCK_META, GOLD_STRIKE_NAME, type LuckyBlock } from '@/context/PlayerContext';
+import { SKINS, RANKS, getRankIndex, usePlayer, LUCKY_BLOCK_META, GOLD_STRIKE_NAME, type LuckyBlock } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
-import { RelicCharacter } from '@/components/RelicCharacter';
 import { useColors } from '@/hooks/useColors';
 import { FloatingOrbs, ORBS_ARCANE, GlowText, ShimmerCard, HolographicShimmer, GlowBorder } from '@/components/effects';
 
@@ -21,14 +20,14 @@ const ARENA_THEMES = [
   { id: 'golden',  name: 'Gold Rush',      desc: 'Prestige golden arena',       color: '#C8820A', preview: ['#1A1200', '#2A2000'] as [string,string] },
 ];
 
-type Tab = 'skins' | 'themes' | 'relics' | 'strikes';
+type Tab = 'skins' | 'themes' | 'strikes';
 
 const TIER_ORDER: Array<import('@/context/PlayerContext').LuckyBlockTier> = ['ultra', 'legendary', 'mythic', 'epic', 'rare'];
 
 export default function InventoryScreen() {
   const colors  = useColors();
   const insets  = useSafeAreaInsets();
-  const { profile, equipSkin, equipTheme, equipRelic, upgradeRelic } = usePlayer();
+  const { profile, equipSkin, equipTheme } = usePlayer();
   const [activeTab, setActiveTab] = useState<Tab>('skins');
   const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
 
@@ -38,8 +37,6 @@ export default function InventoryScreen() {
 
   const ownedSkins  = SKINS.filter(s => profile.ownedSkins.includes(s.id));
   const ownedThemes = ARENA_THEMES.filter(t => profile.ownedThemes.includes(t.id));
-  const playerRankIdx  = getRankIndex(profile.rank);
-  const unlockedRelics = RELICS.filter(r => playerRankIdx >= r.unlockRankIndex);
   const focusStyle = useFocusAnimation();
 
   async function handleEquipSkin(skinId: string) {
@@ -49,11 +46,6 @@ export default function InventoryScreen() {
 
   async function handleEquipTheme(themeId: string) {
     await equipTheme(themeId);
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-
-  async function handleEquipRelic(relicId: string) {
-    await equipRelic(relicId);
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 
@@ -79,17 +71,16 @@ export default function InventoryScreen() {
           <GlowText intensity="medium" color='#C8820A' style={s.title}>INVENTORY</GlowText>
         </View>
         <View style={s.countBadge}>
-          <Text style={s.countText}>{ownedSkins.length + ownedThemes.length + unlockedRelics.length} items</Text>
+          <Text style={s.countText}>{ownedSkins.length + ownedThemes.length} items</Text>
         </View>
       </View>
 
       {/* Tabs */}
       <View style={[s.tabRow, { borderBottomColor: colors.border }]}>
-        {(['skins', 'themes', 'relics', 'strikes'] as Tab[]).map(tab => {
+        {(['skins', 'themes', 'strikes'] as Tab[]).map(tab => {
           const label =
             tab === 'skins'   ? `SKINS (${ownedSkins.length})` :
             tab === 'themes'  ? `THEMES (${ownedThemes.length})` :
-            tab === 'relics'  ? `RELICS (${unlockedRelics.length})` :
             pendingBlocks.length > 0 ? `STRIKES (${pendingBlocks.length})` : 'STRIKES';
           const isActive = activeTab === tab;
           const accentColor = tab === 'strikes' ? '#FFD700' : colors.primary;
@@ -311,168 +302,6 @@ export default function InventoryScreen() {
           </>
         )}
 
-        {/* ── Relics tab — Brawl-Stars-style character collection ── */}
-        {activeTab === 'relics' && (
-          <>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#AA44FF', borderRadius: 2 }} />
-              <GlowText intensity="medium" color='#C8820A' style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2 }}>RELICS</GlowText>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>RANK-GATED</Text>
-            </View>
-            {/* Coin balance + hint */}
-            <View style={s.relicHeaderRow}>
-              <View style={s.coinBadge}>
-                <Text style={s.coinBadgeText}>🪙 {profile.coins.toLocaleString()}</Text>
-              </View>
-              <Text style={[s.relicHint, { color: colors.mutedForeground }]}>
-                Unlock by rank · Spend coins to power up
-              </Text>
-            </View>
-
-            {/* No-relic strip */}
-            <Pressable
-              onPress={() => handleEquipRelic('none')}
-              style={({ pressed }) => [s.noRelicRow, {
-                backgroundColor: profile.currentRelic === 'none' ? '#FFFFFF12' : colors.card,
-                borderColor: profile.currentRelic === 'none' ? '#FFFFFF66' : colors.border,
-                opacity: pressed ? 0.8 : 1,
-              }]}
-            >
-              <Feather name="slash" size={16} color={colors.mutedForeground} />
-              <View style={{ flex: 1 }}>
-                <Text style={[s.noRelicName, { color: colors.foreground }]}>No Relic</Text>
-                <Text style={[s.noRelicSub, { color: colors.mutedForeground }]}>Play without a character equipped</Text>
-              </View>
-              {profile.currentRelic === 'none' && (
-                <View style={[s.equippedBadge, { backgroundColor: '#FFFFFF' }]}>
-                  <Feather name="check" size={10} color="#0D0A06" />
-                  <Text style={s.equippedText}>ON</Text>
-                </View>
-              )}
-            </Pressable>
-
-            {/* 2-column character grid */}
-            <View style={s.relicGrid}>
-              {RELICS.map(relic => {
-                const unlocked  = playerRankIdx >= relic.unlockRankIndex;
-                const equipped  = profile.currentRelic === relic.id;
-                const reqRank   = RANKS[relic.unlockRankIndex];
-                const level     = getRelicLevel(profile, relic.id);
-                const cost      = getRelicUpgradeCost(level);
-                const maxed     = level >= RELIC_MAX_LEVEL;
-                const canAfford = profile.coins >= cost;
-                return (
-                  <View
-                    key={relic.id}
-                    style={[s.relicCard, {
-                      borderColor: equipped ? relic.color : unlocked ? colors.border + 'AA' : colors.border + '44',
-                      opacity: unlocked ? 1 : 0.5,
-                      shadowColor: equipped ? relic.color : '#000',
-                      shadowOpacity: equipped ? 0.6 : 0,
-                      shadowRadius: 14,
-                      elevation: equipped ? 10 : 0,
-                    }]}
-                  >
-                    {/* ── Portrait ── */}
-                    <Pressable
-                      onPress={() => unlocked && handleEquipRelic(relic.id)}
-                      style={[s.relicPortrait, { backgroundColor: relic.color + '14' }]}
-                    >
-                      <RelicCharacter relicId={relic.id} size={112} />
-                      {/* Level badge pill */}
-                      <View style={[s.levelBadge, { backgroundColor: maxed ? '#FFD700' : equipped ? relic.color : '#222' }]}>
-                        <Text style={[s.levelBadgeText, { color: maxed ? '#1A1200' : '#FFF' }]}>
-                          {maxed ? '★ MAX' : `LV ${level}`}
-                        </Text>
-                      </View>
-                      {/* Equipped glow ring */}
-                      {equipped && <View style={[s.equippedRing, { borderColor: relic.color }]} />}
-                      {/* Lock overlay */}
-                      {!unlocked && (
-                        <View style={s.lockOverlay}>
-                          <Feather name="lock" size={24} color="#FFFFFFAA" />
-                          <Text style={s.lockOverlayRank}>{reqRank.name}</Text>
-                        </View>
-                      )}
-                    </Pressable>
-
-                    {/* ── Footer ── */}
-                    <View style={s.relicFooter}>
-                      {/* Name row */}
-                      <View style={s.relicNameRow}>
-                        <Text style={[s.relicCardName, { color: equipped ? relic.color : colors.foreground }]} numberOfLines={1}>
-                          {relic.name}
-                        </Text>
-                        {unlocked && (
-                          <Pressable
-                            onPress={() => handleEquipRelic(relic.id)}
-                            style={[s.equipChip, {
-                              backgroundColor: equipped ? relic.color + '28' : 'transparent',
-                              borderColor: equipped ? relic.color + 'AA' : colors.border + '66',
-                            }]}
-                          >
-                            <Text style={[s.equipChipText, { color: equipped ? relic.color : colors.mutedForeground }]}>
-                              {equipped ? '✓ ON' : 'EQUIP'}
-                            </Text>
-                          </Pressable>
-                        )}
-                      </View>
-
-                      {/* Power bar — 10 segments */}
-                      <View style={s.levelBarRow}>
-                        {Array.from({ length: RELIC_MAX_LEVEL }).map((_, i) => (
-                          <View
-                            key={i}
-                            style={[s.levelBarSeg, {
-                              backgroundColor: i < level
-                                ? (maxed ? '#FFD700' : relic.color)
-                                : (colors.border + '55'),
-                            }]}
-                          />
-                        ))}
-                      </View>
-
-                      {/* Upgrade button */}
-                      {unlocked && (
-                        <Pressable
-                          onPress={async () => {
-                            if (maxed || !canAfford) return;
-                            if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                            await upgradeRelic(relic.id);
-                          }}
-                          disabled={maxed}
-                          style={[s.upgradeBtn, {
-                            backgroundColor: maxed
-                              ? '#FFFFFF06'
-                              : canAfford ? relic.color + '20' : '#FF444410',
-                            borderColor: maxed
-                              ? colors.border + '22'
-                              : canAfford ? relic.color + '77' : '#FF444466',
-                          }]}
-                        >
-                          {maxed ? (
-                            <Text style={[s.upgradeBtnText, { color: '#FFD700' }]}>★ MAXED</Text>
-                          ) : (
-                            <>
-                              <Text style={s.upgradeCoinIcon}>🪙</Text>
-                              <Text style={[s.upgradeBtnText, { color: canAfford ? relic.color : '#FF6666' }]}>
-                                {cost.toLocaleString()}
-                              </Text>
-                              <Text style={[s.upgradeLabel, { color: canAfford ? colors.foreground + 'CC' : '#FF666677' }]}>
-                                UPGRADE
-                              </Text>
-                            </>
-                          )}
-                        </Pressable>
-                      )}
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-          </>
-        )}
       </ScrollView>
 
       {activeLuckyBlock && (
@@ -526,33 +355,6 @@ const s = StyleSheet.create({
   hintCard:    { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 12, borderWidth: 1, padding: 12 },
   hintText:    { fontFamily: 'Inter_400Regular', fontSize: 12, flex: 1 },
 
-  // Relics — Brawl-Stars-style character collection
-  relicHeaderRow:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  coinBadge:       { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#C8820A1A', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A44', paddingHorizontal: 9, paddingVertical: 4 },
-  coinBadgeText:   { fontFamily: 'Inter_700Bold', fontSize: 14, color: '#FFB830' },
-  relicHint:       { fontFamily: 'Inter_400Regular', fontSize: 11, flex: 1 },
-  noRelicRow:      { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 12, borderWidth: 1.5, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 12 },
-  noRelicName:     { fontFamily: 'Inter_700Bold', fontSize: 13 },
-  noRelicSub:      { fontFamily: 'Inter_400Regular', fontSize: 10, marginTop: 1 },
-  relicGrid:       { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  relicCard:       { width: '47.5%', borderRadius: 18, borderWidth: 2, overflow: 'hidden', backgroundColor: '#0D0A0688' },
-  relicPortrait:   { width: '100%', height: 130, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  levelBadge:      { position: 'absolute', bottom: 6, right: 6, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 },
-  levelBadgeText:  { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 0.5 },
-  equippedRing:    { position: 'absolute', inset: 0, borderRadius: 16, borderWidth: 3, opacity: 0.6 },
-  lockOverlay:     { position: 'absolute', inset: 0, backgroundColor: '#00000088', alignItems: 'center', justifyContent: 'center', gap: 4 },
-  lockOverlayRank: { fontFamily: 'Inter_700Bold', fontSize: 11, color: '#FFFFFFAA', letterSpacing: 0.5 },
-  relicFooter:     { padding: 10, gap: 7 },
-  relicNameRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 4 },
-  relicCardName:   { fontFamily: 'Inter_700Bold', fontSize: 13, flex: 1 },
-  equipChip:       { borderRadius: 8, borderWidth: 1.5, paddingHorizontal: 8, paddingVertical: 4 },
-  equipChipText:   { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
-  levelBarRow:     { flexDirection: 'row', gap: 2 },
-  levelBarSeg:     { flex: 1, height: 5, borderRadius: 3 },
-  upgradeBtn:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, borderRadius: 10, borderWidth: 1.5, paddingVertical: 7 },
-  upgradeCoinIcon: { fontSize: 13 },
-  upgradeBtnText:  { fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 0.3 },
-  upgradeLabel:    { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.8 },
 
   emptyState:  { alignItems: 'center', paddingVertical: 60, gap: 10 },
   emptyTitle:  { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#FFFFFF44' },

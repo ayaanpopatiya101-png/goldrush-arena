@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
-import { usePlayer, getRelic, getMap, getRankIndex, MAX_RANK_INDEX, RANKS, MAPS, getScaledRelicEffect, getRelicLevel, getStreakMultiplier, getDifficultyMultiplier, getForgeAbility, mergeRelicEffects, levelFromRank } from '@/context/PlayerContext';
+import { usePlayer, getMap, getRankIndex, MAX_RANK_INDEX, RANKS, MAPS, getStreakMultiplier, getDifficultyMultiplier, levelFromRank } from '@/context/PlayerContext';
 import { getGameConfig, getActiveEvent, clearActiveEvent, getQualifierContext, clearQualifierContext } from '@/store/gameSession';
 import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
@@ -91,8 +91,6 @@ export default function GameScreen() {
   [], // compute once per game mount
   );
 
-  const rawRelic = getRelic(config.playerRelicId);
-  const relic    = rawRelic && rawRelic.unlockRankIndex <= playerRankIdx ? rawRelic : null;
   const rawMap   = getMap(config.mapId);
   const map      = rawMap.unlockRankIndex <= playerRankIdx ? rawMap : MAPS[0];
 
@@ -477,10 +475,7 @@ export default function GameScreen() {
             botDifficulty={botDifficulty}
             onGameStart={handleGameStart}
             paused={paused}
-            playerRelic={isChallenge ? undefined : mergeRelicEffects(
-              relic ? getScaledRelicEffect(relic.id, getRelicLevel(profile, relic.id)) : undefined,
-              getForgeAbility(profile.equippedForgeAbility)?.effect
-            )}
+            playerRelic={undefined}
             botSkill={isChallenge ? 0 : effectiveBotSkill}
             arenaBg={effectiveMap.arenaBg}
             playerSuperType={profile.selectedSuper ?? 1}

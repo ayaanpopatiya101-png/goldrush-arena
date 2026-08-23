@@ -194,7 +194,7 @@ export default function HomeScreen() {
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
       playerColor: skin.color, playerGlowColor: skin.glowColor,
-      playerRelicId: profile.currentRelic,
+      playerRelicId: 'none',
       matchType, variant: 'classic',
     });
     if (isInParty && isLeader) launchParty({ matchType, variant: 'classic' });
@@ -207,7 +207,7 @@ export default function HomeScreen() {
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
       playerColor: skin.color, playerGlowColor: skin.glowColor,
-      playerRelicId: profile.currentRelic,
+      playerRelicId: 'none',
       matchType: 'casual', variant,
     });
     if (isInParty && isLeader) launchParty({ matchType: 'casual', variant });
@@ -220,7 +220,7 @@ export default function HomeScreen() {
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
       playerColor: skin.color, playerGlowColor: skin.glowColor,
-      playerRelicId: profile.currentRelic,
+      playerRelicId: 'none',
       matchType: 'ranked', variant,
     });
     if (isInParty && isLeader) launchParty({ matchType: 'ranked', variant });
@@ -233,7 +233,7 @@ export default function HomeScreen() {
     setGameConfig({
       playerName: profile.name, playerSkinId: skin.id,
       playerColor: skin.color, playerGlowColor: skin.glowColor,
-      playerRelicId: profile.currentRelic,
+      playerRelicId: 'none',
       matchType: 'gauntlet', variant: firstVariant,
     });
     router.push('/lobby');
@@ -263,7 +263,7 @@ export default function HomeScreen() {
         playerSkinId:            skin.id,
         playerColor:             skin.color,
         playerGlowColor:         skin.glowColor,
-        playerRelicId:           profile.currentRelic,  // locked out in game.tsx when isChallenge
+        playerRelicId:           'none',
         matchType:               'casual',
         variant:                 'survival',
         challengeSeed:           challenge?.seed        ?? '',

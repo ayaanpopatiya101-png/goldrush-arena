@@ -102,7 +102,7 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
             playerSkinId: skin.id,
             playerColor:  skin.color,
             playerGlowColor: skin.glowColor,
-            playerRelicId: p.currentRelic,
+            playerRelicId: 'none',
             matchType: lc.matchType as MatchType,
             variant:   lc.variant   as GameVariant,
             featuredModeId:          lc.featuredModeId,

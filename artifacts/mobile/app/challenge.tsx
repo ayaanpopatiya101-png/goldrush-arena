@@ -71,7 +71,7 @@ export default function ChallengeScreen() {
       playerSkinId:            skin.id,
       playerColor:             skin.color,
       playerGlowColor:         skin.glowColor,
-      playerRelicId:           profile.currentRelic,
+      playerRelicId:           'none',
       matchType:               'casual',
       variant:                 'survival',
       challengeSeed:           challenge?.seed        ?? seed,

@@ -6,7 +6,7 @@ import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View
 import Reanimated, { ZoomIn, FadeInRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
-import { SKINS, FORGE_ABILITIES, RELICS, getRankIndex, usePlayer } from '@/context/PlayerContext';
+import { SKINS, getRankIndex, usePlayer } from '@/context/PlayerContext';
 import { RedeemCodeModal } from '@/components/RedeemCodeModal';
 import { useColors } from '@/hooks/useColors';
 import { FloatingOrbs, ORBS_GOLD, GlowText, HolographicShimmer, ShimmerCard, PulseRing, GlowBorder } from '@/components/effects';
@@ -64,7 +64,7 @@ const ARENA_THEMES = [
 export default function ShopScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { profile, purchaseSkin, equipSkin, spendCoins, purchaseForgeAbility, equipForgeAbility } = usePlayer();
+  const { profile, purchaseSkin, equipSkin, spendCoins } = usePlayer();
   const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras' | 'forge' | 'store'>('skins');
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [redeemVisible, setRedeemVisible] = useState(false);
@@ -120,11 +120,6 @@ export default function ShopScreen() {
       setCheckingOut(null);
     }
   }
-
-  const allRelicsOwned = RELICS.every(r =>
-    (profile.trophyUnlockedRelics ?? []).includes(r.id) ||
-    getRankIndex(profile.rank) >= r.unlockRankIndex
-  );
 
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
@@ -203,12 +198,6 @@ export default function ShopScreen() {
           <GlowText intensity="medium" color='#C8820A' pulse style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</GlowText>
         </View>
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-          {allRelicsOwned && (
-            <View style={[styles.coinDisplay, { backgroundColor: '#7A50A022', borderWidth: 1, borderColor: '#7A50A044' }]}>
-              <Text style={{ fontSize: 12 }}>⚡</Text>
-              <Text style={[styles.coinAmount, { color: '#B9A0E0' }]}>{profile.credits ?? 0}</Text>
-            </View>
-          )}
           <View style={styles.coinDisplay}>
             <Feather name="circle" size={14} color="#FFD700" />
             <Text style={styles.coinAmount}>{profile.coins}</Text>
@@ -225,15 +214,15 @@ export default function ShopScreen() {
 
       {/* Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 44 }} contentContainerStyle={[styles.tabRow, { borderBottomColor: colors.border }]}>
-        {(['skins', 'themes', 'powerups', 'extras', 'store', ...(allRelicsOwned ? ['forge' as const] : [])] as const).map(t => (
-          <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: t === 'forge' ? '#7A50A0' : t === 'store' ? '#FFD700' : colors.primary }]}>
+        {(['skins', 'themes', 'powerups', 'extras', 'store'] as const).map(t => (
+          <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: t === 'store' ? '#FFD700' : colors.primary }]}>
             {activeTab === t ? (
               <GlowText intensity="soft" color='#C8820A' style={styles.tabText}>
-                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'forge' ? '⚡ FORGE' : t === 'store' ? '💳 STORE' : 'EXTRAS'}
+                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'store' ? '💳 STORE' : 'EXTRAS'}
               </GlowText>
             ) : (
               <Text style={[styles.tabText, { color: colors.mutedForeground }]}>
-                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'forge' ? '⚡ FORGE' : t === 'store' ? '💳 STORE' : 'EXTRAS'}
+                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'store' ? '💳 STORE' : 'EXTRAS'}
               </Text>
             )}
           </Pressable>
@@ -514,90 +503,6 @@ export default function ShopScreen() {
             </Pressable>
           </>
         )}
-        {activeTab === 'forge' && (
-          <>
-            <View style={[styles.forgeHeader, { backgroundColor: '#7A50A014', borderColor: '#7A50A033' }]}>
-              <Text style={{ fontSize: 22 }}>⚡</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.forgeTitle, { color: '#B9A0E0' }]}>THE FORGE</Text>
-                <Text style={[styles.forgeSubtitle, { color: colors.mutedForeground }]}>
-                  Unlock all relics to forge powerful enhancements. Earn Credits by playing matches.
-                </Text>
-              </View>
-              <View style={styles.creditsBox}>
-                <Text style={styles.creditsLabel}>CREDITS</Text>
-                <Text style={styles.creditsValue}>{profile.credits ?? 0}</Text>
-              </View>
-            </View>
-
-            {FORGE_ABILITIES.map(forge => {
-              const owned = (profile.ownedForgeAbilities ?? []).includes(forge.id);
-              const equipped = profile.equippedForgeAbility === forge.id;
-              const canAfford = (profile.credits ?? 0) >= forge.cost;
-              return (
-                <Pressable
-                  key={forge.id}
-                  onPress={async () => {
-                    if (owned) {
-                      if (!equipped) {
-                        await equipForgeAbility(forge.id);
-                        if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      }
-                      return;
-                    }
-                    if (!canAfford) {
-                      xAlert('Not enough Credits', `You need ${forge.cost - (profile.credits ?? 0)} more Credits.`);
-                      return;
-                    }
-                    xConfirm(`Forge ${forge.name}?`, `Cost: ${forge.cost} Credits`, async () => {
-                      const ok = await purchaseForgeAbility(forge.id);
-                      if (ok) {
-                        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                        xAlert('Forged!', `${forge.name} is now equipped.`);
-                      }
-                    }, 'Forge');
-                  }}
-                  style={({ pressed }) => [styles.bundleCard, {
-                    backgroundColor: equipped ? forge.color + '18' : colors.card,
-                    borderColor: equipped ? forge.color : owned ? forge.color + '44' : colors.border,
-                    opacity: pressed ? 0.85 : 1,
-                    overflow: 'hidden',
-                  }]}
-                >
-                  <LinearGradient colors={[forge.color + '18', forge.color + '06']} style={StyleSheet.absoluteFill} />
-                  <View style={[styles.bundleIcon, { backgroundColor: forge.color + '22', borderColor: forge.color + '44' }]}>
-                    <Text style={{ fontSize: 22 }}>{forge.icon}</Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.itemName, { color: equipped ? forge.color : colors.foreground }]}>{forge.name}</Text>
-                    <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{forge.desc}</Text>
-                    {equipped && <Text style={[styles.ownedLabel, { color: forge.color }]}>● EQUIPPED</Text>}
-                    {owned && !equipped && <Text style={[styles.ownedLabel, { color: forge.color + '88' }]}>OWNED — TAP TO EQUIP</Text>}
-                  </View>
-                  {!owned && (
-                    <View style={[styles.buyBtn, {
-                      backgroundColor: canAfford ? forge.color + '22' : '#FFFFFF08',
-                      borderColor: canAfford ? forge.color + '66' : '#FFFFFF15',
-                    }]}>
-                      <Text style={{ fontSize: 10 }}>⚡</Text>
-                      <Text style={[styles.buyBtnText, { color: canAfford ? forge.color : '#FFFFFF33' }]}>{forge.cost}</Text>
-                    </View>
-                  )}
-                </Pressable>
-              );
-            })}
-
-            <View style={[styles.earnCard, { backgroundColor: colors.card, borderColor: '#7A50A033' }]}>
-              <Text style={{ fontSize: 18 }}>🔄</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.earnTitle, { color: colors.foreground }]}>Earning Credits</Text>
-                <Text style={[styles.earnDesc, { color: colors.mutedForeground }]}>
-                  Once all relics are unlocked, every match rewards Credits instead. Win for 2 Credits, lose for 1. Duplicate relic milestones on Trophy Road give 15 Credits each.
-                </Text>
-              </View>
-            </View>
-          </>
-        )}
 
         {activeTab === 'store' && (
           <>
@@ -806,12 +711,6 @@ const styles = StyleSheet.create({
   themePreview: { width: 64, height: 64, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   themeArena: { width: 50, height: 50, borderRadius: 8, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
   themePaddle: { width: 30, height: 5, borderRadius: 3, opacity: 0.9 },
-  forgeHeader: { borderRadius: 14, borderWidth: 1, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  forgeTitle: { fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 2 },
-  forgeSubtitle: { fontFamily: 'Inter_400Regular', fontSize: 11, marginTop: 2, lineHeight: 16 },
-  creditsBox: { alignItems: 'center', gap: 2 },
-  creditsLabel: { color: '#B9A0E0', fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 1.5 },
-  creditsValue: { color: '#B9A0E0', fontFamily: 'Inter_700Bold', fontSize: 20 },
   redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#C8820A18', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A55', paddingHorizontal: 10, paddingVertical: 6 },
   redeemCodeTxt: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.5, color: '#C8820A' },
 });

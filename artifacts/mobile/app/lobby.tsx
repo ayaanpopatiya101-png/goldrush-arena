@@ -27,7 +27,7 @@ import Reanimated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerCard } from '@/components/PlayerCard';
 import { FloatingOrbs, ORBS_GOLD, GlowText } from '@/components/effects';
-import { RANKS, SKINS, MAPS, getRankIndex, getRelic, usePlayer } from '@/context/PlayerContext';
+import { RANKS, SKINS, MAPS, getRankIndex, usePlayer } from '@/context/PlayerContext';
 import { getActiveFeaturedMode } from '@/utils/featuredModes';
 import { useParty } from '@/context/PartyContext';
 import { getGameConfig, updateGameConfig } from '@/store/gameSession';
@@ -231,7 +231,6 @@ export default function LobbyScreen() {
   const playerRankIdx = getRankIndex(profile.rank);
   const unlockedMaps  = MAPS.filter(m => playerRankIdx >= m.unlockRankIndex);
   const defaultMapId  = unlockedMaps.length ? unlockedMaps[unlockedMaps.length - 1].id : MAPS[0].id;
-  const equippedRelic = getRelic(config.playerRelicId);
   const playerSkin    = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0];
   const topPad        = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
@@ -667,12 +666,6 @@ export default function LobbyScreen() {
             <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>ARENA</Text>
             <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-            {equippedRelic && (
-              <View style={[styles.relicChip, { borderColor: equippedRelic.color + '66', backgroundColor: equippedRelic.color + '1A' }]}>
-                <Text style={{ fontSize: 11 }}>{equippedRelic.icon}</Text>
-                <Text style={[styles.relicChipText, { color: equippedRelic.color }]}>{equippedRelic.name}</Text>
-              </View>
-            )}
           </View>
           <ScrollView
             horizontal
@@ -783,8 +776,6 @@ const styles = StyleSheet.create({
   mapBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#07090F', letterSpacing: 0.5 },
   mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 6, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
   mapLockText: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
-  relicChip: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4 },
-  relicChipText: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 0.3 },
   rulesCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 10 },
   rulesTitle: { fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1.5 },
   rulesList: { gap: 8 },
