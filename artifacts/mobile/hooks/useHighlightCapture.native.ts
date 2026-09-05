@@ -2,7 +2,7 @@
  * Native highlight-clip capture hook.
  *
  * Maintains a rolling ring buffer of JPEG frames captured from the game arena
- * at 4 fps using react-native-view-shot.
+ * at 3 fps using react-native-view-shot.
  *
  * API:
  *   startCapture(viewRef)  — begin recording into the ring buffer
@@ -15,10 +15,13 @@ import { RefObject, useRef } from 'react';
 import { View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
-const CAPTURE_FPS      = 4;
-const CAPTURE_INTERVAL = Math.round(1000 / CAPTURE_FPS); // 250 ms
-const MAX_BUFFER       = 100;  // 25 s of history
-const MAX_CLIP_FRAMES  = 48;   // last 12 s returned as a clip
+// View snapshots are one of the most expensive operations during a match.
+// Three lightweight captures per second still make a readable highlight GIF,
+// while leaving substantially more UI-thread time for smooth ball movement.
+const CAPTURE_FPS      = 3;
+const CAPTURE_INTERVAL = Math.round(1000 / CAPTURE_FPS);
+const MAX_BUFFER       = 75;   // 25 s of history
+const MAX_CLIP_FRAMES  = 36;   // last 12 s returned as a clip
 
 export type HighlightType = 'multi_block' | 'near_death' | 'hot_streak' | 'manual';
 
@@ -40,10 +43,10 @@ export function useHighlightCapture() {
       try {
         const b64 = await captureRef(captureTarget.current, {
           format:  'jpg',
-          quality: 0.60,
+          quality: 0.48,
           result:  'base64',
-          width:   200,
-          height:  200,
+          width:   180,
+          height:  180,
         }) as string;
         allFrames.current.push(b64);
         if (allFrames.current.length > MAX_BUFFER) allFrames.current.shift();

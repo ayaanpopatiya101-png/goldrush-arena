@@ -324,6 +324,12 @@ export function GameArena({
   const duelTimerInterval = useRef<ReturnType<typeof setInterval>|null>(null);
   const rafRef            = useRef(0);
   const lastTimeRef       = useRef(0);
+  // Smooth short frame-time spikes instead of applying one visibly large
+  // movement step. timeDebt preserves distance by paying the difference back
+  // gradually over subsequent frames.
+  const smoothedDeltaRef  = useRef(16.667);
+  const deltaDebtRef      = useRef(0);
+  const frameTimeAvgRef   = useRef(16.667);
   const isRunningRef      = useRef(false);
   const finishPositionRef = useRef(4);
   const deflectionsRef    = useRef(0);
@@ -832,13 +838,36 @@ export function GameArena({
   // ── Main game loop ──
   const gameLoop = useCallback((ts: number) => {
     if (!isRunningRef.current) return;
-    if (pausedRef.current) { rafRef.current = requestAnimationFrame(gameLoop); return; }
-    const delta = ts - lastTimeRef.current;
+    if (pausedRef.current) {
+      lastTimeRef.current = ts;
+      rafRef.current = requestAnimationFrame(gameLoop);
+      return;
+    }
+    const rawDelta = ts - lastTimeRef.current;
     lastTimeRef.current = ts;
-    if (delta > 100) { rafRef.current = requestAnimationFrame(gameLoop); return; }
-    // Normalize to 60 fps so physics is frame-rate independent.
-    // Cap at 2× to prevent ball tunneling through walls on a very slow frame.
-    const dtScale = Math.min(delta / 16.667, 2.0);
+    if (rawDelta > 100 || rawDelta <= 0) {
+      smoothedDeltaRef.current = 16.667;
+      deltaDebtRef.current = 0;
+      rafRef.current = requestAnimationFrame(gameLoop);
+      return;
+    }
+
+    // Normalize to 60 fps while smoothing occasional 16→30 ms spikes. A small
+    // debt repayment keeps long-term ball speed accurate without a single jump.
+    const boundedDelta = Math.max(8, Math.min(rawDelta, 33.334));
+    const smoothed = smoothedDeltaRef.current +
+      (boundedDelta - smoothedDeltaRef.current) * 0.22;
+    smoothedDeltaRef.current = smoothed;
+    deltaDebtRef.current = Math.max(
+      -16.667,
+      Math.min(16.667, deltaDebtRef.current + boundedDelta - smoothed),
+    );
+    const debtPayment = Math.max(-1.5, Math.min(1.5, deltaDebtRef.current));
+    deltaDebtRef.current -= debtPayment;
+    const dtScale = Math.max(0.5, Math.min((smoothed + debtPayment) / 16.667, 2.0));
+
+    // Rolling performance signal used only to reduce nonessential visual work.
+    frameTimeAvgRef.current += (boundedDelta - frameTimeAvgRef.current) * 0.08;
 
     const gs   = gsRef.current;
     const size = szRef.current;
@@ -1039,11 +1068,19 @@ export function GameArena({
       ballAnims[i]?.setValue({ x: ball.x, y: ball.y });
       // Update ball trail
       const trail = ballTrailRef.current[i];
-      if (trail) { trail.push({x: ball.x, y: ball.y}); if (trail.length > 8) trail.shift(); }
+      if (trail) {
+        const trailLimit = frameTimeAvgRef.current > 20 ? 4 : 7;
+        trail.push({x: ball.x, y: ball.y});
+        if (trail.length > trailLimit) trail.shift();
+      }
     }
 
-    // Flush trail UI every 3 frames
-    if (gs.frame % 3 === 0) setBallTrailUI(ballTrailRef.current.map(t => [...t]));
+    // Trail snapshots trigger a full React render, so throttle them adaptively.
+    // Ball positions themselves still update on every animation frame.
+    const trailFlushFrames = frameTimeAvgRef.current > 20 ? 10 : 5;
+    if (gs.frame % trailFlushFrames === 0) {
+      setBallTrailUI(ballTrailRef.current.map(t => [...t]));
+    }
 
     // ── Bot AI (every 3 frames) ──
     if (gs.frame % 3 === 0) {
@@ -1269,6 +1306,9 @@ export function GameArena({
         setGamePhase('playing');
         isRunningRef.current = true;
         lastTimeRef.current  = performance.now();
+        smoothedDeltaRef.current = 16.667;
+        deltaDebtRef.current = 0;
+        frameTimeAvgRef.current = 16.667;
         rafRef.current       = requestAnimationFrame(gameLoop);
         showAnnouncer('GAME START!');
         playSFX('start');

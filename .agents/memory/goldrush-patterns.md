@@ -50,6 +50,13 @@ The `colors as Record<...>` cast must use `as unknown as Record<...>` due to the
 ## Expo web preview: no direct URL deep-linking
 Screenshotting/navigating to a route like `/lobby` or `/game` directly in the Expo web preview falls back to the home screen — expo-router routes here are only reachable via in-app navigation (on-screen buttons + bottom tab bar). When e2e-testing or screenshotting, drive the real UI flow (tap play → lobby → start); don't rely on deep links.
 
+## Match capture performance budget
+Keep native highlight capture lightweight and subordinate to gameplay rendering: use roughly 3 fps at 180×180 and adaptively throttle decorative trail renders when frame times rise.
+
+**Why:** `react-native-view-shot` competes with the JS/UI work driving ball motion; heavier 4 fps captures plus frequent React trail updates caused intermittent visible stutter.
+
+**How to apply:** Preserve frame-time smoothing in the game loop, infer exported GIF dimensions from the JPEGs, and profile ball motion before increasing capture resolution, frequency, or per-frame visual effects.
+
 ## Champion's Gauntlet mode
 - `gauntletSession.ts` — module-level store (same pattern as gameSession.ts). `startGauntlet()` shuffles 7 variants + 3 bots, returns first variant. `recordRoundResult(won, xp, coins)` increments wins/roundNumber, returns `{gauntletWon, gauntletOver}`. Call `getGauntletState()` AFTER `recordRoundResult` to get updated roundNumber.
 - MatchType `'gauntlet'` added to `gameSession.ts`. `getDifficultyMultiplier` returns 3.0× for gauntlet.

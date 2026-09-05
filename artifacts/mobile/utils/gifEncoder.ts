@@ -74,7 +74,7 @@ function lzwEncode(indices: Uint8Array): number[] {
  * @param frames   Flat RGBA arrays (Uint8ClampedArray), all the same width × height.
  * @param width    Frame width in pixels.
  * @param height   Frame height in pixels.
- * @param delayCs  Frame delay in 1/100-second units (25 = 4 fps).
+ * @param delayCs  Frame delay in 1/100-second units (33 = about 3 fps).
  */
 export function encodeGIF(
   frames: Uint8ClampedArray[],
@@ -137,17 +137,27 @@ export function encodeGIF(
 
 // ── JPEG → RGBA helper ────────────────────────────────────────────────────────
 /**
- * Decode a base64-encoded JPEG string to a flat RGBA Uint8ClampedArray.
+ * Decode a base64-encoded JPEG string and preserve its real dimensions.
  * Uses jpeg-js (pure JS), so no native canvas or Buffer polyfill required.
  */
-export function decodeJpegBase64(base64: string): Uint8ClampedArray {
+export interface DecodedJpegFrame {
+  data: Uint8ClampedArray;
+  width: number;
+  height: number;
+}
+
+export function decodeJpegBase64(base64: string): DecodedJpegFrame {
   // atob is available in React Native ≥ 0.72 (RN 0.81 used here)
   const binaryStr = atob(base64);
   const inputBytes = new Uint8Array(binaryStr.length);
   for (let i = 0; i < binaryStr.length; i++) inputBytes[i] = binaryStr.charCodeAt(i);
 
   const decoded = jpeg.decode(inputBytes, { useTArray: true });
-  return new Uint8ClampedArray(decoded.data.buffer, decoded.data.byteOffset, decoded.data.byteLength);
+  return {
+    data: new Uint8ClampedArray(decoded.data.buffer, decoded.data.byteOffset, decoded.data.byteLength),
+    width: decoded.width,
+    height: decoded.height,
+  };
 }
 
 // ── High-level entry point ────────────────────────────────────────────────────
@@ -157,11 +167,16 @@ export function decodeJpegBase64(base64: string): Uint8ClampedArray {
  */
 export function createHighlightGIF(
   base64Frames: string[],
-  width  = 200,
-  height = 200,
-  fps    = 4,
+  _legacyWidth?: number,
+  _legacyHeight?: number,
+  fps    = 3,
 ): Uint8Array {
-  const delayCs   = Math.round(100 / fps);
-  const rgbaFrames = base64Frames.map(decodeJpegBase64);
-  return encodeGIF(rgbaFrames, width, height, delayCs);
+  if (base64Frames.length === 0) throw new Error('Cannot encode an empty highlight clip');
+  const decodedFrames = base64Frames.map(decodeJpegBase64);
+  const { width, height } = decodedFrames[0];
+  if (decodedFrames.some(frame => frame.width !== width || frame.height !== height)) {
+    throw new Error('Highlight frames must all have matching dimensions');
+  }
+  const delayCs = Math.round(100 / fps);
+  return encodeGIF(decodedFrames.map(frame => frame.data), width, height, delayCs);
 }
