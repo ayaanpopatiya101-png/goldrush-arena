@@ -11,7 +11,9 @@ import { RedeemCodeModal } from '@/components/RedeemCodeModal';
 import { useColors } from '@/hooks/useColors';
 import { FloatingOrbs, ORBS_GOLD, GlowText, HolographicShimmer, ShimmerCard, PulseRing, GlowBorder } from '@/components/effects';
 
-const API_BASE = Platform.OS === 'web' ? '/api' : (process.env.EXPO_PUBLIC_API_URL ?? '/api');
+const API_BASE = Platform.OS === 'web'
+  ? '/api'
+  : `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
 
 const STORE_COIN_PACKS = [
   { key: 'Starter Sack',    emoji: '🪙', name: 'Starter Sack',    desc: '1,000 Coins',                   usd: '$0.99',  highlight: false },
@@ -82,13 +84,18 @@ export default function ShopScreen() {
     setStoreLoading(true);
     setStoreError(null);
     fetch(`${API_BASE}/store/products`)
-      .then(r => r.json())
+      .then(async r => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error ?? 'Could not load store.');
+        return data;
+      })
       .then((data: any) => {
         const cache: Record<string, string> = {};
         for (const p of (data.data ?? [])) {
           const firstPrice = p.prices?.[0]?.id;
           if (firstPrice) cache[p.name] = firstPrice;
         }
+        if (Object.keys(cache).length === 0) throw new Error('No store products are available.');
         priceCache.current = cache;
         setStoreLoading(false);
       })

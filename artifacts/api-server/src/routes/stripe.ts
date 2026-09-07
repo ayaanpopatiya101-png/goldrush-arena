@@ -1,10 +1,20 @@
 import { Router, type IRouter } from 'express';
 import { storage } from '../storage.js';
 import { getUncachableStripeClient } from '../stripeClient.js';
-import { db, purchaseCodes } from '@workspace/db';
-import { eq } from 'drizzle-orm';
+import { WebhookHandlers } from '../webhookHandlers.js';
 
 const router: IRouter = Router();
+const ALLOWED_REWARD_TYPES = new Set(['coins', 'skins', 'season_pass', 'battle_pass', 'extra_lives']);
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  })[char] ?? char);
+}
 
 // ── List all active store products with prices (fetched live from Stripe) ─────
 router.get('/store/products', async (_req, res) => {
@@ -54,6 +64,21 @@ router.post('/store/checkout', async (req, res) => {
     const price   = await stripe.prices.retrieve(priceId, { expand: ['product'] });
     const product = price.product as any;
     const meta    = product?.metadata ?? {};
+    if (!price.active || !product || product.deleted || !product.active) {
+      res.status(400).json({ error: 'This product is not available.' }); return;
+    }
+    if (!ALLOWED_REWARD_TYPES.has(meta.reward_type)) {
+      res.status(400).json({ error: 'This product is not configured for an in-game reward.' }); return;
+    }
+    if (meta.reward_type === 'coins' || meta.reward_type === 'extra_lives') {
+      const amount = Number(meta.reward_amount);
+      if (!Number.isSafeInteger(amount) || amount <= 0) {
+        res.status(400).json({ error: 'This product has invalid reward metadata.' }); return;
+      }
+    }
+    if (meta.reward_type === 'skins' && !meta.reward_skins) {
+      res.status(400).json({ error: 'This product has invalid reward metadata.' }); return;
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -91,6 +116,32 @@ router.post('/store/verify-code', async (req, res) => {
   }
 });
 
+router.get('/store/purchase-status', async (req, res) => {
+  const sessionId = req.query.session_id as string | undefined;
+  if (!sessionId?.startsWith('cs_')) {
+    res.status(400).json({ error: 'Invalid checkout session.' }); return;
+  }
+
+  try {
+    const stripe = await getUncachableStripeClient();
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (session.payment_status !== 'paid') {
+      res.json({ paid: false, ready: false }); return;
+    }
+
+    const code = session.metadata?.purchase_code
+      ?? await WebhookHandlers.fulfillCheckoutSession(session);
+    res.json({
+      paid: true,
+      ready: Boolean(code),
+      code,
+      label: session.metadata?.reward_label ?? 'Purchase reward',
+    });
+  } catch {
+    res.status(404).json({ error: 'Checkout session not found.' });
+  }
+});
+
 // ── Success page (shown in browser after Stripe payment) ──────────────────────
 router.get('/store/success', async (req, res) => {
   const sessionId = req.query.session_id as string | undefined;
@@ -102,25 +153,15 @@ router.get('/store/success', async (req, res) => {
       const stripe  = await getUncachableStripeClient();
       const session = await stripe.checkout.sessions.retrieve(sessionId);
       code  = (session.metadata?.purchase_code ?? '').toUpperCase();
-      label = session.metadata?.reward_label ?? label;
+      label = escapeHtml(session.metadata?.reward_label ?? label);
     } catch { /* best-effort */ }
   }
 
-  // If code isn't on the session yet (webhook may be slightly delayed), poll DB
-  if (!code && sessionId) {
-    // Try to find a very recent unused code as fallback (within last 60s)
-    try {
-      const rows = await db.select().from(purchaseCodes)
-        .where(eq(purchaseCodes.used, false))
-        .limit(1);
-      if (rows.length) code = rows[0].code;
-    } catch { /* ignore */ }
-  }
-
   const codeHtml = code
-    ? `<div class="code-box">${code}</div>
+    ? `<div class="code-box" id="purchase-code">${escapeHtml(code)}</div>
        <p class="hint">Copy this code, open GoldRush Arena → Shop → <strong>REDEEM</strong></p>`
-    : `<p class="hint pending">Your reward code is being generated — check back in a moment or contact support if it doesn't appear.</p>`;
+    : `<div class="code-box pending-code" id="purchase-code">GENERATING…</div>
+       <p class="hint pending" id="purchase-status">Your secure reward code is being generated.</p>`;
 
   res.setHeader('Content-Type', 'text/html');
   res.send(`<!DOCTYPE html>
@@ -164,6 +205,7 @@ router.get('/store/success', async (req, res) => {
   }
   .hint { font-size: 14px; color: #FFFFFF99; line-height: 1.5; margin-bottom: 24px; }
   .hint.pending { color: #FFAA55; }
+  .pending-code { font-size: 18px; letter-spacing: 2px; color: #FFAA55; border-color: #FFAA55; }
   .hint strong { color: #FFD700; }
   .steps {
     background: #FFFFFF08;
@@ -192,6 +234,30 @@ router.get('/store/success', async (req, res) => {
     5. Your reward is added instantly!
   </div>
 </div>
+${!code && sessionId ? `<script>
+  const sessionId = ${JSON.stringify(sessionId)};
+  let attempts = 0;
+  const timer = setInterval(async () => {
+    attempts += 1;
+    try {
+      const response = await fetch('/api/store/purchase-status?session_id=' + encodeURIComponent(sessionId));
+      const result = await response.json();
+      if (result.ready && result.code) {
+        const codeBox = document.getElementById('purchase-code');
+        codeBox.textContent = result.code;
+        codeBox.classList.remove('pending-code');
+        document.getElementById('purchase-status').innerHTML =
+          'Copy this code, open GoldRush Arena → Shop → <strong>REDEEM</strong>';
+        clearInterval(timer);
+      }
+    } catch {}
+    if (attempts >= 15) {
+      document.getElementById('purchase-status').textContent =
+        'Your payment is complete, but fulfillment is taking longer than expected. Refresh this page shortly.';
+      clearInterval(timer);
+    }
+  }, 2000);
+</script>` : ''}
 </body>
 </html>`);
 });

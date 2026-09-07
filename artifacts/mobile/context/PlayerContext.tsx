@@ -1502,7 +1502,7 @@ export function PlayerProvider({ username, onLogout, children }: {
         try {
           const apiBase = typeof window !== 'undefined' && window.location
             ? '/api'
-            : (process.env.EXPO_PUBLIC_API_URL ?? '/api');
+            : `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
           const resp = await fetch(`${apiBase}/store/verify-code`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

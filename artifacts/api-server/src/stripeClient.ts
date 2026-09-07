@@ -50,6 +50,11 @@ export async function getUncachableStripeClient(): Promise<Stripe> {
   return new Stripe(secretKey);
 }
 
+export async function getStripeWebhookSecret(): Promise<string | undefined> {
+  const { webhookSecret } = await getStripeCredentials();
+  return webhookSecret;
+}
+
 export async function getStripeSync(): Promise<StripeSync> {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error('DATABASE_URL environment variable is required');

@@ -4,16 +4,8 @@ import { getUncachableStripeClient } from "./stripeClient.js";
 
 async function initStripe() {
   try {
-    // Verify Stripe credentials are accessible on startup
     await getUncachableStripeClient();
-    logger.info('Stripe client initialized');
-
-    // Set up webhook endpoint (register in Stripe dashboard or via API)
-    const domain = process.env.REPLIT_DOMAINS?.split(',')[0];
-    if (domain) {
-      const webhookUrl = `https://${domain}/api/stripe/webhook`;
-      logger.info({ webhookUrl }, 'Stripe webhook endpoint ready');
-    }
+    logger.info('Stripe client initialized; checkout-session fulfillment ready');
   } catch (err: any) {
     logger.error({ err }, 'Failed to initialize Stripe — continuing without it');
   }
