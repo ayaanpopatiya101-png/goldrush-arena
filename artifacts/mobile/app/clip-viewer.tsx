@@ -39,6 +39,7 @@ import {
 import { createHighlightGIF } from '@/utils/gifEncoder';
 import { getClipTier, canClaimClipReward, consumeClipRewardSlot, type ClipTier } from '@/utils/clipRewards';
 import { usePlayer } from '@/context/PlayerContext';
+import { trackEvent } from '@/utils/analytics';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -240,6 +241,13 @@ export default function ClipViewer() {
       setIsFromLibrary(true);
     }
     setSaved(true);
+    trackEvent('clip_saved', {
+      source: sourceSavedId ? 'library_update' : 'new_clip',
+      clip_type: sourceType,
+      tier: tier.label,
+      has_caption: Boolean(caption),
+      has_sticker: Boolean(sticker),
+    });
     Animated.sequence([
       Animated.spring(saveAnim, { toValue: 1.15, useNativeDriver: true, bounciness: 12 }),
       Animated.spring(saveAnim, { toValue: 1,    useNativeDriver: true, bounciness: 6  }),
@@ -268,6 +276,12 @@ export default function ClipViewer() {
           setRewardClaimed(true);
         }
       }
+      trackEvent('clip_shared', {
+        source: isFromLibrary ? 'library' : 'new_clip',
+        clip_type: sourceType,
+        tier: tier.label,
+        reward_claimed: rewardClaimed,
+      });
     } catch {
       Alert.alert('Share failed', 'Could not open the share sheet. Try again.');
     } finally {

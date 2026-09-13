@@ -10,6 +10,7 @@ import { SKINS, getRankIndex, usePlayer } from '@/context/PlayerContext';
 import { RedeemCodeModal } from '@/components/RedeemCodeModal';
 import { useColors } from '@/hooks/useColors';
 import { FloatingOrbs, ORBS_GOLD, GlowText, HolographicShimmer, ShimmerCard, PulseRing, GlowBorder } from '@/components/effects';
+import { trackEvent } from '@/utils/analytics';
 
 const API_BASE = Platform.OS === 'web'
   ? '/api'
@@ -112,6 +113,7 @@ export default function ShopScreen() {
       return;
     }
     setCheckingOut(productName);
+    trackEvent('store_checkout_started', { product: productName });
     try {
       const resp = await fetch(`${API_BASE}/store/checkout`, {
         method: 'POST',
@@ -120,8 +122,10 @@ export default function ShopScreen() {
       });
       const data = await resp.json() as any;
       if (!resp.ok || !data.url) throw new Error(data.error ?? 'Checkout error');
+      trackEvent('store_checkout_opened', { product: productName });
       await Linking.openURL(data.url);
     } catch (err: any) {
+      trackEvent('store_checkout_failed', { product: productName });
       xAlert('Checkout failed', err.message ?? 'Could not open checkout.');
     } finally {
       setCheckingOut(null);

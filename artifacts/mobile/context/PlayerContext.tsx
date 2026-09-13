@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { getGameConfig } from '@/store/gameSession';
+import { trackEvent } from '@/utils/analytics';
 
 // ─── Ranks & Skins ────────────────────────────────────────────────────────────
 // 20 ranks: Bronze/Silver/Gold/Diamond/Master (×3 each) + Champion (×5, top-100 leaderboard)
@@ -1535,6 +1536,10 @@ export function PlayerProvider({ username, onLogout, children }: {
           }
           updated = { ...updated, redeemedCodes: [...(updated.redeemedCodes ?? []), normalized] };
           await save(updated);
+           trackEvent('purchase_code_redeemed', {
+             source: 'stripe',
+             reward_type: r.rewardType ?? 'unknown',
+           });
           return { success: true, message: r.label ?? 'Purchase reward applied!' };
         } catch {
           return { success: false, message: 'Could not verify code — check your connection.' };
@@ -1571,6 +1576,7 @@ export function PlayerProvider({ username, onLogout, children }: {
     }
     updated = { ...updated, redeemedCodes: [...(updated.redeemedCodes ?? []), normalized] };
     await save(updated);
+    trackEvent('purchase_code_redeemed', { source: 'promo', reward_type: 'promo' });
     return { success: true, message: reward.label };
   }, [profile, save]);
 

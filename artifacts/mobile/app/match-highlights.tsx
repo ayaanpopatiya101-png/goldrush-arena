@@ -33,6 +33,7 @@ import { saveClipToLibrary, getClipLibrary, type SavedClip } from '@/store/clipL
 import { getClipTier, getClipGrade, canClaimClipReward, consumeClipRewardSlot } from '@/utils/clipRewards';
 import { createHighlightGIF } from '@/utils/gifEncoder';
 import { uint8ToBase64 }      from '@/store/clipLibrary';
+import { trackEvent }         from '@/utils/analytics';
 
 // ─── Clip card component ─────────────────────────────────────────────────────
 
@@ -93,6 +94,7 @@ function ClipCard({
         });
       }
       // Claim reward if available
+      let rewardClaimedForShare = rewardDone;
       if (!rewardDone) {
         const canClaim = await canClaimClipReward();
         if (canClaim) {
@@ -100,9 +102,16 @@ function ClipCard({
           if (granted) {
             await claimEventBonus({ coins: tier.coins, xp: tier.xp, credits: 0 });
             setRewardDone(true);
+            rewardClaimedForShare = true;
           }
         }
       }
+      trackEvent('highlight_shared', {
+        clip_type: event.type,
+        tier: tier.label,
+        clip_score: event.clipScore,
+        reward_claimed: rewardClaimedForShare,
+      });
     } catch {
       // User cancelled share — that's fine
     } finally {
@@ -134,6 +143,12 @@ function ClipCard({
       autoSaved: false,
     });
     setCardState('saved');
+    trackEvent('highlight_saved', {
+      clip_type: event.type,
+      tier: tier.label,
+      clip_score: event.clipScore,
+      auto_saved: false,
+    });
     saveScale.value = withSpring(1, { damping: 5, stiffness: 300 }, () => {
       saveScale.value = withSpring(1.15, { damping: 5, stiffness: 200 }, () => {
         saveScale.value = withSpring(1, { damping: 8, stiffness: 180 });

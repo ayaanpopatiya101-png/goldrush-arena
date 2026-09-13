@@ -17,6 +17,7 @@ import { setPendingClip, getPendingClip } from '@/store/highlightClip';
 import { computeClipScore, getClipTier } from '@/utils/clipRewards';
 import { startMatchTracking, getCurrentMatchId, recordMatchEvent, getBestMatchEvents } from '@/store/matchEvents';
 import { saveClipToLibrary } from '@/store/clipLibrary';
+import { trackEvent } from '@/utils/analytics';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
 const BOT_RANKS  = ['Gold', 'Platinum', 'Diamond', 'Master 1', 'Master 2'];
@@ -201,6 +202,12 @@ export default function GameScreen() {
     startCapture(arenaWrapRef as any);
     setCaptureStarted(true);
     startMatchTracking(); // begin the per-match event log
+    trackEvent('match_started', {
+      match_type: config.matchType ?? 'casual',
+      variant: config.variant ?? 'classic',
+      challenge: isChallenge,
+      bank_lives: bankLivesUsed,
+    });
     // Deduct the chosen bank lives — consumed once at match start, non-refundable
     if (bankLivesUsed > 0) consumeExtraLives(bankLivesUsed);
   }
@@ -285,6 +292,15 @@ export default function GameScreen() {
     music.stop();
     const matchType   = config.matchType ?? 'casual';
     const variant     = config.variant ?? 'classic';
+    trackEvent('match_completed', {
+      won: result.won,
+      position: result.position,
+      deflections: result.deflections,
+      goals_against: result.goalsAgainst,
+      match_type: matchType,
+      variant,
+      challenge: isChallenge,
+    });
     const streakMult  = getStreakMultiplier(profile.winStreak, result.won);
     const diffMult    = getDifficultyMultiplier(variant, matchType);
     const totalMult   = streakMult * diffMult;
