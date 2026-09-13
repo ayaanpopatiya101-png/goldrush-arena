@@ -24,8 +24,10 @@ import { PartyProvider } from '@/context/PartyContext';
 import OnboardingScreen from '@/app/onboarding';
 import { CinematicSplash, cinemaHasShown } from '@/components/CinematicSplash';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
+import { initializeRevenueCat, RevenueCatProvider } from '@/lib/revenuecat';
 
 SplashScreen.preventAutoHideAsync();
+initializeRevenueCat();
 
 const queryClient = new QueryClient();
 
@@ -113,21 +115,23 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <PlayerProvider username={authUser!.username} onLogout={handleLogout}>
-            <PartyProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <KeyboardProvider>
-                <RootLayoutNav />
-                {showCinematic && (
-                  <CinematicSplash onDone={() => setShowCinematic(false)} />
-                )}
-                {showTutorial && (
-                  <TutorialOverlay onComplete={() => setShowTutorial(false)} />
-                )}
-              </KeyboardProvider>
-            </GestureHandlerRootView>
-            </PartyProvider>
-          </PlayerProvider>
+          <RevenueCatProvider>
+            <PlayerProvider username={authUser!.username} onLogout={handleLogout}>
+              <PartyProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <KeyboardProvider>
+                  <RootLayoutNav />
+                  {showCinematic && (
+                    <CinematicSplash onDone={() => setShowCinematic(false)} />
+                  )}
+                  {showTutorial && (
+                    <TutorialOverlay onComplete={() => setShowTutorial(false)} />
+                  )}
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+              </PartyProvider>
+            </PlayerProvider>
+          </RevenueCatProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

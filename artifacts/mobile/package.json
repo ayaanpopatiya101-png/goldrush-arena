@@ -63,6 +63,7 @@
     "expo-sharing": "^57.0.12",
     "expo-store-review": "^57.0.0",
     "jpeg-js": "^0.4.4",
+    "react-native-purchases": "10.9.1",
     "react-native-view-shot": "^5.1.1"
   }
 }

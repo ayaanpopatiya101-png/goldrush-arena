@@ -1066,6 +1066,7 @@ interface PlayerContextType {
     rounds: QualifierRoundDef[],
   ) => Promise<{ qpEarned: number; totalQP: number; advanced: boolean; nextRoundName: string }>;
   redeemCode: (code: string) => Promise<{ success: boolean; message: string }>;
+  applyStorePurchases: (purchases: { productIdentifier: string; transactionIdentifier: string }[]) => Promise<{ applied: number; message: string }>;
   consumeExtraLives: (count: number) => Promise<void>;
   claimBattlePassTier: (slot: number, isPremium: boolean) => Promise<LuckyBlock | null>;
   claimQuestReward: (questId: string) => Promise<{ success: boolean; bppEarned: number }>;
@@ -1580,6 +1581,69 @@ export function PlayerProvider({ username, onLogout, children }: {
     return { success: true, message: reward.label };
   }, [profile, save]);
 
+  const applyStorePurchases = useCallback(async (
+    purchases: { productIdentifier: string; transactionIdentifier: string }[],
+  ): Promise<{ applied: number; message: string }> => {
+    let updated = { ...profile };
+    let applied = 0;
+    const labels: string[] = [];
+
+    for (const purchase of purchases) {
+      const marker = `RC:${purchase.transactionIdentifier}`;
+      if ((updated.redeemedCodes ?? []).includes(marker)) continue;
+      const id = purchase.productIdentifier;
+
+      if (id.endsWith('.starter_sack')) {
+        updated = { ...updated, coins: updated.coins + 1_000 };
+        labels.push('1,000 Coins');
+      } else if (id.endsWith('.gold_pouch')) {
+        updated = { ...updated, coins: updated.coins + 5_000 };
+        labels.push('5,000 Coins');
+      } else if (id.endsWith('.treasure_chest')) {
+        updated = { ...updated, coins: updated.coins + 15_000 };
+        labels.push('15,000 Coins');
+      } else if (id.endsWith('.dragon_vault')) {
+        updated = { ...updated, coins: updated.coins + 50_000 };
+        labels.push('50,000 Coins');
+      } else if (id.endsWith('.season_pass')) {
+        updated = { ...updated, seasonPassPurchased: true };
+        labels.push('Season Pass');
+      } else if (id.endsWith('.inferno_pack')) {
+        updated = { ...updated, ownedSkins: [...new Set([...updated.ownedSkins, 'inferno'])] };
+        labels.push('Inferno Skin');
+      } else if (id.endsWith('.void_striker_pack')) {
+        updated = { ...updated, ownedSkins: [...new Set([...updated.ownedSkins, 'void'])] };
+        labels.push('Void Striker Skin');
+      } else if (id.endsWith('.elite_bundle')) {
+        updated = { ...updated, ownedSkins: [...new Set([...updated.ownedSkins, 'chrome', 'cosmic'])] };
+        labels.push('Elite Skin Bundle');
+      } else if (id.endsWith('.extra_life_1')) {
+        updated = { ...updated, extraLivesInventory: (updated.extraLivesInventory ?? 0) + 1 };
+        labels.push('1 Extra Life');
+      } else if (id.endsWith('.extra_lives_3')) {
+        updated = { ...updated, extraLivesInventory: (updated.extraLivesInventory ?? 0) + 3 };
+        labels.push('3 Extra Lives');
+      } else if (id.endsWith('.battle_pass_premium_s1')) {
+        updated = { ...updated, battlePassPremiumOwned: true };
+        labels.push('Battle Pass Premium');
+      } else {
+        continue;
+      }
+
+      updated = { ...updated, redeemedCodes: [...(updated.redeemedCodes ?? []), marker] };
+      applied++;
+    }
+
+    if (applied > 0) {
+      await save(updated);
+      trackEvent('native_purchase_fulfilled', { item_count: applied });
+    }
+    return {
+      applied,
+      message: applied > 0 ? `${labels.join(', ')} added!` : 'These purchases are already restored.',
+    };
+  }, [profile, save]);
+
   const consumeExtraLives = useCallback(async (count: number) => {
     if (!count) return;
     const updated = { ...profile, extraLivesInventory: Math.max(0, (profile.extraLivesInventory ?? 0) - count) };
@@ -1687,7 +1751,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial,
       setSelectedSuper, setSkillTier, purchaseForgeAbility, equipForgeAbility,
       spendEventPlay, claimEventBonus, spendQualifierPlay, earnQualifierPoints,
-      openLuckyBlock, redeemCode, consumeExtraLives,
+      openLuckyBlock, redeemCode, applyStorePurchases, consumeExtraLives,
       claimBattlePassTier, claimQuestReward, claimReferralReward, logout,
     }}>
       {children}

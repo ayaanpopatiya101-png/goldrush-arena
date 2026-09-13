@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Reanimated, { ZoomIn, FadeInRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
@@ -11,6 +11,21 @@ import { RedeemCodeModal } from '@/components/RedeemCodeModal';
 import { useColors } from '@/hooks/useColors';
 import { FloatingOrbs, ORBS_GOLD, GlowText, HolographicShimmer, ShimmerCard, PulseRing, GlowBorder } from '@/components/effects';
 import { trackEvent } from '@/utils/analytics';
+import { useRevenueCat } from '@/lib/revenuecat';
+
+const NATIVE_PACKAGE_IDS: Record<string, string> = {
+  'Starter Sack': 'starter_sack',
+  'Gold Pouch': 'gold_pouch',
+  'Treasure Chest': 'treasure_chest',
+  'Dragon Vault': 'dragon_vault',
+  'GoldRush Season Pass': 'season_pass',
+  'Inferno Pack': 'inferno_pack',
+  'Void Striker Pack': 'void_striker_pack',
+  'Elite Bundle': 'elite_bundle',
+  '1 Extra Life': 'extra_life_1',
+  '3 Extra Lives': 'extra_lives_3',
+  'GoldRush Battle Pass Premium': 'battle_pass_premium_s1',
+};
 
 const API_BASE = Platform.OS === 'web'
   ? '/api'
@@ -67,7 +82,8 @@ const ARENA_THEMES = [
 export default function ShopScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { profile, purchaseSkin, equipSkin, spendCoins } = usePlayer();
+  const { profile, purchaseSkin, equipSkin, spendCoins, applyStorePurchases } = usePlayer();
+  const revenueCat = useRevenueCat();
   const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras' | 'forge' | 'store'>('skins');
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [redeemVisible, setRedeemVisible] = useState(false);
@@ -78,8 +94,14 @@ export default function ShopScreen() {
   const [storeLoading, setStoreLoading] = useState(false);
   const [storeError, setStoreError] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
+  const [pendingNativeProduct, setPendingNativeProduct] = useState<string | null>(null);
+  const catalogLoading = Platform.OS === 'web' ? storeLoading : revenueCat.isLoading;
+  const catalogError = Platform.OS === 'web'
+    ? storeError
+    : revenueCat.error ? 'Could not load App Store products. Try again shortly.' : null;
 
   useEffect(() => {
+    if (Platform.OS !== 'web') return;
     if (activeTab !== 'store' && activeTab !== 'extras') return;
     if (Object.keys(priceCache.current).length > 0) return;
     setStoreLoading(true);
@@ -106,7 +128,46 @@ export default function ShopScreen() {
       });
   }, [activeTab]);
 
+  function nativePrice(productName: string, webFallback: string) {
+    if (Platform.OS === 'web') return webFallback;
+    return revenueCat.getPackage(NATIVE_PACKAGE_IDS[productName])?.product.priceString ?? 'Unavailable';
+  }
+
+  async function completeNativePurchase(productName: string) {
+    const pkg = revenueCat.getPackage(NATIVE_PACKAGE_IDS[productName]);
+    if (!pkg) {
+      xAlert('Store unavailable', 'This item is not available from your app store yet.');
+      return;
+    }
+    setCheckingOut(productName);
+    trackEvent('store_checkout_started', { product: productName, provider: 'revenuecat' });
+    try {
+      const result = await revenueCat.purchase(pkg);
+      const transactionIdentifier = (result as any).transaction?.transactionIdentifier
+        ?? (result as any).transaction?.transactionId;
+      if (!transactionIdentifier) throw new Error('The app store did not return a transaction receipt.');
+      const fulfilled = await applyStorePurchases([{
+        productIdentifier: result.productIdentifier,
+        transactionIdentifier,
+      }]);
+      trackEvent('store_purchase_completed', { product: productName, provider: 'revenuecat' });
+      xAlert('Purchase complete', fulfilled.message);
+    } catch (error: any) {
+      if (!error?.userCancelled) xAlert('Purchase failed', error?.message ?? 'Could not complete this purchase.');
+    } finally {
+      setCheckingOut(null);
+    }
+  }
+
   async function handleBuyFromStore(productName: string) {
+    if (Platform.OS !== 'web') {
+      if (__DEV__) {
+        setPendingNativeProduct(productName);
+      } else {
+        await completeNativePurchase(productName);
+      }
+      return;
+    }
     const priceId = priceCache.current[productName];
     if (!priceId) {
       xAlert('Store unavailable', 'Could not find product. Try again in a moment.');
@@ -481,7 +542,7 @@ export default function ShopScreen() {
                 <ShimmerCard active={!checkingOut} borderRadius={8} shimmerColor="rgba(255,255,255,0.1)">
                   <View style={[storeStyles.usdBtn, { backgroundColor: '#FF69B422', borderColor: '#FF69B466' }]}>
                     <Text style={[storeStyles.usdBtnText, { color: '#FF69B4' }]}>
-                      {checkingOut === item.storeKey ? '…' : item.usd}
+                      {checkingOut === item.storeKey ? '…' : nativePrice(item.storeKey, item.usd)}
                     </Text>
                   </View>
                 </ShimmerCard>
@@ -529,21 +590,21 @@ export default function ShopScreen() {
               </View>
             </View>
 
-            {storeLoading && (
+            {catalogLoading && (
               <View style={{ alignItems: 'center', paddingVertical: 32 }}>
                 <Text style={{ color: '#FFFFFF55', fontFamily: 'Inter_400Regular', fontSize: 13 }}>Loading store…</Text>
               </View>
             )}
-            {storeError && !storeLoading && (
+            {catalogError && !catalogLoading && (
               <View style={[storeStyles.errorBox, { borderColor: '#FF475733' }]}>
-                <Text style={{ color: '#FF4757', fontFamily: 'Inter_400Regular', fontSize: 13, textAlign: 'center' }}>{storeError}</Text>
+                <Text style={{ color: '#FF4757', fontFamily: 'Inter_400Regular', fontSize: 13, textAlign: 'center' }}>{catalogError}</Text>
                 <Pressable onPress={() => { priceCache.current = {}; setActiveTab('skins'); setTimeout(() => setActiveTab('store'), 50); }}>
                   <Text style={{ color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 12, marginTop: 8 }}>Retry</Text>
                 </Pressable>
               </View>
             )}
 
-            {!storeLoading && !storeError && (
+            {!catalogLoading && !catalogError && (
               <>
                 {/* Battle Pass Premium */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
@@ -567,7 +628,7 @@ export default function ShopScreen() {
                     </View>
                     {!profile.battlePassPremiumOwned && (
                       <View style={[storeStyles.usdBtn, { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' }]}>
-                        <Text style={[storeStyles.usdBtnText, { color: '#F5F3FF' }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : STORE_BATTLE_PASS.usd}</Text>
+                        <Text style={[storeStyles.usdBtnText, { color: '#F5F3FF' }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : nativePrice(STORE_BATTLE_PASS.key, STORE_BATTLE_PASS.usd)}</Text>
                       </View>
                     )}
                   </Pressable>
@@ -595,7 +656,7 @@ export default function ShopScreen() {
                     </View>
                     {!profile.seasonPassPurchased && (
                       <View style={storeStyles.usdBtn}>
-                        <Text style={storeStyles.usdBtnText}>{checkingOut === STORE_SEASON_PASS.key ? '…' : STORE_SEASON_PASS.usd}</Text>
+                        <Text style={storeStyles.usdBtnText}>{checkingOut === STORE_SEASON_PASS.key ? '…' : nativePrice(STORE_SEASON_PASS.key, STORE_SEASON_PASS.usd)}</Text>
                       </View>
                     )}
                   </Pressable>
@@ -626,7 +687,7 @@ export default function ShopScreen() {
                       </View>
                       <View style={[storeStyles.usdBtn, pack.highlight && { backgroundColor: '#C8820A33', borderColor: '#C8820A88' }]}>
                         <Text style={[storeStyles.usdBtnText, pack.highlight && { color: '#FFD700' }]}>
-                          {checkingOut === pack.key ? '…' : pack.usd}
+                          {checkingOut === pack.key ? '…' : nativePrice(pack.key, pack.usd)}
                         </Text>
                       </View>
                     </Pressable>
@@ -657,7 +718,7 @@ export default function ShopScreen() {
                     </View>
                     <ShimmerCard active={!checkingOut} borderRadius={8} shimmerColor="rgba(255,255,255,0.1)">
                       <View style={storeStyles.usdBtn}>
-                        <Text style={storeStyles.usdBtnText}>{checkingOut === pack.key ? '…' : pack.usd}</Text>
+                        <Text style={storeStyles.usdBtnText}>{checkingOut === pack.key ? '…' : nativePrice(pack.key, pack.usd)}</Text>
                       </View>
                     </ShimmerCard>
                   </Pressable>
@@ -666,10 +727,38 @@ export default function ShopScreen() {
                 {/* How it works */}
                 <View style={[storeStyles.howItWorks, { borderColor: '#FFFFFF12' }]}>
                   <Text style={[storeStyles.howTitle, { color: colors.foreground }]}>How it works</Text>
-                  <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>1. Tap a product and complete secure checkout</Text>
-                  <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>2. Your receipt page shows a unique code (e.g. GR-A1B2-C3D4)</Text>
-                  <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>3. Return here → tap <Text style={{ color: '#C8820A', fontFamily: 'Inter_700Bold' }}>REDEEM</Text> → enter your code</Text>
-                  <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>4. Your reward is added instantly!</Text>
+                  {Platform.OS === 'web' ? (
+                    <>
+                      <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>1. Tap a product and complete secure Stripe checkout</Text>
+                      <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>2. Your receipt page shows a unique code (e.g. GR-A1B2-C3D4)</Text>
+                      <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>3. Return here → tap <Text style={{ color: '#C8820A', fontFamily: 'Inter_700Bold' }}>REDEEM</Text> → enter your code</Text>
+                      <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>4. Your reward is added instantly!</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>1. Tap a product and confirm with the App Store or Google Play</Text>
+                      <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>2. Your reward is added automatically after payment</Text>
+                      <Pressable
+                        disabled={revenueCat.isRestoring}
+                        style={storeStyles.restoreBtn}
+                        onPress={async () => {
+                          try {
+                            const info = await revenueCat.restore();
+                            const durablePurchases = Object.values(info.entitlements.active).map((entitlement: any) => ({
+                              productIdentifier: entitlement.productIdentifier,
+                              transactionIdentifier: `RESTORE:${entitlement.productIdentifier}`,
+                            }));
+                            const restored = await applyStorePurchases(durablePurchases);
+                            xAlert('Restore complete', restored.message);
+                          } catch (error: any) {
+                            xAlert('Restore failed', error?.message ?? 'Could not restore purchases.');
+                          }
+                        }}
+                      >
+                        <Text style={storeStyles.restoreText}>{revenueCat.isRestoring ? 'RESTORING…' : 'RESTORE PURCHASES'}</Text>
+                      </Pressable>
+                    </>
+                  )}
                 </View>
               </>
             )}
@@ -678,6 +767,28 @@ export default function ShopScreen() {
       </ScrollView>
 
       <RedeemCodeModal visible={redeemVisible} onClose={() => setRedeemVisible(false)} />
+      <Modal visible={Boolean(pendingNativeProduct)} transparent animationType="fade" onRequestClose={() => setPendingNativeProduct(null)}>
+        <View style={storeStyles.confirmBackdrop}>
+          <View style={[storeStyles.confirmCard, { backgroundColor: colors.card }]}>
+            <Text style={[storeStyles.confirmTitle, { color: colors.foreground }]}>Test purchase</Text>
+            <Text style={[storeStyles.confirmText, { color: colors.mutedForeground }]}>
+              Complete a RevenueCat test purchase for {pendingNativeProduct}?
+            </Text>
+            <View style={storeStyles.confirmActions}>
+              <Pressable style={storeStyles.confirmCancel} onPress={() => setPendingNativeProduct(null)}>
+                <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_700Bold' }}>CANCEL</Text>
+              </Pressable>
+              <Pressable style={storeStyles.confirmBuy} onPress={() => {
+                const product = pendingNativeProduct;
+                setPendingNativeProduct(null);
+                if (product) void completeNativePurchase(product);
+              }}>
+                <Text style={{ color: '#080812', fontFamily: 'Inter_700Bold' }}>PURCHASE</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Reanimated.View>
   );
 }
@@ -742,4 +853,13 @@ const storeStyles = StyleSheet.create({
   howItWorks: { backgroundColor: '#FFFFFF08', borderRadius: 12, borderWidth: 1, padding: 14, gap: 6 },
   howTitle: { fontFamily: 'Inter_700Bold', fontSize: 13, marginBottom: 4 },
   howStep: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
+  restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 8, borderWidth: 1, borderColor: '#C8820A88', backgroundColor: '#C8820A18', paddingHorizontal: 12, paddingVertical: 8 },
+  restoreText: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1 },
+  confirmBackdrop: { flex: 1, backgroundColor: '#000000AA', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  confirmCard: { width: '100%', maxWidth: 360, borderRadius: 18, borderWidth: 1, borderColor: '#C8820A66', padding: 20 },
+  confirmTitle: { fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 1 },
+  confirmText: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 21, marginTop: 8 },
+  confirmActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 20 },
+  confirmCancel: { borderRadius: 9, borderWidth: 1, borderColor: '#FFFFFF22', paddingHorizontal: 14, paddingVertical: 10 },
+  confirmBuy: { borderRadius: 9, backgroundColor: '#FFD700', paddingHorizontal: 14, paddingVertical: 10 },
 });
