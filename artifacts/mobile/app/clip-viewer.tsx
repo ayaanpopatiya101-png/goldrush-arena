@@ -269,18 +269,20 @@ export default function ClipViewer() {
         UTI: 'com.compuserve.gif',
       });
       // Claim reward on first share of a new clip
+      let rewardClaimedForShare = rewardClaimed;
       if (canReward && !rewardClaimed) {
         const granted = await consumeClipRewardSlot();
         if (granted) {
           await claimEventBonus({ xp: tier.xp, coins: tier.coins, credits: 0 });
           setRewardClaimed(true);
+          rewardClaimedForShare = true;
         }
       }
       trackEvent('clip_shared', {
         source: isFromLibrary ? 'library' : 'new_clip',
         clip_type: sourceType,
         tier: tier.label,
-        reward_claimed: rewardClaimed,
+        reward_claimed: rewardClaimedForShare,
       });
     } catch {
       Alert.alert('Share failed', 'Could not open the share sheet. Try again.');
