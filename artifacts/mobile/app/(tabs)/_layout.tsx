@@ -113,7 +113,7 @@ export default function TabLayout() {
         name="index"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="home" color={color} label="Home" focused={focused} />
+            <TabIcon name="home" color={String(color)} label="Home" focused={focused} />
           ),
         }}
       />
@@ -121,7 +121,7 @@ export default function TabLayout() {
         name="leaderboard"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="award" color={color} label="Ranks" focused={focused} />
+            <TabIcon name="award" color={String(color)} label="Ranks" focused={focused} />
           ),
         }}
       />
@@ -129,7 +129,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="user" color={color} label="Profile" focused={focused} />
+            <TabIcon name="user" color={String(color)} label="Profile" focused={focused} />
           ),
         }}
       />
@@ -137,7 +137,7 @@ export default function TabLayout() {
         name="shop"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="shopping-bag" color={color} label="Shop" focused={focused} />
+            <TabIcon name="shopping-bag" color={String(color)} label="Shop" focused={focused} />
           ),
         }}
       />
@@ -145,7 +145,7 @@ export default function TabLayout() {
         name="inventory"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="archive" color={color} label="Gear" focused={focused} />
+            <TabIcon name="archive" color={String(color)} label="Gear" focused={focused} />
           ),
         }}
       />
@@ -153,7 +153,7 @@ export default function TabLayout() {
         name="trophyroad"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="gift" color={color} label="Pass" focused={focused} />
+            <TabIcon name="gift" color={String(color)} label="Pass" focused={focused} />
           ),
         }}
       />
@@ -161,7 +161,7 @@ export default function TabLayout() {
         name="events"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="zap" color={color} label="Events" focused={focused} />
+            <TabIcon name="zap" color={String(color)} label="Events" focused={focused} />
           ),
         }}
       />

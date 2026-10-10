@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { File, Paths } from 'expo-file-system';
-import { Audio } from 'expo-av';
+import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 
 // ─── WAV generator (native only) ──────────────────────────────────────────────
 // Produces a mono 16-bit 22050 Hz sine-wave WAV as raw Uint8Array bytes.
@@ -44,12 +44,15 @@ function getNativeToneUri(freq: number, dur: number): string {
 
 async function nativeTone(freq: number, dur: number): Promise<void> {
   try {
-    const uri           = getNativeToneUri(freq, dur);
-    const { sound }     = await Audio.Sound.createAsync({ uri });
-    await sound.playAsync();
-    sound.setOnPlaybackStatusUpdate(s => {
-      if (s.isLoaded && s.didJustFinish) sound.unloadAsync().catch(() => {});
+    const uri = getNativeToneUri(freq, dur);
+    const player = createAudioPlayer(uri);
+    const subscription = player.addListener('playbackStatusUpdate', status => {
+      if (status.didJustFinish) {
+        subscription.remove();
+        player.remove();
+      }
     });
+    player.play();
   } catch { /* ignore */ }
 }
 
@@ -64,7 +67,7 @@ async function nativeSeq(notes: Array<{ f: number; d: number }>, gap: number): P
 export function prewarmNativeAudio(): void {
   if (Platform.OS === 'web') return;
   try {
-    Audio.setAudioModeAsync({ playsInSilentModeIOS: true, staysActiveInBackground: false }).catch(() => {});
+    setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: false }).catch(() => {});
     const tones: Array<[number, number]> = [
       [380, 0.04], [220, 0.035],
       [440, 0.1], [330, 0.1], [220, 0.18],

@@ -205,7 +205,7 @@ export function Cosmic() {
       </div>
 
       {/* Constellation connecting line */}
-      <div style={{ height: 2, marginHorizontal: 16, background: "linear-gradient(90deg,#7C3AED00,#7C3AED88 20%,#A855F7 50%,#FFFFFF22 65%,transparent)", marginLeft: 16, marginRight: 16, position: "relative", zIndex: 2, marginTop: 4 }}>
+      <div style={{ height: 2, background: "linear-gradient(90deg,#7C3AED00,#7C3AED88 20%,#A855F7 50%,#FFFFFF22 65%,transparent)", marginLeft: 16, marginRight: 16, position: "relative", zIndex: 2, marginTop: 4 }}>
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,transparent,#A855F788,transparent)", backgroundSize: "200% 100%", animation: "shimmer-x 2s linear infinite" }} />
       </div>
 

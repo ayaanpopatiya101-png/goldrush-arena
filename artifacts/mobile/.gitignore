@@ -9,9 +9,11 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native
-ios/
-android/
+# Native build output and local credentials
+ios/Pods/
+ios/build/
+android/.gradle/
+android/app/build/
 *.orig.*
 *.jks
 *.p8

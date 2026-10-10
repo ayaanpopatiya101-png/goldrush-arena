@@ -1,62 +1,65 @@
 # GoldRush Arena — Terms of Service
 
-**Last updated: August 2026**
-
-> Host alongside the Privacy Policy (same static site works). Apple does not strictly require a ToS URL for a free app with no purchases, but having one hosted looks professional and protects you.
+**Last updated: October 10, 2026**
 
 ---
 
-Please read these Terms of Service ("Terms") carefully before using GoldRush Arena (the "App"). By downloading or using the App, you agree to be bound by these Terms.
+These Terms of Service ("Terms") govern your use of GoldRush Arena (the "App"). By downloading or using the App, you agree to these Terms. If you do not agree, do not use the App.
 
 ## 1. License
 
-We grant you a personal, non-exclusive, non-transferable, revocable license to use the App on your mobile device solely for personal, non-commercial entertainment purposes.
+We grant you a limited, personal, non-exclusive, non-transferable, revocable license to use the App for personal, non-commercial entertainment, subject to these Terms and the rules of the platform from which you downloaded it.
 
 ## 2. Acceptable Use
 
-You agree not to:
-- Reverse-engineer, decompile, or disassemble the App;
-- Modify, adapt, or create derivative works of the App;
-- Use the App for any unlawful purpose;
-- Exploit bugs or glitches to gain unfair advantages (report them instead — we appreciate it);
-- Redistribute or resell the App or any of its assets.
+You may not:
 
-## 3. Virtual Items & Currency
+- use the App for an unlawful or abusive purpose;
+- attempt to interfere with the App, its services, or another player's experience;
+- exploit bugs or manipulate scores, rewards, purchases, or progression;
+- reverse-engineer or redistribute the App except where applicable law expressly permits it; or
+- infringe the rights of the developer or any third party.
 
-The App contains virtual coins, skins, relics, and other virtual items ("Virtual Items"). Virtual Items:
-- Have no real-world monetary value and cannot be exchanged for cash;
-- Are earned exclusively through gameplay;
-- Are stored locally on your device and may be lost if the App is uninstalled or device data is cleared;
-- May be modified, rebalanced, or removed in future updates at our discretion.
+## 3. Virtual Items and In-App Purchases
 
-## 4. Progress & Data
+GoldRush Arena includes virtual coins, skins, relics, boosts, and other digital items ("Virtual Items"). Some Virtual Items can be earned through play and some can be obtained through in-app purchases.
 
-All game progress is stored locally on your device. We are not responsible for loss of progress due to device failure, uninstallation, operating-system updates, or data clearing. We do not operate cloud backups for game data.
+- Virtual Items are licensed, not sold. They have no cash value and cannot be redeemed, transferred, or exchanged for money.
+- Purchases are processed by Apple through the App Store and are subject to Apple's payment, refund, and billing terms.
+- Consumable purchases are delivered to the current game profile and generally cannot be restored after they are consumed.
+- Eligible non-consumable purchases can be restored using the Restore Purchases control in the App.
+- Prices and availability may vary by country and may change as permitted by the App Store.
+
+## 4. Game Progress and Online Features
+
+The App stores most preferences and game progress on your device. Some optional features, such as leaderboards, events, community challenges, clips, and purchase verification, may communicate with our service providers. Online features may be unavailable from time to time and are not guaranteed to remain available indefinitely.
+
+You are responsible for protecting access to your device. Removing the App, clearing its data, or changing devices may result in the loss of locally stored progress or consumable Virtual Items.
 
 ## 5. Updates & Availability
 
-We may update, modify, or discontinue the App (or any feature, game mode, season, or event) at any time without notice. Time-limited events and seasonal content are available only during their scheduled windows.
+We may update, rebalance, add, or remove features, events, rewards, or Virtual Items. We may also suspend or discontinue all or part of the App when reasonably necessary. Where required by law, we will provide appropriate notice.
 
 ## 6. Intellectual Property
 
-All content in the App — including graphics, game design, code, names, and logos — is owned by the developer of GoldRush Arena and protected by applicable intellectual-property laws.
+The App and its original content, artwork, code, names, and logos are owned by the developer of GoldRush Arena or used with permission and are protected by applicable intellectual-property laws. These Terms do not transfer ownership of that material to you.
 
-## 7. Disclaimer of Warranties
+## 7. Disclaimer
 
-The App is provided "AS IS" and "AS AVAILABLE" without warranties of any kind, express or implied, including fitness for a particular purpose, merchantability, or non-infringement.
+To the extent permitted by law, the App is provided "as is" and "as available," without warranties of any kind. Nothing in these Terms excludes consumer rights that cannot legally be excluded.
 
 ## 8. Limitation of Liability
 
-To the maximum extent permitted by law, we shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of (or inability to use) the App.
+To the maximum extent permitted by law, the developer will not be liable for indirect, incidental, special, consequential, or punitive damages arising from use of, or inability to use, the App. This limitation does not apply where prohibited by law.
 
 ## 9. Termination
 
-We may terminate or suspend your license to use the App if you violate these Terms. You may terminate at any time by uninstalling the App.
+We may suspend access to online features or terminate this license if you materially violate these Terms. You may stop using the App at any time by uninstalling it.
 
 ## 10. Changes to These Terms
 
-We may revise these Terms from time to time. Continued use of the App after changes constitutes acceptance of the revised Terms.
+We may revise these Terms as the App changes. The current version will be posted on the GoldRush Arena website with its effective date. Continued use after a change takes effect means you accept the revised Terms, where permitted by law.
 
 ## 11. Contact
 
-Questions about these Terms: **goldrush.arena@gmail.com**
+Questions about these Terms may be sent to **goldrush.arena@gmail.com**.
