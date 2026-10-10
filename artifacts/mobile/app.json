@@ -7,19 +7,12 @@
     "icon": "./assets/images/icon.png",
     "scheme": "goldrush",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#080812"
-    },
     "ios": {
       "bundleIdentifier": "com.goldrush.arena",
+      "appleTeamId": "K592NV82VP",
       "supportsTablet": false,
       "buildNumber": "1",
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "GoldRush Arena uses your photo library to let you set a profile avatar.",
-        "NSCameraUsageDescription": "GoldRush Arena can use the camera to set a profile avatar.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -37,6 +30,15 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#080812"
+        }
+      ],
       "expo-web-browser"
     ],
     "experiments": {

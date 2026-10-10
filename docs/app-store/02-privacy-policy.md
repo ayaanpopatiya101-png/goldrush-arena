@@ -1,57 +1,41 @@
-# GoldRush Arena — Privacy Policy
+# GoldRush Arena Privacy Policy
 
-**Last updated: August 2026**
+Last updated: October 10, 2026
 
-> ⚠️ HOST THIS AT A PUBLIC URL before submission (GitHub Pages, Notion, or any static host). Apple requires a live Privacy Policy URL in App Store Connect — in-app text alone is not enough.
->
-> This version fixes two contradictions in the current in-app policy (`app/legal.tsx`):
-> 1. The app DOES request photo library / camera access for avatars (declared in `app.json`), so §5 can't say "no sensitive permissions."
-> 2. If the Party / matchmaking feature calls your server, "no data is ever transmitted" is false. The bracketed section below covers it — delete it if you ship v1.0 with party features disabled.
+GoldRush Arena respects your privacy. This policy explains what information the app uses, why it is needed, and the choices available to you.
 
----
+## Information handled by the app
 
-GoldRush Arena ("we", "us", "our") is committed to protecting your privacy. This Privacy Policy explains how we handle information when you use the GoldRush Arena mobile application.
+Most game progress—including your chosen display name, scores, achievements, unlocked items, settings, and cosmetic choices—is stored on your device.
 
-## 1. Information We Collect
+When you use an online feature, GoldRush Arena may process a randomly generated player identifier, your chosen display name and avatar emoji, party or matchmaking details, rank, challenge scores, referral activity, and code-redemption activity. The app uses this information only to provide the feature you requested, maintain game integrity, and prevent duplicate rewards.
 
-GoldRush Arena does not collect, transmit, or store any personal information on external servers. All game data — including your chosen username, scores, achievements, unlocked items, and preferences — is stored exclusively on your device using local storage.
+## Purchases
 
-## 2. Data Storage
+Purchases on iPhone are processed by Apple. We use RevenueCat to display products, validate receipts, restore eligible purchases, and understand purchase performance. RevenueCat may process an anonymous app user identifier, device and operating-system information, app usage timestamps, product and transaction information, and Apple receipt data. GoldRush Arena does not receive your complete payment-card details.
 
-All player data lives only on your device. We have no access to any data stored on your device. Uninstalling the app permanently deletes all locally stored game data.
+## Sharing
 
-## 3. Device Permissions
+We share information only with providers needed to run the app, including Apple, RevenueCat, and our game-hosting providers. We do not sell personal information and do not use app data for third-party advertising or tracking across other companies' apps and websites.
 
-GoldRush Arena may request the following optional permissions:
+## Permissions
 
-- **Photo Library / Camera** — used only if you choose to set a custom profile avatar. Your photo is stored locally on your device and is never uploaded or transmitted anywhere. You can use the app fully without granting these permissions.
+GoldRush Arena does not request access to your camera, photo library, microphone, precise location, or contacts. The system share sheet opens only when you choose to share a highlight clip or party invitation.
 
-No other sensitive permissions (location, contacts, microphone) are requested.
+## Retention
 
-## 4. [Party Play — include only if the feature ships]
+Local game data remains on your device and may be deleted when you uninstall the app. Online session data is retained only as reasonably necessary to operate the applicable feature, maintain game integrity, resolve support issues, and meet legal obligations. Purchase records may be retained for accounting, fraud prevention, purchase restoration, and legal compliance.
 
-If you create or join a Party using a party code, your chosen username and party code are sent to our game server solely to connect you with your friends' devices for that session. This information is not linked to your identity, is not used for tracking or advertising, and is deleted when the party ends.
+## Children
 
-## 5. No Third-Party Tracking
+GoldRush Arena is not directed to children under 13. We do not knowingly collect personal information from children. If you believe a child has provided personal information through the app, contact us so we can investigate and delete it where applicable.
 
-GoldRush Arena does not integrate third-party analytics platforms, advertising networks, social media trackers, or data brokers.
+## Your choices
 
-## 6. No Account Registration
+You can play practice and bot-based matches without using party features. You can decline any purchase and avoid the system share sheet. To request information about server-side data associated with your installation, or to request deletion where applicable, email us.
 
-GoldRush Arena does not require an email address, phone number, or any personally identifiable information. Usernames are freely chosen by you and exist only on your device.
+## Contact
 
-## 7. Children's Privacy
+Questions or privacy requests: **goldrush.arena@gmail.com**
 
-GoldRush Arena does not knowingly collect personal information from any user, including children under 13, and is designed to comply with the Children's Online Privacy Protection Act (COPPA).
-
-## 8. In-App Purchases
-
-GoldRush Arena currently contains no in-app purchases. All game content is unlocked through gameplay progression.
-
-## 9. Changes to This Policy
-
-We may update this Privacy Policy from time to time. Changes will be reflected in the "Last updated" date at the top of this policy.
-
-## 10. Contact Us
-
-Questions about this Privacy Policy: **goldrush.arena@gmail.com**
+We may update this policy as the app changes. The latest version will always show its effective date above.

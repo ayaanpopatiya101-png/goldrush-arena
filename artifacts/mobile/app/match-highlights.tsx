@@ -10,7 +10,7 @@
  * Rewards are claimed per-clip (daily cap applies).
  */
 
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Haptics    from 'expo-haptics';
 import * as Sharing    from 'expo-sharing';
 import { LinearGradient }   from 'expo-linear-gradient';

@@ -318,9 +318,12 @@ function Toast({ label, color, onDone }: { label: string; color: string; onDone:
     ]).start(onDone);
   }, []);
   return (
-    <Animated.View pointerEvents="none" style={[s.toast, { borderColor: color, shadowColor: color, opacity: op, transform: [{ translateY: ty }] }]}>
+    <Animated.View
+      pointerEvents="none"
+      style={[tr.toast, { borderColor: color, shadowColor: color, opacity: op, transform: [{ translateY: ty }] }]}
+    >
       <Text style={{ fontSize: 16 }}>✦</Text>
-      <Text style={[s.toastTxt, { color }]}>{label}</Text>
+      <Text style={[tr.toastTxt, { color }]}>{label}</Text>
     </Animated.View>
   );
 }

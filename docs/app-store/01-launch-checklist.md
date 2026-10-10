@@ -1,70 +1,75 @@
-# GoldRush Arena — App Store Launch Checklist
+# GoldRush Arena iOS Release Checklist
 
-Everything you need to do, in order, to ship GoldRush Arena to the iOS App Store.
+This checklist separates work already completed in the repository from work that requires the owner's Apple, Expo, RevenueCat, hosting, or business accounts.
 
----
+## Completed in the project
 
-## Phase 1 — Accounts & Setup
+- [x] iOS bundle identifier set to `com.goldrush.arena`
+- [x] App version `1.0.0`, build `1`
+- [x] Portrait iPhone target with tablet support disabled
+- [x] 1024×1024 RGB app icon with no alpha channel
+- [x] Export-compliance flag set for no non-exempt encryption
+- [x] Unused camera, photo-library, microphone, and location permissions removed
+- [x] Expo SDK dependencies aligned and health checks passed
+- [x] TypeScript release check passed
+- [x] Native Xcode workspace generated at `artifacts/mobile/ios/GoldRushArena.xcworkspace`
+- [x] Apple-silicon release simulator build tested
+- [x] EAS production and submission profiles added
+- [x] iOS purchase flow uses Apple In-App Purchase through RevenueCat
+- [x] Redeem-code and Stripe controls hidden from native builds
+- [x] Restore Purchases control present
+- [x] In-app privacy and terms copy updated
+- [x] Store listing, review notes, privacy answers, and IAP setup worksheet drafted
 
-- [ ] **Apple Developer Program** enrolled ($99/yr) — [developer.apple.com](https://developer.apple.com/programs/enroll/)
-- [ ] **App Store Connect** access confirmed
-- [ ] Create the app record in App Store Connect with bundle ID `com.goldrush.arena`
-- [ ] Set up **EAS Build** (Expo Application Services): `npm i -g eas-cli && eas build:configure`
-- [ ] Add an `eas.json` with a `production` profile
+## Apple Developer and App Store Connect
 
-## Phase 2 — App Configuration (`app.json`)
+- [ ] Confirm the Apple Developer Program membership for Team `K592NV82VP` is active and allowed to distribute apps
+- [ ] Confirm `com.goldrush.arena` is available, then register the App ID
+- [ ] Create the App Store Connect app record
+- [ ] Accept any pending Paid Apps Agreement, tax forms, and banking setup
+- [ ] Create the in-app purchase products listed in `07-in-app-purchases.md`
+- [ ] Add English display names, descriptions, prices, and review screenshots for every IAP
+- [ ] Submit the IAPs with app version 1.0
+- [ ] Complete age-rating questions based on the final binary; do not select the Kids Category without a separate child-directed compliance review
+- [ ] Enter the privacy answers from `06-app-privacy-answers.md`, adjusting if production data practices differ
 
-- [ ] `version` is `1.0.0`, `buildNumber` is `"1"` ✅ (already set)
-- [ ] Bundle ID `com.goldrush.arena` ✅ (already set)
-- [ ] `ITSAppUsesNonExemptEncryption: false` ✅ (already set — skips export compliance questions)
-- [ ] App icon is **1024×1024, no alpha, no rounded corners** (Apple rejects icons with transparency)
-- [ ] Splash screen background matches app background (`#080812`) ✅
-- [ ] **Decision needed:** photo-library / camera avatar feature.
-  - If you KEEP it: usage strings are already in `app.json`, but the in-app Privacy Policy (legal.tsx §5) currently says the app requests *no* sensitive permissions — **this contradiction is a rejection risk; fix the policy text**.
-  - If you CUT it: remove `NSPhotoLibraryUsageDescription`, `NSCameraUsageDescription`, and the `expo-image-picker` dependency.
+## RevenueCat and production services
 
-## Phase 3 — Legal & Compliance (critical)
+- [ ] Add the iOS app and App Store Connect API key in RevenueCat
+- [ ] Import products and create the `current` offering with the exact package identifiers in `07-in-app-purchases.md`
+- [ ] Add `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY` to the release environment
+- [ ] Set `EXPO_PUBLIC_API_BASE` to a stable HTTPS production API URL
+- [ ] Verify party, matchmaking, challenges, leaderboards, referrals, and code verification against production—not a Replit development hostname
+- [ ] Decide and document server retention/deletion periods before publishing the privacy policy
 
-- [ ] **Privacy Policy hosted at a public URL** — Apple requires a URL, not just in-app text. Free options: GitHub Pages, Notion public page. (Use `02-privacy-policy.md`.)
-- [ ] **Terms of Service** hosted or in-app ✅ (already in-app; also in `03-terms-of-service.md`)
-- [ ] **App Privacy questionnaire** in App Store Connect: if truly offline-only, answer "Data Not Collected" for everything — this gives you the coveted "No Data Collected" privacy label.
-- [ ] **⚠️ Stripe code exists in the repo** (`artifacts/api-server`, `scripts/seed-products.ts`). Apple **prohibits Stripe/external payments for digital content** (App Review Guideline 3.1.1) — digital coins/skins MUST use Apple In-App Purchase. Since v1.0 has no purchases, make sure **no Stripe code ships in the app binary** and no purchase UI is reachable. Add real IAP later via `expo-iap` / RevenueCat.
-- [ ] **⚠️ Party/matchmaking API** — if party codes hit your Replit server, the app is NOT "100% offline" and the privacy policy's "no data transmitted" claim is false. Either (a) ship v1.0 with party feature disabled, or (b) update the privacy policy to disclose it.
-- [ ] Age rating questionnaire: expect **4+** (no violence beyond cartoon paddles, no gambling — Lucky Blocks are earned, not purchased, so they don't trigger the loot-box disclosure rule... but if you EVER sell them for real money, you must disclose odds).
-- [ ] COPPA: if you keep "safe for children under 13" positioning, do NOT add third-party ads/analytics without a Kids Category review.
+## Public pages and store assets
 
-## Phase 4 — Assets for the Listing
+- [ ] Enable GitHub Pages from the repository's `/docs` folder; this publishes the prepared privacy, terms, and support pages
+- [ ] Publish a support page containing the support email, current app version, troubleshooting steps, and privacy-policy link
+- [ ] Add `https://ayaanpopatiya101-png.github.io/goldrush-arena/privacy.html` as the Privacy Policy URL and `https://ayaanpopatiya101-png.github.io/goldrush-arena/support.html` as the Support URL in App Store Connect
+- [ ] Capture real-device or release-simulator screenshots after final visual QA
+- [ ] Upload screenshots for every required iPhone display size shown in App Store Connect
+- [ ] Paste the final copy from `04-app-store-listing.md` and proofread it in context
 
-- [ ] **Screenshots (required):** 6.9" (iPhone 16 Pro Max, 1320×2868) and 6.5" (1284×2778 or 1242×2688). 3–10 per size. Capture: home screen, mid-match gameplay, victory screen, Trophy Road, shop/skins, ranked badge.
-- [ ] Optional but high-converting: **App Preview video** (15–30s of gameplay, portrait)
-- [ ] App name (30 chars), subtitle (30 chars), description (4000 chars), keywords (100 chars), promo text (170 chars) — all drafted in `04-app-store-listing.md`
-- [ ] Support URL (can be a GitHub Pages site or even the repo README)
-- [ ] Marketing URL (optional)
+## Release QA
 
-## Phase 5 — Pre-Submission QA
+- [ ] Complete onboarding, a win, and a loss on the smallest supported iPhone simulator
+- [ ] Repeat on the largest supported iPhone simulator
+- [ ] Test Dynamic Type, VoiceOver labels, reduced motion, and increased contrast
+- [ ] Test airplane-mode bot play and graceful failure for every online control
+- [ ] Test party creation, joining, leaving, and leader launch on two physical devices
+- [ ] Test every IAP with Apple sandbox accounts, including cancellation, interrupted purchase, duplicate delivery, refund, and restore
+- [ ] Confirm consumables cannot be delivered twice after relaunch
+- [ ] Confirm non-consumables restore after reinstall
+- [ ] Verify all external text, prices, season labels, rankings, and rewards match the live configuration
+- [ ] Run a TestFlight build on a physical iPhone for at least one full progression session
 
-- [ ] `pnpm --filter @workspace/mobile run typecheck` passes
-- [ ] Test on a REAL iPhone via TestFlight (not just Expo Go — production builds behave differently)
-- [ ] Test on the smallest supported screen (iPhone SE) — check for text truncation
-- [ ] Kill the app mid-match → relaunch → verify no crash and progress intact
-- [ ] Airplane mode end-to-end test (proves offline claim; party features should fail gracefully)
-- [ ] No placeholder text, lorem ipsum, or debug UI anywhere
-- [ ] All achievements/Trophy Road milestones claimable without errors
-- [ ] Haptics respect the in-app settings toggle
-- [ ] Verify `expo-store-review` prompt does not fire on first launch (Apple dislikes early rating prompts)
+## Build and upload
 
-## Phase 6 — Build & Submit
-
-- [ ] `eas build --platform ios --profile production`
-- [ ] `eas submit --platform ios`
-- [ ] In App Store Connect: attach build, fill App Review notes (see `05-app-review-notes.md`)
-- [ ] Set pricing (Free), availability (all territories or your pick)
-- [ ] Choose **Manual release** for v1.0 (so you control launch timing)
-- [ ] Submit for review — typical turnaround is 24–48 hours
-
-## Phase 7 — Post-Launch
-
-- [ ] Respond to App Review rejections within days (each resubmission restarts the queue)
-- [ ] Prompt for ratings AFTER a victory using `expo-store-review` (already installed) — happiest moment = best reviews
-- [ ] Plan v1.1 within 2–4 weeks (season content update) — algorithm rewards update cadence
-- [ ] Watch crash reports in App Store Connect → TestFlight/Xcode Organizer
+- [ ] Add the App Store Connect numeric Apple ID to `submit.production.ios.ascAppId` in `eas.json`
+- [ ] Create a signed archive in Xcode or run `eas build --platform ios --profile production`
+- [ ] Upload the archive to App Store Connect or run `eas submit --platform ios --profile production`
+- [ ] Wait for processing, resolve any privacy-manifest or export-compliance warnings, and distribute to internal TestFlight testers
+- [ ] Attach the tested build to version 1.0
+- [ ] Paste `05-app-review-notes.md`, add review contact details, and submit the app and IAPs together
+- [ ] Use manual release for version 1.0 so approval does not immediately publish the app

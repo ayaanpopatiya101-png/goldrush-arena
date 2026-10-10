@@ -385,13 +385,14 @@ export default function OnboardingScreen({ onSuccess }: Props) {
 
     // ── Continuous loops ──────────────────────────────────────────────
     Animated.loop(Animated.sequence([
-      Animated.timing(ballGlow, { toValue: 1, duration: 1100, useNativeDriver: false }),
-      Animated.timing(ballGlow, { toValue: 0, duration: 1100, useNativeDriver: false }),
+      // This scale shares a view with native-driven ballEnter opacity.
+      Animated.timing(ballGlow, { toValue: 1, duration: 1100, useNativeDriver: true }),
+      Animated.timing(ballGlow, { toValue: 0, duration: 1100, useNativeDriver: true }),
     ])).start();
 
     Animated.loop(Animated.sequence([
-      Animated.timing(bgGlow, { toValue: 1, duration: 3200, useNativeDriver: false }),
-      Animated.timing(bgGlow, { toValue: 0, duration: 3200, useNativeDriver: false }),
+      Animated.timing(bgGlow, { toValue: 1, duration: 3200, useNativeDriver: true }),
+      Animated.timing(bgGlow, { toValue: 0, duration: 3200, useNativeDriver: true }),
     ])).start();
 
     Animated.loop(

@@ -143,8 +143,7 @@ export default function ShopScreen() {
     trackEvent('store_checkout_started', { product: productName, provider: 'revenuecat' });
     try {
       const result = await revenueCat.purchase(pkg);
-      const transactionIdentifier = (result as any).transaction?.transactionIdentifier
-        ?? (result as any).transaction?.transactionId;
+      const transactionIdentifier = result.transaction.transactionIdentifier;
       if (!transactionIdentifier) throw new Error('The app store did not return a transaction receipt.');
       const fulfilled = await applyStorePurchases([{
         productIdentifier: result.productIdentifier,
@@ -274,13 +273,15 @@ export default function ShopScreen() {
             <Feather name="circle" size={14} color="#FFD700" />
             <Text style={styles.coinAmount}>{profile.coins}</Text>
           </View>
-          <Pressable
-            onPress={() => setRedeemVisible(true)}
-            style={({ pressed }) => [styles.redeemCodeBtn, { opacity: pressed ? 0.75 : 1 }]}
-          >
-            <Feather name="gift" size={13} color="#C8820A" />
-            <Text style={styles.redeemCodeTxt}>REDEEM</Text>
-          </Pressable>
+          {Platform.OS === 'web' && (
+            <Pressable
+              onPress={() => setRedeemVisible(true)}
+              style={({ pressed }) => [styles.redeemCodeBtn, { opacity: pressed ? 0.75 : 1 }]}
+            >
+              <Feather name="gift" size={13} color="#C8820A" />
+              <Text style={styles.redeemCodeTxt}>REDEEM</Text>
+            </Pressable>
+          )}
         </View>
       </View>
 
@@ -512,7 +513,7 @@ export default function ShopScreen() {
               </View>
             )}
 
-            {/* Extra Lives — real Stripe checkout */}
+            {/* Extra Lives — native store on mobile, web checkout in browsers */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <View style={{ width: 3, height: 16, backgroundColor: '#FF69B4', borderRadius: 2 }} />
               <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FF69B4' }}>EXTRA LIVES</Text>
@@ -585,7 +586,9 @@ export default function ShopScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={storeStyles.bannerTitle}>GOLDRUSH STORE</Text>
                 <Text style={[storeStyles.bannerSub, { color: colors.mutedForeground }]}>
-                  Real-money purchases • Secure Stripe checkout • Get a code to redeem in-game
+                  {Platform.OS === 'web'
+                    ? 'Secure web checkout • Get a code to redeem in-game'
+                    : 'Secure purchases handled by your app store'}
                 </Text>
               </View>
             </View>

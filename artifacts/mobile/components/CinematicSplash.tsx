@@ -157,7 +157,7 @@ export function CinematicSplash({ onDone }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root:         { ...StyleSheet.absoluteFillObject, zIndex: 9999, alignItems: 'center', justifyContent: 'center' },
+  root:         { position: 'absolute', inset: 0, zIndex: 9999, alignItems: 'center', justifyContent: 'center' },
   center:       { alignItems: 'center', gap: 16 },
   particle:     { position: 'absolute', backgroundColor: '#C8820A' },
   logoWrap:     { width: 96, height: 96, alignItems: 'center', justifyContent: 'center', position: 'relative' },

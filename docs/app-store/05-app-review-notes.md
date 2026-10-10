@@ -1,45 +1,34 @@
-# GoldRush Arena — App Review Notes (paste into App Store Connect)
+# App Review Notes
 
-These are the notes the Apple reviewer sees. Good notes prevent the most common "we couldn't figure out your app" rejections.
+GoldRush Arena is a portrait arcade game in which the player defends the bottom wall of a four-sided arena. The other paddles are computer controlled. A normal match takes about two to five minutes.
 
----
+No sign-in is required. The display name chosen during onboarding is stored locally. Online party, matchmaking, challenge, referral, and leaderboard features use a randomly generated installation identifier and work only when a network connection is available. Bot-based play remains available without a connection.
 
-## Notes for the Reviewer (paste this)
+## How to review the main game loop
 
-```
-GoldRush Arena is a 100% offline, single-player arcade game (the player competes against 3 AI bots in air-hockey style matches).
+1. Launch the app and choose any display name and avatar.
+2. From Home, choose a mode and start a match.
+3. Drag along the bottom edge to move the gold paddle.
+4. Keep the ball from crossing the bottom goal. The last remaining paddle wins.
+5. Complete the match to see rewards and progression.
 
-KEY FACTS FOR REVIEW:
-• No account or login is required. The "username" on first launch is a local-only display name saved on the device — it is not an account and no data leaves the device.
-• The app works fully in Airplane Mode.
-• There are NO in-app purchases, NO ads, and NO third-party analytics.
-• All cosmetics (skins, relics) are earned through gameplay only.
-• "Lucky Blocks" are reward boxes earned by playing — they cannot be purchased with real money.
-• Photo library / camera permission is OPTIONAL and used only to set a local profile avatar (Profile tab → avatar). The app is fully usable without it.
+## Purchases
 
-HOW TO TEST THE CORE LOOP (2 minutes):
-1. Launch → enter any username → tap the gold RANKED button.
-2. Drag your finger along the bottom wall to move your paddle. Deflect the ball; if it passes you 3 times you're eliminated. Last paddle standing wins.
-3. After the match you'll see XP/coin rewards → tap "Trophy Road" tab to see progression.
-```
+The Shop uses Apple In-App Purchase through RevenueCat on iOS. Stripe checkout is restricted to the separate web build and is not presented in the iOS app. The Shop includes a Restore Purchases control for eligible non-consumable products. Consumable coin and extra-life products are not restorable after use.
 
-## Demo Account
+Products must be submitted with this app version and present in the RevenueCat `current` offering before review. If products are not ready, remove the Store and Extras real-money sections from the release build rather than leaving unavailable purchase controls.
 
-Not applicable — no login exists. State this explicitly in the "Sign-in required" section by leaving it unchecked.
+## Permissions and sharing
 
-## Common Rejection Traps & How This App Avoids Them
+The app does not request camera, photo-library, microphone, contacts, or location permission. Highlight clips and party invitations are shared only after the player taps a share control, using the standard iOS share sheet.
 
-| Guideline | Risk | Status |
-|---|---|---|
-| 3.1.1 In-App Purchase | Stripe code exists in the monorepo (server side) | MUST NOT ship in binary; no purchase UI reachable in v1.0 ✅ |
-| 5.1.1 Data Collection | Permission strings vs. privacy policy mismatch | Fix legal.tsx §5 before submitting (see 02-privacy-policy.md) ⚠️ |
-| 4.2 Minimum Functionality | "Just a web wrapper" rejections | Native Expo app with real gameplay — not applicable ✅ |
-| 2.1 App Completeness | Crashes / placeholder content | Run the Phase 5 QA list in 01-launch-checklist.md ⚠️ |
-| 2.3.7 Accurate Metadata | Screenshots must show real gameplay | Use actual device captures, not mockups-only ✅ |
-| 1.3 Kids Category | Only if you opt INTO the Kids Category | Recommend NOT opting in (keeps flexibility); 4+ rating is fine without it ✅ |
+## Review environment
 
-## Version-1 Feature Flags (decide before building)
+- Account required: No
+- Demo account: Not applicable
+- Network required for core bot match: No
+- Network required for party play, live matchmaking, challenges, referrals, leaderboards, code redemption, and purchases: Yes
+- Advertising: None
+- Tracking across apps or websites: None
 
-- **Party / matchmaking (online):** if the Replit-hosted API isn't production-ready with uptime guarantees, hide the Party section for v1.0. A reviewer WILL tap "Create Party" — if it errors, that's a 2.1 rejection.
-- **Redeem codes:** make sure at least one valid code exists or the flow fails gracefully with a friendly message.
-- **"SEASON 7 ACTIVE" splash badge:** fine, but make sure season content actually exists in-app (2.3.7 accurate metadata).
+Contact for review questions: goldrush.arena@gmail.com

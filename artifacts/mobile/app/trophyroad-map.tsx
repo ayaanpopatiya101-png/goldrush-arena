@@ -7,6 +7,7 @@ import Reanimated, {
   FadeInDown, FadeInUp, ZoomIn,
   interpolate, useAnimatedScrollHandler, useAnimatedStyle,
   useSharedValue, withRepeat, withSequence, withSpring, withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -71,7 +72,7 @@ function fmtXP(n: number): string {
 // ─── Floating depth layer ─────────────────────────────────────────────────────
 // Three layers (far/mid/near) each drifting at different rates
 function FloatLayer({ emoji, size, x, yBase, speed, scrollY, zoneY }:
-  { emoji: string; size: number; x: number; yBase: number; speed: number; scrollY: Reanimated.SharedValue<number>; zoneY: number }) {
+  { emoji: string; size: number; x: number; yBase: number; speed: number; scrollY: SharedValue<number>; zoneY: number }) {
   const drift = useSharedValue(0);
   useEffect(() => {
     drift.value = withRepeat(
@@ -132,7 +133,7 @@ function GlowPath({ fromRight, accent }: { fromRight: boolean; accent: string })
 }
 
 // ─── 3D Zone Banner ───────────────────────────────────────────────────────────
-function ZoneBanner({ zone, zoneIdx, scrollY }: { zone: RoadZone; zoneIdx: number; scrollY: Reanimated.SharedValue<number> }) {
+function ZoneBanner({ zone, zoneIdx, scrollY }: { zone: RoadZone; zoneIdx: number; scrollY: SharedValue<number> }) {
   // Approximate Y position of this zone's banner
   const ZONE_H = 1040;
   const MY_Y   = 220 + zoneIdx * ZONE_H;
