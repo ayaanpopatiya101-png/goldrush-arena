@@ -2,7 +2,7 @@
 
 ## Open and run
 
-Open `artifacts/mobile/ios/GoldRushArena.xcworkspace` in Xcode, not the `.xcodeproj` file. Select **GoldRushArena Release**, select an iPhone simulator, then press Run. This scheme includes the JavaScript in the app and does not need a development server.
+Open `artifacts/mobile/ios/GoldRushArena.xcworkspace` in Xcode, not the `.xcodeproj` file. Select **GoldRushArena Release**, select an iPhone simulator, then press Run. This scheme includes the JavaScript in the app and does not need a development server. It runs without attaching the debugger, which stalled on this Mac. Use the original Debug scheme when you need debugging.
 
 The original **GoldRushArena** scheme remains available for development. Start `pnpm exec expo start --dev-client` from `artifacts/mobile` before running that Debug scheme.
 
