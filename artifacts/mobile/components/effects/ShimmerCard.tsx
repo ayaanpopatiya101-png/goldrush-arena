@@ -1,10 +1,11 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
 /**
  * ShimmerCard — animated shimmer/holographic sweep overlay.
  * Wrap any card or surface. The shimmer slides from left to right on loop.
  */
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Easing, StyleSheet, View, ViewProps } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -35,7 +36,7 @@ export function ShimmerCard({
 
   useEffect(() => {
     if (!active) return;
-    const anim = Animated.loop(
+    const anim = idleAnimation(
       Animated.sequence([
         Animated.timing(translateX, {
           toValue: 1,

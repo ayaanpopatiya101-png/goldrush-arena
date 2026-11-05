@@ -1,385 +1,146 @@
-import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Reanimated, { FadeInRight } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusAnimation } from '@/hooks/useFocusAnimation';
-import { RankBadge } from '@/components/RankBadge';
-import { FloatingOrbs, GlowBorder, GlowText, ShimmerCard } from '@/components/effects';
-import { RANKS, usePlayer } from '@/context/PlayerContext';
-import { useColors } from '@/hooks/useColors';
+import React from "react";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { Text } from "@/components/ui/Text";
+import { RANKS, usePlayer, xpForNextRank } from "@/context/PlayerContext";
 
-const GLOBAL_LEADERS = [
-  { name: 'NightViper', rank: 'Champion 5',  wins: 2847, xp: 390000, level: 48, color: '#FF0066' },
-  { name: 'CrystalX',   rank: 'Champion 4',  wins: 2614, xp: 310000, level: 46, color: '#FF2244' },
-  { name: 'Inferno_K',  rank: 'Champion 3',  wins: 1990, xp: 248000, level: 41, color: '#FF5500' },
-  { name: 'ZeroGravity',rank: 'Champion 3',  wins: 1823, xp: 240000, level: 39, color: '#FF6B35' },
-  { name: 'Blaze_99',   rank: 'Champion 2',  wins: 1450, xp: 192000, level: 33, color: '#FF7722' },
-  { name: 'IceQueen',   rank: 'Champion 2',  wins: 1380, xp: 185000, level: 30, color: '#00BFFF' },
-  { name: 'Venom_X',    rank: 'Champion 1',  wins: 1270, xp: 145000, level: 27, color: '#00FF88' },
-  { name: 'ShadowFX',   rank: 'Champion 1',  wins: 1100, xp: 140000, level: 24, color: '#9B59B6' },
-  { name: 'PulseWave',  rank: 'Master 3',    wins: 980,  xp: 112000, level: 21, color: '#AA44FF' },
-  { name: 'NeonBlitz',  rank: 'Master 3',    wins: 870,  xp: 108000, level: 18, color: '#BB66FF' },
-];
-
-const REGIONAL_LEADERS: Record<string, Array<{name:string;rank:string;wins:number;level:number;color:string}>> = {
-  NA: [
-    { name: 'NightViper',  rank: 'Champion 5', wins: 2847, level: 48, color: '#FF0066' },
-    { name: 'Blaze_99',    rank: 'Champion 2', wins: 1450, level: 33, color: '#FF7722' },
-    { name: 'Venom_X',     rank: 'Champion 1', wins: 1270, level: 27, color: '#00FF88' },
-    { name: 'DarkRift',    rank: 'Master 3',   wins: 940,  level: 22, color: '#AA44FF' },
-    { name: 'StormBreaker',rank: 'Gold 2',     wins: 620,  level: 14, color: '#EFD050' },
-  ],
-  EU: [
-    { name: 'CrystalX',   rank: 'Champion 4', wins: 2614, level: 46, color: '#FF2244' },
-    { name: 'IceQueen',   rank: 'Champion 2', wins: 1380, level: 30, color: '#00BFFF' },
-    { name: 'ShadowFX',   rank: 'Champion 1', wins: 1100, level: 24, color: '#9B59B6' },
-    { name: 'Ghostline',  rank: 'Master 2',   wins: 880,  level: 20, color: '#BB66FF' },
-    { name: 'VoidWalker', rank: 'Diamond 3',  wins: 560,  level: 13, color: '#00BFFF' },
-  ],
-  APAC: [
-    { name: 'Inferno_K',  rank: 'Champion 3', wins: 1990, level: 41, color: '#FF5500' },
-    { name: 'PulseWave',  rank: 'Master 3',   wins: 980,  level: 21, color: '#AA44FF' },
-    { name: 'PixelHawk',  rank: 'Diamond 2',  wins: 810,  level: 19, color: '#50CCFF' },
-    { name: 'NeonSword',  rank: 'Gold 3',     wins: 540,  level: 12, color: '#F6E060' },
-    { name: 'AstroKid',   rank: 'Silver 2',   wins: 280,  level: 7,  color: '#B8C0CC' },
-  ],
-  LATAM: [
-    { name: 'ZeroGravity',rank: 'Champion 3', wins: 1823, level: 39, color: '#FF5500' },
-    { name: 'NeonBlitz',  rank: 'Master 3',   wins: 870,  level: 18, color: '#AA44FF' },
-    { name: 'TigerKing',  rank: 'Gold 1',     wins: 620,  level: 15, color: '#E8C040' },
-    { name: 'LatinFury',  rank: 'Silver 2',   wins: 390,  level: 9,  color: '#B8C0CC' },
-    { name: 'DragonX',    rank: 'Bronze 3',   wins: 180,  level: 4,  color: '#DBA060' },
-  ],
-};
-
-const SEASON_LEADERS = [
-  { name: 'NightViper',  rank: 'Champion 5', wins: 187, level: 48, color: '#FF0066' },
-  { name: 'ZeroGravity', rank: 'Champion 3', wins: 164, level: 39, color: '#FF5500' },
-  { name: 'CrystalX',   rank: 'Champion 4', wins: 159, level: 46, color: '#FF2244' },
-  { name: 'Blaze_99',   rank: 'Champion 2', wins: 143, level: 33, color: '#FF7722' },
-  { name: 'Venom_X',    rank: 'Champion 1', wins: 138, level: 27, color: '#00FF88' },
-  { name: 'IceQueen',   rank: 'Master 3',   wins: 121, level: 30, color: '#AA44FF' },
-  { name: 'DarkMatter', rank: 'Master 2',   wins: 98,  level: 20, color: '#BB66FF' },
-  { name: 'PulseWave',  rank: 'Master 1',   wins: 87,  level: 21, color: '#CC88FF' },
-];
-
-const TABS = ['GLOBAL', 'REGIONAL', 'SEASON', 'YOUR RANK'] as const;
-type TabKey = (typeof TABS)[number];
-const REGIONS = ['NA', 'EU', 'APAC', 'LATAM'] as const;
-
-export default function LeaderboardScreen() {
-  const colors = useColors();
-  const insets = useSafeAreaInsets();
+export default function RankDesk() {
   const { profile } = usePlayer();
-  const [tab, setTab]    = useState<TabKey>('GLOBAL');
-  const [region, setRegion] = useState<'NA'|'EU'|'APAC'|'LATAM'>('NA');
-
-  const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
-
-  function findPlayerRank(): number {
-    const sorted = [...GLOBAL_LEADERS, { name: profile.name, rank: profile.rank, wins: profile.wins, xp: profile.xp, level: profile.competitiveLevel ?? 1, color: '#C8820A' }]
-      .sort((a, b) => b.xp - a.xp);
-    return sorted.findIndex(p => p.name === profile.name) + 1;
-  }
-
-  const playerPosition = findPlayerRank();
-  const rankData = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
-  const focusStyle = useFocusAnimation();
-
+  const safe = useSafeAreaInsets();
+  const progress = xpForNextRank(profile.xp);
+  const rate = profile.totalGames
+    ? Math.round((profile.wins / profile.totalGames) * 100)
+    : 0;
   return (
-    <Reanimated.View style={[styles.root, { backgroundColor: colors.background }, focusStyle]}>
-      <FloatingOrbs opacity={0.7} />
-      <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
-      <LinearGradient
-        colors={['#C8820A22', '#C8820A0E', 'transparent']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 400 }}
-        pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['transparent', '#05081888']}
-        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 }}
-        pointerEvents="none"
-      />
-
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-        <View>
-          <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>LEADERBOARD</Text>
-        </View>
-        <View style={styles.levelPill}>
-          <Text style={styles.levelPillText}>LVL {profile.competitiveLevel ?? 1}</Text>
-        </View>
+    <ScrollView
+      style={s.page}
+      contentContainerStyle={[s.content, { paddingTop: safe.top + 28 }]}
+    >
+      <Text style={s.kicker}>Your competition record</Text>
+      <Text style={s.title}>The climb</Text>
+      <View style={s.current}>
+        <Text style={s.rank}>{progress.current}</Text>
+        <Text style={s.xp}>{profile.xp.toLocaleString()} XP</Text>
       </View>
-
-      {/* Season banner */}
-      <View style={[styles.seasonBanner, { backgroundColor: '#FF475518', borderColor: '#FF475544' }]}>
-        <Feather name="calendar" size={13} color="#FF4757" />
-        <Text style={[styles.seasonText, { color: '#FF4757' }]}>Season 7 Active · 18 days remaining</Text>
-        <View style={[styles.rewardBadge, { backgroundColor: '#FF475522' }]}>
-          <Text style={[styles.rewardText, { color: '#FF4757' }]}>SEASON REWARDS</Text>
-        </View>
+      <View style={s.track}>
+        <View
+          style={[
+            s.fill,
+            {
+              width: `${Math.max(0, Math.min(100, progress.progress * 100))}%`,
+            },
+          ]}
+        />
       </View>
-
-      {/* Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScrollWrap} contentContainerStyle={styles.tabRow}>
-        {TABS.map(t => (
-          <Pressable key={t} onPress={() => setTab(t)} style={[styles.tab, tab === t && { borderBottomColor: colors.primary }]}>
-            {tab === t
-              ? <GlowText intensity="soft" color={colors.primary} style={styles.tabText}>{t}</GlowText>
-              : <Text style={[styles.tabText, { color: colors.mutedForeground }]}>{t}</Text>
+      <Text style={s.detail}>
+        {progress.next
+          ? `${progress.remaining.toLocaleString()} XP to ${progress.next}`
+          : "You have reached Champion 5"}
+      </Text>
+      <View style={s.recordRow}>
+        <Text style={s.detail}>Matches played</Text>
+        <Text style={s.figure}>{profile.totalGames}</Text>
+      </View>
+      <View style={s.recordRow}>
+        <Text style={s.detail}>Wins</Text>
+        <Text style={s.figure}>{profile.wins}</Text>
+      </View>
+      <View style={s.recordRow}>
+        <Text style={s.detail}>Win rate</Text>
+        <Text style={s.figure}>{rate}%</Text>
+      </View>
+      <Text style={s.note}>
+        This record comes from your progress on this device. Warm-up matches do
+        not count.
+      </Text>
+      <Pressable onPress={() => router.push("/challenge")} style={s.challenge}>
+        <Text>Open daily challenge</Text>
+      </Pressable>
+      <Text style={s.section}>Rank ladder</Text>
+      {RANKS.map((rank, index) => {
+        const current = rank.name === progress.current;
+        return (
+          <View
+            key={rank.name}
+            accessibilityLabel={
+              current ? `${rank.name}, your current rank` : rank.name
             }
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}>
-        {tab === 'GLOBAL' && (
-          <>
-            <View style={styles.podium}>
-              {[GLOBAL_LEADERS[1], GLOBAL_LEADERS[0], GLOBAL_LEADERS[2]].map((p, i) => {
-                const pos = i === 0 ? 2 : i === 1 ? 1 : 3;
-                const heights = [90, 110, 75];
-                return (
-                  <View key={p.name} style={[styles.podiumSpot, { height: heights[i] + 50 }]}>
-                    <View style={[styles.podiumAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                      <Text style={[styles.podiumAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
-                    </View>
-                    <GlowText intensity="soft" color={p.color} style={[styles.podiumName, { color: colors.foreground }]} numberOfLines={1}>{p.name}</GlowText>
-                    <Text style={[styles.podiumLevel, { color: p.color }]}>LVL {p.level}</Text>
-                    <LinearGradient colors={[p.color + '55', p.color + '18']} style={[styles.podiumBlock, { height: heights[i], borderWidth: 1, borderColor: p.color + '44', borderRadius: 10 }]}>
-                      <Text style={{ fontSize: pos === 1 ? 18 : 14 }}>{pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉'}</Text>
-                      <GlowText intensity="strong" color={p.color} style={[styles.podiumPos, { color: p.color, fontSize: pos === 1 ? 22 : 18 }]}>{String(pos)}</GlowText>
-                      <Text style={[styles.podiumWins, { color: colors.mutedForeground }]}>{p.wins}W</Text>
-                    </LinearGradient>
-                  </View>
-                );
-              })}
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C8820A' }}>NEARBY PLAYERS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>RANKED</Text>
-            </View>
-            <View style={styles.list}>
-              {GLOBAL_LEADERS.slice(3).map((p, i) => {
-                const isMe = p.name === profile.name;
-                const rowContent = (
-                  <View style={[styles.row, { backgroundColor: colors.card, borderColor: isMe ? '#C8820A' : colors.border }]}>
-                    <Text style={[styles.rowPos, { color: colors.mutedForeground }]}>{i + 4}</Text>
-                    <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                      <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.rowName, { color: colors.foreground }]}>{p.name}</Text>
-                      <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>{p.rank} · LVL {p.level}</Text>
-                    </View>
-                    <RankBadge rank={p.rank} size="sm" showLabel={false} />
-                    <Text style={[styles.rowWins, { color: colors.foreground }]}>{p.wins}W</Text>
-                  </View>
-                );
-                return (
-                  <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
-                    {isMe ? <GlowBorder color="#C8820A" borderRadius={12} spread={8}>{rowContent}</GlowBorder> : rowContent}
-                  </Reanimated.View>
-                );
-              })}
-            </View>
-          </>
-        )}
-
-        {tab === 'REGIONAL' && (
-          <View style={styles.list}>
-            {/* Region picker */}
-            <View style={styles.regionRow}>
-              {REGIONS.map(r => (
-                <Pressable key={r} onPress={() => setRegion(r)}
-                  style={[styles.regionBtn, region === r && styles.regionBtnActive]}>
-                  <Text style={[styles.regionBtnText, region === r && { color: '#C8820A' }]}>{r}</Text>
-                </Pressable>
-              ))}
-            </View>
-            {(REGIONAL_LEADERS[region] ?? []).map((p, i) => (
-              <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
-                <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <Text style={[styles.rowPos, { color: i < 3 ? '#C8820A' : colors.mutedForeground }]}>{i + 1}</Text>
-                  <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                    <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.rowName, { color: colors.foreground }]}>{p.name}</Text>
-                    <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>{p.rank}</Text>
-                  </View>
-                  <View style={styles.levelBadge}>
-                    <Text style={styles.levelBadgeText}>LVL {p.level}</Text>
-                  </View>
-                  <Text style={[styles.rowWins, { color: colors.foreground }]}>{p.wins}W</Text>
-                </View>
-              </Reanimated.View>
-            ))}
+            style={[s.ladderRow, current && s.active]}
+          >
+            <Text style={s.ordinal}>{String(index + 1).padStart(2, "0")}</Text>
+            <Text style={[s.rankName, current && { color: "#D0AF66" }]}>
+              {rank.name}
+            </Text>
+            <Text style={s.threshold}>{rank.minXP.toLocaleString()} XP</Text>
           </View>
-        )}
-
-        {tab === 'SEASON' && (
-          <View style={styles.list}>
-            <View style={[styles.tableHeader, { borderBottomColor: colors.border }]}>
-              <Text style={[styles.th, { color: colors.mutedForeground, flex: 0.4 }]}>#</Text>
-              <Text style={[styles.th, { color: colors.mutedForeground, flex: 2 }]}>PLAYER</Text>
-              <Text style={[styles.th, { color: colors.mutedForeground }]}>LVL</Text>
-              <Text style={[styles.th, { color: colors.mutedForeground }]}>WINS</Text>
-            </View>
-            {SEASON_LEADERS.map((p, i) => (
-              <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
-                <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <Text style={[styles.rowPos, { color: i < 3 ? '#C8820A' : colors.mutedForeground }]}>{i + 1}</Text>
-                  <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                    <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.rowName, { color: colors.foreground }]}>{p.name}</Text>
-                    <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>{p.rank}</Text>
-                  </View>
-                  <Text style={[styles.rowWins, { color: '#00FF88', width: 36, textAlign: 'right' }]}>{p.level}</Text>
-                  <Text style={[styles.rowWins, { color: colors.foreground }]}>{p.wins}W</Text>
-                </View>
-              </Reanimated.View>
-            ))}
-          </View>
-        )}
-
-        {tab === 'YOUR RANK' && (
-          <View style={styles.yourRank}>
-            <View style={[styles.playerRankCard, { backgroundColor: colors.card, borderColor: rankData.color + '55' }]}>
-              <LinearGradient colors={[rankData.color + '22', rankData.color + '08']} style={StyleSheet.absoluteFill} />
-              <RankBadge rank={profile.rank} size="lg" />
-              <View style={styles.rankStats}>
-                <Text style={[styles.rankName, { color: colors.foreground }]}>{profile.name}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Text style={[styles.rankPos, { color: rankData.color }]}>Global #{playerPosition}</Text>
-                  <View style={[styles.levelBadge, { borderColor: rankData.color + '55', backgroundColor: rankData.color + '22' }]}>
-                    <Text style={[styles.levelBadgeText, { color: rankData.color }]}>LVL {profile.competitiveLevel ?? 1}/50</Text>
-                  </View>
-                </View>
-                <View style={styles.rankStatsRow}>
-                  {[
-                    { l: 'Wins', v: String(profile.wins) },
-                    { l: 'Games', v: String(profile.totalGames) },
-                    { l: 'Win Rate', v: profile.totalGames > 0 ? `${Math.round(profile.wins / profile.totalGames * 100)}%` : '0%' },
-                  ].map(stat => (
-                    <View key={stat.l} style={styles.rStat}>
-                      <Text style={[styles.rStatV, { color: colors.foreground }]}>{stat.v}</Text>
-                      <Text style={[styles.rStatL, { color: colors.mutedForeground }]}>{stat.l}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-
-            {/* Competitive level progress */}
-            <View style={[styles.lvlCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={styles.lvlHeader}>
-                <Text style={[styles.lvlTitle, { color: colors.foreground }]}>Competitive Level</Text>
-                <Text style={[styles.lvlNum, { color: '#C8820A' }]}>{profile.competitiveLevel ?? 1} / 50</Text>
-              </View>
-              <View style={[styles.lvlTrack, { backgroundColor: colors.muted }]}>
-                <View style={[styles.lvlFill, { width: `${((profile.competitiveLevel ?? 1) / 50) * 100}%` }]} />
-              </View>
-              <Text style={[styles.lvlSub, { color: colors.mutedForeground }]}>
-                Peak: LVL {profile.highestLevel ?? 1}  ·  Win ranked matches to level up
-              </Text>
-            </View>
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 }}>
-              <View style={{ height: 1, backgroundColor: '#FFFFFF10', flex: 1 }} />
-              <Text style={[styles.nearbyTitle, { color: colors.mutedForeground }]}>NEARBY PLAYERS</Text>
-              <View style={{ height: 1, backgroundColor: '#FFFFFF10', flex: 1 }} />
-            </View>
-            {[...GLOBAL_LEADERS].sort((a, b) => b.xp - a.xp).slice(Math.max(0, playerPosition - 3), playerPosition + 2).map((p, i) => {
-              const isMe = p.name === profile.name;
-              const nearbyRow = (
-                <View style={[styles.row, {
-                  backgroundColor: isMe ? rankData.color + '22' : colors.card,
-                  borderColor: isMe ? '#C8820A' : colors.border,
-                }]}>
-                  <Text style={[styles.rowPos, { color: colors.mutedForeground }]}>{i + Math.max(1, playerPosition - 2)}</Text>
-                  <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                    <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
-                  </View>
-                  <Text style={[styles.rowName, { color: colors.foreground, flex: 1 }]}>{p.name}</Text>
-                  <Text style={[styles.rowSub, { color: '#C8820A', marginRight: 4 }]}>LVL {p.level}</Text>
-                  <Text style={[styles.rowWins, { color: colors.mutedForeground }]}>{p.xp} XP</Text>
-                </View>
-              );
-              return (
-                <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
-                  {isMe ? <GlowBorder color="#C8820A" borderRadius={12} spread={8}>{nearbyRow}</GlowBorder> : nearbyRow}
-                </Reanimated.View>
-              );
-            })}
-          </View>
-        )}
-      </ScrollView>
-    </Reanimated.View>
+        );
+      })}
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 10 },
-  headerTitle: { fontFamily: 'Inter_700Bold', fontSize: 19, letterSpacing: 2 },
-  levelPill: { backgroundColor: '#C8820A22', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A55', paddingHorizontal: 10, paddingVertical: 4 },
-  levelPillText: { fontFamily: 'Inter_700Bold', fontSize: 12, color: '#C8820A', letterSpacing: 1 },
-  seasonBanner: { marginHorizontal: 16, borderRadius: 10, borderWidth: 1, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
-  seasonText: { fontFamily: 'Inter_500Medium', fontSize: 12, flex: 1 },
-  rewardBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  rewardText: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1 },
-  tabScrollWrap: { maxHeight: 44 },
-  tabRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 4, borderBottomWidth: 1, borderBottomColor: '#FFFFFF14' },
-  tab: { paddingVertical: 10, paddingHorizontal: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabText: { fontFamily: 'Inter_600SemiBold', fontSize: 11, letterSpacing: 1 },
-  regionRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  regionBtn: { flex: 1, borderRadius: 10, borderWidth: 1, borderColor: '#FFFFFF22', backgroundColor: '#FFFFFF08', paddingVertical: 8, alignItems: 'center' },
-  regionBtnActive: { borderColor: '#C8820A', backgroundColor: '#C8820A15' },
-  regionBtnText: { fontFamily: 'Inter_700Bold', fontSize: 12, color: '#FFFFFF55' },
-  podium: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4, gap: 4 },
-  podiumSpot: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', gap: 2 },
-  podiumAvatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
-  podiumAvatarText: { fontFamily: 'Inter_700Bold', fontSize: 16 },
-  podiumName: { fontFamily: 'Inter_700Bold', fontSize: 10, textAlign: 'center' },
-  podiumLevel: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
-  podiumBlock: { width: '100%', borderRadius: 10, alignItems: 'center', justifyContent: 'center', gap: 3 },
-  podiumPos: { fontFamily: 'Inter_700Bold', fontSize: 20 },
-  podiumWins: { fontFamily: 'Inter_700Bold', fontSize: 10 },
-  list: { paddingHorizontal: 16, gap: 6, paddingTop: 4 },
-  tableHeader: { flexDirection: 'row', paddingHorizontal: 12, paddingBottom: 8, borderBottomWidth: 1 },
-  th: { fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, gap: 10 },
-  rowPos: { fontFamily: 'Inter_700Bold', fontSize: 14, width: 22, textAlign: 'center' },
-  rowAvatar: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  rowAvatarText: { fontFamily: 'Inter_700Bold', fontSize: 13 },
-  rowName: { fontFamily: 'Inter_700Bold', fontSize: 13 },
-  rowSub: { fontFamily: 'Inter_400Regular', fontSize: 10, marginTop: 1 },
-  rowWins: { fontFamily: 'Inter_700Bold', fontSize: 14, width: 48, textAlign: 'right' },
-  levelBadge: { borderRadius: 6, borderWidth: 1, borderColor: '#C8820A44', backgroundColor: '#C8820A11', paddingHorizontal: 6, paddingVertical: 2 },
-  levelBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 10, color: '#C8820A' },
-  yourRank: { paddingHorizontal: 16, paddingTop: 12, gap: 10 },
-  playerRankCard: { borderRadius: 18, borderWidth: 1.5, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 16, overflow: 'hidden' },
-  rankStats: { flex: 1, gap: 4 },
-  rankName: { fontFamily: 'Inter_700Bold', fontSize: 18 },
-  rankPos: { fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 1 },
-  rankStatsRow: { flexDirection: 'row', gap: 16, marginTop: 6 },
-  rStat: { alignItems: 'center', gap: 3 },
-  rStatV: { fontFamily: 'Inter_700Bold', fontSize: 18 },
-  rStatL: { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 1.5 },
-  lvlCard: { borderRadius: 14, borderWidth: 1, padding: 14, gap: 8 },
-  lvlHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  lvlTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 14 },
-  lvlNum: { fontFamily: 'Inter_700Bold', fontSize: 18 },
-  lvlTrack: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  lvlFill: { height: '100%', borderRadius: 4, backgroundColor: '#C8820A' },
-  lvlSub: { fontFamily: 'Inter_400Regular', fontSize: 11 },
-  nearbyTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 11, letterSpacing: 1.5, paddingTop: 4 },
+const s = StyleSheet.create({
+  page: { flex: 1, backgroundColor: "#191B19" },
+  content: {
+    width: "100%",
+    maxWidth: 720,
+    alignSelf: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  kicker: { color: "#B9BDAF", fontSize: 13 },
+  title: { fontFamily: "Rajdhani_600SemiBold", fontSize: 48, marginTop: 8 },
+  current: {
+    marginTop: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  rank: { fontSize: 22, color: "#D0AF66" },
+  xp: { fontSize: 16, fontVariant: ["tabular-nums"] },
+  track: {
+    height: 3,
+    backgroundColor: "#34382F",
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  fill: { height: 3, backgroundColor: "#D0AF66" },
+  detail: { fontSize: 14, color: "#B9BDAF", lineHeight: 22 },
+  recordRow: {
+    minHeight: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderColor: "#34382F",
+  },
+  figure: { fontSize: 20, fontVariant: ["tabular-nums"] },
+  note: { fontSize: 13, color: "#B9BDAF", lineHeight: 21, marginTop: 20 },
+  challenge: {
+    minHeight: 48,
+    paddingHorizontal: 16,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#666B5E",
+    marginTop: 20,
+  },
+  section: {
+    fontFamily: "Rajdhani_600SemiBold",
+    fontSize: 28,
+    marginTop: 32,
+    marginBottom: 12,
+  },
+  ladderRow: {
+    minHeight: 52,
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderColor: "#34382F",
+    gap: 16,
+    paddingHorizontal: 8,
+  },
+  active: { backgroundColor: "#222520" },
+  ordinal: { fontSize: 12, color: "#949A89", width: 24 },
+  rankName: { flex: 1, fontSize: 15 },
+  threshold: { fontSize: 12, color: "#B9BDAF", fontVariant: ["tabular-nums"] },
 });

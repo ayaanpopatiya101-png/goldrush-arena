@@ -1,5 +1,6 @@
+import { Text } from '@/components/ui/Text';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { RANKS } from '@/context/PlayerContext';
 import { PulseRing, GlowBorder } from '@/components/effects';
 
@@ -61,7 +62,7 @@ export function RankBadge({ rank, size = 'md', showLabel = true }: RankBadgeProp
           <Text style={{ fontSize: iconSize, lineHeight: iconSize + 4 }}>{icon}</Text>
           {num ? (
             <View style={[styles.numPip, { backgroundColor: color, borderColor: color + '66' }]}>
-              <Text style={[styles.numTxt, { fontSize: numSize, color: '#000000CC' }]}>{num}</Text>
+              <Text style={[styles.numTxt, { fontSize: numSize, color: '#191B19CC' }]}>{num}</Text>
             </View>
           ) : null}
         </View>
@@ -77,13 +78,13 @@ const styles = StyleSheet.create({
   wrapper: { alignItems: 'center', gap: 3, position: 'relative' },
   badge: {
     borderWidth: 2, alignItems: 'center', justifyContent: 'center',
-    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 6, elevation: 4,
+    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0,
   },
   numPip: {
     position: 'absolute', bottom: -2, right: -2,
-    minWidth: 13, height: 13, borderRadius: 7, borderWidth: 1,
+    minWidth: 13, height: 13, borderRadius: 2, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2,
   },
-  numTxt: { fontFamily: 'Inter_700Bold', letterSpacing: 0 },
-  label:  { fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
+  numTxt: { fontFamily: 'System', letterSpacing: 0 },
+  label:  { fontFamily: 'System', letterSpacing: 1.5 },
 });

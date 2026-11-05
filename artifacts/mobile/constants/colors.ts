@@ -1,29 +1,27 @@
-// ── Deep Cosmos palette ───────────────────────────────────────────────────────
-// Near-black midnight navy base — makes gold/copper accents explode with
-// contrast while giving a premium "dark velvet" arena feel.
+// Tournament scorecard: quiet surfaces, brass actions, distinct court positions.
 
-const PLAYER_COLORS = ['#C8820A', '#C03820', '#1E8AAA', '#4A8A38'] as const;
-const PLAYER_GLOW   = ['#C8820A66', '#C0382066', '#1E8AAA66', '#4A8A3866'] as const;
+const PLAYER_COLORS = ['#D0AF66', '#BB7865', '#A6AEA7', '#98A581'] as const;
+const PLAYER_GLOW   = ['transparent', 'transparent', 'transparent', 'transparent'] as const;
 
 const gameTheme = {
-  text:                 '#F0EAE0',
-  tint:                 '#C8820A',
-  background:           '#07090F',
-  foreground:           '#F0EAE0',
-  card:                 '#0C1020',
-  cardForeground:       '#F0EAE0',
-  primary:              '#C8820A',
-  primaryForeground:    '#07090F',
-  secondary:            '#101828',
-  secondaryForeground:  '#F0EAE0',
-  muted:                '#131E2C',
-  mutedForeground:      '#607888',
-  accent:               '#1E8AAA',
-  accentForeground:     '#07090F',
-  destructive:          '#C03820',
-  destructiveForeground:'#F0EAE0',
-  border:               '#1A2840',
-  input:                '#101828',
+  text:                 '#EEE7D8',
+  tint:                 '#D0AF66',
+  background:           '#191B19',
+  foreground:           '#EEE7D8',
+  card:                 '#222520',
+  cardForeground:       '#EEE7D8',
+  primary:              '#D0AF66',
+  primaryForeground:    '#191B19',
+  secondary:            '#222520',
+  secondaryForeground:  '#EEE7D8',
+  muted:                '#222520',
+  mutedForeground:      '#B9BDAF',
+  accent:               '#A6AEA7',
+  accentForeground:     '#191B19',
+  destructive:          '#BB7865',
+  destructiveForeground:'#EEE7D8',
+  border:               '#51564B',
+  input:                '#222520',
   playerColors:         PLAYER_COLORS,
   playerGlow:           PLAYER_GLOW,
 };
@@ -31,7 +29,7 @@ const gameTheme = {
 const colors = {
   light: gameTheme,
   dark:  gameTheme,
-  radius: 12,
+  radius: 2,
 };
 
 export default colors;

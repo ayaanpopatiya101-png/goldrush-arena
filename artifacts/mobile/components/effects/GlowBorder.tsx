@@ -1,3 +1,4 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
 /**
  * GlowBorder — animating pulsing glow border around any content.
  * Uses shadow* (native) and box-shadow (web) for authentic neon-outline feel.
@@ -17,7 +18,7 @@ interface GlowBorderProps extends ViewProps {
 }
 
 export function GlowBorder({
-  color = '#C8820A',
+  color = '#BB7865',
   borderRadius = 14,
   spread = 10,
   pulse = true,
@@ -30,7 +31,7 @@ export function GlowBorder({
 
   useEffect(() => {
     if (!pulse) return;
-    const loop = Animated.loop(
+    const loop = idleAnimation(
       Animated.sequence([
         Animated.timing(anim, { toValue: 1,   duration: 1500, useNativeDriver: false, easing: Easing.inOut(Easing.sin) }),
         Animated.timing(anim, { toValue: 0.3, duration: 1500, useNativeDriver: false, easing: Easing.inOut(Easing.sin) }),
@@ -56,8 +57,8 @@ export function GlowBorder({
           shadowColor: color,
           shadowOffset: { width: 0, height: 0 },
           shadowRadius,
-          shadowOpacity: shadowOp,
-          elevation: 8,
+          shadowOpacity: 0,
+          elevation: 0,
         },
         style as object,
       ]}

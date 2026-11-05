@@ -1,10 +1,11 @@
+import { Text } from '@/components/ui/Text';
 /**
  * CounterText — animates a number from 0 (or previous value) to target.
  * Uses a requestAnimationFrame-driven counter with easing for smooth counting.
  * Works on web and native without Reanimated animatedProps complexity.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, TextProps } from 'react-native';
+import { TextProps } from 'react-native';
 
 interface CounterTextProps extends TextProps {
   value: number;

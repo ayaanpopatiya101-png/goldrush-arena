@@ -1,8 +1,9 @@
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Reanimated, { ZoomIn, FadeInRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
@@ -12,6 +13,8 @@ import { useColors } from '@/hooks/useColors';
 import { FloatingOrbs, ORBS_GOLD, GlowText, HolographicShimmer, ShimmerCard, PulseRing, GlowBorder } from '@/components/effects';
 import { trackEvent } from '@/utils/analytics';
 import { useRevenueCat } from '@/lib/revenuecat';
+import { apiUrl } from '@/utils/api';
+import { LoadingRows } from '@/components/ui/LoadingCourt';
 
 const NATIVE_PACKAGE_IDS: Record<string, string> = {
   'Starter Sack': 'starter_sack',
@@ -27,9 +30,7 @@ const NATIVE_PACKAGE_IDS: Record<string, string> = {
   'GoldRush Battle Pass Premium': 'battle_pass_premium_s1',
 };
 
-const API_BASE = Platform.OS === 'web'
-  ? '/api'
-  : `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
+const API_BASE = apiUrl('');
 
 const STORE_COIN_PACKS = [
   { key: 'Starter Sack',    emoji: '🪙', name: 'Starter Sack',    desc: '1,000 Coins',                   usd: '$0.99',  highlight: false },
@@ -54,29 +55,29 @@ const STORE_BATTLE_PASS = {
 };
 
 const POWERUP_BUNDLES = [
-  { id: 'shield3', name: 'Shield Pack', desc: '3x Shield Power-ups', icon: 'shield', price: 80, color: '#FFD700' },
-  { id: 'speed3', name: 'Speed Pack', desc: '3x Speed Boosts', icon: 'zap', price: 80, color: '#00FF88' },
-  { id: 'mixed5', name: 'Mixed Bundle', desc: '5x Random Power-ups', icon: 'gift', price: 100, color: '#00E5FF' },
+  { id: 'shield3', name: 'Shield Pack', desc: '3x Shield Power-ups', icon: 'shield', price: 80, color: '#D0AF66' },
+  { id: 'speed3', name: 'Speed Pack', desc: '3x Speed Boosts', icon: 'zap', price: 80, color: '#98A581' },
+  { id: 'mixed5', name: 'Mixed Bundle', desc: '5x Random Power-ups', icon: 'gift', price: 100, color: '#A6AEA7' },
 ];
 
 const EXTRA_LIVES = [
-  { id: 'life1', name: '1 Extra Life', desc: 'Start with 4 lives', icon: 'heart', price: 60, color: '#FF69B4' },
-  { id: 'life2', name: '2 Extra Lives', desc: 'Start with 5 lives', icon: 'heart', price: 100, color: '#FF69B4' },
+  { id: 'life1', name: '1 Extra Life', desc: 'Start with 4 lives', icon: 'heart', price: 60, color: '#BB7865' },
+  { id: 'life2', name: '2 Extra Lives', desc: 'Start with 5 lives', icon: 'heart', price: 100, color: '#BB7865' },
 ];
 
 const BALL_TRAILS = [
-  { id: 'trail_fire', name: 'Fire Trail', desc: 'Balls leave fire trails', price: 200, color: '#FF6B35' },
-  { id: 'trail_ice',  name: 'Ice Trail',  desc: 'Balls leave ice trails', price: 200, color: '#00BFFF' },
-  { id: 'trail_neon', name: 'Neon Trail', desc: 'Rainbow neon trails',   price: 300, color: '#FF00FF' },
+  { id: 'trail_fire', name: 'Fire Trail', desc: 'Balls leave fire trails', price: 200, color: '#BB7865' },
+  { id: 'trail_ice',  name: 'Ice Trail',  desc: 'Balls leave ice trails', price: 200, color: '#A6AEA7' },
+  { id: 'trail_neon', name: 'Neon Trail', desc: 'Rainbow neon trails',   price: 300, color: '#A6AEA7' },
 ];
 
 const ARENA_THEMES = [
-  { id: 'default',   name: 'Dark Void',       desc: 'Classic deep-space arena',     price: 0,   color: '#6655FF', preview: ['#0D0035','#16005A'] },
-  { id: 'solar',     name: 'Solar Flare',      desc: 'Scorching red-orange arena',   price: 300, color: '#FF6B35', preview: ['#350000','#5A1000'] },
-  { id: 'arctic',    name: 'Arctic Ice',       desc: 'Cool blue frost arena',        price: 300, color: '#00BFFF', preview: ['#001828','#003050'] },
-  { id: 'toxic',     name: 'Toxic Wasteland',  desc: 'Neon green hazard zone',       price: 350, color: '#00FF88', preview: ['#001A08','#003020'] },
-  { id: 'cosmic',    name: 'Cosmic Dream',     desc: 'Purple nebula atmosphere',     price: 400, color: '#BF5FFF', preview: ['#180030','#2A0060'] },
-  { id: 'golden',    name: 'Gold Rush',        desc: 'Prestige golden arena',        price: 500, color: '#FFD700', preview: ['#1A1200','#2A2000'] },
+  { id: 'default',   name: 'Dark Void',       desc: 'Classic deep-space arena',     price: 0,   color: '#A6AEA7', preview: ['#191B19','#A6AEA7'] },
+  { id: 'solar',     name: 'Solar Flare',      desc: 'Scorching red-orange arena',   price: 300, color: '#BB7865', preview: ['#191B19','#BB7865'] },
+  { id: 'arctic',    name: 'Arctic Ice',       desc: 'Cool blue frost arena',        price: 300, color: '#A6AEA7', preview: ['#191B19','#A6AEA7'] },
+  { id: 'toxic',     name: 'Toxic Wasteland',  desc: 'Neon green hazard zone',       price: 350, color: '#98A581', preview: ['#191B19','#222520'] },
+  { id: 'cosmic',    name: 'Cosmic Dream',     desc: 'Purple nebula atmosphere',     price: 400, color: '#A6AEA7', preview: ['#222520','#A6AEA7'] },
+  { id: 'golden',    name: 'Gold Rush',        desc: 'Prestige golden arena',        price: 500, color: '#D0AF66', preview: ['#191B19','#222520'] },
 ];
 
 export default function ShopScreen() {
@@ -250,14 +251,14 @@ export default function ShopScreen() {
   return (
     <Reanimated.View style={[styles.root, { backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.7} />
-      <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#191B19', '#191B19', '#191B19']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#C8820A24', '#C8820A0E', 'transparent']}
+        colors={['#BB786524', '#BB78650E', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 380 }}
         pointerEvents="none"
       />
       <LinearGradient
-        colors={['transparent', '#05081888']}
+        colors={['transparent', '#191B1988']}
         style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 }}
         pointerEvents="none"
       />
@@ -265,12 +266,12 @@ export default function ShopScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <View>
-          <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
-          <GlowText intensity="medium" color='#C8820A' pulse style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</GlowText>
+          <Text style={{ fontFamily: 'System', fontSize: 10, letterSpacing: 2.5, color: '#EEE7D844', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
+          <GlowText intensity="medium" color='#BB7865' pulse style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</GlowText>
         </View>
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
           <View style={styles.coinDisplay}>
-            <Feather name="circle" size={14} color="#FFD700" />
+            <Feather name="circle" size={14} color="#D0AF66" />
             <Text style={styles.coinAmount}>{profile.coins}</Text>
           </View>
           {Platform.OS === 'web' && (
@@ -278,7 +279,7 @@ export default function ShopScreen() {
               onPress={() => setRedeemVisible(true)}
               style={({ pressed }) => [styles.redeemCodeBtn, { opacity: pressed ? 0.75 : 1 }]}
             >
-              <Feather name="gift" size={13} color="#C8820A" />
+              <Feather name="gift" size={13} color="#BB7865" />
               <Text style={styles.redeemCodeTxt}>REDEEM</Text>
             </Pressable>
           )}
@@ -288,9 +289,9 @@ export default function ShopScreen() {
       {/* Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 44 }} contentContainerStyle={[styles.tabRow, { borderBottomColor: colors.border }]}>
         {(['skins', 'themes', 'powerups', 'extras', 'store'] as const).map(t => (
-          <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: t === 'store' ? '#FFD700' : colors.primary }]}>
+          <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: t === 'store' ? '#D0AF66' : colors.primary }]}>
             {activeTab === t ? (
-              <GlowText intensity="soft" color='#C8820A' style={styles.tabText}>
+              <GlowText intensity="soft" color='#BB7865' style={styles.tabText}>
                 {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'store' ? '💳 STORE' : 'EXTRAS'}
               </GlowText>
             ) : (
@@ -306,10 +307,9 @@ export default function ShopScreen() {
         {activeTab === 'skins' && (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C8820A' }}>PADDLE SKINS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>TAP TO EQUIP</Text>
+              <Text style={{ fontFamily: 'System', fontSize: 12, letterSpacing: 2, color: '#BB7865' }}>PADDLE SKINS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
+              <Text style={{ fontFamily: 'System', fontSize: 9, color: '#EEE7D833', letterSpacing: 1 }}>TAP TO EQUIP</Text>
             </View>
             <View style={styles.skinGrid}>
               {SKINS.map((skin, idx) => {
@@ -346,7 +346,7 @@ export default function ShopScreen() {
                       <Text style={[styles.skinName, { color: equipped ? skin.color : colors.foreground }]}>{skin.name}</Text>
                       {!owned ? (
                         <View style={styles.priceRow}>
-                          <Feather name="circle" size={10} color="#FFD700" />
+                          <Feather name="circle" size={10} color="#D0AF66" />
                           <Text style={styles.priceText}>{skin.price}</Text>
                         </View>
                       ) : (
@@ -363,10 +363,9 @@ export default function ShopScreen() {
 
             {/* Ball Trails */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#00BFFF', borderRadius: 2 }} />
               <Text style={[styles.subsectionTitle, { color: colors.foreground, marginBottom: 0 }]}>BALL TRAILS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>COMING SOON</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
+              <Text style={{ fontFamily: 'System', fontSize: 9, color: '#EEE7D833', letterSpacing: 1 }}>COMING SOON</Text>
             </View>
             {BALL_TRAILS.map(trail => (
               <Pressable
@@ -380,7 +379,7 @@ export default function ShopScreen() {
                   <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{trail.desc}</Text>
                 </View>
                 <View style={styles.priceRow}>
-                  <Feather name="circle" size={12} color="#FFD700" />
+                  <Feather name="circle" size={12} color="#D0AF66" />
                   <Text style={styles.priceText}>{trail.price}</Text>
                 </View>
               </Pressable>
@@ -391,10 +390,9 @@ export default function ShopScreen() {
         {activeTab === 'themes' && (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#BF5FFF' }}>ARENA THEMES</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>VISUAL ONLY</Text>
+              <Text style={{ fontFamily: 'System', fontSize: 12, letterSpacing: 2, color: '#A6AEA7' }}>ARENA THEMES</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
+              <Text style={{ fontFamily: 'System', fontSize: 9, color: '#EEE7D833', letterSpacing: 1 }}>VISUAL ONLY</Text>
             </View>
             {ARENA_THEMES.map((theme, idx) => {
               const owned = (profile.ownedThemes ?? ['default']).includes(theme.id);
@@ -439,13 +437,13 @@ export default function ShopScreen() {
                   </View>
                   {!owned && theme.price > 0 && (
                     <View style={[styles.buyBtn, { backgroundColor: theme.color + '22', borderColor: theme.color + '55' }]}>
-                      <Feather name="circle" size={10} color="#FFD700" />
+                      <Feather name="circle" size={10} color="#D0AF66" />
                       <Text style={[styles.buyBtnText, { color: theme.color }]}>{theme.price}</Text>
                     </View>
                   )}
                   {!owned && theme.price === 0 && (
-                    <View style={[styles.buyBtn, { backgroundColor: '#FFFFFF11', borderColor: '#FFFFFF22' }]}>
-                      <Text style={[styles.buyBtnText, { color: '#FFFFFF55' }]}>FREE</Text>
+                    <View style={[styles.buyBtn, { backgroundColor: '#EEE7D811', borderColor: '#EEE7D822' }]}>
+                      <Text style={[styles.buyBtnText, { color: '#EEE7D855' }]}>FREE</Text>
                     </View>
                   )}
                 </Pressable>
@@ -458,9 +456,8 @@ export default function ShopScreen() {
         {activeTab === 'powerups' && (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#00FF88', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#00FF88' }}>POWER-UP BUNDLES</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'System', fontSize: 12, letterSpacing: 2, color: '#98A581' }}>POWER-UP BUNDLES</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
             </View>
             {POWERUP_BUNDLES.map(bundle => (
               <Pressable
@@ -477,15 +474,15 @@ export default function ShopScreen() {
                   <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{bundle.desc}</Text>
                 </View>
                 <View style={[styles.buyBtn, { backgroundColor: bundle.color + '22', borderColor: bundle.color + '55' }]}>
-                  <Feather name="circle" size={10} color="#FFD700" />
+                  <Feather name="circle" size={10} color="#D0AF66" />
                   <Text style={[styles.buyBtnText, { color: bundle.color }]}>{bundle.price}</Text>
                 </View>
               </Pressable>
             ))}
 
             {/* Earn coins section */}
-            <View style={[styles.earnCard, { backgroundColor: colors.card, borderColor: '#FFD70033' }]}>
-              <Feather name="star" size={18} color="#FFD700" />
+            <View style={[styles.earnCard, { backgroundColor: colors.card, borderColor: '#D0AF6633' }]}>
+              <Feather name="star" size={18} color="#D0AF66" />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.earnTitle, { color: colors.foreground }]}>Earn Coins</Text>
                 <Text style={[styles.earnDesc, { color: colors.mutedForeground }]}>
@@ -500,13 +497,13 @@ export default function ShopScreen() {
           <>
             {/* Inventory badge */}
             {(profile.extraLivesInventory ?? 0) > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FF69B414', borderRadius: 12, borderWidth: 1, borderColor: '#FF69B433', padding: 12, marginBottom: 4 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#BB786514', borderRadius: 2, borderWidth: 1, borderColor: '#BB786533', padding: 12, marginBottom: 4 }}>
                 <Text style={{ fontSize: 20 }}>❤️</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 13, color: '#FF69B4' }}>
+                  <Text style={{ fontFamily: 'System', fontSize: 13, color: '#BB7865' }}>
                     {profile.extraLivesInventory} Extra {(profile.extraLivesInventory ?? 0) === 1 ? 'Life' : 'Lives'} Ready
                   </Text>
-                  <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 11, color: colors.mutedForeground, marginTop: 2 }}>
+                  <Text style={{ fontFamily: 'System', fontSize: 11, color: colors.mutedForeground, marginTop: 2 }}>
                     You start your next {(profile.extraLivesInventory ?? 0) === 1 ? 'match' : `${profile.extraLivesInventory} matches`} with 1 bonus life.
                   </Text>
                 </View>
@@ -515,9 +512,8 @@ export default function ShopScreen() {
 
             {/* Extra Lives — native store on mobile, web checkout in browsers */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#FF69B4', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FF69B4' }}>EXTRA LIVES</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'System', fontSize: 12, letterSpacing: 2, color: '#BB7865' }}>EXTRA LIVES</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
             </View>
 
             {[
@@ -529,11 +525,11 @@ export default function ShopScreen() {
                 onPress={() => handleBuyFromStore(item.storeKey)}
                 disabled={checkingOut === item.storeKey}
                 style={({ pressed }) => [styles.bundleCard, {
-                  backgroundColor: colors.card, borderColor: '#FF69B433', opacity: pressed ? 0.8 : 1,
+                  backgroundColor: colors.card, borderColor: '#BB786533', opacity: pressed ? 0.8 : 1,
                 }]}
               >
-                <LinearGradient colors={['#FF69B418', '#FF69B408']} style={StyleSheet.absoluteFill} />
-                <View style={[styles.bundleIcon, { backgroundColor: '#FF69B418', borderColor: '#FF69B433' }]}>
+                <LinearGradient colors={['#BB786518', '#BB786508']} style={StyleSheet.absoluteFill} />
+                <View style={[styles.bundleIcon, { backgroundColor: '#BB786518', borderColor: '#BB786533' }]}>
                   <Text style={{ fontSize: 22 }}>{item.emoji}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
@@ -541,8 +537,8 @@ export default function ShopScreen() {
                   <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{item.desc}</Text>
                 </View>
                 <ShimmerCard active={!checkingOut} borderRadius={8} shimmerColor="rgba(255,255,255,0.1)">
-                  <View style={[storeStyles.usdBtn, { backgroundColor: '#FF69B422', borderColor: '#FF69B466' }]}>
-                    <Text style={[storeStyles.usdBtnText, { color: '#FF69B4' }]}>
+                  <View style={[storeStyles.usdBtn, { backgroundColor: '#BB786522', borderColor: '#BB786566' }]}>
+                    <Text style={[storeStyles.usdBtnText, { color: '#BB7865' }]}>
                       {checkingOut === item.storeKey ? '…' : nativePrice(item.storeKey, item.usd)}
                     </Text>
                   </View>
@@ -552,26 +548,25 @@ export default function ShopScreen() {
 
             {/* Coin Packs — redirect to STORE tab */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>COIN PACKS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'System', fontSize: 12, letterSpacing: 2, color: '#D0AF66' }}>COIN PACKS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
             </View>
             <Pressable
               onPress={() => setActiveTab('store')}
               style={({ pressed }) => [styles.bundleCard, {
-                backgroundColor: '#C8820A14', borderColor: '#C8820A44', opacity: pressed ? 0.8 : 1,
+                backgroundColor: '#BB786514', borderColor: '#BB786544', opacity: pressed ? 0.8 : 1,
               }]}
             >
-              <LinearGradient colors={['#C8820A18', '#C8820A06']} style={StyleSheet.absoluteFill} />
-              <View style={[styles.bundleIcon, { backgroundColor: '#C8820A22', borderColor: '#C8820A44' }]}>
+              <LinearGradient colors={['#BB786518', '#BB786506']} style={StyleSheet.absoluteFill} />
+              <View style={[styles.bundleIcon, { backgroundColor: '#BB786522', borderColor: '#BB786544' }]}>
                 <Text style={{ fontSize: 22 }}>🪙</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.itemName, { color: '#FFB830' }]}>Coin Packs</Text>
+                <Text style={[styles.itemName, { color: '#BB7865' }]}>Coin Packs</Text>
                 <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>From $0.99 — up to 50,000 coins</Text>
               </View>
-              <View style={[styles.buyBtn, { backgroundColor: '#C8820A22', borderColor: '#C8820A66' }]}>
-                <Text style={[styles.buyBtnText, { color: '#FFD700' }]}>STORE →</Text>
+              <View style={[styles.buyBtn, { backgroundColor: '#BB786522', borderColor: '#BB786566' }]}>
+                <Text style={[styles.buyBtnText, { color: '#D0AF66' }]}>STORE →</Text>
               </View>
             </Pressable>
           </>
@@ -580,8 +575,8 @@ export default function ShopScreen() {
         {activeTab === 'store' && (
           <>
             {/* Header banner */}
-            <View style={[storeStyles.banner, { borderColor: '#C8820A44' }]}>
-              <LinearGradient colors={['#C8820A22', '#C8820A08']} style={StyleSheet.absoluteFill} />
+            <View style={[storeStyles.banner, { borderColor: '#BB786544' }]}>
+              <LinearGradient colors={['#BB786522', '#BB786508']} style={StyleSheet.absoluteFill} />
               <Text style={{ fontSize: 28 }}>🏆</Text>
               <View style={{ flex: 1 }}>
                 <Text style={storeStyles.bannerTitle}>GOLDRUSH STORE</Text>
@@ -594,15 +589,13 @@ export default function ShopScreen() {
             </View>
 
             {catalogLoading && (
-              <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-                <Text style={{ color: '#FFFFFF55', fontFamily: 'Inter_400Regular', fontSize: 13 }}>Loading store…</Text>
-              </View>
+              <LoadingRows label="Loading store…" />
             )}
             {catalogError && !catalogLoading && (
-              <View style={[storeStyles.errorBox, { borderColor: '#FF475733' }]}>
-                <Text style={{ color: '#FF4757', fontFamily: 'Inter_400Regular', fontSize: 13, textAlign: 'center' }}>{catalogError}</Text>
+              <View style={[storeStyles.errorBox, { borderColor: '#BB786533' }]}>
+                <Text style={{ color: '#BB7865', fontFamily: 'System', fontSize: 13, textAlign: 'center' }}>{catalogError}</Text>
                 <Pressable onPress={() => { priceCache.current = {}; setActiveTab('skins'); setTimeout(() => setActiveTab('store'), 50); }}>
-                  <Text style={{ color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 12, marginTop: 8 }}>Retry</Text>
+                  <Text style={{ color: '#D0AF66', fontFamily: 'System', fontSize: 12, marginTop: 8 }}>Retry</Text>
                 </Pressable>
               </View>
             )}
@@ -611,27 +604,26 @@ export default function ShopScreen() {
               <>
                 {/* Battle Pass Premium */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                  <View style={{ width: 3, height: 16, backgroundColor: '#C084FC', borderRadius: 2 }} />
-                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C084FC' }}>BATTLE PASS</Text>
+                  <Text style={{ fontFamily: 'System', fontSize: 12, letterSpacing: 2, color: '#A6AEA7' }}>BATTLE PASS</Text>
                 </View>
                 <HolographicShimmer borderRadius={16}>
                   <Pressable
                     onPress={() => handleBuyFromStore(STORE_BATTLE_PASS.key)}
                     disabled={checkingOut === STORE_BATTLE_PASS.key || !!profile.battlePassPremiumOwned}
-                    style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#8B5CF666' }]}
+                    style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#A6AEA766' }]}
                   >
-                    <LinearGradient colors={['#8B5CF622', '#6D28D911']} style={StyleSheet.absoluteFill} />
+                    <LinearGradient colors={['#A6AEA722', '#A6AEA711']} style={StyleSheet.absoluteFill} />
                     <Text style={{ fontSize: 32 }}>{STORE_BATTLE_PASS.emoji}</Text>
                     <View style={{ flex: 1 }}>
-                      <GlowText intensity="medium" color='#A855F7' style={storeStyles.passName}>{STORE_BATTLE_PASS.name}</GlowText>
+                      <GlowText intensity="medium" color='#A6AEA7' style={storeStyles.passName}>{STORE_BATTLE_PASS.name}</GlowText>
                       <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>{STORE_BATTLE_PASS.desc}</Text>
                       {profile.battlePassPremiumOwned && (
-                        <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#C084FC', letterSpacing: 1, marginTop: 4 }}>✓ OWNED — SEASON 1</Text>
+                        <Text style={{ fontFamily: 'System', fontSize: 10, color: '#A6AEA7', letterSpacing: 1, marginTop: 4 }}>✓ OWNED — SEASON 1</Text>
                       )}
                     </View>
                     {!profile.battlePassPremiumOwned && (
-                      <View style={[storeStyles.usdBtn, { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' }]}>
-                        <Text style={[storeStyles.usdBtnText, { color: '#F5F3FF' }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : nativePrice(STORE_BATTLE_PASS.key, STORE_BATTLE_PASS.usd)}</Text>
+                      <View style={[storeStyles.usdBtn, { backgroundColor: '#A6AEA7', borderColor: '#A6AEA7' }]}>
+                        <Text style={[storeStyles.usdBtnText, { color: '#EEE7D8' }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : nativePrice(STORE_BATTLE_PASS.key, STORE_BATTLE_PASS.usd)}</Text>
                       </View>
                     )}
                   </Pressable>
@@ -639,22 +631,21 @@ export default function ShopScreen() {
 
                 {/* Season Pass */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2, marginTop: 6 }}>
-                  <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
-                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>SEASON PASS</Text>
+                  <Text style={{ fontFamily: 'System', fontSize: 12, letterSpacing: 2, color: '#D0AF66' }}>SEASON PASS</Text>
                 </View>
                 <ShimmerCard shimmerColor="rgba(255,215,0,0.18)" duration={1800} borderRadius={14}>
                   <Pressable
                     onPress={() => handleBuyFromStore(STORE_SEASON_PASS.key)}
                     disabled={checkingOut === STORE_SEASON_PASS.key || !!profile.seasonPassPurchased}
-                    style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#FFD70066' }]}
+                    style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#D0AF6666' }]}
                   >
-                    <LinearGradient colors={['#FFD70022', '#C8820A11']} style={StyleSheet.absoluteFill} />
+                    <LinearGradient colors={['#D0AF6622', '#BB786511']} style={StyleSheet.absoluteFill} />
                     <Text style={{ fontSize: 32 }}>{STORE_SEASON_PASS.emoji}</Text>
                     <View style={{ flex: 1 }}>
-                      <GlowText intensity="soft" color='#C8820A' style={storeStyles.passName}>{STORE_SEASON_PASS.name}</GlowText>
+                      <GlowText intensity="soft" color='#BB7865' style={storeStyles.passName}>{STORE_SEASON_PASS.name}</GlowText>
                       <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>{STORE_SEASON_PASS.desc}</Text>
                       {profile.seasonPassPurchased && (
-                        <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFD700', letterSpacing: 1, marginTop: 4 }}>✓ OWNED</Text>
+                        <Text style={{ fontFamily: 'System', fontSize: 10, color: '#D0AF66', letterSpacing: 1, marginTop: 4 }}>✓ OWNED</Text>
                       )}
                     </View>
                     {!profile.seasonPassPurchased && (
@@ -667,8 +658,7 @@ export default function ShopScreen() {
 
                 {/* Coin Packs */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
-                  <View style={{ width: 3, height: 16, backgroundColor: '#FFB830', borderRadius: 2 }} />
-                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFB830' }}>COIN PACKS</Text>
+                  <Text style={{ fontFamily: 'System', fontSize: 12, letterSpacing: 2, color: '#BB7865' }}>COIN PACKS</Text>
                 </View>
                 {STORE_COIN_PACKS.map(pack => {
                   const cardContent = (
@@ -677,26 +667,26 @@ export default function ShopScreen() {
                       onPress={() => handleBuyFromStore(pack.key)}
                       disabled={checkingOut === pack.key}
                       style={({ pressed }) => [storeStyles.storeCard, {
-                        borderColor: pack.highlight ? '#C8820A88' : '#FFFFFF18',
-                        backgroundColor: pack.highlight ? '#C8820A14' : colors.card,
+                        borderColor: pack.highlight ? '#BB786588' : '#EEE7D818',
+                        backgroundColor: pack.highlight ? '#BB786514' : colors.card,
                         opacity: pressed ? 0.82 : 1,
                       }]}
                     >
-                      {pack.highlight && <LinearGradient colors={['#C8820A18', '#C8820A06']} style={StyleSheet.absoluteFill} />}
+                      {pack.highlight && <LinearGradient colors={['#BB786518', '#BB786506']} style={StyleSheet.absoluteFill} />}
                       <Text style={{ fontSize: 26, width: 36, textAlign: 'center' }}>{pack.emoji}</Text>
                       <View style={{ flex: 1 }}>
-                        <Text style={[storeStyles.storeName, { color: pack.highlight ? '#FFB830' : colors.foreground }]}>{pack.name}</Text>
+                        <Text style={[storeStyles.storeName, { color: pack.highlight ? '#BB7865' : colors.foreground }]}>{pack.name}</Text>
                         <Text style={[storeStyles.storeDesc, { color: colors.mutedForeground }]}>{pack.desc}</Text>
                       </View>
-                      <View style={[storeStyles.usdBtn, pack.highlight && { backgroundColor: '#C8820A33', borderColor: '#C8820A88' }]}>
-                        <Text style={[storeStyles.usdBtnText, pack.highlight && { color: '#FFD700' }]}>
+                      <View style={[storeStyles.usdBtn, pack.highlight && { backgroundColor: '#BB786533', borderColor: '#BB786588' }]}>
+                        <Text style={[storeStyles.usdBtnText, pack.highlight && { color: '#D0AF66' }]}>
                           {checkingOut === pack.key ? '…' : nativePrice(pack.key, pack.usd)}
                         </Text>
                       </View>
                     </Pressable>
                   );
                   return pack.highlight ? (
-                    <GlowBorder key={pack.key} color='#FFD700' borderRadius={12} spread={8}>
+                    <GlowBorder key={pack.key} color='#D0AF66' borderRadius={12} spread={8}>
                       {cardContent}
                     </GlowBorder>
                   ) : cardContent;
@@ -704,15 +694,14 @@ export default function ShopScreen() {
 
                 {/* Skin Packs */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
-                  <View style={{ width: 3, height: 16, backgroundColor: '#00E5FF', borderRadius: 2 }} />
-                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#00E5FF' }}>SKIN PACKS</Text>
+                  <Text style={{ fontFamily: 'System', fontSize: 12, letterSpacing: 2, color: '#A6AEA7' }}>SKIN PACKS</Text>
                 </View>
                 {STORE_SKIN_PACKS.map(pack => (
                   <Pressable
                     key={pack.key}
                     onPress={() => handleBuyFromStore(pack.key)}
                     disabled={checkingOut === pack.key}
-                    style={({ pressed }) => [storeStyles.storeCard, { borderColor: '#00E5FF22', opacity: pressed ? 0.82 : 1 }]}
+                    style={({ pressed }) => [storeStyles.storeCard, { borderColor: '#A6AEA722', opacity: pressed ? 0.82 : 1 }]}
                   >
                     <Text style={{ fontSize: 26, width: 36, textAlign: 'center' }}>{pack.emoji}</Text>
                     <View style={{ flex: 1 }}>
@@ -728,13 +717,13 @@ export default function ShopScreen() {
                 ))}
 
                 {/* How it works */}
-                <View style={[storeStyles.howItWorks, { borderColor: '#FFFFFF12' }]}>
+                <View style={[storeStyles.howItWorks, { borderColor: '#EEE7D812' }]}>
                   <Text style={[storeStyles.howTitle, { color: colors.foreground }]}>How it works</Text>
                   {Platform.OS === 'web' ? (
                     <>
                       <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>1. Tap a product and complete secure Stripe checkout</Text>
                       <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>2. Your receipt page shows a unique code (e.g. GR-A1B2-C3D4)</Text>
-                      <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>3. Return here → tap <Text style={{ color: '#C8820A', fontFamily: 'Inter_700Bold' }}>REDEEM</Text> → enter your code</Text>
+                      <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>3. Return here → tap <Text style={{ color: '#BB7865', fontFamily: 'System' }}>REDEEM</Text> → enter your code</Text>
                       <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>4. Your reward is added instantly!</Text>
                     </>
                   ) : (
@@ -779,14 +768,14 @@ export default function ShopScreen() {
             </Text>
             <View style={storeStyles.confirmActions}>
               <Pressable style={storeStyles.confirmCancel} onPress={() => setPendingNativeProduct(null)}>
-                <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_700Bold' }}>CANCEL</Text>
+                <Text style={{ color: colors.mutedForeground, fontFamily: 'System' }}>CANCEL</Text>
               </Pressable>
               <Pressable style={storeStyles.confirmBuy} onPress={() => {
                 const product = pendingNativeProduct;
                 setPendingNativeProduct(null);
                 if (product) void completeNativePurchase(product);
               }}>
-                <Text style={{ color: '#080812', fontFamily: 'Inter_700Bold' }}>PURCHASE</Text>
+                <Text style={{ color: '#191B19', fontFamily: 'System' }}>PURCHASE</Text>
               </Pressable>
             </View>
           </View>
@@ -799,70 +788,70 @@ export default function ShopScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 12 },
-  headerTitle: { fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 2 },
-  coinDisplay: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#C8820A1A', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A44', paddingHorizontal: 9, paddingVertical: 4 },
-  coinAmount: { color: '#FFB830', fontFamily: 'Inter_700Bold', fontSize: 13 },
+  headerTitle: { fontFamily: 'System', fontSize: 20, letterSpacing: 2 },
+  coinDisplay: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#BB78651A', borderRadius: 2, borderWidth: 1, borderColor: '#BB786544', paddingHorizontal: 9, paddingVertical: 4 },
+  coinAmount: { color: '#BB7865', fontFamily: 'System', fontSize: 13 },
   tabRow: { flexDirection: 'row', borderBottomWidth: 1, marginHorizontal: 16, marginBottom: 4 },
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabText: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1 },
-  sectionInfo: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
-  subsectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1.8, marginTop: 8, marginBottom: 2, color: '#FFFFFF99', borderLeftWidth: 2, borderLeftColor: '#C8820A', paddingLeft: 8 },
+  tabText: { fontFamily: 'System', fontSize: 10, letterSpacing: 1 },
+  sectionInfo: { fontFamily: 'System', fontSize: 12, lineHeight: 18 },
+  subsectionTitle: { fontFamily: 'System', fontSize: 12, letterSpacing: 1.8, marginTop: 8, marginBottom: 2, color: '#EEE7D899', borderLeftWidth: 2, borderLeftColor: '#BB7865', paddingLeft: 8 },
   skinGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  skinCard: { width: '47%', flex: 1, minWidth: 140, borderRadius: 16, borderWidth: 1.5, overflow: 'hidden' },
+  skinCard: { width: '47%', flex: 1, minWidth: 140, borderRadius: 2, borderWidth: 1.5, overflow: 'hidden' },
   skinPreview: { height: 88, alignItems: 'center', justifyContent: 'center' },
-  paddlePreview: { width: 72, height: 13, borderRadius: 7, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.9, shadowRadius: 10, elevation: 4 },
-  ownedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
-  ownedText: { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 0.5 },
-  equippedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-  equippedText: { fontFamily: 'Inter_700Bold', fontSize: 8, color: '#07090F', letterSpacing: 0.5 },
+  paddlePreview: { width: 72, height: 13, borderRadius: 2, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
+  ownedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 2, paddingHorizontal: 5, paddingVertical: 2 },
+  ownedText: { fontFamily: 'System', fontSize: 8, letterSpacing: 0.5 },
+  equippedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 2, paddingHorizontal: 6, paddingVertical: 2 },
+  equippedText: { fontFamily: 'System', fontSize: 8, color: '#191B19', letterSpacing: 0.5 },
   skinInfo: { padding: 10, gap: 3 },
-  skinName: { fontFamily: 'Inter_700Bold', fontSize: 13 },
+  skinName: { fontFamily: 'System', fontSize: 13 },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  priceText: { color: '#FFB830', fontFamily: 'Inter_700Bold', fontSize: 13 },
-  ownedLabel: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
-  itemRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, padding: 14, gap: 12 },
-  trailDot: { width: 26, height: 26, borderRadius: 13, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.9, shadowRadius: 8, elevation: 4 },
-  itemName: { fontFamily: 'Inter_700Bold', fontSize: 15 },
-  itemDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, marginTop: 1 },
-  bundleCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, padding: 14, gap: 12, overflow: 'hidden' },
-  bundleIcon: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 9, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6 },
-  buyBtnText: { fontFamily: 'Inter_700Bold', fontSize: 13 },
-  iapBtn: { borderRadius: 10, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 },
-  iapText: { fontFamily: 'Inter_700Bold', fontSize: 12 },
-  earnCard: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 14, borderWidth: 1, padding: 14, gap: 10 },
-  earnTitle: { fontFamily: 'Inter_700Bold', fontSize: 14 },
-  earnDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18, marginTop: 2 },
-  themePreview: { width: 64, height: 64, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  themeArena: { width: 50, height: 50, borderRadius: 8, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
-  themePaddle: { width: 30, height: 5, borderRadius: 3, opacity: 0.9 },
-  redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#C8820A18', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A55', paddingHorizontal: 10, paddingVertical: 6 },
-  redeemCodeTxt: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.5, color: '#C8820A' },
+  priceText: { color: '#BB7865', fontFamily: 'System', fontSize: 13 },
+  ownedLabel: { fontFamily: 'System', fontSize: 9, letterSpacing: 0.5 },
+  itemRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 2, borderWidth: 1, padding: 14, gap: 12 },
+  trailDot: { width: 26, height: 26, borderRadius: 2, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
+  itemName: { fontFamily: 'System', fontSize: 15 },
+  itemDesc: { fontFamily: 'System', fontSize: 12, marginTop: 1 },
+  bundleCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 2, borderWidth: 1, padding: 14, gap: 12, overflow: 'hidden' },
+  bundleIcon: { width: 44, height: 44, borderRadius: 2, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 2, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6 },
+  buyBtnText: { fontFamily: 'System', fontSize: 13 },
+  iapBtn: { borderRadius: 2, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 },
+  iapText: { fontFamily: 'System', fontSize: 12 },
+  earnCard: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 2, borderWidth: 1, padding: 14, gap: 10 },
+  earnTitle: { fontFamily: 'System', fontSize: 14 },
+  earnDesc: { fontFamily: 'System', fontSize: 12, lineHeight: 18, marginTop: 2 },
+  themePreview: { width: 64, height: 64, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
+  themeArena: { width: 50, height: 50, borderRadius: 2, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
+  themePaddle: { width: 30, height: 5, borderRadius: 2, opacity: 0.9 },
+  redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#BB786518', borderRadius: 2, borderWidth: 1, borderColor: '#BB786555', paddingHorizontal: 10, paddingVertical: 6 },
+  redeemCodeTxt: { fontFamily: 'System', fontSize: 11, letterSpacing: 1.5, color: '#BB7865' },
 });
 
 const storeStyles = StyleSheet.create({
-  banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 14, borderWidth: 1, padding: 14, overflow: 'hidden' },
-  bannerTitle: { fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 2, color: '#FFD700' },
-  bannerSub: { fontFamily: 'Inter_400Regular', fontSize: 11, lineHeight: 16, marginTop: 2 },
-  errorBox: { alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 16 },
-  passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1.5, padding: 16, overflow: 'hidden' },
-  passName: { fontFamily: 'Inter_700Bold', fontSize: 15, color: '#FFD700', letterSpacing: 0.5 },
-  passDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17, marginTop: 2 },
-  storeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, padding: 14, gap: 10, overflow: 'hidden' },
-  storeName: { fontFamily: 'Inter_700Bold', fontSize: 14 },
-  storeDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, marginTop: 1 },
-  usdBtn: { backgroundColor: '#FFFFFF0F', borderRadius: 10, borderWidth: 1, borderColor: '#FFFFFF22', paddingHorizontal: 12, paddingVertical: 7 },
-  usdBtnText: { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#FFFFFF' },
-  howItWorks: { backgroundColor: '#FFFFFF08', borderRadius: 12, borderWidth: 1, padding: 14, gap: 6 },
-  howTitle: { fontFamily: 'Inter_700Bold', fontSize: 13, marginBottom: 4 },
-  howStep: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
-  restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 8, borderWidth: 1, borderColor: '#C8820A88', backgroundColor: '#C8820A18', paddingHorizontal: 12, paddingVertical: 8 },
-  restoreText: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1 },
-  confirmBackdrop: { flex: 1, backgroundColor: '#000000AA', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  confirmCard: { width: '100%', maxWidth: 360, borderRadius: 18, borderWidth: 1, borderColor: '#C8820A66', padding: 20 },
-  confirmTitle: { fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 1 },
-  confirmText: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 21, marginTop: 8 },
+  banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 2, borderWidth: 1, padding: 14, overflow: 'hidden' },
+  bannerTitle: { fontFamily: 'System', fontSize: 14, letterSpacing: 2, color: '#D0AF66' },
+  bannerSub: { fontFamily: 'System', fontSize: 11, lineHeight: 16, marginTop: 2 },
+  errorBox: { alignItems: 'center', borderRadius: 2, borderWidth: 1, padding: 16 },
+  passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 2, borderWidth: 1.5, padding: 16, overflow: 'hidden' },
+  passName: { fontFamily: 'System', fontSize: 15, color: '#D0AF66', letterSpacing: 0.5 },
+  passDesc: { fontFamily: 'System', fontSize: 12, lineHeight: 17, marginTop: 2 },
+  storeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 2, borderWidth: 1, padding: 14, gap: 10, overflow: 'hidden' },
+  storeName: { fontFamily: 'System', fontSize: 14 },
+  storeDesc: { fontFamily: 'System', fontSize: 12, marginTop: 1 },
+  usdBtn: { backgroundColor: '#EEE7D80F', borderRadius: 2, borderWidth: 1, borderColor: '#EEE7D822', paddingHorizontal: 12, paddingVertical: 7 },
+  usdBtnText: { fontFamily: 'System', fontSize: 13, color: '#EEE7D8' },
+  howItWorks: { backgroundColor: '#EEE7D808', borderRadius: 2, borderWidth: 1, padding: 14, gap: 6 },
+  howTitle: { fontFamily: 'System', fontSize: 13, marginBottom: 4 },
+  howStep: { fontFamily: 'System', fontSize: 12, lineHeight: 18 },
+  restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 2, borderWidth: 1, borderColor: '#BB786588', backgroundColor: '#BB786518', paddingHorizontal: 12, paddingVertical: 8 },
+  restoreText: { color: '#D0AF66', fontFamily: 'System', fontSize: 11, letterSpacing: 1 },
+  confirmBackdrop: { flex: 1, backgroundColor: '#191B19AA', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  confirmCard: { width: '100%', maxWidth: 360, borderRadius: 2, borderWidth: 1, borderColor: '#BB786566', padding: 20 },
+  confirmTitle: { fontFamily: 'System', fontSize: 18, letterSpacing: 1 },
+  confirmText: { fontFamily: 'System', fontSize: 14, lineHeight: 21, marginTop: 8 },
   confirmActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 20 },
-  confirmCancel: { borderRadius: 9, borderWidth: 1, borderColor: '#FFFFFF22', paddingHorizontal: 14, paddingVertical: 10 },
-  confirmBuy: { borderRadius: 9, backgroundColor: '#FFD700', paddingHorizontal: 14, paddingVertical: 10 },
+  confirmCancel: { borderRadius: 2, borderWidth: 1, borderColor: '#EEE7D822', paddingHorizontal: 14, paddingVertical: 10 },
+  confirmBuy: { borderRadius: 2, backgroundColor: '#D0AF66', paddingHorizontal: 14, paddingVertical: 10 },
 });

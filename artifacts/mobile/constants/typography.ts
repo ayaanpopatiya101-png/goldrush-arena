@@ -18,13 +18,13 @@ export const fonts = {
   /** Rajdhani SemiBold — section headers, stat numbers, secondary display */
   displayMedium: 'Rajdhani_600SemiBold',
   /** Inter Regular — body copy, descriptions */
-  body: 'Inter_400Regular',
+  body: 'System',
   /** Inter Medium — subtitles, hints */
-  bodyMedium: 'Inter_500Medium',
+  bodyMedium: 'System',
   /** Inter SemiBold — emphasized body, small labels */
-  bodySemiBold: 'Inter_600SemiBold',
+  bodySemiBold: 'System',
   /** Inter Bold — small bold labels, chips, badges */
-  bodyBold: 'Inter_700Bold',
+  bodyBold: 'System',
 } as const;
 
 // Display type reads ~10% smaller than Inter at the same px size because it is

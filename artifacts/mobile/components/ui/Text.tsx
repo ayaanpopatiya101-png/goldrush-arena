@@ -1,0 +1,63 @@
+import React, { forwardRef } from "react";
+import {
+  Animated,
+  Platform,
+  StyleSheet,
+  Text as NativeText,
+  type TextProps,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+
+import { cleanCopy } from "@/utils/displayCopy";
+const symbols: [RegExp, React.ComponentProps<typeof Feather>["name"]][] = [
+  [/🏆|🥇|👑/, "award"],
+  [/🪙|💰|💎/, "disc"],
+  [/⚡|🔥/, "zap"],
+  [/🛡|❤️|♥/, "shield"],
+  [/🎮|🏓|⚔/, "target"],
+  [/🔒|🔐/, "lock"],
+  [/🎁|📦/, "package"],
+  [/⏱|⌛/, "clock"],
+  [/🎯|🏹/, "crosshair"],
+];
+
+/** One text boundary also handles avatars saved by older versions of the game. */
+export const Text = forwardRef<NativeText, TextProps>(function Text(
+  { children, style, ...props },
+  ref,
+) {
+  const flat = StyleSheet.flatten(style) ?? {};
+  const render = (child: React.ReactNode): React.ReactNode => {
+    if (typeof child !== "string") return child;
+    const clean = cleanCopy(child);
+    if (/\p{Extended_Pictographic}/u.test(child) && !clean.trim()) {
+      const name =
+        symbols.find(([pattern]) => pattern.test(child))?.[1] ?? "hexagon";
+      return (
+        <Feather
+          name={name}
+          size={Math.min(flat.fontSize ?? 18, 32)}
+          color={flat.color ?? "#B9AE97"}
+        />
+      );
+    }
+    return clean;
+  };
+  return (
+    <NativeText
+      ref={ref}
+      {...props}
+      style={[
+        {
+          color: "#EEE7D8",
+          fontFamily: Platform.OS === "web" ? "Arial" : undefined,
+        },
+        style,
+      ]}
+    >
+      {React.Children.map(children, render)}
+    </NativeText>
+  );
+});
+
+export const AnimatedText = Animated.createAnimatedComponent(Text);

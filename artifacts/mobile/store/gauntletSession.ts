@@ -8,27 +8,27 @@ const GAUNTLET_VARIANT_POOL: GameVariant[] = [
 export const GAUNTLET_VARIANT_META: Record<string, {
   emoji: string; name: string; sub: string; color: string;
 }> = {
-  blitz:        { emoji: '⚡', name: 'BLITZ',        sub: '1 Life · Lightning Fast',   color: '#C8820A' },
-  chaos:        { emoji: '🌪️', name: 'CHAOS',        sub: '5 Balls · No Power-ups',    color: '#FF6B35' },
-  turbo:        { emoji: '🚀', name: 'TURBO',        sub: '1.8× Speed from Second 1',  color: '#BF5FFF' },
-  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', sub: '1 Life · 3 Balls Active',   color: '#FF4757' },
-  survival:     { emoji: '🛡️', name: 'SURVIVAL',     sub: '12 Lives · Outlast All',    color: '#00FF88' },
-  pinball:      { emoji: '🎰', name: 'PINBALL',      sub: 'Ball Every 3s · Up to 8',   color: '#FF69B4' },
-  classic:      { emoji: '🏆', name: 'CLASSIC',      sub: 'Standard 4-Player Rules',   color: '#C8820A' },
+  blitz:        { emoji: '⚡', name: 'BLITZ',        sub: '1 Life · Lightning Fast',   color: '#BB7865' },
+  chaos:        { emoji: '🌪️', name: 'CHAOS',        sub: '5 Balls · No Power-ups',    color: '#BB7865' },
+  turbo:        { emoji: '🚀', name: 'TURBO',        sub: '1.8× Speed from Second 1',  color: '#A6AEA7' },
+  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', sub: '1 Life · 3 Balls Active',   color: '#BB7865' },
+  survival:     { emoji: '🛡️', name: 'SURVIVAL',     sub: '12 Lives · Outlast All',    color: '#98A581' },
+  pinball:      { emoji: '🎰', name: 'PINBALL',      sub: 'Ball Every 3s · Up to 8',   color: '#BB7865' },
+  classic:      { emoji: '🏆', name: 'CLASSIC',      sub: 'Standard 4-Player Rules',   color: '#BB7865' },
 };
 
 export const GAUNTLET_TARGET_WINS = 5;
 
 // ─── Bot roster ───────────────────────────────────────────────────────────────
 const BOT_POOL = [
-  { name: 'Blaze_99',   color: '#FF4757' },
-  { name: 'IceQueen',   color: '#00BFFF' },
-  { name: 'Venom_X',    color: '#00FF88' },
-  { name: 'ShadowFX',   color: '#9B59B6' },
-  { name: 'NeonBlitz',  color: '#FF6B35' },
-  { name: 'DarkMatter', color: '#C0C0C0' },
-  { name: 'PulseWave',  color: '#FF00FF' },
-  { name: 'GhostPing',  color: '#CD7F32' },
+  { name: 'Blaze_99',   color: '#BB7865' },
+  { name: 'IceQueen',   color: '#A6AEA7' },
+  { name: 'Venom_X',    color: '#98A581' },
+  { name: 'ShadowFX',   color: '#A6AEA7' },
+  { name: 'NeonBlitz',  color: '#BB7865' },
+  { name: 'DarkMatter', color: '#B9BDAF' },
+  { name: 'PulseWave',  color: '#A6AEA7' },
+  { name: 'GhostPing',  color: '#BB7865' },
 ];
 
 export interface GauntletBot { name: string; color: string; }

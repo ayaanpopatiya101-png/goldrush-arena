@@ -1,11 +1,10 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text, AnimatedText } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import {
-  Animated, Dimensions, Platform, Pressable,
-  ScrollView, StyleSheet, Text, View,
-} from 'react-native';
+import { Animated, Dimensions, Platform, Pressable, ScrollView, StyleSheet, View,  } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePlayer } from '@/context/PlayerContext';
 import { setGameConfig } from '@/store/gameSession';
@@ -25,10 +24,10 @@ interface Step {
 function ArenaIllustration() {
   return (
     <View style={il.arena}>
-      <View style={[il.paddle, il.paddleTop, { backgroundColor: '#FF4757' }]} />
-      <View style={[il.paddle, il.paddleLeft, { backgroundColor: '#00BFFF' }]} />
-      <View style={[il.paddle, il.paddleRight, { backgroundColor: '#00FF88' }]} />
-      <View style={[il.paddle, il.paddleBottom, { backgroundColor: '#FFD700' }]} />
+      <View style={[il.paddle, il.paddleTop, { backgroundColor: '#BB7865' }]} />
+      <View style={[il.paddle, il.paddleLeft, { backgroundColor: '#A6AEA7' }]} />
+      <View style={[il.paddle, il.paddleRight, { backgroundColor: '#98A581' }]} />
+      <View style={[il.paddle, il.paddleBottom, { backgroundColor: '#D0AF66' }]} />
       <View style={il.ball} />
       <View style={[il.ring, il.ring1]} />
       <View style={[il.ring, il.ring2]} />
@@ -39,7 +38,7 @@ function ArenaIllustration() {
 function ControlsIllustration() {
   const swipeAnim = useRef(new Animated.Value(0)).current;
   React.useEffect(() => {
-    Animated.loop(
+    idleAnimation(
       Animated.sequence([
         Animated.timing(swipeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
         Animated.timing(swipeAnim, { toValue: 0, duration: 700, useNativeDriver: true }),
@@ -48,15 +47,15 @@ function ControlsIllustration() {
   }, []);
   return (
     <View style={il.arena}>
-      <View style={[il.halfBottom, { backgroundColor: '#FFD70010', borderTopWidth: 1, borderTopColor: '#FFD70033' }]} />
-      <View style={[il.paddle, il.paddleBottom, { backgroundColor: '#FFD700', width: 60 }]} />
+      <View style={[il.halfBottom, { backgroundColor: '#D0AF6610', borderTopWidth: 1, borderTopColor: '#D0AF6633' }]} />
+      <View style={[il.paddle, il.paddleBottom, { backgroundColor: '#D0AF66', width: 60 }]} />
       <Animated.View style={[il.finger, {
         transform: [{ translateX: swipeAnim.interpolate({ inputRange: [0, 1], outputRange: [-28, 28] }) }],
       }]}>
         <Text style={{ fontSize: 24 }}>👆</Text>
       </Animated.View>
       <View style={[il.halfTop, { opacity: 0.2 }]}>
-        <View style={[il.paddle, il.paddleTop, { backgroundColor: '#FF4757' }]} />
+        <View style={[il.paddle, il.paddleTop, { backgroundColor: '#BB7865' }]} />
       </View>
       <Text style={il.zoneLabel}>YOUR ZONE</Text>
     </View>
@@ -73,7 +72,7 @@ function LivesIllustration() {
             <Text style={il.stageText}>{label}</Text>
             <View style={il.stageDotsRow}>
               {Array.from({ length: i === 0 ? 4 : i === 1 ? 3 : 2 }).map((_, j) => (
-                <View key={j} style={[il.stageDot, { backgroundColor: ['#C8820A','#4A8A38','#C03820'][i] }]} />
+                <View key={j} style={[il.stageDot, { backgroundColor: ['#BB7865','#98A581','#BB7865'][i] }]} />
               ))}
             </View>
           </View>
@@ -81,7 +80,7 @@ function LivesIllustration() {
       </View>
       <View style={il.livesRow}>
         {Array.from({ length: 5 }).map((_, i) => (
-          <View key={i} style={[il.heart, { backgroundColor: i < 3 ? '#FF4757' : '#FFFFFF22' }]} />
+          <View key={i} style={[il.heart, { backgroundColor: i < 3 ? '#BB7865' : '#EEE7D822' }]} />
         ))}
       </View>
       <Text style={il.livesLabel}>LIVES REMAINING</Text>
@@ -91,10 +90,10 @@ function LivesIllustration() {
 
 function PowerupsIllustration() {
   const pups = [
-    { icon: '🛡️', label: 'Shield', color: '#00BFFF' },
-    { icon: '⚡', label: 'Speed',  color: '#FFD700' },
-    { icon: '⊕',  label: 'Ball+',  color: '#FF6B35' },
-    { icon: '🔻', label: 'Shrink', color: '#BF5FFF' },
+    { icon: '🛡️', label: 'Shield', color: '#A6AEA7' },
+    { icon: '⚡', label: 'Speed',  color: '#D0AF66' },
+    { icon: '⊕',  label: 'Ball+',  color: '#BB7865' },
+    { icon: '🔻', label: 'Shrink', color: '#A6AEA7' },
   ];
   return (
     <View style={il.pupGrid}>
@@ -110,12 +109,12 @@ function PowerupsIllustration() {
 
 function RanksIllustration() {
   const ranks = [
-    { name: 'Bronze',   color: '#CD7F32' },
-    { name: 'Diamond',  color: '#B9F2FF' },
-    { name: 'Master 2', color: '#F06020' },
-    { name: 'Legend 1', color: '#DD44FF' },
-    { name: 'Recruit',  color: '#8B9BAB' },
-    { name: 'Spartan 3',color: '#FFB300' },
+    { name: 'Bronze',   color: '#BB7865' },
+    { name: 'Diamond',  color: '#A6AEA7' },
+    { name: 'Master 2', color: '#BB7865' },
+    { name: 'Legend 1', color: '#A6AEA7' },
+    { name: 'Recruit',  color: '#B9BDAF' },
+    { name: 'Spartan 3',color: '#BB7865' },
   ];
   return (
     <View style={il.rankRow}>
@@ -131,10 +130,10 @@ function RanksIllustration() {
 
 function RelicsIllustration() {
   const chars = [
-    { emoji: '🛡️', name: 'Ironhide', color: '#C8820A', effect: 'Shield' },
-    { emoji: '🔥', name: 'Phoenix',  color: '#FF4757', effect: 'Revive' },
-    { emoji: '⚡', name: 'Quicksilver', color: '#00BFFF', effect: 'Speed' },
-    { emoji: '👑', name: 'Midas',    color: '#FFD700', effect: 'Lives+' },
+    { emoji: '🛡️', name: 'Ironhide', color: '#BB7865', effect: 'Shield' },
+    { emoji: '🔥', name: 'Phoenix',  color: '#BB7865', effect: 'Revive' },
+    { emoji: '⚡', name: 'Quicksilver', color: '#A6AEA7', effect: 'Speed' },
+    { emoji: '👑', name: 'Midas',    color: '#D0AF66', effect: 'Lives+' },
   ];
   return (
     <View style={il.relicRow}>
@@ -153,17 +152,17 @@ function RelicsIllustration() {
 
 function StreakIllustration() {
   const mults = [
-    { streak: '1 win',  mult: '1.0×', color: '#8B8B8B' },
-    { streak: '2 wins', mult: '1.25×', color: '#C8820A' },
-    { streak: '3 wins', mult: '1.5×', color: '#FF6B35' },
-    { streak: '4 wins', mult: '1.75×', color: '#FF4757' },
-    { streak: '5+ wins', mult: '2.0×', color: '#FFD700' },
+    { streak: '1 win',  mult: '1.0×', color: '#858979' },
+    { streak: '2 wins', mult: '1.25×', color: '#BB7865' },
+    { streak: '3 wins', mult: '1.5×', color: '#BB7865' },
+    { streak: '4 wins', mult: '1.75×', color: '#BB7865' },
+    { streak: '5+ wins', mult: '2.0×', color: '#D0AF66' },
   ];
   return (
     <View style={il.streakCol}>
       {mults.map(m => (
         <View key={m.streak} style={il.streakRow}>
-          <Text style={[il.streakLabel, { color: '#FFFFFF66' }]}>{m.streak}</Text>
+          <Text style={[il.streakLabel, { color: '#EEE7D866' }]}>{m.streak}</Text>
           <View style={[il.streakBar, { backgroundColor: m.color + '22', borderColor: m.color + '44', flex: parseFloat(m.mult) * 0.4 }]} />
           <Text style={[il.streakMult, { color: m.color }]}>{m.mult}</Text>
         </View>
@@ -175,7 +174,7 @@ function StreakIllustration() {
 function ReadyIllustration() {
   const bounceAnim = useRef(new Animated.Value(0)).current;
   React.useEffect(() => {
-    Animated.loop(
+    idleAnimation(
       Animated.sequence([
         Animated.timing(bounceAnim, { toValue: -12, duration: 500, useNativeDriver: true }),
         Animated.timing(bounceAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
@@ -184,10 +183,10 @@ function ReadyIllustration() {
   }, []);
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-      <Animated.Text style={{ fontSize: 72, transform: [{ translateY: bounceAnim }] }}>🏆</Animated.Text>
+      <AnimatedText style={{ fontSize: 72, transform: [{ translateY: bounceAnim }] }}>🏆</AnimatedText>
       <View style={il.readyBotRow}>
         <Text style={{ fontSize: 32 }}>🤖</Text>
-        <Text style={[il.readyVs, { color: '#C8820A' }]}>VS</Text>
+        <Text style={[il.readyVs, { color: '#BB7865' }]}>VS</Text>
         <Text style={{ fontSize: 32 }}>⚔️</Text>
       </View>
       <Text style={il.readyPractice}>PRACTICE MATCH</Text>
@@ -202,7 +201,7 @@ const STEPS: Step[] = [
     subtitle: 'The ultimate air-hockey battle',
     body: "You're about to enter 4-player last-one-standing air hockey — fast, chaotic, and incredibly satisfying. Let's get you up to speed in under 2 minutes.",
     illustration: <ArenaIllustration />,
-    accentColor: '#C8820A',
+    accentColor: '#BB7865',
   },
   {
     emoji: '🎯',
@@ -210,7 +209,7 @@ const STEPS: Step[] = [
     subtitle: 'Deflect. Survive. Win.',
     body: 'Balls fly around the arena. Deflect them back with your paddle. Let one slip past and you lose a life. Lose all your lives and you\'re eliminated. Last player standing wins!',
     illustration: <ArenaIllustration />,
-    accentColor: '#FF6B35',
+    accentColor: '#BB7865',
   },
   {
     emoji: '👆',
@@ -218,7 +217,7 @@ const STEPS: Step[] = [
     subtitle: 'Swipe anywhere on your side',
     body: "You don't need to tap exactly on the paddle. Just drag your finger ANYWHERE on your half of the screen — the golden paddle follows your touch instantly.",
     illustration: <ControlsIllustration />,
-    accentColor: '#FFD700',
+    accentColor: '#D0AF66',
   },
   {
     emoji: '❤️',
@@ -226,7 +225,7 @@ const STEPS: Step[] = [
     subtitle: 'The arena shrinks as players fall',
     body: "Every player starts with 5 lives. As players are eliminated the arena tightens: 4-player square → 3-player triangle → 1v1 duel. The pressure keeps building!",
     illustration: <LivesIllustration />,
-    accentColor: '#FF4757',
+    accentColor: '#BB7865',
   },
   {
     emoji: '⚡',
@@ -234,7 +233,7 @@ const STEPS: Step[] = [
     subtitle: 'Grab them — they change everything',
     body: "Power-ups spawn mid-match inside the arena. A Shield blocks one hit. Speed Boost cranks your paddle. Extra Ball adds chaos. Shrink makes enemy paddles tiny. Time it right!",
     illustration: <PowerupsIllustration />,
-    accentColor: '#BF5FFF',
+    accentColor: '#A6AEA7',
   },
   {
     emoji: '🏆',
@@ -242,7 +241,7 @@ const STEPS: Step[] = [
     subtitle: 'Bronze → Spartan 3 — 23 ranks to climb',
     body: "Every match earns XP. Climb through Bronze, Silver, Gold, Platinum, Diamond, then into Master and Legend tiers. Reach the Prestige ranks — Recruit through Spartan 3 — to prove elite status.",
     illustration: <RanksIllustration />,
-    accentColor: '#C0C0C0',
+    accentColor: '#B9BDAF',
   },
   {
     emoji: '🧬',
@@ -250,7 +249,7 @@ const STEPS: Step[] = [
     subtitle: 'Choose your fighter — level them up',
     body: "Relics are characters you equip for a passive edge. Ironhide starts with a shield. Phoenix revives when eliminated. Spend coins to level them up from L1 to L10 for stronger effects!",
     illustration: <RelicsIllustration />,
-    accentColor: '#00FF88',
+    accentColor: '#98A581',
   },
   {
     emoji: '🔥',
@@ -258,7 +257,7 @@ const STEPS: Step[] = [
     subtitle: 'Win more, earn more',
     body: "Consecutive wins multiply your XP and coin rewards — up to 2× on a 5-win streak! Harder modes pay out more too: Chaos mode gives 1.5× rewards, 6-Player gives 1.75×.",
     illustration: <StreakIllustration />,
-    accentColor: '#FF6B35',
+    accentColor: '#BB7865',
   },
   {
     emoji: '🎮',
@@ -266,7 +265,7 @@ const STEPS: Step[] = [
     subtitle: "Let's do a practice match",
     body: "That covers everything! A friendly practice bot is waiting for you. Beat it, learn the controls, and earn your first coins. Your journey to Legend starts now. 🔥",
     illustration: <ReadyIllustration />,
-    accentColor: '#FFD700',
+    accentColor: '#D0AF66',
   },
 ];
 
@@ -335,7 +334,7 @@ export function TutorialOverlay({ onComplete }: Props) {
   return (
     <View style={[s.overlay, { paddingTop: topPad, paddingBottom: bottomPad }]}>
       <LinearGradient
-        colors={['#0A0700EE', '#100C06FA']}
+        colors={['#191B19EE', '#191B19FA']}
         style={StyleSheet.absoluteFill}
       />
 
@@ -380,7 +379,7 @@ export function TutorialOverlay({ onComplete }: Props) {
         {STEPS.map((_, i) => (
           <Pressable key={i} onPress={() => i < stepIdx && animateTo(i)}>
             <View style={[s.dot, {
-              backgroundColor: i === stepIdx ? step.accentColor : i < stepIdx ? step.accentColor + '55' : '#FFFFFF22',
+              backgroundColor: i === stepIdx ? step.accentColor : i < stepIdx ? step.accentColor + '55' : '#EEE7D822',
               width: i === stepIdx ? 20 : 7,
             }]} />
           </Pressable>
@@ -391,26 +390,26 @@ export function TutorialOverlay({ onComplete }: Props) {
       <View style={s.btnRow}>
         {stepIdx > 0 && (
           <Pressable onPress={() => animateTo(stepIdx - 1)} style={s.backBtn}>
-            <Feather name="chevron-left" size={20} color="#FFFFFF66" />
+            <Feather name="chevron-left" size={20} color="#EEE7D866" />
           </Pressable>
         )}
         <Pressable onPress={handleNext} style={[s.nextBtn, { flex: 1 }]}>
           <LinearGradient
             colors={isLast
               ? [step.accentColor, step.accentColor + 'CC']
-              : ['#C8820A', '#E09620']}
+              : ['#BB7865', '#BB7865']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={s.nextGrad}
           >
             {isLast ? (
               <>
-                <Feather name="play" size={16} color="#0A0700" />
-                <Text style={[s.nextText, { color: '#0A0700' }]}>START PRACTICE MATCH</Text>
+                <Feather name="play" size={16} color="#191B19" />
+                <Text style={[s.nextText, { color: '#191B19' }]}>START PRACTICE MATCH</Text>
               </>
             ) : (
               <>
                 <Text style={s.nextText}>NEXT</Text>
-                <Feather name="chevron-right" size={16} color="#0A0700" />
+                <Feather name="chevron-right" size={16} color="#191B19" />
               </>
             )}
           </LinearGradient>
@@ -428,59 +427,59 @@ const il = StyleSheet.create({
     position: 'relative',
   },
   paddle: {
-    position: 'absolute', borderRadius: 6,
-    shadowOpacity: 0.8, shadowRadius: 8, elevation: 4,
+    position: 'absolute', borderRadius: 2,
+    shadowOpacity: 0, shadowRadius: 0, elevation: 0,
   },
   paddleTop:    { top: 10,    left: '50%', marginLeft: -30, width: 60, height: 9 },
   paddleBottom: { bottom: 10, left: '50%', marginLeft: -30, width: 60, height: 9 },
   paddleLeft:   { left: 10,   top: '50%',  marginTop: -4,   width: 9,  height: 40 },
   paddleRight:  { right: 10,  top: '50%',  marginTop: -4,   width: 9,  height: 40 },
   ball: {
-    width: 16, height: 16, borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#FFFFFF', shadowOpacity: 1, shadowRadius: 6, elevation: 4,
+    width: 16, height: 16, borderRadius: 2,
+    backgroundColor: '#EEE7D8',
+    shadowColor: '#EEE7D8', shadowOpacity: 0, shadowRadius: 0, elevation: 0,
   },
   ring: {
     position: 'absolute', borderRadius: 999,
-    borderWidth: 1, borderColor: '#FFFFFF10',
+    borderWidth: 1, borderColor: '#EEE7D810',
   },
   ring1: { width: 80, height: 80 },
   ring2: { width: 140, height: 140 },
-  halfBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', borderRadius: 4 },
+  halfBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', borderRadius: 2 },
   halfTop:    { position: 'absolute', top: 0, left: 0, right: 0, height: '50%' },
   finger: { position: 'absolute', bottom: 30 },
   zoneLabel: {
     position: 'absolute', bottom: 4,
-    fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1.5, color: '#FFD70066',
+    fontFamily: 'System', fontSize: 9, letterSpacing: 1.5, color: '#D0AF6666',
   },
   stageRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-end', marginBottom: 16 },
   stageBox: { alignItems: 'center', gap: 4 },
-  stageText: { fontFamily: 'Inter_700Bold', fontSize: 11, color: '#FFFFFF88', letterSpacing: 1 },
+  stageText: { fontFamily: 'System', fontSize: 11, color: '#EEE7D888', letterSpacing: 1 },
   stageDotsRow: { flexDirection: 'row', gap: 4 },
-  stageDot: { width: 10, height: 10, borderRadius: 5 },
+  stageDot: { width: 10, height: 10, borderRadius: 2 },
   livesRow: { flexDirection: 'row', gap: 6 },
-  heart: { width: 14, height: 14, borderRadius: 7 },
-  livesLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#FFFFFF44', marginTop: 8, letterSpacing: 1 },
+  heart: { width: 14, height: 14, borderRadius: 2 },
+  livesLabel: { fontFamily: 'System', fontSize: 10, color: '#EEE7D844', marginTop: 8, letterSpacing: 1 },
   pupGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', padding: 8 },
-  pupBox: { width: 70, height: 70, borderRadius: 16, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', gap: 4 },
-  pupLabel: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 0.5 },
+  pupBox: { width: 70, height: 70, borderRadius: 2, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', gap: 4 },
+  pupLabel: { fontFamily: 'System', fontSize: 10, letterSpacing: 0.5 },
   rankRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-around', width: '100%', paddingHorizontal: 8 },
   rankItem: { alignItems: 'center', gap: 6 },
   rankDot: {},
-  rankName: { fontFamily: 'Inter_700Bold', letterSpacing: 0.3 },
+  rankName: { fontFamily: 'System', letterSpacing: 0.3 },
   streakCol: { gap: 7, width: '100%', paddingHorizontal: 12 },
   streakRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  streakLabel: { fontFamily: 'Inter_400Regular', fontSize: 10, width: 50 },
-  streakBar: { height: 16, borderRadius: 6, borderWidth: 1, minWidth: 10 },
-  streakMult: { fontFamily: 'Inter_700Bold', fontSize: 12, width: 38, textAlign: 'right' },
+  streakLabel: { fontFamily: 'System', fontSize: 10, width: 50 },
+  streakBar: { height: 16, borderRadius: 2, borderWidth: 1, minWidth: 10 },
+  streakMult: { fontFamily: 'System', fontSize: 12, width: 38, textAlign: 'right' },
   relicRow: { flexDirection: 'row', gap: 6, justifyContent: 'center' },
-  relicCard: { alignItems: 'center', gap: 4, borderWidth: 1.5, borderRadius: 14, padding: 8, backgroundColor: '#FFFFFF06' },
-  relicCardName: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.3 },
-  relicEffectBadge: { borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
-  relicEffectText: { fontFamily: 'Inter_700Bold', fontSize: 8 },
+  relicCard: { alignItems: 'center', gap: 4, borderWidth: 1.5, borderRadius: 2, padding: 8, backgroundColor: '#EEE7D806' },
+  relicCardName: { fontFamily: 'System', fontSize: 9, letterSpacing: 0.3 },
+  relicEffectBadge: { borderRadius: 2, paddingHorizontal: 5, paddingVertical: 2 },
+  relicEffectText: { fontFamily: 'System', fontSize: 8 },
   readyBotRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 8 },
-  readyVs: { fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 2 },
-  readyPractice: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2, color: '#FFFFFF44', marginTop: 8 },
+  readyVs: { fontFamily: 'System', fontSize: 20, letterSpacing: 2 },
+  readyPractice: { fontFamily: 'System', fontSize: 10, letterSpacing: 2, color: '#EEE7D844', marginTop: 8 },
 });
 
 // ─── Overlay styles ────────────────────────────────────────────────────────
@@ -494,41 +493,41 @@ const s = StyleSheet.create({
   skipBtn: {
     position: 'absolute', top: 60, right: 20, zIndex: 1,
     paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: 8, borderWidth: 1, borderColor: '#FFFFFF22',
-    backgroundColor: '#FFFFFF0A',
+    borderRadius: 2, borderWidth: 1, borderColor: '#EEE7D822',
+    backgroundColor: '#EEE7D80A',
   },
-  skipText: { fontFamily: 'Inter_700Bold', fontSize: 11, color: '#FFFFFF55', letterSpacing: 1 },
+  skipText: { fontFamily: 'System', fontSize: 11, color: '#EEE7D855', letterSpacing: 1 },
   stepCounter: {
-    fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#FFFFFF33',
+    fontFamily: 'System', fontSize: 11, color: '#EEE7D833',
     letterSpacing: 1, textAlign: 'center', marginTop: 8,
   },
   card: {
-    flex: 1, borderRadius: 24, borderWidth: 1.5,
-    overflow: 'hidden', backgroundColor: '#13100899',
+    flex: 1, borderRadius: 2, borderWidth: 1.5,
+    overflow: 'hidden', backgroundColor: '#191B1999',
   },
   illustrationBox: {
     height: SH * 0.26, minHeight: 160,
-    borderBottomWidth: 1, borderBottomColor: '#FFFFFF0C',
+    borderBottomWidth: 1, borderBottomColor: '#EEE7D80C',
   },
   textBlock: { flex: 1, padding: 20, gap: 12 },
   titleRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
   emoji: { fontSize: 32, lineHeight: 38 },
-  title: { fontFamily: 'Inter_700Bold', fontSize: 17, letterSpacing: 0.2 },
-  subtitle: { fontFamily: 'Inter_500Medium', fontSize: 12, color: '#FFFFFF55', marginTop: 2 },
-  body: { fontFamily: 'Inter_400Regular', fontSize: 14, color: '#E0DCB8', lineHeight: 22 },
+  title: { fontFamily: 'System', fontSize: 17, letterSpacing: 0.2 },
+  subtitle: { fontFamily: 'System', fontSize: 12, color: '#EEE7D855', marginTop: 2 },
+  body: { fontFamily: 'System', fontSize: 14, color: '#EEE7D8', lineHeight: 22 },
   dotsRow: { flexDirection: 'row', gap: 6, justifyContent: 'center', alignItems: 'center' },
-  dot: { height: 7, borderRadius: 3.5 },
+  dot: { height: 7, borderRadius: 2 },
   btnRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   backBtn: {
-    width: 48, height: 52, borderRadius: 14,
-    borderWidth: 1.5, borderColor: '#FFFFFF22',
+    width: 48, height: 52, borderRadius: 2,
+    borderWidth: 1.5, borderColor: '#EEE7D822',
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#FFFFFF08',
+    backgroundColor: '#EEE7D808',
   },
-  nextBtn: { borderRadius: 16, overflow: 'hidden', elevation: 4 },
+  nextBtn: { borderRadius: 2, overflow: 'hidden', elevation: 0 },
   nextGrad: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingVertical: 16, gap: 8,
   },
-  nextText: { fontFamily: 'Inter_700Bold', fontSize: 14, color: '#0A0700', letterSpacing: 1 },
+  nextText: { fontFamily: 'System', fontSize: 14, color: '#191B19', letterSpacing: 1 },
 });

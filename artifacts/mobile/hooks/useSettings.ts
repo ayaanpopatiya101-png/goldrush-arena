@@ -18,8 +18,8 @@ const DEFAULTS: AppSettings = {
   musicEnabled:    true,
   soundEnabled:    true,
   sensitivity:     1.0,
-  colorBoard:      true,
-  showEmojis:      true,
+  colorBoard:      false,
+  showEmojis:      false,
   screenShake:     true,
   hapticsEnabled:  true,
   showLobbyRules:  true,
@@ -34,7 +34,7 @@ export function useSettings() {
   useEffect(() => {
     AsyncStorage.getItem(SETTINGS_KEY).then(raw => {
       if (raw) {
-        try { const parsed = { ...DEFAULTS, ...JSON.parse(raw) }; _cached = parsed; setSettings(parsed); }
+        try { const parsed = { ...DEFAULTS, ...JSON.parse(raw), colorBoard: false, showEmojis: false }; _cached = parsed; setSettings(parsed); }
         catch { /* ignore */ }
       }
       setLoaded(true);

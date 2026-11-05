@@ -1,3 +1,5 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text } from '@/components/ui/Text';
 /**
  * Challenge entry screen — deep-link target.
  *
@@ -9,10 +11,10 @@
  */
 
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
-import { Alert, Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FloatingOrbs, ORBS_GOLD, GlowText, PulseRing } from '@/components/effects';
@@ -37,7 +39,7 @@ export default function ChallengeScreen() {
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   useEffect(() => {
-    const loop = Animated.loop(Animated.sequence([
+    const loop = idleAnimation(Animated.sequence([
       Animated.timing(pulseAnim, { toValue: 1.08, duration: 800, useNativeDriver: true }),
       Animated.timing(pulseAnim, { toValue: 1,    duration: 800, useNativeDriver: true }),
     ]));
@@ -88,10 +90,10 @@ export default function ChallengeScreen() {
 
   return (
     <Reanimated.View entering={FadeIn.duration(400)} style={[styles.root]}>
-      <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#191B19', '#222520', '#191B19']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.6} />
       <LinearGradient
-        colors={['#C8820A1A', '#C8820A08', 'transparent']}
+        colors={['#BB78651A', '#BB786508', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300 }}
         pointerEvents="none"
       />
@@ -107,10 +109,10 @@ export default function ChallengeScreen() {
         </View>
 
         {/* Target score */}
-        <PulseRing color="#FFD700" size={200} rings={3} duration={2000} opacity={0.12}>
+        <PulseRing color="#D0AF66" size={200} rings={3} duration={2000} opacity={0.12}>
           <Animated.View style={{ transform: [{ scale: pulseAnim }], alignItems: 'center' }}>
             <Text style={styles.beatLabel}>BEAT</Text>
-            <GlowText intensity="strong" color="#FFD700" style={styles.scoreHero}>
+            <GlowText intensity="strong" color="#D0AF66" style={styles.scoreHero}>
               {targetScore}
             </GlowText>
             <Text style={styles.hitsLabel}>HITS</Text>
@@ -120,10 +122,10 @@ export default function ChallengeScreen() {
         {/* Info */}
         <View style={styles.infoCard}>
           <LinearGradient
-            colors={['#C8820A18', '#C8820A08']}
+            colors={['#BB786518', '#BB786508']}
             style={StyleSheet.absoluteFill}
           />
-          <View style={{ width: 3, height: '100%', backgroundColor: '#C8820A', borderRadius: 2, position: 'absolute', left: 0 }} />
+          <View style={{ width: 3, height: '100%', backgroundColor: '#BB7865', borderRadius: 2, position: 'absolute', left: 0 }} />
           <View style={{ paddingLeft: 14, gap: 4 }}>
             <Text style={styles.infoTitle}>DAILY CHALLENGE · {seed}</Text>
             <Text style={styles.infoBody}>
@@ -138,7 +140,7 @@ export default function ChallengeScreen() {
           onPress={handlePlay}
           style={({ pressed }) => [styles.playBtn, pressed && { opacity: 0.88 }]}
         >
-          <LinearGradient colors={['#F0A428', '#D08A14', '#A86008']} style={styles.playBtnGrad}>
+          <LinearGradient colors={['#BB7865', '#BB7865', '#BB7865']} style={styles.playBtnGrad}>
             <Text style={styles.playBtnText}>⚡  ACCEPT CHALLENGE</Text>
           </LinearGradient>
         </Pressable>
@@ -158,27 +160,27 @@ const styles = StyleSheet.create({
 
   challengerRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   crown:         { fontSize: 38 },
-  challengerLabel: { fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFFFFF55', letterSpacing: 2, marginBottom: 2 },
-  challengerName:  { fontFamily: 'Rajdhani_700Bold', fontSize: 26, color: '#FFFFFF' },
+  challengerLabel: { fontFamily: 'System', fontSize: 10, color: '#EEE7D855', letterSpacing: 2, marginBottom: 2 },
+  challengerName:  { fontFamily: 'Rajdhani_700Bold', fontSize: 26, color: '#EEE7D8' },
 
-  beatLabel:   { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 4, color: '#FFFFFF55', marginBottom: 2 },
+  beatLabel:   { fontFamily: 'System', fontSize: 11, letterSpacing: 4, color: '#EEE7D855', marginBottom: 2 },
   scoreHero: {
     fontFamily: 'Rajdhani_700Bold', fontSize: 100, lineHeight: 100,
-    color: '#FFD700',
-    textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 30,
+    color: '#D0AF66',
+    textShadowColor: '#BB7865', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0,
   },
-  hitsLabel: { fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 5, color: '#FFFFFF88', marginTop: -4 },
+  hitsLabel: { fontFamily: 'System', fontSize: 18, letterSpacing: 5, color: '#EEE7D888', marginTop: -4 },
 
   infoCard: {
-    width: '100%', borderRadius: 14, borderWidth: 1, borderColor: '#C8820A33',
+    width: '100%', borderRadius: 2, borderWidth: 1, borderColor: '#BB786533',
     paddingVertical: 14, paddingHorizontal: 14, overflow: 'hidden',
   },
-  infoTitle: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2, color: '#C8820A', marginBottom: 4 },
-  infoBody:  { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#FFFFFF88', lineHeight: 19 },
+  infoTitle: { fontFamily: 'System', fontSize: 10, letterSpacing: 2, color: '#BB7865', marginBottom: 4 },
+  infoBody:  { fontFamily: 'System', fontSize: 13, color: '#EEE7D888', lineHeight: 19 },
 
-  playBtn:     { width: '100%', borderRadius: 18, overflow: 'hidden', elevation: 10, shadowColor: '#C8820A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.7, shadowRadius: 24 },
+  playBtn:     { width: '100%', borderRadius: 2, overflow: 'hidden', elevation: 0, shadowColor: '#BB7865', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0, shadowRadius: 0 },
   playBtnGrad: { paddingVertical: 18, alignItems: 'center' },
-  playBtnText: { fontFamily: 'Inter_700Bold', fontSize: 17, color: '#07090F', letterSpacing: 1 },
+  playBtnText: { fontFamily: 'System', fontSize: 17, color: '#191B19', letterSpacing: 1 },
 
-  skipText: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: '#FFFFFF33' },
+  skipText: { fontFamily: 'System', fontSize: 13, color: '#EEE7D833' },
 });

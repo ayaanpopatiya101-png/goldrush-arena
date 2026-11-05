@@ -19,7 +19,7 @@ interface ScanlineOverlayProps {
 export function ScanlineOverlay({
   spacing = 4,
   lineOpacity = 0.07,
-  color = '#000000',
+  color = '#191B19',
 }: ScanlineOverlayProps) {
   if (Platform.OS === 'web') {
     // Web: CSS gradient — no JS overhead at all

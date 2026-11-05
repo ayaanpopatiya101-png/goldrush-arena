@@ -1,10 +1,8 @@
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 import React, { useRef, useState } from 'react';
-import {
-  Animated, KeyboardAvoidingView, Modal, Platform,
-  Pressable, StyleSheet, Text, TextInput, View,
-} from 'react-native';
+import { Animated, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, TextInput, View,  } from 'react-native';
 import { usePlayer } from '@/context/PlayerContext';
 
 interface Props {
@@ -67,31 +65,31 @@ export function RedeemCodeModal({ visible, onClose }: Props) {
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
 
         <Animated.View style={[s.sheet, { transform: [{ translateX: shakeAnim }, { scale: scaleAnim }] }]}>
-          <LinearGradient colors={['#0F1530', '#070B1E']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['#222520', '#191B19']} style={StyleSheet.absoluteFill} />
           <View style={s.topAccent} />
 
           {/* Header row */}
           <View style={s.headerRow}>
             <View style={s.giftIconWrap}>
-              <Feather name="gift" size={18} color="#C8820A" />
+              <Feather name="gift" size={18} color="#BB7865" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={s.title}>REDEEM CODE</Text>
               <Text style={s.subtitle}>Enter your code to claim rewards</Text>
             </View>
             <Pressable onPress={handleClose} hitSlop={14} style={s.closeBtn}>
-              <Feather name="x" size={18} color="#FFFFFF55" />
+              <Feather name="x" size={18} color="#EEE7D855" />
             </Pressable>
           </View>
 
           {/* Code input */}
-          <Animated.View style={[s.inputWrap, result?.success === false && { borderColor: '#FF475788' }]}>
+          <Animated.View style={[s.inputWrap, result?.success === false && { borderColor: '#BB786588' }]}>
             <TextInput
               style={s.input}
               value={code}
               onChangeText={t => { setCode(t.toUpperCase()); setResult(null); }}
               placeholder="ENTER CODE"
-              placeholderTextColor="#FFFFFF22"
+              placeholderTextColor="#EEE7D822"
               autoCapitalize="characters"
               maxLength={12}
               returnKeyType="done"
@@ -106,9 +104,9 @@ export function RedeemCodeModal({ visible, onClose }: Props) {
               <Feather
                 name={result.success ? 'check-circle' : 'alert-circle'}
                 size={15}
-                color={result.success ? '#FFD700' : '#FF4757'}
+                color={result.success ? '#D0AF66' : '#BB7865'}
               />
-              <Text style={[s.resultText, { color: result.success ? '#FFD700' : '#FF6B7A' }]}>
+              <Text style={[s.resultText, { color: result.success ? '#D0AF66' : '#BB7865' }]}>
                 {result.message}
               </Text>
             </View>
@@ -120,7 +118,7 @@ export function RedeemCodeModal({ visible, onClose }: Props) {
             disabled={loading || !code.trim()}
             style={({ pressed }) => [s.btn, { opacity: loading || !code.trim() ? 0.4 : pressed ? 0.82 : 1 }]}
           >
-            <LinearGradient colors={['#C8820A', '#7A4E00']} style={s.btnGrad}>
+            <LinearGradient colors={['#BB7865', '#BB7865']} style={s.btnGrad}>
               <Text style={s.btnText}>{loading ? 'CHECKING…' : 'REDEEM'}</Text>
             </LinearGradient>
           </Pressable>
@@ -133,15 +131,15 @@ export function RedeemCodeModal({ visible, onClose }: Props) {
 const s = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: '#00000099',
+    backgroundColor: '#191B1999',
     justifyContent: 'flex-end',
   },
   sheet: {
     overflow: 'hidden',
-    borderTopLeftRadius: 26,
-    borderTopRightRadius: 26,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
     borderWidth: 1,
-    borderColor: '#C8820A44',
+    borderColor: '#BB786544',
     padding: 24,
     paddingBottom: Platform.OS === 'ios' ? 48 : 36,
     gap: 14,
@@ -150,7 +148,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     top: 0, left: 0, right: 0,
     height: 2,
-    backgroundColor: '#C8820A',
+    backgroundColor: '#BB7865',
   },
   headerRow: {
     flexDirection: 'row',
@@ -161,42 +159,42 @@ const s = StyleSheet.create({
   giftIconWrap: {
     width: 38,
     height: 38,
-    borderRadius: 10,
-    backgroundColor: '#C8820A18',
+    borderRadius: 2,
+    backgroundColor: '#BB786518',
     borderWidth: 1,
-    borderColor: '#C8820A44',
+    borderColor: '#BB786544',
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'System',
     fontSize: 16,
     letterSpacing: 2.5,
-    color: '#FFD700',
+    color: '#D0AF66',
   },
   subtitle: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'System',
     fontSize: 12,
-    color: '#FFFFFF44',
+    color: '#EEE7D844',
     marginTop: 1,
   },
   closeBtn: {
     padding: 4,
   },
   inputWrap: {
-    borderRadius: 14,
+    borderRadius: 2,
     borderWidth: 1.5,
-    borderColor: '#FFFFFF22',
-    backgroundColor: '#FFFFFF07',
+    borderColor: '#EEE7D822',
+    backgroundColor: '#EEE7D807',
     overflow: 'hidden',
   },
   input: {
     height: 58,
     paddingHorizontal: 20,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'System',
     fontSize: 22,
     letterSpacing: 6,
-    color: '#FFFFFF',
+    color: '#EEE7D8',
     textAlign: 'center',
   },
   resultBox: {
@@ -204,25 +202,25 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: 2,
     paddingHorizontal: 14,
     paddingVertical: 11,
   },
   resultSuccess: {
-    backgroundColor: '#FFD70012',
-    borderColor: '#FFD70055',
+    backgroundColor: '#D0AF6612',
+    borderColor: '#D0AF6655',
   },
   resultError: {
-    backgroundColor: '#FF475712',
-    borderColor: '#FF475755',
+    backgroundColor: '#BB786512',
+    borderColor: '#BB786555',
   },
   resultText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'System',
     fontSize: 13,
     flex: 1,
   },
   btn: {
-    borderRadius: 14,
+    borderRadius: 2,
     overflow: 'hidden',
     marginTop: 2,
   },
@@ -232,9 +230,9 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   btnText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'System',
     fontSize: 15,
     letterSpacing: 2.5,
-    color: '#0A0600',
+    color: '#191B19',
   },
 });

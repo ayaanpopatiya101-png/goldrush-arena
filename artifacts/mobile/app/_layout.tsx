@@ -1,10 +1,5 @@
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  useFonts,
-} from '@expo-google-fonts/inter';
+import { Text } from '@/components/ui/Text';
+import { useFonts } from 'expo-font';
 import {
   Rajdhani_600SemiBold,
   Rajdhani_700Bold,
@@ -13,7 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -34,12 +29,12 @@ const queryClient = new QueryClient();
 function AppLoadingScreen() {
   return (
     <SafeAreaProvider>
-      <View style={{ flex: 1, backgroundColor: '#080812', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+      <View style={{ flex: 1, backgroundColor: '#191B19', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
         <Text style={{ fontSize: 48 }}>👑</Text>
-        <Text style={{ color: '#C8820A', fontSize: 14, letterSpacing: 4, fontFamily: 'Rajdhani_700Bold' }}>
+        <Text style={{ color: '#BB7865', fontSize: 14, letterSpacing: 4, fontFamily: 'Rajdhani_700Bold' }}>
           GOLDRUSH ARENA
         </Text>
-        <ActivityIndicator color="#C8820A55" size="small" style={{ marginTop: 8 }} />
+        <ActivityIndicator color="#BB786555" size="small" style={{ marginTop: 8 }} />
       </View>
     </SafeAreaProvider>
   );
@@ -66,7 +61,6 @@ interface AuthUser { username: string; emoji: string; color: string }
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold,
     Rajdhani_600SemiBold, Rajdhani_700Bold,
   });
   const [authState, setAuthState] = useState<'loading' | 'in' | 'out'>('loading');
@@ -81,7 +75,7 @@ export default function RootLayout() {
       if (username) {
         const accounts = await getSavedAccounts();
         const acct     = accounts.find(a => a.username === username);
-        setAuthUser({ username, emoji: acct?.avatarEmoji ?? '🎮', color: acct?.avatarColor ?? '#FFD700' });
+        setAuthUser({ username, emoji: acct?.avatarEmoji ?? '🎮', color: acct?.avatarColor ?? '#D0AF66' });
         setAuthState('in');
       } else {
         setAuthState('out');
@@ -92,7 +86,7 @@ export default function RootLayout() {
   function handleLogin(username: string, emoji: string, color: string, isNew = false) {
     setAuthUser({ username, emoji, color });
     setAuthState('in');
-    if (isNew) setShowTutorial(true);
+    // The first-run route owns instruction; do not stack a second tutorial modal.
   }
 
   function handleLogout() {

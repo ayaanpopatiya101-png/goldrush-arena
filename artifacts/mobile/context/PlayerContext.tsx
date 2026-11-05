@@ -2,57 +2,59 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { getGameConfig } from '@/store/gameSession';
 import { trackEvent } from '@/utils/analytics';
+import { apiUrl } from '@/utils/api';
+import { rankIndexForName } from '@/utils/rankIndex';
+import { canClaimSeasonTier, seasonSkinForMilestone } from '@/utils/seasonRewards';
 
 // ─── Ranks & Skins ────────────────────────────────────────────────────────────
 // 20 ranks: Bronze/Silver/Gold/Diamond/Master (×3 each) + Champion (×5, top-100 leaderboard)
 export const RANKS = [
   // ── Bronze ──────────────────────────────────────────────────────────────────
-  { name: 'Bronze 1',    minXP: 0,        color: '#CD7F32' },  // 0
-  { name: 'Bronze 2',    minXP: 500,      color: '#D4904A' },  // 1
-  { name: 'Bronze 3',    minXP: 1_200,    color: '#DBA060' },  // 2
+  { name: 'Bronze 1',    minXP: 0,        color: '#BB7865' },  // 0
+  { name: 'Bronze 2',    minXP: 500,      color: '#BB7865' },  // 1
+  { name: 'Bronze 3',    minXP: 1_200,    color: '#BB7865' },  // 2
   // ── Silver ──────────────────────────────────────────────────────────────────
-  { name: 'Silver 1',    minXP: 2_200,    color: '#A8A9B4' },  // 3
-  { name: 'Silver 2',    minXP: 3_600,    color: '#B8C0CC' },  // 4
-  { name: 'Silver 3',    minXP: 5_400,    color: '#C8D0DC' },  // 5
+  { name: 'Silver 1',    minXP: 2_200,    color: '#B9BDAF' },  // 3
+  { name: 'Silver 2',    minXP: 3_600,    color: '#B9BDAF' },  // 4
+  { name: 'Silver 3',    minXP: 5_400,    color: '#EEE7D8' },  // 5
   // ── Gold ────────────────────────────────────────────────────────────────────
-  { name: 'Gold 1',      minXP: 8_000,    color: '#E8C040' },  // 6
-  { name: 'Gold 2',      minXP: 11_500,   color: '#EFD050' },  // 7
-  { name: 'Gold 3',      minXP: 16_000,   color: '#F6E060' },  // 8
+  { name: 'Gold 1',      minXP: 8_000,    color: '#D0AF66' },  // 6
+  { name: 'Gold 2',      minXP: 11_500,   color: '#D0AF66' },  // 7
+  { name: 'Gold 3',      minXP: 16_000,   color: '#D0AF66' },  // 8
   // ── Diamond ─────────────────────────────────────────────────────────────────
-  { name: 'Diamond 1',   minXP: 22_000,   color: '#7DD8FF' },  // 9
-  { name: 'Diamond 2',   minXP: 31_000,   color: '#50CCFF' },  // 10
-  { name: 'Diamond 3',   minXP: 43_000,   color: '#00BFFF' },  // 11
+  { name: 'Diamond 1',   minXP: 22_000,   color: '#A6AEA7' },  // 9
+  { name: 'Diamond 2',   minXP: 31_000,   color: '#A6AEA7' },  // 10
+  { name: 'Diamond 3',   minXP: 43_000,   color: '#A6AEA7' },  // 11
   // ── Master ──────────────────────────────────────────────────────────────────
-  { name: 'Master 1',    minXP: 58_000,   color: '#CC88FF' },  // 12
-  { name: 'Master 2',    minXP: 78_000,   color: '#BB66FF' },  // 13
-  { name: 'Master 3',    minXP: 105_000,  color: '#AA44FF' },  // 14
+  { name: 'Master 1',    minXP: 58_000,   color: '#A6AEA7' },  // 12
+  { name: 'Master 2',    minXP: 78_000,   color: '#A6AEA7' },  // 13
+  { name: 'Master 3',    minXP: 105_000,  color: '#A6AEA7' },  // 14
   // ── Champion (top-100 leaderboard) ──────────────────────────────────────────
-  { name: 'Champion 1',  minXP: 138_000,  color: '#FF9944' },  // 15
-  { name: 'Champion 2',  minXP: 180_000,  color: '#FF7722' },  // 16
-  { name: 'Champion 3',  minXP: 232_000,  color: '#FF5500' },  // 17
-  { name: 'Champion 4',  minXP: 295_000,  color: '#FF2244' },  // 18
-  { name: 'Champion 5',  minXP: 370_000,  color: '#FF0066' },  // 19
+  { name: 'Champion 1',  minXP: 138_000,  color: '#BB7865' },  // 15
+  { name: 'Champion 2',  minXP: 180_000,  color: '#BB7865' },  // 16
+  { name: 'Champion 3',  minXP: 232_000,  color: '#BB7865' },  // 17
+  { name: 'Champion 4',  minXP: 295_000,  color: '#BB7865' },  // 18
+  { name: 'Champion 5',  minXP: 370_000,  color: '#BB7865' },  // 19
 ];
 
 export const SKINS = [
-  { id: 'default',        name: 'Classic',       color: '#FFD700', glowColor: '#FFD70055', price: 0   },
-  { id: 'plasma',         name: 'Plasma',        color: '#FF4757', glowColor: '#FF475755', price: 150 },
-  { id: 'frost',          name: 'Frost',         color: '#00BFFF', glowColor: '#00BFFF55', price: 150 },
-  { id: 'toxic',          name: 'Toxic',         color: '#00FF88', glowColor: '#00FF8855', price: 200 },
-  { id: 'void',           name: 'Void',          color: '#9B59B6', glowColor: '#9B59B655', price: 250 },
-  { id: 'inferno',        name: 'Inferno',       color: '#FF6B35', glowColor: '#FF6B3555', price: 300 },
-  { id: 'chrome',         name: 'Chrome',        color: '#E0E0E8', glowColor: '#E0E0E855', price: 350 },
-  { id: 'cosmic',         name: 'Cosmic',        color: '#FF00FF', glowColor: '#FF00FF55', price: 500 },
+  { id: 'default',        name: 'Classic',       color: '#D0AF66', glowColor: '#D0AF6655', price: 0   },
+  { id: 'plasma',         name: 'Plasma',        color: '#BB7865', glowColor: '#BB786555', price: 150 },
+  { id: 'frost',          name: 'Frost',         color: '#B8C4BE', glowColor: 'transparent', price: 150 },
+  { id: 'toxic',          name: 'Toxic',         color: '#98A581', glowColor: '#98A58155', price: 200 },
+  { id: 'void',           name: 'Void',          color: '#888E85', glowColor: 'transparent', price: 250 },
+  { id: 'inferno',        name: 'Inferno',       color: '#B66C42', glowColor: 'transparent', price: 300 },
+  { id: 'chrome',         name: 'Chrome',        color: '#EEE7D8', glowColor: '#EEE7D855', price: 350 },
+  { id: 'cosmic',         name: 'Cosmic',        color: '#B6A38D', glowColor: 'transparent', price: 500 },
   // ── Season 1 exclusive skins (Battle Pass premium only) ─────────────────────
-  { id: 'season_aurora',  name: 'Aurora',        color: '#7FFFD4', glowColor: '#7FFFD455', price: 0, exclusive: true },
-  { id: 'season_phantom', name: 'Phantom',       color: '#B06EFF', glowColor: '#B06EFF55', price: 0, exclusive: true },
+  { id: 'season_aurora',  name: 'Aurora',        color: '#A4B79A', glowColor: 'transparent', price: 0, exclusive: true },
+  { id: 'season_phantom', name: 'Phantom',       color: '#A2A4A0', glowColor: 'transparent', price: 0, exclusive: true },
 ];
 
 // ─── Rank helpers ─────────────────────────────────────────────────────────────
-/** Index of a rank name into RANKS. Unknown ranks (e.g. bot "Grandmaster") map to the top tier. */
+/** Understand legacy tiers without accidentally unlocking endgame difficulty. */
 export function getRankIndex(rankName: string): number {
-  const i = RANKS.findIndex(r => r.name === rankName);
-  return i >= 0 ? i : RANKS.length - 1;
+  return rankIndexForName(rankName, RANKS.map(r => r.name));
 }
 export const MAX_RANK_INDEX = RANKS.length - 1;
 
@@ -83,16 +85,16 @@ export interface Relic {
 }
 
 export const RELICS: Relic[] = [
-  { id: 'ironhide',    name: 'Ironhide',     icon: '🛡️', color: '#9AA0A6', unlockRankIndex: 0,  desc: 'Begin every match with a shield already active.',                   effect: { startShield: true } },
-  { id: 'longarm',     name: 'Longarm',      icon: '📐', color: '#CD7F32', unlockRankIndex: 2,  desc: 'Your paddle is 18% longer.',                                        effect: { paddleLenMult: 1.18 } },
-  { id: 'quicksilver', name: 'Quicksilver',  icon: '💨', color: '#C0C0C0', unlockRankIndex: 3,  desc: 'Your paddle moves 18% faster.',                                     effect: { paddleSpeedMult: 1.18 } },
-  { id: 'secondwind',  name: 'Second Wind',  icon: '❤️', color: '#C8820A', unlockRankIndex: 5,  desc: 'Start each match with +1 extra life.',                              effect: { bonusLives: 1 } },
-  { id: 'prospector',  name: 'Prospector',   icon: '🧲', color: '#D9A441', unlockRankIndex: 6,  desc: 'Power-ups drift toward your zone.',                                 effect: { magnet: true } },
-  { id: 'aftershock',  name: 'Aftershock',   icon: '💥', color: '#1E8AAA', unlockRankIndex: 9,  desc: 'Balls you deflect rebound 25% faster.',                             effect: { deflectBoost: 1.25 } },
-  { id: 'timewarp',    name: 'Time Warp',    icon: '⏳', color: '#B9F2FF', unlockRankIndex: 11, desc: 'All balls move 35% slower for the first 6 seconds.',                effect: { slowStartFrames: 360 } },
-  { id: 'bulwark',     name: 'Bulwark',      icon: '🪨', color: '#C03820', unlockRankIndex: 12, desc: 'Start with a shield and total immunity to shrink traps.',           effect: { startShield: true, shrinkImmune: true } },
-  { id: 'phoenix',     name: 'Phoenix',      icon: '🔥', color: '#FF6B35', unlockRankIndex: 14, desc: 'Revive once with 2 lives the first time you are eliminated.',       effect: { revive: 2 } },
-  { id: 'midas',       name: 'Midas Touch',  icon: '👑', color: '#FFD700', unlockRankIndex: 15, desc: 'Start with a shield, +1 life, and a 12% larger paddle.',            effect: { startShield: true, bonusLives: 1, paddleLenMult: 1.12 } },
+  { id: 'ironhide',    name: 'Ironhide',     icon: '🛡️', color: '#B9BDAF', unlockRankIndex: 0,  desc: 'Begin every match with a shield already active.',                   effect: { startShield: true } },
+  { id: 'longarm',     name: 'Longarm',      icon: '📐', color: '#BB7865', unlockRankIndex: 2,  desc: 'Your paddle is 18% longer.',                                        effect: { paddleLenMult: 1.18 } },
+  { id: 'quicksilver', name: 'Quicksilver',  icon: '💨', color: '#B9BDAF', unlockRankIndex: 3,  desc: 'Your paddle moves 18% faster.',                                     effect: { paddleSpeedMult: 1.18 } },
+  { id: 'secondwind',  name: 'Second Wind',  icon: '❤️', color: '#BB7865', unlockRankIndex: 5,  desc: 'Start each match with +1 extra life.',                              effect: { bonusLives: 1 } },
+  { id: 'prospector',  name: 'Prospector',   icon: '🧲', color: '#BB7865', unlockRankIndex: 6,  desc: 'Power-ups drift toward your zone.',                                 effect: { magnet: true } },
+  { id: 'aftershock',  name: 'Aftershock',   icon: '💥', color: '#A6AEA7', unlockRankIndex: 9,  desc: 'Balls you deflect rebound 25% faster.',                             effect: { deflectBoost: 1.25 } },
+  { id: 'timewarp',    name: 'Time Warp',    icon: '⏳', color: '#A6AEA7', unlockRankIndex: 11, desc: 'All balls move 35% slower for the first 6 seconds.',                effect: { slowStartFrames: 360 } },
+  { id: 'bulwark',     name: 'Bulwark',      icon: '🪨', color: '#BB7865', unlockRankIndex: 12, desc: 'Start with a shield and total immunity to shrink traps.',           effect: { startShield: true, shrinkImmune: true } },
+  { id: 'phoenix',     name: 'Phoenix',      icon: '🔥', color: '#BB7865', unlockRankIndex: 14, desc: 'Revive once with 2 lives the first time you are eliminated.',       effect: { revive: 2 } },
+  { id: 'midas',       name: 'Midas Touch',  icon: '👑', color: '#D0AF66', unlockRankIndex: 15, desc: 'Start with a shield, +1 life, and a 12% larger paddle.',            effect: { startShield: true, bonusLives: 1, paddleLenMult: 1.12 } },
 ];
 
 export function getRelic(id: string | undefined | null): Relic | null {
@@ -110,7 +112,7 @@ export interface SuperAbility {
 }
 
 export const SUPERS: SuperAbility[] = [
-  { id: 1, name: 'RAMPART',   icon: '🛡️', desc: 'Goal blocked\n3 seconds',             unlockLevel: 5  },
+  { id: 1, name: 'RAMPART',   icon: '🛡️', desc: 'Goal blocked\n3 seconds',             unlockLevel: 1  },
   { id: 2, name: 'DEAD ZONE', icon: '🌀', desc: 'Incoming balls\nmove at crawl speed',  unlockLevel: 10 },
   { id: 3, name: 'SHATTER',   icon: '💥', desc: 'Ball that scores\nvanishes from play', unlockLevel: 15 },
 ];
@@ -128,27 +130,27 @@ export interface ForgeAbility {
 
 export const FORGE_ABILITIES: ForgeAbility[] = [
   {
-    id: 'precision_core', name: 'Precision Core', icon: '⚙️', color: '#9AA0A6', cost: 50,
+    id: 'precision_core', name: 'Precision Core', icon: '⚙️', color: '#B9BDAF', cost: 50,
     desc: 'Refines field calibration for improved match response.',
     effect: { paddleSpeedMult: 1.20, deflectBoost: 1.15 },
   },
   {
-    id: 'iron_aegis', name: 'Iron Aegis', icon: '🪖', color: '#1E8AAA', cost: 75,
+    id: 'iron_aegis', name: 'Iron Aegis', icon: '🪖', color: '#A6AEA7', cost: 75,
     desc: 'Deploys reinforced shielding protocols at match initialization.',
     effect: { startShield: true, shrinkImmune: true },
   },
   {
-    id: 'void_drive', name: 'Void Drive', icon: '🌑', color: '#7A50A0', cost: 100,
+    id: 'void_drive', name: 'Void Drive', icon: '🌑', color: '#A6AEA7', cost: 100,
     desc: 'Interfaces with an unstable spatial frequency channel.',
     effect: { paddleSpeedMult: 1.45, deflectBoost: 1.40, bonusLives: 1 },
   },
   {
-    id: 'temporal_shift', name: 'Temporal Shift', icon: '⌛', color: '#B9F2FF', cost: 125,
+    id: 'temporal_shift', name: 'Temporal Shift', icon: '⌛', color: '#A6AEA7', cost: 125,
     desc: 'Applies a subtle temporal recalibration to match initialization.',
     effect: { slowStartFrames: 600, bonusLives: 2, revive: 2 },
   },
   {
-    id: 'catalyst', name: 'Catalyst', icon: '🔮', color: '#D4A030', cost: 150,
+    id: 'catalyst', name: 'Catalyst', icon: '🔮', color: '#BB7865', cost: 150,
     desc: 'A balanced enhancement across multiple match parameters.',
     effect: { paddleLenMult: 1.25, startShield: true, bonusLives: 1 },
   },
@@ -278,33 +280,33 @@ export interface EventDefinition {
 type EventBase = Omit<EventDefinition, 'type' | 'maxPlays' | 'creditRankIndex' | 'periodKey' | 'endsIn' | 'isLocked' | 'opensOnLabel' | 'rounds'>;
 
 const WEEKLY_POOL: EventBase[] = [
-  { id: 'blaze_wk',      name: 'Blaze Week',      emoji: '🔥', color: '#FF6B35', mode: 'chaos',      description: 'Multi-ball chaos — survive the inferno.',          winRewards: { xp: 200, coins: 100 }, loseRewards: { xp: 60,  coins: 25 }, creditsOnWin: 4, creditsOnLose: 1 },
-  { id: 'speed_sprint',  name: 'Speed Sprint',    emoji: '⚡', color: '#FFD700', mode: 'blitz',      description: 'Blitz mode — faster ball, sharper reflexes.',      winRewards: { xp: 180, coins: 90  }, loseRewards: { xp: 55,  coins: 22 }, creditsOnWin: 3, creditsOnLose: 1 },
-  { id: 'wave_surge',    name: 'Wave Surge',      emoji: '🌊', color: '#3A9DD4', mode: 'classic',    description: 'Classic ranked — prove your fundamentals.',        winRewards: { xp: 160, coins: 80  }, loseRewards: { xp: 50,  coins: 20 }, creditsOnWin: 3, creditsOnLose: 1 },
-  { id: 'diamond_clash', name: 'Diamond Clash',   emoji: '💎', color: '#B9F2FF', mode: 'classic',    description: 'Ranked Classic — maximum XP, maximum stakes.',      winRewards: { xp: 240, coins: 120 }, loseRewards: { xp: 70,  coins: 30 }, creditsOnWin: 5, creditsOnLose: 1 },
-  { id: 'chaos_carni',   name: 'Chaos Carnival',  emoji: '🎪', color: '#E040FB', mode: 'chaos',      description: 'Multi-ball mayhem — expect the unexpected.',        winRewards: { xp: 260, coins: 130 }, loseRewards: { xp: 75,  coins: 32 }, creditsOnWin: 5, creditsOnLose: 2 },
-  { id: 'battle_surge',  name: 'Battle Surge',    emoji: '⚔️', color: '#E04030', mode: 'six_player', description: 'Six-player showdown — survive the crowd.',           winRewards: { xp: 300, coins: 150 }, loseRewards: { xp: 80,  coins: 35 }, creditsOnWin: 6, creditsOnLose: 2 },
-  { id: 'relic_rumble',  name: 'Relic Rumble',    emoji: '🧬', color: '#9055C8', mode: 'blitz',      description: 'Blitz mode — relic effects are amplified.',         winRewards: { xp: 220, coins: 110 }, loseRewards: { xp: 65,  coins: 28 }, creditsOnWin: 4, creditsOnLose: 1 },
-  { id: 'precision_duel',name: 'Precision Duel',  emoji: '🎯', color: '#00FF88', mode: 'classic',    description: 'One arena. Four players. No excuses.',              winRewards: { xp: 200, coins: 100 }, loseRewards: { xp: 60,  coins: 25 }, creditsOnWin: 4, creditsOnLose: 1 },
+  { id: 'blaze_wk',      name: 'Blaze Week',      emoji: '🔥', color: '#BB7865', mode: 'chaos',      description: 'Multi-ball chaos — survive the inferno.',          winRewards: { xp: 200, coins: 100 }, loseRewards: { xp: 60,  coins: 25 }, creditsOnWin: 4, creditsOnLose: 1 },
+  { id: 'speed_sprint',  name: 'Speed Sprint',    emoji: '⚡', color: '#D0AF66', mode: 'blitz',      description: 'Blitz mode — faster ball, sharper reflexes.',      winRewards: { xp: 180, coins: 90  }, loseRewards: { xp: 55,  coins: 22 }, creditsOnWin: 3, creditsOnLose: 1 },
+  { id: 'wave_surge',    name: 'Wave Surge',      emoji: '🌊', color: '#A6AEA7', mode: 'classic',    description: 'Classic ranked — prove your fundamentals.',        winRewards: { xp: 160, coins: 80  }, loseRewards: { xp: 50,  coins: 20 }, creditsOnWin: 3, creditsOnLose: 1 },
+  { id: 'diamond_clash', name: 'Diamond Clash',   emoji: '💎', color: '#A6AEA7', mode: 'classic',    description: 'Ranked Classic — maximum XP, maximum stakes.',      winRewards: { xp: 240, coins: 120 }, loseRewards: { xp: 70,  coins: 30 }, creditsOnWin: 5, creditsOnLose: 1 },
+  { id: 'chaos_carni',   name: 'Chaos Carnival',  emoji: '🎪', color: '#A6AEA7', mode: 'chaos',      description: 'Multi-ball mayhem — expect the unexpected.',        winRewards: { xp: 260, coins: 130 }, loseRewards: { xp: 75,  coins: 32 }, creditsOnWin: 5, creditsOnLose: 2 },
+  { id: 'battle_surge',  name: 'Battle Surge',    emoji: '⚔️', color: '#BB7865', mode: 'six_player', description: 'Six-player showdown — survive the crowd.',           winRewards: { xp: 300, coins: 150 }, loseRewards: { xp: 80,  coins: 35 }, creditsOnWin: 6, creditsOnLose: 2 },
+  { id: 'relic_rumble',  name: 'Relic Rumble',    emoji: '🧬', color: '#A6AEA7', mode: 'blitz',      description: 'Blitz mode — relic effects are amplified.',         winRewards: { xp: 220, coins: 110 }, loseRewards: { xp: 65,  coins: 28 }, creditsOnWin: 4, creditsOnLose: 1 },
+  { id: 'precision_duel',name: 'Precision Duel',  emoji: '🎯', color: '#98A581', mode: 'classic',    description: 'One arena. Four players. No excuses.',              winRewards: { xp: 200, coins: 100 }, loseRewards: { xp: 60,  coins: 25 }, creditsOnWin: 4, creditsOnLose: 1 },
 ];
 
 const MONTHLY_POOL: EventBase[] = [
-  { id: 'frost_cup',    name: 'Frost Cup',    emoji: '❄️', color: '#B9F2FF', mode: 'classic',    description: 'January — conquer the frozen arena.',               winRewards: { xp: 500, coins: 250 }, loseRewards: { xp: 120, coins: 50 }, creditsOnWin: 10, creditsOnLose: 3 },
-  { id: 'heart_cup',   name: 'Heart Cup',    emoji: '💝', color: '#FF4785', mode: 'blitz',      description: 'February — battle with passion.',                   winRewards: { xp: 500, coins: 250 }, loseRewards: { xp: 120, coins: 50 }, creditsOnWin: 10, creditsOnLose: 3 },
-  { id: 'spring_cup',  name: 'Spring Cup',   emoji: '🌱', color: '#00E676', mode: 'classic',    description: 'March — new season, new glory.',                     winRewards: { xp: 520, coins: 260 }, loseRewards: { xp: 125, coins: 52 }, creditsOnWin: 10, creditsOnLose: 3 },
-  { id: 'bloom_cup',   name: 'Bloom Cup',    emoji: '🌸', color: '#FF69B4', mode: 'chaos',      description: 'April — chaos blooms in the arena.',                 winRewards: { xp: 520, coins: 260 }, loseRewards: { xp: 125, coins: 52 }, creditsOnWin: 10, creditsOnLose: 3 },
-  { id: 'sol_cup',     name: 'Sol Cup',      emoji: '☀️', color: '#FFD700', mode: 'classic',    description: 'May — peak competition under the blazing sun.',       winRewards: { xp: 540, coins: 270 }, loseRewards: { xp: 130, coins: 55 }, creditsOnWin: 11, creditsOnLose: 3 },
-  { id: 'wave_cup',    name: 'Wave Cup',     emoji: '🌊', color: '#3A9DD4', mode: 'blitz',      description: 'June — blitz at high tide.',                         winRewards: { xp: 540, coins: 270 }, loseRewards: { xp: 130, coins: 55 }, creditsOnWin: 11, creditsOnLose: 3 },
-  { id: 'inferno_cup', name: 'Inferno Cup',  emoji: '🔥', color: '#FF6B35', mode: 'chaos',      description: 'July — summer heat, fierce battles.',                winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
-  { id: 'thunder_cup', name: 'Thunder Cup',  emoji: '⚡', color: '#9055C8', mode: 'six_player', description: 'August — six players, one winner.',                   winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
-  { id: 'harvest_cup', name: 'Harvest Cup',  emoji: '🍂', color: '#C8820A', mode: 'classic',    description: 'September — reap the rewards of your grind.',        winRewards: { xp: 540, coins: 270 }, loseRewards: { xp: 130, coins: 55 }, creditsOnWin: 11, creditsOnLose: 3 },
-  { id: 'shadow_cup',  name: 'Shadow Cup',   emoji: '🎃', color: '#9900CC', mode: 'chaos',      description: 'October — haunted arena chaos.',                     winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
-  { id: 'eclipse_cup', name: 'Eclipse Cup',  emoji: '🌙', color: '#5050C8', mode: 'blitz',      description: 'November — night falls, only one survives.',         winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
-  { id: 'winter_cup',  name: 'Winter Cup',   emoji: '🎄', color: '#00E5FF', mode: 'classic',    description: 'December — end the year as champion.',               winRewards: { xp: 600, coins: 300 }, loseRewards: { xp: 150, coins: 65 }, creditsOnWin: 15, creditsOnLose: 5 },
+  { id: 'frost_cup',    name: 'Frost Cup',    emoji: '❄️', color: '#A6AEA7', mode: 'classic',    description: 'January — conquer the frozen arena.',               winRewards: { xp: 500, coins: 250 }, loseRewards: { xp: 120, coins: 50 }, creditsOnWin: 10, creditsOnLose: 3 },
+  { id: 'heart_cup',   name: 'Heart Cup',    emoji: '💝', color: '#BB7865', mode: 'blitz',      description: 'February — battle with passion.',                   winRewards: { xp: 500, coins: 250 }, loseRewards: { xp: 120, coins: 50 }, creditsOnWin: 10, creditsOnLose: 3 },
+  { id: 'spring_cup',  name: 'Spring Cup',   emoji: '🌱', color: '#98A581', mode: 'classic',    description: 'March — new season, new glory.',                     winRewards: { xp: 520, coins: 260 }, loseRewards: { xp: 125, coins: 52 }, creditsOnWin: 10, creditsOnLose: 3 },
+  { id: 'bloom_cup',   name: 'Bloom Cup',    emoji: '🌸', color: '#BB7865', mode: 'chaos',      description: 'April — chaos blooms in the arena.',                 winRewards: { xp: 520, coins: 260 }, loseRewards: { xp: 125, coins: 52 }, creditsOnWin: 10, creditsOnLose: 3 },
+  { id: 'sol_cup',     name: 'Sol Cup',      emoji: '☀️', color: '#D0AF66', mode: 'classic',    description: 'May — peak competition under the blazing sun.',       winRewards: { xp: 540, coins: 270 }, loseRewards: { xp: 130, coins: 55 }, creditsOnWin: 11, creditsOnLose: 3 },
+  { id: 'wave_cup',    name: 'Wave Cup',     emoji: '🌊', color: '#A6AEA7', mode: 'blitz',      description: 'June — blitz at high tide.',                         winRewards: { xp: 540, coins: 270 }, loseRewards: { xp: 130, coins: 55 }, creditsOnWin: 11, creditsOnLose: 3 },
+  { id: 'inferno_cup', name: 'Inferno Cup',  emoji: '🔥', color: '#BB7865', mode: 'chaos',      description: 'July — summer heat, fierce battles.',                winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
+  { id: 'thunder_cup', name: 'Thunder Cup',  emoji: '⚡', color: '#A6AEA7', mode: 'six_player', description: 'August — six players, one winner.',                   winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
+  { id: 'harvest_cup', name: 'Harvest Cup',  emoji: '🍂', color: '#BB7865', mode: 'classic',    description: 'September — reap the rewards of your grind.',        winRewards: { xp: 540, coins: 270 }, loseRewards: { xp: 130, coins: 55 }, creditsOnWin: 11, creditsOnLose: 3 },
+  { id: 'shadow_cup',  name: 'Shadow Cup',   emoji: '🎃', color: '#A6AEA7', mode: 'chaos',      description: 'October — haunted arena chaos.',                     winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
+  { id: 'eclipse_cup', name: 'Eclipse Cup',  emoji: '🌙', color: '#A6AEA7', mode: 'blitz',      description: 'November — night falls, only one survives.',         winRewards: { xp: 560, coins: 280 }, loseRewards: { xp: 135, coins: 58 }, creditsOnWin: 12, creditsOnLose: 4 },
+  { id: 'winter_cup',  name: 'Winter Cup',   emoji: '🎄', color: '#A6AEA7', mode: 'classic',    description: 'December — end the year as champion.',               winRewards: { xp: 600, coins: 300 }, loseRewards: { xp: 150, coins: 65 }, creditsOnWin: 15, creditsOnLose: 5 },
 ];
 
 const ANNUAL_CUP_BASE: EventBase = {
-  id: 'grand_prix', name: 'GoldRush Grand Prix', emoji: '🏆', color: '#FFD700', mode: 'classic',
+  id: 'grand_prix', name: 'GoldRush Grand Prix', emoji: '🏆', color: '#D0AF66', mode: 'classic',
   description: 'The ultimate annual championship. Every arena warrior competes for glory, massive rewards, and the prestigious Grand Prix title.',
   winRewards: { xp: 2000, coins: 1000 }, loseRewards: { xp: 400, coins: 150 }, creditsOnWin: 50, creditsOnLose: 10,
 };
@@ -408,14 +410,14 @@ export interface ArenaMap {
 }
 
 export const MAPS: ArenaMap[] = [
-  { id: 'dustbowl',     name: 'Dust Bowl',       icon: '🏜️', unlockRankIndex: 0, accent: '#C8820A', bg: ['#0D0A06','#181208','#0D0A06'], arenaBg: ['#0A0804','#1A1008','#0A0804'], desc: 'Sun-baked prospector flats where every legend begins.' },
-  { id: 'coppercanyon', name: 'Copper Canyon',   icon: '🪨', unlockRankIndex: 1, accent: '#D07018', bg: ['#120A04','#221206','#120A04'], arenaBg: ['#140A04','#241408','#140A04'], desc: 'Burnished canyon walls glowing in the dusk light.' },
-  { id: 'ironfoundry',  name: 'Iron Foundry',    icon: '⚙️', unlockRankIndex: 2, accent: '#C0C0C0', bg: ['#0A0A0C','#16161A','#0A0A0C'], arenaBg: ['#0C0C0E','#1A1A20','#0C0C0E'], desc: 'Molten steel runs hot — and the ball runs hotter.', mods: { startSpeedMult: 1.1 } },
-  { id: 'emeraldmire',  name: 'Emerald Mire',    icon: '☣️', unlockRankIndex: 3, accent: '#4A8A38', bg: ['#04120A','#08240F','#04120A'], arenaBg: ['#04140A','#082810','#04140A'], desc: 'A toxic swamp thick with salvage and danger.', mods: { ballSpawnFrames: 660 } },
-  { id: 'cobaltdepths', name: 'Cobalt Depths',   icon: '🔷', unlockRankIndex: 4, accent: '#1E8AAA', bg: ['#04101A','#06203A','#04101A'], arenaBg: ['#04121E','#063050','#04121E'], desc: 'Deep steel-blue caverns. Cold, fast, merciless.', mods: { startSpeedMult: 1.15 } },
-  { id: 'crimsonforge', name: 'Crimson Forge',   icon: '🔥', unlockRankIndex: 5, accent: '#C03820', bg: ['#1A0402','#300806','#1A0402'], arenaBg: ['#1E0604','#380A06','#1E0604'], desc: 'The anvil of champions, lit by iron-red flame.', mods: { ballSpawnFrames: 660, startSpeedMult: 1.1 } },
-  { id: 'obsidianspire',name: 'Obsidian Spire',  icon: '🌑', unlockRankIndex: 6, accent: '#7A50A0', bg: ['#0A0414','#160A28','#0A0414'], arenaBg: ['#0C0618','#1A0C30','#0C0618'], desc: 'A blackglass tower where only masters tread.', mods: { startSpeedMult: 1.2 } },
-  { id: 'motherlode',   name: 'The Mother Lode', icon: '👑', unlockRankIndex: 7, accent: '#FFD700', bg: ['#1A1200','#2A2000','#1A1200'], arenaBg: ['#1E1500','#322600','#1E1500'], desc: 'The legendary golden vault — winner takes everything.', mods: { startSpeedMult: 1.15, ballSpawnFrames: 720 } },
+  { id: 'dustbowl',     name: 'Dust Bowl',       icon: '🏜️', unlockRankIndex: 0, accent: '#BB7865', bg: ['#191B19','#191B19','#191B19'], arenaBg: ['#191B19','#191B19','#191B19'], desc: 'Sun-baked prospector flats where every legend begins.' },
+  { id: 'coppercanyon', name: 'Copper Canyon',   icon: '🪨', unlockRankIndex: 1, accent: '#BB7865', bg: ['#191B19','#191B19','#191B19'], arenaBg: ['#191B19','#191B19','#191B19'], desc: 'Burnished canyon walls glowing in the dusk light.' },
+  { id: 'ironfoundry',  name: 'Iron Foundry',    icon: '⚙️', unlockRankIndex: 2, accent: '#B9BDAF', bg: ['#191B19','#191B19','#191B19'], arenaBg: ['#191B19','#222520','#191B19'], desc: 'Molten steel runs hot — and the ball runs hotter.', mods: { startSpeedMult: 1.1 } },
+  { id: 'emeraldmire',  name: 'Emerald Mire',    icon: '☣️', unlockRankIndex: 3, accent: '#98A581', bg: ['#191B19','#191B19','#191B19'], arenaBg: ['#191B19','#191B19','#191B19'], desc: 'A toxic swamp thick with salvage and danger.', mods: { ballSpawnFrames: 660 } },
+  { id: 'cobaltdepths', name: 'Cobalt Depths',   icon: '🔷', unlockRankIndex: 4, accent: '#A6AEA7', bg: ['#191B19','#222520','#191B19'], arenaBg: ['#191B19','#A6AEA7','#191B19'], desc: 'Deep steel-blue caverns. Cold, fast, merciless.', mods: { startSpeedMult: 1.15 } },
+  { id: 'crimsonforge', name: 'Crimson Forge',   icon: '🔥', unlockRankIndex: 5, accent: '#BB7865', bg: ['#191B19','#191B19','#191B19'], arenaBg: ['#191B19','#222520','#191B19'], desc: 'The anvil of champions, lit by iron-red flame.', mods: { ballSpawnFrames: 660, startSpeedMult: 1.1 } },
+  { id: 'obsidianspire',name: 'Obsidian Spire',  icon: '🌑', unlockRankIndex: 6, accent: '#A6AEA7', bg: ['#191B19','#222520','#191B19'], arenaBg: ['#191B19','#222520','#191B19'], desc: 'A blackglass tower where only masters tread.', mods: { startSpeedMult: 1.2 } },
+  { id: 'motherlode',   name: 'The Mother Lode', icon: '👑', unlockRankIndex: 7, accent: '#D0AF66', bg: ['#191B19','#222520','#191B19'], arenaBg: ['#191B19','#222520','#191B19'], desc: 'The legendary golden vault — winner takes everything.', mods: { startSpeedMult: 1.15, ballSpawnFrames: 720 } },
 ];
 
 export function getMap(id: string | undefined | null): ArenaMap {
@@ -519,7 +521,7 @@ export function getStreakReward(streak: number) {
 
 // ─── Avatar options ────────────────────────────────────────────────────────────
 export const AVATAR_EMOJIS  = ['🎮','⚡','🔥','💀','🦁','👑','🐉','💎'];
-export const AVATAR_COLORS  = ['#FFD700','#FF4757','#00BFFF','#00FF88','#BF5FFF','#FF6B35','#FF69B4','#C0C0C0'];
+export const AVATAR_COLORS  = ['#D0AF66','#BB7865','#A6AEA7','#98A581','#A6AEA7','#BB7865','#BB7865','#B9BDAF'];
 
 // ─── Challenge code ────────────────────────────────────────────────────────────
 export function getChallengeCode(username: string): string {
@@ -552,11 +554,11 @@ export interface LuckyBlockReward {
 }
 
 export const LUCKY_BLOCK_META: Record<LuckyBlockTier, { name: string; emoji: string; color: string }> = {
-  rare:      { name: 'Rush Crate',    emoji: '📦', color: '#3399FF' },
-  epic:      { name: 'Storm Vault',   emoji: '⚡', color: '#AA44FF' },
-  mythic:    { name: 'Shadow Coffer', emoji: '🔮', color: '#FF44CC' },
-  legendary: { name: 'Dragon Cache', emoji: '🔥', color: '#FF6622' },
-  ultra:     { name: 'Nexus Core',   emoji: '💎', color: '#00EEFF' },
+  rare:      { name: 'Rush Crate',    emoji: '📦', color: '#A6AEA7' },
+  epic:      { name: 'Storm Vault',   emoji: '⚡', color: '#A6AEA7' },
+  mythic:    { name: 'Shadow Coffer', emoji: '🔮', color: '#A6AEA7' },
+  legendary: { name: 'Dragon Cache', emoji: '🔥', color: '#BB7865' },
+  ultra:     { name: 'Nexus Core',   emoji: '💎', color: '#A6AEA7' },
 };
 
 const LB_TIER_ORDER: LuckyBlockTier[] = ['rare', 'epic', 'mythic', 'legendary', 'ultra'];
@@ -802,7 +804,7 @@ export async function loginAccount(username: string, avatarEmoji: string, avatar
   await AsyncStorage.setItem(CURRENT_KEY, username);
   const accounts = await getSavedAccounts();
   const existing = accounts.findIndex(a => a.username === username);
-  const meta: SavedAccountMeta = { username, avatarEmoji, avatarColor, rank: 'Bronze', lastPlayed: Date.now() };
+  const meta: SavedAccountMeta = { username, avatarEmoji, avatarColor, rank: 'Bronze 1', lastPlayed: Date.now() };
   if (existing >= 0) accounts[existing] = { ...accounts[existing], lastPlayed: Date.now() };
   else accounts.unshift(meta);
   await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts.slice(0, 10)));
@@ -920,12 +922,12 @@ export interface MatchResult {
 }
 
 const DEFAULT_PROFILE: PlayerProfile = {
-  name: 'Player', xp: 0, level: 1, rank: 'Bronze', coins: 200,
+  name: 'Player', xp: 0, level: 1, rank: 'Bronze 1', coins: 200,
   wins: 0, losses: 0, totalGames: 0, totalDeflections: 0, totalPowerups: 0,
   ownedSkins: ['default'], currentSkin: 'default', achievements: [],
   winStreak: 0, bestStreak: 0, matchHistory: [],
   loginStreak: 0, lastLoginDate: '', streakBonusClaimed: false,
-  avatarEmoji: '🎮', avatarFrameColor: '#FFD700',
+  avatarEmoji: '🎮', avatarFrameColor: '#D0AF66',
   seasonPassClaimed: [],
   competitiveLevel: 1, highestLevel: 1,
   ownedThemes: ['default'], currentArenaTheme: 'default',
@@ -1094,6 +1096,13 @@ export function PlayerProvider({ username, onLogout, children }: {
       let base = { ...DEFAULT_PROFILE, name: username };
       if (raw) {
         try { base = { ...base, ...JSON.parse(raw) }; } catch { /* ignore */ }
+      }
+      base.rank = getRankFromXP(base.xp);
+      // Repair skins that older builds marked as claimed without delivering.
+      for (const index of base.seasonPassClaimed ?? []) {
+        const tier = SEASON_TIERS[index];
+        const skin = tier && base.totalGames >= tier.games ? seasonSkinForMilestone(tier.games) : null;
+        if (skin) base.ownedSkins = [...new Set([...base.ownedSkins, skin])];
       }
       // Daily streak logic on load
       const today = todayStr();
@@ -1309,10 +1318,14 @@ export function PlayerProvider({ username, onLogout, children }: {
   const claimSeasonTier = useCallback(async (tierIdx: number): Promise<LuckyBlock | null> => {
     if (profile.seasonPassClaimed.includes(tierIdx)) return null;
     const tier = SEASON_TIERS[tierIdx];
-    if (!tier) return null;
+    if (!tier || !canClaimSeasonTier(tierIdx, profile.totalGames, SEASON_TIERS.map(t => t.games), profile.seasonPassClaimed)) return null;
     let updated = { ...profile, seasonPassClaimed: [...profile.seasonPassClaimed, tierIdx] };
     let earnedBlock: LuckyBlock | null = null;
     if (tier.coinReward > 0) updated = { ...updated, coins: updated.coins + tier.coinReward };
+    const skin = seasonSkinForMilestone(tier.games);
+    if (skin) {
+      updated = { ...updated, ownedSkins: [...new Set([...updated.ownedSkins, skin])] };
+    }
     if (tier.luckyBlockTier) {
       earnedBlock = { id: Date.now().toString(36) + 'sp', tier: tier.luckyBlockTier, source: 'season_pass' };
       updated = { ...updated, luckyBlocks: [...(updated.luckyBlocks ?? []), earnedBlock] };
@@ -1502,9 +1515,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       // Check server for purchase codes (GR-XXXXXX-XXXX format)
       if (/^GR-[0-9A-F]+-[0-9A-F]+$/i.test(normalized)) {
         try {
-          const apiBase = typeof window !== 'undefined' && window.location
-            ? '/api'
-            : `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
+          const apiBase = apiUrl('');
           const resp = await fetch(`${apiBase}/store/verify-code`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

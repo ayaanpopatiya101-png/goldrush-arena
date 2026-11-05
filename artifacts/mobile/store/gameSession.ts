@@ -57,8 +57,8 @@ export interface GameSessionConfig {
 let _config: GameSessionConfig = {
   playerName:      'Player',
   playerSkinId:    'default',
-  playerColor:     '#FFD700',
-  playerGlowColor: '#FFD70055',
+  playerColor:     '#D0AF66',
+  playerGlowColor: '#D0AF6655',
   matchType:       'ranked',
   variant:         'classic',
   playerRelicId:   'none',

@@ -1,10 +1,12 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text, AnimatedText } from '@/components/ui/Text';
 /**
  * GlowText — neon glow text effect.
  * Web: textShadow CSS (multi-layer authentic neon).
  * Native: shadow* props on wrapping View (iOS) + blurred duplicate layer.
  */
 import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, StyleSheet, Text, TextProps, View } from 'react-native';
+import { Animated, Platform, StyleSheet, TextProps, View } from 'react-native';
 
 export interface GlowTextProps extends TextProps {
   color?: string;
@@ -18,7 +20,7 @@ export interface GlowTextProps extends TextProps {
 }
 
 export function GlowText({
-  color = '#FFD700',
+  color = '#D0AF66',
   glowColor,
   intensity = 'medium',
   pulse = false,
@@ -32,7 +34,7 @@ export function GlowText({
 
   useEffect(() => {
     if (!pulse) return;
-    const anim = Animated.loop(
+    const anim = idleAnimation(
       Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 0.45, duration: 1400, useNativeDriver: true }),
         Animated.timing(pulseAnim, { toValue: 1,    duration: 1400, useNativeDriver: true }),
@@ -56,7 +58,7 @@ export function GlowText({
 
     const webStyle = {
       color,
-      textShadow: shadows,
+      textShadow: 'none',
       ...glitchStyle,
     };
 
@@ -67,18 +69,18 @@ export function GlowText({
           <style>{`
             @keyframes glitch {
               0%,94%,100% { text-shadow: ${shadows}; }
-              95% { text-shadow: 3px 0 0 #FF0044, -3px 0 0 #00FFFF, ${shadows}; transform: translateX(2px); }
-              97% { text-shadow: -3px 0 0 #FF0044, 3px 0 0 #00FFFF, ${shadows}; transform: translateX(-2px); }
+              95% { text-shadow: 3px 0 0 #BB7865, -3px 0 0 #A6AEA7, ${shadows}; transform: translateX(2px); }
+              97% { text-shadow: -3px 0 0 #BB7865, 3px 0 0 #A6AEA7, ${shadows}; transform: translateX(-2px); }
               98% { text-shadow: ${shadows}; transform: translateX(0); }
             }
           `}</style>
         )}
-        <Animated.Text
+        <AnimatedText
           style={[style, webStyle as any, pulse && { opacity: pulseAnim }]}
           {...rest}
         >
           {children}
-        </Animated.Text>
+        </AnimatedText>
       </>
     );
   }
@@ -93,8 +95,8 @@ export function GlowText({
         styles.wrap,
         {
           shadowColor: gc,
-          shadowRadius: shadowRadius[intensity],
-          shadowOpacity: shadowOpacity[intensity],
+          shadowRadius: 0,
+          shadowOpacity: 0,
           shadowOffset: { width: 0, height: 0 },
         },
         pulse && { opacity: pulseAnim },
