@@ -1,8 +1,9 @@
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -118,12 +119,12 @@ export default function LegalScreen() {
 
   return (
     <Reanimated.View entering={FadeIn.duration(350)} style={{ flex: 1 }}>
-      <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#191B19', '#222520', '#191B19']} style={StyleSheet.absoluteFill} />
 
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
         <Pressable onPress={() => router.back()} style={s.back}>
-          <Feather name="arrow-left" size={22} color="#F0F0FF" />
+          <Feather name="arrow-left" size={22} color="#EEE7D8" />
         </Pressable>
         <Text style={s.title}>LEGAL</Text>
         <View style={{ width: 40 }} />
@@ -169,28 +170,28 @@ const s = StyleSheet.create({
     paddingHorizontal: 20, paddingBottom: 16,
   },
   back:  { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  title: { fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 2, color: '#F0F0FF' },
+  title: { fontFamily: 'System', fontSize: 16, letterSpacing: 2, color: '#EEE7D8' },
 
   tabRow: {
     flexDirection: 'row', marginHorizontal: 20, marginBottom: 16,
-    backgroundColor: '#FFFFFF0C', borderRadius: 14, padding: 4,
+    backgroundColor: '#EEE7D80C', borderRadius: 2, padding: 4,
   },
-  tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 11 },
-  tabBtnActive: { backgroundColor: '#C8820A22', borderWidth: 1, borderColor: '#C8820A55' },
-  tabText: { fontFamily: 'Inter_600SemiBold', fontSize: 12, letterSpacing: 0.5, color: '#FFFFFF44' },
-  tabTextActive: { color: '#C8820A' },
+  tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 2 },
+  tabBtnActive: { backgroundColor: '#BB786522', borderWidth: 1, borderColor: '#BB786555' },
+  tabText: { fontFamily: 'System', fontSize: 12, letterSpacing: 0.5, color: '#EEE7D844' },
+  tabTextActive: { color: '#BB7865' },
 
   scrollContent: { paddingHorizontal: 20, gap: 16 },
   card: {
-    backgroundColor: '#FFFFFF07', borderRadius: 16, borderWidth: 1,
-    borderColor: '#FFFFFF11', padding: 18,
+    backgroundColor: '#EEE7D807', borderRadius: 2, borderWidth: 1,
+    borderColor: '#EEE7D811', padding: 18,
   },
   body: {
-    fontFamily: 'Inter_400Regular', fontSize: 13, color: '#FFFFFF99',
+    fontFamily: 'System', fontSize: 13, color: '#EEE7D899',
     lineHeight: 22,
   },
   footer: {
-    fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF22',
+    fontFamily: 'System', fontSize: 10, color: '#EEE7D822',
     textAlign: 'center',
   },
 });

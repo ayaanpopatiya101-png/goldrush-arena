@@ -1,3 +1,4 @@
+import { Text } from '@/components/ui/Text';
 /**
  * Match Highlights — full-screen reel of auto-detected exciting moments.
  *
@@ -13,13 +14,10 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Haptics    from 'expo-haptics';
 import * as Sharing    from 'expo-sharing';
-import { LinearGradient }   from 'expo-linear-gradient';
+import { LinearGradient }   from '@/components/ui/FlatSurface';
 import { router }           from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator, Alert, Image, Platform, Pressable,
-  ScrollView, StyleSheet, Text, View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Image, Platform, Pressable, ScrollView, StyleSheet, View,  } from 'react-native';
 import Reanimated, {
   FadeIn, FadeInDown, ZoomIn,
   useAnimatedStyle, useSharedValue, withSpring,
@@ -162,7 +160,7 @@ function ClipCard({
   return (
     <Reanimated.View entering={FadeInDown.delay(index * 120).springify()} style={mh.card}>
       <LinearGradient
-        colors={[`${tier.color}22`, '#0A0A14', '#0A0A14']}
+        colors={[`${tier.color}22`, '#191B19', '#191B19']}
         style={StyleSheet.absoluteFill}
       />
       {/* Accent top bar */}
@@ -234,7 +232,7 @@ function ClipCard({
           disabled={cardState === 'saved'}
           style={({ pressed }) => [mh.actionBtn, mh.saveBtn, cardState === 'saved' && mh.saveBtnDone, pressed && { opacity: 0.75 }]}
         >
-          <Reanimated.Text style={[mh.actionBtnText, saveStyle, cardState === 'saved' && { color: '#4ADE80' }]}>
+          <Reanimated.Text style={[mh.actionBtnText, saveStyle, cardState === 'saved' && { color: '#98A581' }]}>
             {cardState === 'saved' ? '✓ SAVED' : '💾 SAVE'}
           </Reanimated.Text>
         </Pressable>
@@ -301,7 +299,7 @@ export default function MatchHighlightsScreen() {
   if (events.length === 0) {
     return (
       <View style={[mh.root, { paddingTop: insets.top }]}>
-        <LinearGradient colors={['#080814', '#0D0D1C']} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={['#191B19', '#191B19']} style={StyleSheet.absoluteFill} />
         <View style={mh.header}>
           <Pressable onPress={() => router.back()} style={mh.backBtn}>
             <Text style={mh.backText}>‹ BACK</Text>
@@ -323,7 +321,7 @@ export default function MatchHighlightsScreen() {
 
   return (
     <View style={[mh.root, { paddingTop: insets.top }]}>
-      <LinearGradient colors={['#080814', '#0D0D1C']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#191B19', '#191B19']} style={StyleSheet.absoluteFill} />
 
       {/* ── Header ── */}
       <View style={mh.header}>
@@ -333,7 +331,7 @@ export default function MatchHighlightsScreen() {
         <View style={mh.headerCenter}>
           <Text style={mh.headerTitle}>MATCH HIGHLIGHTS</Text>
           <View style={mh.headerBadgeRow}>
-            <View style={[mh.headerBadge, { backgroundColor: bestGrade?.color ?? '#FFD700' }]}>
+            <View style={[mh.headerBadge, { backgroundColor: bestGrade?.color ?? '#D0AF66' }]}>
               <Text style={mh.headerBadgeText}>{bestGrade?.letter ?? 'C'}</Text>
             </View>
             <Text style={mh.headerSub}>{events.length} MOMENT{events.length > 1 ? 'S' : ''} DETECTED</Text>
@@ -361,8 +359,8 @@ export default function MatchHighlightsScreen() {
 
         {/* ── Total reward summary ── */}
         <Reanimated.View entering={FadeInDown.delay(events.length * 120 + 100).springify()} style={mh.totalCard}>
-          <LinearGradient colors={['#1A1200', '#0A0A14']} style={StyleSheet.absoluteFill} />
-          <View style={[mh.cardAccent, { backgroundColor: '#FFD700' }]} />
+          <LinearGradient colors={['#191B19', '#191B19']} style={StyleSheet.absoluteFill} />
+          <View style={[mh.cardAccent, { backgroundColor: '#D0AF66' }]} />
           <Text style={mh.totalTitle}>TOTAL MATCH REWARDS</Text>
           <View style={mh.totalRow}>
             <View style={mh.totalPill}>
@@ -390,73 +388,73 @@ export default function MatchHighlightsScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const mh = StyleSheet.create({
-  root:       { flex: 1, backgroundColor: '#080814' },
+  root:       { flex: 1, backgroundColor: '#191B19' },
 
   // Header
-  header:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#FFFFFF0A' },
+  header:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EEE7D80A' },
   backBtn:      { width: 64, justifyContent: 'center' },
-  backText:     { fontFamily: 'Rajdhani_700Bold', fontSize: 18, color: '#FFFFFF88', letterSpacing: 0.5 },
+  backText:     { fontFamily: 'Rajdhani_700Bold', fontSize: 18, color: '#EEE7D888', letterSpacing: 0.5 },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle:  { fontFamily: 'Rajdhani_700Bold', fontSize: 18, color: '#FFD700', letterSpacing: 2 },
+  headerTitle:  { fontFamily: 'Rajdhani_700Bold', fontSize: 18, color: '#D0AF66', letterSpacing: 2 },
   headerBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
-  headerBadge:    { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  headerBadge:    { width: 22, height: 22, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
   headerBadgeText:{ fontFamily: 'Rajdhani_700Bold', fontSize: 11, color: '#fff' },
-  headerSub:      { fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF55', letterSpacing: 1 },
+  headerSub:      { fontFamily: 'System', fontSize: 10, color: '#EEE7D855', letterSpacing: 1 },
   libBtn:         { width: 64, alignItems: 'flex-end', justifyContent: 'center' },
   libBtnText:     { fontSize: 22 },
 
   scroll: { padding: 16, gap: 14 },
 
   // Clip card
-  card:       { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#FFFFFF0A' },
+  card:       { borderRadius: 2, overflow: 'hidden', borderWidth: 1, borderColor: '#EEE7D80A' },
   cardAccent: { height: 3, width: '100%' },
   cardBody:   { flexDirection: 'row', padding: 14, gap: 14 },
 
   // Thumbnail
   thumbWrap:       { position: 'relative', width: 90, height: 90 },
-  thumb:           { width: 90, height: 90, borderRadius: 10 },
-  thumbPlaceholder:{ backgroundColor: '#1A1A2E', alignItems: 'center', justifyContent: 'center' },
-  gradeBadge:      { position: 'absolute', top: -6, right: -6, width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#0A0A14' },
+  thumb:           { width: 90, height: 90, borderRadius: 2 },
+  thumbPlaceholder:{ backgroundColor: '#222520', alignItems: 'center', justifyContent: 'center' },
+  gradeBadge:      { position: 'absolute', top: -6, right: -6, width: 28, height: 28, borderRadius: 2, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#191B19' },
   gradeText:       { fontFamily: 'Rajdhani_700Bold', fontSize: 12, color: '#fff' },
 
   // Card info
   cardInfo:   { flex: 1, justifyContent: 'space-between' },
   labelRow:   { flexDirection: 'row', alignItems: 'center', gap: 6 },
   eventEmoji: { fontSize: 18 },
-  eventLabel: { fontFamily: 'Rajdhani_700Bold', fontSize: 15, color: '#FFFFFF', letterSpacing: 1 },
-  gradeName:  { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 0.5, marginTop: 2 },
+  eventLabel: { fontFamily: 'Rajdhani_700Bold', fontSize: 15, color: '#EEE7D8', letterSpacing: 1 },
+  gradeName:  { fontFamily: 'System', fontSize: 11, letterSpacing: 0.5, marginTop: 2 },
   starsRow:   { flexDirection: 'row', gap: 2, marginTop: 4 },
-  star:       { fontSize: 12, color: '#FFD700', opacity: 0.2 },
+  star:       { fontSize: 12, color: '#D0AF66', opacity: 0.2 },
   rewardRow:  { flexDirection: 'row', gap: 10, marginTop: 6 },
-  rewardCoin: { fontFamily: 'Inter_700Bold', fontSize: 11, color: '#FFD700' },
-  rewardXp:   { fontFamily: 'Inter_700Bold', fontSize: 11, color: '#C084FC' },
+  rewardCoin: { fontFamily: 'System', fontSize: 11, color: '#D0AF66' },
+  rewardXp:   { fontFamily: 'System', fontSize: 11, color: '#A6AEA7' },
 
   // Action row
   actions:       { flexDirection: 'row', paddingHorizontal: 14, paddingBottom: 14, gap: 8 },
-  actionBtn:     { flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  actionBtn:     { flex: 1, paddingVertical: 9, borderRadius: 2, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   actionBtnText: { fontFamily: 'Rajdhani_700Bold', fontSize: 12, letterSpacing: 0.5, color: '#fff' },
-  editBtn:       { borderColor: '#FFFFFF20', backgroundColor: '#FFFFFF08' },
+  editBtn:       { borderColor: '#EEE7D820', backgroundColor: '#EEE7D808' },
   shareBtn:      { borderColor: 'transparent' },
   shareBtnText:  { fontFamily: 'Rajdhani_700Bold', fontSize: 12, letterSpacing: 0.5, color: '#fff' },
-  saveBtn:       { borderColor: '#FFFFFF20', backgroundColor: '#FFFFFF08' },
-  saveBtnDone:   { borderColor: '#4ADE8040', backgroundColor: '#4ADE8015' },
+  saveBtn:       { borderColor: '#EEE7D820', backgroundColor: '#EEE7D808' },
+  saveBtnDone:   { borderColor: '#98A58140', backgroundColor: '#98A58115' },
 
   // Total card
-  totalCard:  { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#FFD70022', padding: 18, alignItems: 'center', gap: 12 },
-  totalTitle: { fontFamily: 'Rajdhani_700Bold', fontSize: 14, color: '#FFD700', letterSpacing: 2 },
+  totalCard:  { borderRadius: 2, overflow: 'hidden', borderWidth: 1, borderColor: '#D0AF6622', padding: 18, alignItems: 'center', gap: 12 },
+  totalTitle: { fontFamily: 'Rajdhani_700Bold', fontSize: 14, color: '#D0AF66', letterSpacing: 2 },
   totalRow:   { flexDirection: 'row', gap: 12 },
-  totalPill:  { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#FFD70015', borderWidth: 1, borderColor: '#FFD70030' },
-  totalPillText: { fontFamily: 'Rajdhani_700Bold', fontSize: 15, color: '#FFD700', letterSpacing: 1 },
-  totalNote:  { fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF44', textAlign: 'center' },
+  totalPill:  { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 2, backgroundColor: '#D0AF6615', borderWidth: 1, borderColor: '#D0AF6630' },
+  totalPillText: { fontFamily: 'Rajdhani_700Bold', fontSize: 15, color: '#D0AF66', letterSpacing: 1 },
+  totalNote:  { fontFamily: 'System', fontSize: 10, color: '#EEE7D844', textAlign: 'center' },
 
   // Library button
-  libraryBtn:     { borderRadius: 12, borderWidth: 1, borderColor: '#FFFFFF15', paddingVertical: 14, alignItems: 'center', backgroundColor: '#FFFFFF05' },
-  libraryBtnText: { fontFamily: 'Rajdhani_700Bold', fontSize: 13, color: '#FFFFFF66', letterSpacing: 1 },
+  libraryBtn:     { borderRadius: 2, borderWidth: 1, borderColor: '#EEE7D815', paddingVertical: 14, alignItems: 'center', backgroundColor: '#EEE7D805' },
+  libraryBtnText: { fontFamily: 'Rajdhani_700Bold', fontSize: 13, color: '#EEE7D866', letterSpacing: 1 },
 
   // Empty state
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   emptyTitle: { fontFamily: 'Rajdhani_700Bold', fontSize: 22, color: '#fff', marginBottom: 8 },
-  emptySub:   { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#FFFFFF66', textAlign: 'center', lineHeight: 20 },
-  emptyBtn:   { marginTop: 24, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#FFD70040', backgroundColor: '#FFD70010' },
-  emptyBtnText: { fontFamily: 'Rajdhani_700Bold', fontSize: 14, color: '#FFD700', letterSpacing: 1 },
+  emptySub:   { fontFamily: 'System', fontSize: 13, color: '#EEE7D866', textAlign: 'center', lineHeight: 20 },
+  emptyBtn:   { marginTop: 24, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 2, borderWidth: 1, borderColor: '#D0AF6640', backgroundColor: '#D0AF6610' },
+  emptyBtnText: { fontFamily: 'Rajdhani_700Bold', fontSize: 14, color: '#D0AF66', letterSpacing: 1 },
 });

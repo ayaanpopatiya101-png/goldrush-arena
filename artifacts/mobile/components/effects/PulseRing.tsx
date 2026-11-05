@@ -1,3 +1,4 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
 /**
  * PulseRing — expanding concentric rings radiating outward from a center point.
  * Great for active tab indicators, milestone slots, "ready" states, VIP badges.
@@ -26,7 +27,7 @@ function Ring({
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      Animated.loop(
+      idleAnimation(
         Animated.timing(anim, { toValue: 1, duration, useNativeDriver: true })
       ).start();
     }, delay);
@@ -53,7 +54,7 @@ function Ring({
 }
 
 export function PulseRing({
-  color = '#C8820A',
+  color = '#BB7865',
   size = 48,
   rings = 3,
   duration = 1800,

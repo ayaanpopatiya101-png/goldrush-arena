@@ -1,10 +1,11 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
 /**
  * FloatingOrbs — large, slow-pulsing gradient blobs used as ambient background.
  * Place behind all other content with pointerEvents="none" / zIndex: 0.
  */
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Easing, StyleSheet, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -19,10 +20,10 @@ interface OrbConfig {
 }
 
 const DEFAULT_ORBS: OrbConfig[] = [
-  { x: -SW * 0.25, y: -SH * 0.1,  size: SW * 0.8, color: '#C8820A', dur: 8000,  delay: 0,    scaleRange: [0.9, 1.1] },
-  { x:  SW * 0.5,  y:  SH * 0.25, size: SW * 0.7, color: '#1E8AAA', dur: 11000, delay: 2000, scaleRange: [0.85, 1.05] },
-  { x: -SW * 0.1,  y:  SH * 0.5,  size: SW * 0.6, color: '#C03820', dur: 9500,  delay: 4000, scaleRange: [0.9, 1.08] },
-  { x:  SW * 0.3,  y:  SH * 0.7,  size: SW * 0.55,color: '#4A8A38', dur: 13000, delay: 1000, scaleRange: [0.88, 1.06] },
+  { x: -SW * 0.25, y: -SH * 0.1,  size: SW * 0.8, color: '#BB7865', dur: 8000,  delay: 0,    scaleRange: [0.9, 1.1] },
+  { x:  SW * 0.5,  y:  SH * 0.25, size: SW * 0.7, color: '#A6AEA7', dur: 11000, delay: 2000, scaleRange: [0.85, 1.05] },
+  { x: -SW * 0.1,  y:  SH * 0.5,  size: SW * 0.6, color: '#BB7865', dur: 9500,  delay: 4000, scaleRange: [0.9, 1.08] },
+  { x:  SW * 0.3,  y:  SH * 0.7,  size: SW * 0.55,color: '#98A581', dur: 13000, delay: 1000, scaleRange: [0.88, 1.06] },
 ];
 
 function Orb({ cfg }: { cfg: OrbConfig }) {
@@ -30,7 +31,7 @@ function Orb({ cfg }: { cfg: OrbConfig }) {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      Animated.loop(
+      idleAnimation(
         Animated.sequence([
           Animated.timing(anim, { toValue: 1, duration: cfg.dur,     useNativeDriver: true, easing: Easing.inOut(Easing.sin) }),
           Animated.timing(anim, { toValue: 0, duration: cfg.dur,     useNativeDriver: true, easing: Easing.inOut(Easing.sin) }),
@@ -92,18 +93,18 @@ export function FloatingOrbs({ orbs = DEFAULT_ORBS, opacity = 1 }: FloatingOrbsP
 
 /** Preset for purple/arcane screens (Battle Pass, Inventory premium) */
 export const ORBS_ARCANE: OrbConfig[] = [
-  { x: -SW * 0.2,  y: -SH * 0.05, size: SW * 0.8, color: '#7C3AED', dur: 8000,  delay: 0,    scaleRange: [0.9, 1.1] },
-  { x:  SW * 0.55, y:  SH * 0.3,  size: SW * 0.65,color: '#4F46E5', dur: 11000, delay: 2500, scaleRange: [0.85, 1.05] },
-  { x:  SW * 0.1,  y:  SH * 0.6,  size: SW * 0.55,color: '#EC4899', dur: 9500,  delay: 4500, scaleRange: [0.9, 1.08] },
-  { x:  SW * 0.7,  y:  SH * 0.75, size: SW * 0.5, color: '#06B6D4', dur: 12000, delay: 1500, scaleRange: [0.88, 1.06] },
+  { x: -SW * 0.2,  y: -SH * 0.05, size: SW * 0.8, color: '#A6AEA7', dur: 8000,  delay: 0,    scaleRange: [0.9, 1.1] },
+  { x:  SW * 0.55, y:  SH * 0.3,  size: SW * 0.65,color: '#A6AEA7', dur: 11000, delay: 2500, scaleRange: [0.85, 1.05] },
+  { x:  SW * 0.1,  y:  SH * 0.6,  size: SW * 0.55,color: '#BB7865', dur: 9500,  delay: 4500, scaleRange: [0.9, 1.08] },
+  { x:  SW * 0.7,  y:  SH * 0.75, size: SW * 0.5, color: '#A6AEA7', dur: 12000, delay: 1500, scaleRange: [0.88, 1.06] },
 ];
 
 /** Preset for gold/shop screens */
 export const ORBS_GOLD: OrbConfig[] = [
-  { x: -SW * 0.15, y: -SH * 0.08, size: SW * 0.75,color: '#F59E0B', dur: 9000,  delay: 0,    scaleRange: [0.88, 1.12] },
-  { x:  SW * 0.6,  y:  SH * 0.2,  size: SW * 0.6, color: '#C8820A', dur: 12000, delay: 2000, scaleRange: [0.85, 1.05] },
-  { x:  SW * 0.2,  y:  SH * 0.55, size: SW * 0.5, color: '#EF4444', dur: 10500, delay: 3500, scaleRange: [0.9, 1.08] },
-  { x:  SW * 0.75, y:  SH * 0.7,  size: SW * 0.45,color: '#D97706', dur: 13000, delay: 1000, scaleRange: [0.88, 1.06] },
+  { x: -SW * 0.15, y: -SH * 0.08, size: SW * 0.75,color: '#BB7865', dur: 9000,  delay: 0,    scaleRange: [0.88, 1.12] },
+  { x:  SW * 0.6,  y:  SH * 0.2,  size: SW * 0.6, color: '#BB7865', dur: 12000, delay: 2000, scaleRange: [0.85, 1.05] },
+  { x:  SW * 0.2,  y:  SH * 0.55, size: SW * 0.5, color: '#BB7865', dur: 10500, delay: 3500, scaleRange: [0.9, 1.08] },
+  { x:  SW * 0.75, y:  SH * 0.7,  size: SW * 0.45,color: '#BB7865', dur: 13000, delay: 1000, scaleRange: [0.88, 1.06] },
 ];
 
 export type { OrbConfig };

@@ -1,3 +1,4 @@
+import { Text } from '@/components/ui/Text';
 /**
  * ShareCard — viral post-game share overlay.
  *
@@ -8,11 +9,9 @@
  */
 
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 import React, { useEffect, useRef } from 'react';
-import {
-  Animated, Modal, Platform, Pressable, Share, StyleSheet, Text, View,
-} from 'react-native';
+import { Animated, Modal, Platform, Pressable, Share, StyleSheet, View,  } from 'react-native';
 import Reanimated, { FadeIn, FadeOut, ZoomIn } from 'react-native-reanimated';
 import { GlowText } from '@/components/effects';
 import { buildChallengeLink } from '@/utils/dailyChallenge';
@@ -72,12 +71,12 @@ export function ShareCard({
           {/* Card body — screenshot-able */}
           <View style={styles.card}>
             <LinearGradient
-              colors={['#0A0F20', '#0D1830', '#080C18']}
+              colors={['#191B19', '#222520', '#191B19']}
               style={StyleSheet.absoluteFill}
             />
             {/* Gold top border */}
             <LinearGradient
-              colors={['#C8820A', '#FFD700', '#C8820A']}
+              colors={['#BB7865', '#D0AF66', '#BB7865']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.topBorder}
             />
@@ -91,7 +90,7 @@ export function ShareCard({
             {/* Score hero */}
             <View style={styles.scoreSection}>
               <Text style={styles.survivedLabel}>I SURVIVED</Text>
-              <GlowText intensity="strong" color="#FFD700" style={styles.scoreNumber}>
+              <GlowText intensity="strong" color="#D0AF66" style={styles.scoreNumber}>
                 {score}
               </GlowText>
               <Text style={styles.hitsLabel}>HIT{score !== 1 ? 'S' : ''}</Text>
@@ -112,7 +111,7 @@ export function ShareCard({
               )}
               {dailyRank && totalPlayers > 1 && (
                 <View style={styles.statItem}>
-                  <Text style={[styles.statValue, { color: '#C8820A' }]}>
+                  <Text style={[styles.statValue, { color: '#BB7865' }]}>
                     #{dailyRank}
                   </Text>
                   <Text style={styles.statLabel}>OF {totalPlayers} TODAY</Text>
@@ -131,7 +130,7 @@ export function ShareCard({
 
           {/* Action buttons */}
           <Pressable onPress={handleShare} style={styles.shareBtn}>
-            <LinearGradient colors={['#F0A428', '#C8820A']} style={styles.shareBtnGrad}>
+            <LinearGradient colors={['#BB7865', '#BB7865']} style={styles.shareBtnGrad}>
               <Text style={styles.shareBtnText}>📤  SHARE &amp; CHALLENGE</Text>
             </LinearGradient>
           </Pressable>
@@ -146,13 +145,13 @@ export function ShareCard({
 }
 
 const styles = StyleSheet.create({
-  backdrop:     { backgroundColor: '#000000CC' },
+  backdrop:     { backgroundColor: '#191B19CC' },
   centerer:     { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
   cardWrap:     { width: '100%', maxWidth: 360, gap: 10 },
 
   card: {
-    borderRadius: 20, overflow: 'hidden',
-    borderWidth: 1.5, borderColor: '#C8820A44',
+    borderRadius: 2, overflow: 'hidden',
+    borderWidth: 1.5, borderColor: '#BB786544',
     paddingHorizontal: 24, paddingBottom: 24, paddingTop: 0,
     alignItems: 'center', gap: 0,
   },
@@ -160,33 +159,33 @@ const styles = StyleSheet.create({
 
   logoRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   logoEmoji:  { fontSize: 20 },
-  logoText:   { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 3, color: '#C8820A' },
+  logoText:   { fontFamily: 'System', fontSize: 11, letterSpacing: 3, color: '#BB7865' },
 
   scoreSection: { alignItems: 'center', gap: 0 },
-  survivedLabel: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 4, color: '#FFFFFF55', marginBottom: 4 },
+  survivedLabel: { fontFamily: 'System', fontSize: 11, letterSpacing: 4, color: '#EEE7D855', marginBottom: 4 },
   scoreNumber: {
     fontFamily: 'Rajdhani_700Bold', fontSize: 96, lineHeight: 96,
-    color: '#FFD700',
-    textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24,
+    color: '#D0AF66',
+    textShadowColor: '#BB7865', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0,
   },
-  hitsLabel:  { fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 5, color: '#FFFFFF88', marginTop: -8 },
+  hitsLabel:  { fontFamily: 'System', fontSize: 18, letterSpacing: 5, color: '#EEE7D888', marginTop: -8 },
 
-  divider: { width: '80%', height: 1, backgroundColor: '#FFFFFF11', marginVertical: 16 },
+  divider: { width: '80%', height: 1, backgroundColor: '#EEE7D811', marginVertical: 16 },
 
   statsRow:   { flexDirection: 'row', gap: 32, justifyContent: 'center', marginBottom: 16 },
   statItem:   { alignItems: 'center', gap: 4 },
-  statValue:  { fontFamily: 'Inter_700Bold', fontSize: 22, color: '#00FF88' },
-  statLabel:  { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 2, color: '#FFFFFF44' },
+  statValue:  { fontFamily: 'System', fontSize: 22, color: '#98A581' },
+  statLabel:  { fontFamily: 'System', fontSize: 8, letterSpacing: 2, color: '#EEE7D844' },
 
-  ctaRow:     { backgroundColor: '#C8820A15', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A33', paddingHorizontal: 20, paddingVertical: 10, marginBottom: 12 },
-  ctaText:    { fontFamily: 'Rajdhani_700Bold', fontSize: 18, color: '#FFD700', letterSpacing: 1 },
+  ctaRow:     { backgroundColor: '#BB786515', borderRadius: 2, borderWidth: 1, borderColor: '#BB786533', paddingHorizontal: 20, paddingVertical: 10, marginBottom: 12 },
+  ctaText:    { fontFamily: 'Rajdhani_700Bold', fontSize: 18, color: '#D0AF66', letterSpacing: 1 },
 
-  playerTag:  { fontFamily: 'Inter_400Regular', fontSize: 12, color: '#FFFFFF44', fontStyle: 'italic' },
+  playerTag:  { fontFamily: 'System', fontSize: 12, color: '#EEE7D844', fontStyle: 'italic' },
 
-  shareBtn:     { borderRadius: 14, overflow: 'hidden', elevation: 8, shadowColor: '#C8820A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.6, shadowRadius: 18 },
+  shareBtn:     { borderRadius: 2, overflow: 'hidden', elevation: 0, shadowColor: '#BB7865', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0, shadowRadius: 0 },
   shareBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  shareBtnText: { fontFamily: 'Inter_700Bold', fontSize: 15, color: '#07090F', letterSpacing: 1 },
+  shareBtnText: { fontFamily: 'System', fontSize: 15, color: '#191B19', letterSpacing: 1 },
 
   closeBtn:     { alignItems: 'center', paddingVertical: 10 },
-  closeBtnText: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: '#FFFFFF44' },
+  closeBtnText: { fontFamily: 'System', fontSize: 13, color: '#EEE7D844' },
 });

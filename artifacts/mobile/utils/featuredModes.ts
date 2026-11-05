@@ -37,8 +37,8 @@ export const FEATURED_MODES: FeaturedMode[] = [
     name:       'Blitz Start',
     emoji:      '⚡',
     descriptor: 'Balls fly 35% faster — sharpen those reflexes',
-    color:      '#C8820A',
-    gradient:   ['#2A1800', '#18100A'],
+    color:      '#BB7865',
+    gradient:   ['#191B19', '#191B19'],
     startDay:   1, endDay: 2, // Mon–Tue
     overrides:  { ballSpeedFactor: 1.35 },
     ruleSummary: [
@@ -52,8 +52,8 @@ export const FEATURED_MODES: FeaturedMode[] = [
     name:       'XP Rush',
     emoji:      '🚀',
     descriptor: 'Double XP — climb ranks twice as fast',
-    color:      '#00FF88',
-    gradient:   ['#00180D', '#000E08'],
+    color:      '#98A581',
+    gradient:   ['#191B19', '#191B19'],
     startDay:   3, endDay: 4, // Wed–Thu
     overrides:  { xpMultiplier: 2.0 },
     ruleSummary: [
@@ -67,8 +67,8 @@ export const FEATURED_MODES: FeaturedMode[] = [
     name:       'Double Coins',
     emoji:      '🪙',
     descriptor: 'Earn 2× coins on every match this weekend',
-    color:      '#FFD700',
-    gradient:   ['#1A1400', '#100D00'],
+    color:      '#D0AF66',
+    gradient:   ['#191B19', '#191B19'],
     startDay:   5, endDay: 6, // Fri–Sat
     overrides:  { coinMultiplier: 2.0 },
     ruleSummary: [
@@ -82,8 +82,8 @@ export const FEATURED_MODES: FeaturedMode[] = [
     name:       'Turbo Sunday',
     emoji:      '🏆',
     descriptor: '1.5× coins + 50% faster balls — the ultimate test',
-    color:      '#BF5FFF',
-    gradient:   ['#180028', '#0E0018'],
+    color:      '#A6AEA7',
+    gradient:   ['#191B19', '#191B19'],
     startDay:   0, endDay: 0, // Sun
     overrides:  { coinMultiplier: 1.5, ballSpeedFactor: 1.5 },
     ruleSummary: [

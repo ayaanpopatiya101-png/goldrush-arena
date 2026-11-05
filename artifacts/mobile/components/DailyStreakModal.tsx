@@ -1,6 +1,8 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text, AnimatedText } from '@/components/ui/Text';
 import React, { useEffect, useRef } from 'react';
-import { Animated, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 import { getStreakReward } from '@/context/PlayerContext';
 
 interface Props {
@@ -24,7 +26,7 @@ export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props)
         Animated.spring(scaleAnim, { toValue: 1, friction: 6, tension: 60, useNativeDriver: true }),
         Animated.timing(fadeAnim,  { toValue: 1, duration: 300, useNativeDriver: true }),
       ]).start();
-      Animated.loop(
+      idleAnimation(
         Animated.sequence([
           Animated.timing(coinAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
           Animated.timing(coinAnim, { toValue: 0, duration: 1000, useNativeDriver: true }),
@@ -44,15 +46,15 @@ export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props)
     <Modal visible={visible} transparent animationType="none" onRequestClose={onDismiss}>
       <View style={s.overlay}>
         <Animated.View style={[s.container, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-          <LinearGradient colors={['#1A0050', '#0D0028']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['#A6AEA7', '#191B19']} style={StyleSheet.absoluteFill} />
           <View style={s.border} />
 
           {/* Streak flame */}
-          <Animated.Text style={[s.flame, {
+          <AnimatedText style={[s.flame, {
             transform: [{ scale: coinAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.2] }) }],
           }]}>
             {streak >= 7 ? '💎' : streak >= 5 ? '🔥' : streak >= 3 ? '⚡' : '🌟'}
-          </Animated.Text>
+          </AnimatedText>
 
           <Text style={s.streakMsg}>{streakMsg}</Text>
           <Text style={s.streakSub}>Day {streak} Login Streak</Text>
@@ -67,15 +69,15 @@ export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props)
                 <View key={i} style={s.dayCol}>
                   <View style={[
                     s.dayCircle,
-                    claimed  && { backgroundColor: '#C8820A33', borderColor: '#C8820A' },
-                    isToday  && { backgroundColor: '#C8820A',   borderColor: '#C8820A' },
-                    upcoming && { backgroundColor: '#FFFFFF08', borderColor: '#FFFFFF22' },
+                    claimed  && { backgroundColor: '#BB786533', borderColor: '#BB7865' },
+                    isToday  && { backgroundColor: '#BB7865',   borderColor: '#BB7865' },
+                    upcoming && { backgroundColor: '#EEE7D808', borderColor: '#EEE7D822' },
                   ]}>
-                    <Text style={[s.dayIcon, { color: isToday ? '#080814' : claimed ? '#C8820A' : '#FFFFFF44' }]}>
+                    <Text style={[s.dayIcon, { color: isToday ? '#191B19' : claimed ? '#BB7865' : '#EEE7D844' }]}>
                       {claimed ? '✓' : isToday ? '★' : label}
                     </Text>
                   </View>
-                  <Text style={[s.dayReward, { color: isToday ? '#C8820A' : upcoming ? '#FFFFFF33' : '#FFFFFF66' }]}>
+                  <Text style={[s.dayReward, { color: isToday ? '#BB7865' : upcoming ? '#EEE7D833' : '#EEE7D866' }]}>
                     {WEEK_REWARDS[i]}
                   </Text>
                 </View>
@@ -94,7 +96,7 @@ export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props)
 
           {/* Claim button */}
           <Pressable onPress={onClaim} style={({ pressed }) => [s.claimBtn, pressed && { opacity: 0.85 }]}>
-            <LinearGradient colors={['#FFE233', '#FFAA00']} style={s.claimGrad}>
+            <LinearGradient colors={['#D0AF66', '#BB7865']} style={s.claimGrad}>
               <Text style={s.claimText}>CLAIM REWARD</Text>
             </LinearGradient>
           </Pressable>
@@ -109,25 +111,25 @@ export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props)
 }
 
 const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: '#000000BB', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  container: { width: '100%', maxWidth: 360, borderRadius: 24, overflow: 'hidden', padding: 24, alignItems: 'center', gap: 12 },
-  border: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 24, borderWidth: 1.5, borderColor: '#C8820A33' },
+  overlay: { flex: 1, backgroundColor: '#191B19BB', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  container: { width: '100%', maxWidth: 360, borderRadius: 2, overflow: 'hidden', padding: 24, alignItems: 'center', gap: 12 },
+  border: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 2, borderWidth: 1.5, borderColor: '#BB786533' },
   flame: { fontSize: 56, marginBottom: 4 },
-  streakMsg: { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 22, letterSpacing: 2, textAlign: 'center', textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 16 },
-  streakSub: { color: '#FFFFFF88', fontFamily: 'Inter_500Medium', fontSize: 13, marginBottom: 4 },
+  streakMsg: { color: '#BB7865', fontFamily: 'System', fontSize: 22, letterSpacing: 2, textAlign: 'center', textShadowColor: '#BB7865', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  streakSub: { color: '#EEE7D888', fontFamily: 'System', fontSize: 13, marginBottom: 4 },
   calendar: { flexDirection: 'row', gap: 6, marginVertical: 4 },
   dayCol: { alignItems: 'center', gap: 4, flex: 1 },
-  dayCircle: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-  dayIcon: { fontFamily: 'Inter_700Bold', fontSize: 12 },
-  dayReward: { fontFamily: 'Inter_500Medium', fontSize: 8 },
-  rewardBox: { backgroundColor: '#C8820A15', borderRadius: 14, borderWidth: 1, borderColor: '#C8820A33', padding: 16, width: '100%', alignItems: 'center', gap: 6 },
-  rewardLabel: { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2 },
+  dayCircle: { width: 36, height: 36, borderRadius: 2, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  dayIcon: { fontFamily: 'System', fontSize: 12 },
+  dayReward: { fontFamily: 'System', fontSize: 8 },
+  rewardBox: { backgroundColor: '#BB786515', borderRadius: 2, borderWidth: 1, borderColor: '#BB786533', padding: 16, width: '100%', alignItems: 'center', gap: 6 },
+  rewardLabel: { color: '#BB7865', fontFamily: 'System', fontSize: 10, letterSpacing: 2 },
   rewardCoins: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   coinEmoji: { fontSize: 28 },
-  coinAmount: { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 28 },
-  claimBtn: { width: '100%', borderRadius: 14, overflow: 'hidden', shadowColor: '#C8820A', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 14 },
+  coinAmount: { color: '#BB7865', fontFamily: 'System', fontSize: 28 },
+  claimBtn: { width: '100%', borderRadius: 2, overflow: 'hidden', shadowColor: '#BB7865', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
   claimGrad: { paddingVertical: 16, alignItems: 'center' },
-  claimText: { color: '#080814', fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 1.5 },
+  claimText: { color: '#191B19', fontFamily: 'System', fontSize: 16, letterSpacing: 1.5 },
   skipBtn: { paddingVertical: 6 },
-  skipText: { color: '#FFFFFF44', fontFamily: 'Inter_500Medium', fontSize: 12 },
+  skipText: { color: '#EEE7D844', fontFamily: 'System', fontSize: 12 },
 });

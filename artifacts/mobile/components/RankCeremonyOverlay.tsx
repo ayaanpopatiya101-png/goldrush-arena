@@ -1,3 +1,5 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text } from '@/components/ui/Text';
 /**
  * RankCeremonyOverlay — full-screen cinematic rank promotion sequence.
  *
@@ -6,19 +8,9 @@
  * Phase 3 (1.4–2.2 s): rank name + flavor text slide up; shimmer sweeps badge
  * After 2.2 s:         "CLAIM" button fades in; tap anywhere skips
  */
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Animated, Dimensions, Easing, Modal, Platform, Pressable, StyleSheet, View,  } from 'react-native';
 import Reanimated, {
   useAnimatedStyle,
   useSharedValue,
@@ -102,10 +94,10 @@ function CeremonyParticle({ p, triggered, rankColor }: { p: ParticleData; trigge
         width: p.size,
         height: p.size,
         borderRadius: p.size / 2,
-        backgroundColor: p.id % 4 === 0 ? '#FFFFFF' : rankColor,
+        backgroundColor: p.id % 4 === 0 ? '#EEE7D8' : rankColor,
         shadowColor: rankColor,
-        shadowOpacity: 0.9,
-        shadowRadius: 6,
+        shadowOpacity: 0,
+        shadowRadius: 0,
         shadowOffset: { width: 0, height: 0 },
         opacity: op,
         transform: [{ translateX: tx }, { translateY: ty }, { scale: sc }],
@@ -184,7 +176,7 @@ export function RankCeremonyOverlay({ newRank, visible, onDismiss }: RankCeremon
     ]).start();
 
     // Start glow pulse loop
-    glowLoop.current = Animated.loop(
+    glowLoop.current = idleAnimation(
       Animated.sequence([
         Animated.timing(glowScale, { toValue: 1.08, duration: 900, useNativeDriver: true }),
         Animated.timing(glowScale, { toValue: 0.95, duration: 900, useNativeDriver: true }),
@@ -264,7 +256,7 @@ export function RankCeremonyOverlay({ newRank, visible, onDismiss }: RankCeremon
       <Pressable style={{ flex: 1 }} onPress={handleSkip}>
         <Animated.View style={[s.overlay, { opacity: overlayOp }]}>
           {/* Dark bg */}
-          <LinearGradient colors={['#050508', '#0A0A12', '#050508']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['#191B19', '#191B19', '#191B19']} style={StyleSheet.absoluteFill} />
 
           {/* Radial glow in rank color */}
           <Animated.View
@@ -363,8 +355,8 @@ const s = StyleSheet.create({
     height: SW * 1.4,
     borderRadius: SW * 0.7,
     shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 120,
-    shadowOpacity: 1,
+    shadowRadius: 0,
+    shadowOpacity: 0,
   },
   radialGlowInner: {
     position: 'absolute',
@@ -372,23 +364,23 @@ const s = StyleSheet.create({
     height: SW * 0.7,
     borderRadius: SW * 0.35,
     shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 60,
-    shadowOpacity: 1,
+    shadowRadius: 0,
+    shadowOpacity: 0,
   },
   star: {
     position: 'absolute',
     borderRadius: 99,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#EEE7D8',
   },
   stage: {
     alignItems: 'center',
     paddingHorizontal: 32,
   },
   rankUpLabel: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'System',
     fontSize: 11,
     letterSpacing: 5,
-    color: '#FFFFFF55',
+    color: '#EEE7D855',
     marginBottom: 24,
     textTransform: 'uppercase',
   },
@@ -416,7 +408,7 @@ const s = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 60,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#EEE7D8',
     opacity: 0.22,
     transform: [{ skewX: '-15deg' }],
   },
@@ -430,25 +422,25 @@ const s = StyleSheet.create({
     fontSize: 42,
     letterSpacing: 4,
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 20,
+    textShadowRadius: 0,
     textShadowColor: 'rgba(0,0,0,0.5)',
   },
   flavorText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'System',
     fontSize: 15,
-    color: '#FFFFFF88',
+    color: '#EEE7D888',
     letterSpacing: 0.5,
     textAlign: 'center',
   },
   claimBtn: {
     paddingHorizontal: 52,
     paddingVertical: 16,
-    borderRadius: 14,
+    borderRadius: 2,
   },
   claimBtnText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'System',
     fontSize: 16,
     letterSpacing: 3,
-    color: '#050508',
+    color: '#191B19',
   },
 });

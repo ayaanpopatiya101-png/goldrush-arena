@@ -1,3 +1,4 @@
+import { Text } from '@/components/ui/Text';
 /**
  * My Clips — library of saved highlight clips.
  * Tap a clip to open it in the full clip viewer/editor.
@@ -5,12 +6,9 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  Alert, Dimensions, Pressable,
-  RefreshControl, ScrollView, StyleSheet, Text, View,
-} from 'react-native';
+import { Alert, Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, View,  } from 'react-native';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 import Reanimated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -85,7 +83,7 @@ function ClipCell({ clip, onOpen, onDelete }: {
               <Text style={mc.dateLabel}>{dateStr} · {clip.score} hits</Text>
             )}
           </View>
-          <Feather name="chevron-right" size={14} color="#FFFFFF22" />
+          <Feather name="chevron-right" size={14} color="#EEE7D822" />
         </View>
       </Pressable>
     </Reanimated.View>
@@ -115,12 +113,12 @@ export default function MyClipsScreen() {
 
   return (
     <View style={mc.root}>
-      <LinearGradient colors={['#060210', '#030108', '#050112']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#191B19', '#191B19', '#191B19']} style={StyleSheet.absoluteFill} />
 
       {/* Header */}
       <View style={[mc.header, { paddingTop: insets.top + 6 }]}>
         <Pressable onPress={() => router.back()} style={mc.backBtn} hitSlop={12}>
-          <Feather name="chevron-left" size={22} color="#FFFFFF88" />
+          <Feather name="chevron-left" size={22} color="#EEE7D888" />
         </Pressable>
         <View style={{ flex: 1 }}>
           <Text style={mc.title}>MY CLIPS</Text>
@@ -140,7 +138,7 @@ export default function MyClipsScreen() {
           </Text>
           <Pressable onPress={() => router.replace('/lobby')}
             style={mc.playBtn}>
-            <LinearGradient colors={['#FFE020', '#FFB800']} style={mc.playBtnGrad}>
+            <LinearGradient colors={['#D0AF66', '#BB7865']} style={mc.playBtnGrad}>
               <Text style={mc.playBtnTxt}>PLAY NOW</Text>
             </LinearGradient>
           </Pressable>
@@ -151,7 +149,7 @@ export default function MyClipsScreen() {
       {clips.length > 0 && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor="#FFD700" />}
+          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor="#D0AF66" />}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 80, gap: 12 }}
         >
           {/* Stats row */}
@@ -188,47 +186,47 @@ export default function MyClipsScreen() {
 }
 
 const mc = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#050112' },
+  root: { flex: 1, backgroundColor: '#191B19' },
 
   // Header
-  header:   { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 12, gap: 10, borderBottomWidth: 1, borderBottomColor: '#FFFFFF0A' },
+  header:   { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 12, gap: 10, borderBottomWidth: 1, borderBottomColor: '#EEE7D80A' },
   backBtn:  { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  title:    { fontFamily: 'Rajdhani_700Bold', fontSize: 22, color: '#FFFFFF', letterSpacing: 2 },
-  subtitle: { fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF44', letterSpacing: 0.5 },
-  sortHint: { fontFamily: 'Inter_400Regular', fontSize: 9, color: '#FFFFFF33', letterSpacing: 0.5 },
+  title:    { fontFamily: 'Rajdhani_700Bold', fontSize: 22, color: '#EEE7D8', letterSpacing: 2 },
+  subtitle: { fontFamily: 'System', fontSize: 10, color: '#EEE7D844', letterSpacing: 0.5 },
+  sortHint: { fontFamily: 'System', fontSize: 9, color: '#EEE7D833', letterSpacing: 0.5 },
 
   // Empty
   emptyWrap:  { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 },
-  emptyTitle: { fontFamily: 'Rajdhani_700Bold', fontSize: 24, color: '#FFFFFF88', letterSpacing: 1 },
-  emptySub:   { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#FFFFFF44', textAlign: 'center', lineHeight: 20 },
-  playBtn:    { borderRadius: 14, overflow: 'hidden', marginTop: 8 },
+  emptyTitle: { fontFamily: 'Rajdhani_700Bold', fontSize: 24, color: '#EEE7D888', letterSpacing: 1 },
+  emptySub:   { fontFamily: 'System', fontSize: 13, color: '#EEE7D844', textAlign: 'center', lineHeight: 20 },
+  playBtn:    { borderRadius: 2, overflow: 'hidden', marginTop: 8 },
   playBtnGrad:{ paddingHorizontal: 32, paddingVertical: 14 },
-  playBtnTxt: { fontFamily: 'Inter_700Bold', fontSize: 15, color: '#080814', letterSpacing: 1 },
+  playBtnTxt: { fontFamily: 'System', fontSize: 15, color: '#191B19', letterSpacing: 1 },
 
   // Stats
-  statsRow: { flexDirection: 'row', backgroundColor: '#FFFFFF06', borderRadius: 14, borderWidth: 1, borderColor: '#FFFFFF0D', padding: 14, justifyContent: 'space-around' },
+  statsRow: { flexDirection: 'row', backgroundColor: '#EEE7D806', borderRadius: 2, borderWidth: 1, borderColor: '#EEE7D80D', padding: 14, justifyContent: 'space-around' },
   statCell: { alignItems: 'center', gap: 2 },
-  statVal:  { fontFamily: 'Rajdhani_700Bold', fontSize: 20, color: '#FFD700', letterSpacing: 1 },
-  statLbl:  { fontFamily: 'Inter_700Bold', fontSize: 8, color: '#FFFFFF44', letterSpacing: 2 },
+  statVal:  { fontFamily: 'Rajdhani_700Bold', fontSize: 20, color: '#D0AF66', letterSpacing: 1 },
+  statLbl:  { fontFamily: 'System', fontSize: 8, color: '#EEE7D844', letterSpacing: 2 },
 
   // Grid
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'space-between' },
   cell: { width: CELL_W },
-  cellInner: { borderRadius: 16, overflow: 'hidden', backgroundColor: '#0A0816', borderWidth: 1, borderColor: '#FFFFFF0D' },
+  cellInner: { borderRadius: 2, overflow: 'hidden', backgroundColor: '#191B19', borderWidth: 1, borderColor: '#EEE7D80D' },
 
   // GIF thumbnail
   gifWrap:      { width: CELL_W, height: CELL_W * 0.75, backgroundColor: '#000', position: 'relative' },
   gif:          { width: '100%', height: '100%' },
   stickerOverlay: { position: 'absolute', bottom: 6, right: 6, fontSize: 26 },
-  tierBadge:    { position: 'absolute', top: 6, left: 6, borderRadius: 6, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 2 },
-  tierTxt:      { fontFamily: 'Inter_700Bold', fontSize: 7, letterSpacing: 1 },
-  playDot:      { position: 'absolute', top: 6, right: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF2200', borderWidth: 1, borderColor: '#FFFFFF55' },
+  tierBadge:    { position: 'absolute', top: 6, left: 6, borderRadius: 2, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 2 },
+  tierTxt:      { fontFamily: 'System', fontSize: 7, letterSpacing: 1 },
+  playDot:      { position: 'absolute', top: 6, right: 6, width: 8, height: 8, borderRadius: 2, backgroundColor: '#BB7865', borderWidth: 1, borderColor: '#EEE7D855' },
 
   // Info row
   infoRow:  { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 6 },
-  typeLabel:{ fontFamily: 'Inter_700Bold', fontSize: 9, color: '#FFFFFF88', letterSpacing: 1.5 },
-  caption:  { fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF55', letterSpacing: 0.2 },
-  dateLabel:{ fontFamily: 'Inter_400Regular', fontSize: 9, color: '#FFFFFF33' },
+  typeLabel:{ fontFamily: 'System', fontSize: 9, color: '#EEE7D888', letterSpacing: 1.5 },
+  caption:  { fontFamily: 'System', fontSize: 10, color: '#EEE7D855', letterSpacing: 0.2 },
+  dateLabel:{ fontFamily: 'System', fontSize: 9, color: '#EEE7D833' },
 
-  hintTxt: { fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF22', textAlign: 'center', paddingVertical: 8 },
+  hintTxt: { fontFamily: 'System', fontSize: 10, color: '#EEE7D822', textAlign: 'center', paddingVertical: 8 },
 });

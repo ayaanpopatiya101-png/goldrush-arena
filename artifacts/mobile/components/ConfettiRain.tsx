@@ -1,10 +1,11 @@
+import { AnimatedText } from '@/components/ui/Text';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Easing, StyleSheet, View } from 'react-native';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
 const CONFETTI_EMOJIS = ['🏆','⭐','✨','🎉','💫','🪙','🔥','💥','⚡','🎊'];
-const CONFETTI_COLORS = ['#C8820A','#C03820','#1E8AAA','#4A8A38','#D07018','#7A50A0','#FFFFFF'];
+const CONFETTI_COLORS = ['#BB7865','#BB7865','#A6AEA7','#98A581','#BB7865','#A6AEA7','#EEE7D8'];
 
 interface PieceConfig {
   x: number; delay: number; dur: number;
@@ -58,7 +59,7 @@ function ConfettiPiece({ cfg, startX }: { cfg: PieceConfig; startX: number }) {
 
   if (cfg.isEmoji) {
     return (
-      <Animated.Text pointerEvents="none" style={{
+      <AnimatedText pointerEvents="none" style={{
         position: 'absolute',
         top: -30,
         fontSize: cfg.size + 4,
@@ -66,7 +67,7 @@ function ConfettiPiece({ cfg, startX }: { cfg: PieceConfig; startX: number }) {
         transform: [{ translateY: fall }, { translateX: drift }, { rotate }],
       }}>
         {cfg.emoji}
-      </Animated.Text>
+      </AnimatedText>
     );
   }
 

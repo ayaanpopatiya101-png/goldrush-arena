@@ -20,7 +20,7 @@ export function getApiBase(): string {
     return `${protocol}//${apiHost}`;
   }
   // Native: use EXPO_PUBLIC_API_BASE (set this to your deployed domain)
-  return process.env['EXPO_PUBLIC_API_BASE'] ?? '';
+  return (process.env.EXPO_PUBLIC_API_BASE ?? '').replace(/\/+$/, '');
 }
 
 export function apiUrl(path: string): string {

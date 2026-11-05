@@ -1,3 +1,4 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
 /**
  * ParticleField — 60-particle animated starfield / ember field.
  * Drop-in upgrade of AmbientParticles with more particles, twinkling, and color variety.
@@ -22,10 +23,10 @@ interface ParticleConfig {
 
 function makeParticles(count: number, mode: ParticleMode): ParticleConfig[] {
   const palette: Record<ParticleMode, string[]> = {
-    stars:  ['#C8820A44', '#1E8AAA33', '#C0382033', '#F0EAE033', '#FFFFFF22', '#4A8A3833'],
-    embers: ['#F59E0Bcc', '#EF4444aa', '#FDE68A88', '#F97316bb', '#FCA5A599'],
-    sparks: ['#FFD70099', '#FFF59D88', '#FFECB388', '#FFFFFF77'],
-    snow:   ['#FFFFFF55', '#E0F2FE44', '#BAE6FD33'],
+    stars:  ['#BB786544', '#A6AEA733', '#BB786533', '#EEE7D833', '#EEE7D822', '#98A58133'],
+    embers: ['#BB7865cc', '#BB7865aa', '#D0AF6688', '#BB7865bb', '#BB786599'],
+    sparks: ['#D0AF6699', '#D0AF6688', '#D0AF6688', '#EEE7D877'],
+    snow:   ['#EEE7D855', '#EEE7D844', '#A6AEA733'],
   };
   const colors = palette[mode];
 
@@ -50,7 +51,7 @@ function Particle({ cfg, mode }: { cfg: ParticleConfig; mode: ParticleMode }) {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      Animated.loop(
+      idleAnimation(
         Animated.timing(riseAnim, { toValue: 1, duration: cfg.dur, useNativeDriver: true, easing: Easing.linear })
       ).start();
     }, cfg.delay);
@@ -58,7 +59,7 @@ function Particle({ cfg, mode }: { cfg: ParticleConfig; mode: ParticleMode }) {
     let twinkleLoop: Animated.CompositeAnimation | null = null;
     if (cfg.twinkle) {
       const twDelay = setTimeout(() => {
-        twinkleLoop = Animated.loop(
+        twinkleLoop = idleAnimation(
           Animated.sequence([
             Animated.timing(twinkleAnim, { toValue: 1,   duration: 800 + Math.random() * 1200, useNativeDriver: true }),
             Animated.timing(twinkleAnim, { toValue: 0.2, duration: 800 + Math.random() * 1200, useNativeDriver: true }),
@@ -110,8 +111,8 @@ function Particle({ cfg, mode }: { cfg: ParticleConfig; mode: ParticleMode }) {
         borderRadius: cfg.size / 2,
         backgroundColor: cfg.color,
         shadowColor: cfg.color.substring(0, 7),
-        shadowOpacity: 0.8,
-        shadowRadius: cfg.size,
+        shadowOpacity: 0,
+        shadowRadius: 0,
         shadowOffset: { width: 0, height: 0 },
         opacity: finalOpacity as any,
         transform: [{ translateY }, { translateX }, { scale }],

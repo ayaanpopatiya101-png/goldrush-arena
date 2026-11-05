@@ -8,7 +8,7 @@ import { Platform, View, ViewProps } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring, interpolate, Extrapolation,
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 
 interface HolographicCardProps extends ViewProps {
   children?: React.ReactNode;

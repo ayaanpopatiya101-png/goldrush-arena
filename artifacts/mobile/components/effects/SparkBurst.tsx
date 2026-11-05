@@ -26,7 +26,7 @@ export const SparkBurst = forwardRef<SparkBurstRef, object>(function SparkBurst(
   const [sparks, setSparks] = useState<Spark[]>([]);
 
   useImperativeHandle(ref, () => ({
-    burst(cx = 200, cy = 300, color = '#FFD700') {
+    burst(cx = 200, cy = 300, color = '#D0AF66') {
       const count = 14;
       const newSparks: Spark[] = Array.from({ length: count }, (_, i) => ({
         id: ++_id,
@@ -35,7 +35,7 @@ export const SparkBurst = forwardRef<SparkBurstRef, object>(function SparkBurst(
         angle: (i / count) * Math.PI * 2 + Math.random() * 0.3,
         dist: 40 + Math.random() * 60,
         size: 3 + Math.random() * 4,
-        color: i % 3 === 0 ? '#FFFFFF' : color,
+        color: i % 3 === 0 ? '#EEE7D8' : color,
         anim: new Animated.Value(0),
       }));
 
@@ -73,8 +73,8 @@ export const SparkBurst = forwardRef<SparkBurstRef, object>(function SparkBurst(
               borderRadius: s.size / 2,
               backgroundColor: s.color,
               shadowColor: s.color,
-              shadowOpacity: 1,
-              shadowRadius: 4,
+              shadowOpacity: 0,
+              shadowRadius: 0,
               shadowOffset: { width: 0, height: 0 },
               opacity: op,
               transform: [{ translateX: tx }, { translateY: ty }, { scale: sc }],

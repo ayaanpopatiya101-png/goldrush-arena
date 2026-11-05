@@ -1,9 +1,10 @@
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import Reanimated, { FadeIn, FadeOutDown, SlideInRight, SlideInUp, ZoomIn, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
@@ -37,11 +38,11 @@ function EmoteButton({ emoji, selected, onPress }: { emoji: string; selected: bo
   return (
     <Pressable onPress={handlePress}>
       <Reanimated.View style={[animStyle, {
-        width: 46, height: 46, borderRadius: 23,
+        width: 46, height: 46, borderRadius: 2,
         alignItems: 'center', justifyContent: 'center',
-        backgroundColor: selected ? '#FFFFFF20' : '#FFFFFF0A',
+        backgroundColor: selected ? '#EEE7D820' : '#EEE7D80A',
         borderWidth: 1.5,
-        borderColor: selected ? '#C8820A' : '#FFFFFF14',
+        borderColor: selected ? '#BB7865' : '#EEE7D814',
       }]}>
         <Text style={{ fontSize: 22 }}>{emoji}</Text>
       </Reanimated.View>
@@ -103,7 +104,7 @@ export default function PostGameScreen() {
   const evCredits = parseInt(params.evCredits ?? '0', 10);
   const evName    = params.evName ?? '';
   const evEmoji   = params.evEmoji ?? '';
-  const evColor   = params.evColor ?? '#FFD700';
+  const evColor   = params.evColor ?? '#D0AF66';
   const hasEvent  = evXP > 0 || evCoins > 0 || evCredits > 0;
 
   // Qualifier params
@@ -120,7 +121,7 @@ export default function PostGameScreen() {
   ];
   const qEventName  = params.qEventName  ?? '';
   const qEventEmoji = params.qEventEmoji ?? '';
-  const qEventColor = params.qEventColor ?? '#FFD700';
+  const qEventColor = params.qEventColor ?? '#D0AF66';
   const isQualifier  = qPeriodKey.length > 0 && qRoundIdx >= 0;
   const qpEarnedThisMatch = isQualifier ? (qpPerPlace[Math.min(Math.max(position - 1, 0), 3)] ?? 0) : 0;
 
@@ -257,14 +258,14 @@ export default function PostGameScreen() {
   }, []);
 
   const positionLabels = ['', '1ST', '2ND', '3RD', '4TH'];
-  const positionColors = ['', '#FFD700', '#C0C0C0', '#CD7F32', '#8B8B8B'];
+  const positionColors = ['', '#D0AF66', '#B9BDAF', '#BB7865', '#858979'];
   const medalEmoji     = ['', '🥇', '🥈', '🥉', '💀'];
 
   return (
     <Reanimated.View entering={FadeIn.duration(350)} exiting={FadeOutDown.duration(220)} style={[styles.root, { backgroundColor: colors.background }]}>
       <FloatingOrbs opacity={0.85} />
       <LinearGradient
-        colors={won ? ['#0A140A', '#0A1A0A', '#0A0A14'] : ['#140A0A', '#1A0A0A', '#0A0A14']}
+        colors={won ? ['#191B19', '#191B19', '#191B19'] : ['#191B19', '#191B19', '#191B19']}
         style={StyleSheet.absoluteFill}
       />
       <ConfettiRain active={won || promoted} />
@@ -273,7 +274,7 @@ export default function PostGameScreen() {
       {won && Array.from({ length: 8 }).map((_, i) => (
         <View key={i} style={[styles.star, {
           top: `${10 + i * 11}%` as never, left: `${5 + i * 12}%` as never,
-          backgroundColor: '#C8820A', opacity: 0.15 + i * 0.05,
+          backgroundColor: '#BB7865', opacity: 0.15 + i * 0.05,
         }]} />
       ))}
 
@@ -288,20 +289,20 @@ export default function PostGameScreen() {
           {isArcade ? (
             /* ── Arcade banner ── */
             <LinearGradient
-              colors={deflections >= arcadeBest && arcadeBest > 0 ? ['#00FF8844', '#00FF8820', '#00FF8808'] : ['#1E8AAA44', '#1E8AAA20', '#1E8AAA08']}
+              colors={deflections >= arcadeBest && arcadeBest > 0 ? ['#98A58144', '#98A58120', '#98A58108'] : ['#A6AEA744', '#A6AEA720', '#A6AEA708']}
               style={styles.bannerGrad}
             >
               <Text style={[styles.medalEmoji]}>⚡</Text>
-              <Text style={[styles.positionText, { color: '#00FF8888', letterSpacing: 3 }]}>SOLO ARCADE · GAME OVER</Text>
-              <GlowText intensity="strong" color={deflections >= arcadeBest && arcadeBest > 0 ? '#00FF88' : '#FFD700'} style={[styles.scoreDisplay]}>
+              <Text style={[styles.positionText, { color: '#98A58188', letterSpacing: 3 }]}>SOLO ARCADE · GAME OVER</Text>
+              <GlowText intensity="strong" color={deflections >= arcadeBest && arcadeBest > 0 ? '#98A581' : '#D0AF66'} style={[styles.scoreDisplay]}>
                 {deflections}
               </GlowText>
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 11, color: '#FFFFFF66', letterSpacing: 3 }}>
+              <Text style={{ fontFamily: 'System', fontSize: 11, color: '#EEE7D866', letterSpacing: 3 }}>
                 HITS
               </Text>
               {deflections >= arcadeBest && arcadeBest > 0 && (
-                <View style={{ backgroundColor: '#00FF8822', borderRadius: 10, borderWidth: 1, borderColor: '#00FF8855', paddingHorizontal: 14, paddingVertical: 6, marginTop: 4 }}>
-                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 13, color: '#00FF88', letterSpacing: 2 }}>🏆 NEW PERSONAL BEST!</Text>
+                <View style={{ backgroundColor: '#98A58122', borderRadius: 2, borderWidth: 1, borderColor: '#98A58155', paddingHorizontal: 14, paddingVertical: 6, marginTop: 4 }}>
+                  <Text style={{ fontFamily: 'System', fontSize: 13, color: '#98A581', letterSpacing: 2 }}>🏆 NEW PERSONAL BEST!</Text>
                 </View>
               )}
             </LinearGradient>
@@ -309,29 +310,29 @@ export default function PostGameScreen() {
             /* ── Standard multi-player banner ── */
             <LinearGradient
               colors={
-                won       ? ['#C8820A55', '#C8820A22', '#C8820A08']
-                : position === 2 ? ['#C0C0C033', '#C0C0C011', '#00000000']
-                : position === 3 ? ['#CD7F3233', '#CD7F3211', '#00000000']
-                :                  ['#FF475744', '#FF475722', '#FF475708']
+                won       ? ['#BB786555', '#BB786522', '#BB786508']
+                : position === 2 ? ['#B9BDAF33', '#B9BDAF11', '#191B1900']
+                : position === 3 ? ['#BB786533', '#BB786511', '#191B1900']
+                :                  ['#BB786544', '#BB786522', '#BB786508']
               }
               style={styles.bannerGrad}
             >
               {/* Large medal / outcome emoji */}
               {won ? (
-                <PulseRing color="#FFD700" size={90} rings={3} duration={1800} opacity={0.28}>
-                  <Text style={[styles.medalEmoji, { textShadowColor: positionColors[position] ?? '#8B8B8B' }]}>
+                <PulseRing color="#D0AF66" size={90} rings={3} duration={1800} opacity={0.28}>
+                  <Text style={[styles.medalEmoji, { textShadowColor: positionColors[position] ?? '#858979' }]}>
                     {medalEmoji[position] ?? '💀'}
                   </Text>
                 </PulseRing>
               ) : (
-                <Text style={[styles.medalEmoji, { textShadowColor: positionColors[position] ?? '#8B8B8B' }]}>
+                <Text style={[styles.medalEmoji, { textShadowColor: positionColors[position] ?? '#858979' }]}>
                   {medalEmoji[position] ?? '💀'}
                 </Text>
               )}
-              <Text style={[styles.positionText, { color: positionColors[position] ?? '#8B8B8B' }]}>
+              <Text style={[styles.positionText, { color: positionColors[position] ?? '#858979' }]}>
                 {positionLabels[position] ?? '4TH'}  ·  PLACE
               </Text>
-              <GlowText intensity="strong" color={won ? '#00FF88' : '#C03820'} style={[styles.resultText, { color: won ? '#FFD700' : position === 2 ? '#D8D8D8' : position === 3 ? '#CD7F32' : '#FF4757' }]}>
+              <GlowText intensity="strong" color={won ? '#98A581' : '#BB7865'} style={[styles.resultText, { color: won ? '#D0AF66' : position === 2 ? '#EEE7D8' : position === 3 ? '#BB7865' : '#BB7865' }]}>
                 {won ? 'VICTORY!' : position === 2 ? 'RUNNER-UP' : position === 3 ? 'THIRD PLACE' : 'ELIMINATED'}
               </GlowText>
             </LinearGradient>
@@ -353,7 +354,7 @@ export default function PostGameScreen() {
               ))}
             </View>
             {selectedEmote && (
-              <Text style={{ textAlign: 'center', fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#C8820A88', marginBottom: 2 }}>
+              <Text style={{ textAlign: 'center', fontFamily: 'System', fontSize: 11, color: '#BB786588', marginBottom: 2 }}>
                 {selectedEmote} reacted
               </Text>
             )}
@@ -364,16 +365,15 @@ export default function PostGameScreen() {
         <Animated.View style={{ opacity: card1Anim, transform: [{ translateY: card1Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
         {isArcade ? (
           /* ── Arcade stats card ── */
-          <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: '#00FF8822' }]}>
+          <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: '#98A58122' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#00FF88', borderRadius: 2 }} />
-              <Text style={[styles.statsTitle, { color: '#00FF88' }]}>ARCADE STATS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={[styles.statsTitle, { color: '#98A581' }]}>ARCADE STATS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
             </View>
             <View style={styles.statsGrid}>
               {[
-                { label: 'Score (Hits)',   value: String(deflections), color: '#FFD700' },
-                { label: 'Personal Best',  value: String(arcadeBest),  color: '#00FF88' },
+                { label: 'Score (Hits)',   value: String(deflections), color: '#D0AF66' },
+                { label: 'Personal Best',  value: String(arcadeBest),  color: '#98A581' },
               ].map(stat => (
                 <View key={stat.label} style={[styles.statItem, { minWidth: '45%' }]}>
                   <GlowText intensity="medium" color={stat.color} style={[styles.statValue, { color: stat.color, fontSize: 28 }]}>{stat.value}</GlowText>
@@ -382,8 +382,8 @@ export default function PostGameScreen() {
               ))}
             </View>
             {deflections < arcadeBest && arcadeBest > 0 && (
-              <View style={{ marginTop: 10, backgroundColor: '#FFD70010', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#FFD70022' }}>
-                <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 12, color: '#FFD70099', textAlign: 'center' }}>
+              <View style={{ marginTop: 10, backgroundColor: '#D0AF6610', borderRadius: 2, padding: 10, borderWidth: 1, borderColor: '#D0AF6622' }}>
+                <Text style={{ fontFamily: 'System', fontSize: 12, color: '#D0AF6699', textAlign: 'center' }}>
                   🎯 {arcadeBest - deflections} more hits to beat your best
                 </Text>
               </View>
@@ -393,22 +393,21 @@ export default function PostGameScreen() {
           /* ── Standard match stats card ── */
           <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: rankData.color, borderRadius: 2 }} />
               <Text style={[styles.statsTitle, { color: colors.foreground }]}>MATCH STATS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
             </View>
             <View style={styles.statsGrid}>
               {[
-                { label: 'Deflections', value: String(deflections), color: '#00FF88' },
-                { label: 'Goals Against', value: String(goalsAgainst), color: '#FF4757' },
+                { label: 'Deflections', value: String(deflections), color: '#98A581' },
+                { label: 'Goals Against', value: String(goalsAgainst), color: '#BB7865' },
                 { label: 'XP Earned', value: `+${xpEarned}`, color: rankData.color },
-                { label: 'Coins', value: `+${coinsEarned}`, color: '#C8820A' },
+                { label: 'Coins', value: `+${coinsEarned}`, color: '#BB7865' },
               ].map(stat => (
                 <View key={stat.label} style={styles.statItem}>
                   {stat.label === 'XP Earned' ? (
-                    <GlowText intensity="medium" color='#C8820A' style={[styles.statValue, { color: stat.color }]}>{stat.value}</GlowText>
+                    <GlowText intensity="medium" color='#BB7865' style={[styles.statValue, { color: stat.color }]}>{stat.value}</GlowText>
                   ) : stat.label === 'Coins' ? (
-                    <GlowText intensity="soft" color='#FFD700' style={[styles.statValue, { color: stat.color }]}>{stat.value}</GlowText>
+                    <GlowText intensity="soft" color='#D0AF66' style={[styles.statValue, { color: stat.color }]}>{stat.value}</GlowText>
                   ) : (
                     <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
                   )}
@@ -440,14 +439,14 @@ export default function PostGameScreen() {
                 <View style={styles.bonusRow}>
                   <Text style={styles.bonusIcon}>🪙</Text>
                   <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Bonus Coins</Text>
-                  <Text style={[styles.bonusMult, { color: '#C8820A' }]}>+{evCoins}</Text>
+                  <Text style={[styles.bonusMult, { color: '#BB7865' }]}>+{evCoins}</Text>
                 </View>
               )}
               {evCredits > 0 && (
                 <View style={styles.bonusRow}>
                   <Text style={styles.bonusIcon}>⚡</Text>
                   <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Credits</Text>
-                  <Text style={[styles.bonusMult, { color: '#B9A0E0' }]}>+{evCredits}</Text>
+                  <Text style={[styles.bonusMult, { color: '#A6AEA7' }]}>+{evCredits}</Text>
                 </View>
               )}
             </View>
@@ -456,10 +455,10 @@ export default function PostGameScreen() {
 
         {/* Qualifier result card */}
         {isQualifier && qualResult && (
-          <View style={[styles.bonusCard, { backgroundColor: colors.card, borderColor: (qualResult.advanced ? '#FFD700' : '#00BFFF') + '44' }]}>
+          <View style={[styles.bonusCard, { backgroundColor: colors.card, borderColor: (qualResult.advanced ? '#D0AF66' : '#A6AEA7') + '44' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
               <Text style={{ fontSize: 16 }}>{qEventEmoji}</Text>
-              <Text style={[styles.bonusTitle, { color: qualResult.advanced ? '#FFD700' : '#00BFFF' }]}>
+              <Text style={[styles.bonusTitle, { color: qualResult.advanced ? '#D0AF66' : '#A6AEA7' }]}>
                 {qualResult.advanced ? '🎉 QUALIFIED!' : 'QUALIFIER POINTS'}
               </Text>
               <Text style={[styles.bonusTitle, { color: colors.mutedForeground, fontWeight: '400' }]}>
@@ -470,19 +469,19 @@ export default function PostGameScreen() {
               <View style={styles.bonusRow}>
                 <Text style={styles.bonusIcon}>⚡</Text>
                 <Text style={[styles.bonusLabel, { color: colors.foreground }]}>QP Earned</Text>
-                <Text style={[styles.bonusMult, { color: '#00BFFF' }]}>+{qualResult.qpEarned} QP</Text>
+                <Text style={[styles.bonusMult, { color: '#A6AEA7' }]}>+{qualResult.qpEarned} QP</Text>
               </View>
               <View style={styles.bonusRow}>
                 <Text style={styles.bonusIcon}>📊</Text>
                 <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Total QP</Text>
-                <Text style={[styles.bonusMult, { color: '#00BFFF' }]}>
+                <Text style={[styles.bonusMult, { color: '#A6AEA7' }]}>
                   {qualResult.totalQP} / {qThreshold} QP
                 </Text>
               </View>
               {qualResult.advanced && qualResult.nextRoundName.length > 0 && (
                 <View style={styles.bonusRow}>
                   <Text style={styles.bonusIcon}>🏆</Text>
-                  <Text style={[styles.bonusLabel, { color: '#FFD700', fontFamily: 'Inter_700Bold' }]}>
+                  <Text style={[styles.bonusLabel, { color: '#D0AF66', fontFamily: 'System' }]}>
                     ADVANCED → {qualResult.nextRoundName.toUpperCase()}
                   </Text>
                 </View>
@@ -511,7 +510,7 @@ export default function PostGameScreen() {
                   : variant === 'chaos'      ? 'Chaos Mode'
                   : variant === 'rumble'     ? 'Rumble Mode'
                   : 'Ranked Classic';
-                const color = diffMult >= 1.5 ? '#FF4757' : diffMult >= 1.2 ? '#FF6B35' : diffMult >= 1.0 ? '#C8820A' : '#8B8B8B';
+                const color = diffMult >= 1.5 ? '#BB7865' : diffMult >= 1.2 ? '#BB7865' : diffMult >= 1.0 ? '#BB7865' : '#858979';
                 const icon  = diffMult >= 1.5 ? '🔴' : diffMult >= 1.2 ? '🟠' : diffMult >= 1.0 ? '🟡' : '⚪';
                 return (
                   <View style={styles.bonusRow}>
@@ -528,7 +527,7 @@ export default function PostGameScreen() {
                   <Text style={[styles.bonusLabel, { color: colors.foreground }]}>
                     {winStreak + 1}-Win Streak
                   </Text>
-                  <Text style={[styles.bonusMult, { color: '#FF6B35' }]}>
+                  <Text style={[styles.bonusMult, { color: '#BB7865' }]}>
                     +{Math.round((streakMult - 1) * 100)}%
                   </Text>
                 </View>
@@ -536,7 +535,7 @@ export default function PostGameScreen() {
               {/* Total */}
               <View style={[styles.bonusTotalRow, { borderTopColor: colors.border }]}>
                 <Text style={[styles.bonusTotalLabel, { color: colors.mutedForeground }]}>Total multiplier</Text>
-                <Text style={[styles.bonusTotalMult, { color: '#C8820A' }]}>
+                <Text style={[styles.bonusTotalMult, { color: '#BB7865' }]}>
                   {(streakMult * diffMult).toFixed(2)}×
                 </Text>
               </View>
@@ -561,16 +560,16 @@ export default function PostGameScreen() {
               </Text>
               {promoted && (
                 <Reanimated.View entering={SlideInRight.springify().damping(14).stiffness(120).delay(900)}>
-                  <Text style={[styles.rankUpBadge, { color: '#00FF88', borderColor: '#00FF88' }]}>↑ PROMOTED</Text>
+                  <Text style={[styles.rankUpBadge, { color: '#98A581', borderColor: '#98A581' }]}>↑ PROMOTED</Text>
                 </Reanimated.View>
               )}
             </View>
-            <View style={[styles.xpTrack, { backgroundColor: '#FFFFFF12' }]}>
+            <View style={[styles.xpTrack, { backgroundColor: '#EEE7D812' }]}>
               <Animated.View style={[styles.xpFill, {
                 width: xpBarAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
                 backgroundColor: rankData.color,
               }]}>
-                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: '#FFFFFF28', borderRadius: 4 }} />
+                <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: '#EEE7D828', borderRadius: 2 }} />
               </Animated.View>
             </View>
             <Text style={[styles.xpSub, { color: colors.mutedForeground }]}>
@@ -583,19 +582,19 @@ export default function PostGameScreen() {
         {/* Daily challenge rank — only shown for challenge runs (not arcade) */}
         {!isArcade && isChallengeRun && dailySeed.length > 0 && deflections > 0 && (
           <Reanimated.View entering={FadeIn.duration(600).delay(1400)}>
-          <View style={[styles.bonusCard, { backgroundColor: colors.card, borderColor: '#C8820A33' }]}>
+          <View style={[styles.bonusCard, { backgroundColor: colors.card, borderColor: '#BB786533' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
               <Text style={{ fontSize: 16 }}>⚡</Text>
-              <Text style={[styles.bonusTitle, { color: '#C8820A' }]}>DAILY CHALLENGE</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF33' }}>{dailySeed}</Text>
+              <Text style={[styles.bonusTitle, { color: '#BB7865' }]}>DAILY CHALLENGE</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
+              <Text style={{ fontFamily: 'System', fontSize: 10, color: '#EEE7D833' }}>{dailySeed}</Text>
             </View>
             <View style={styles.bonusRows}>
               {/* Today's score */}
               <View style={styles.bonusRow}>
                 <Text style={styles.bonusIcon}>🎯</Text>
                 <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Today's Score</Text>
-                <Text style={[styles.bonusMult, { color: '#00FF88' }]}>{deflections} hits</Text>
+                <Text style={[styles.bonusMult, { color: '#98A581' }]}>{deflections} hits</Text>
               </View>
               {/* Personal best */}
               {challengePB !== null && (
@@ -604,7 +603,7 @@ export default function PostGameScreen() {
                   <Text style={[styles.bonusLabel, { color: colors.foreground }]}>
                     Personal Best{deflections >= challengePB && deflections > 0 ? ' 🆕' : ''}
                   </Text>
-                  <Text style={[styles.bonusMult, { color: '#FFD700' }]}>{challengePB} hits</Text>
+                  <Text style={[styles.bonusMult, { color: '#D0AF66' }]}>{challengePB} hits</Text>
                 </View>
               )}
               {/* Daily rank */}
@@ -612,7 +611,7 @@ export default function PostGameScreen() {
                 <View style={styles.bonusRow}>
                   <Text style={styles.bonusIcon}>🌍</Text>
                   <Text style={[styles.bonusLabel, { color: colors.foreground }]}>Daily Rank</Text>
-                  <Text style={[styles.bonusMult, { color: '#C8820A' }]}>
+                  <Text style={[styles.bonusMult, { color: '#BB7865' }]}>
                     #{challengeRank} of {challengeTotal}
                   </Text>
                 </View>
@@ -625,17 +624,17 @@ export default function PostGameScreen() {
         {/* Competitive level change (ranked only) */}
         {matchType === 'ranked' && (
           <View style={[styles.lvlCard, {
-            backgroundColor: levelDelta > 0 ? '#00FF8811' : levelDelta < 0 ? '#FF475711' : colors.card,
-            borderColor: levelDelta > 0 ? '#00FF8855' : levelDelta < 0 ? '#FF475755' : colors.border,
+            backgroundColor: levelDelta > 0 ? '#98A58111' : levelDelta < 0 ? '#BB786511' : colors.card,
+            borderColor: levelDelta > 0 ? '#98A58155' : levelDelta < 0 ? '#BB786555' : colors.border,
           }]}>
             <View style={styles.lvlRow}>
               <Text style={[styles.lvlLabel, { color: colors.mutedForeground }]}>COMPETITIVE LEVEL</Text>
               {levelDelta !== 0 && (
                 <View style={[styles.lvlDeltaBadge, {
-                  backgroundColor: levelDelta > 0 ? '#00FF8822' : '#FF475722',
-                  borderColor: levelDelta > 0 ? '#00FF8866' : '#FF475766',
+                  backgroundColor: levelDelta > 0 ? '#98A58122' : '#BB786522',
+                  borderColor: levelDelta > 0 ? '#98A58166' : '#BB786566',
                 }]}>
-                  <Text style={[styles.lvlDeltaText, { color: levelDelta > 0 ? '#00FF88' : '#FF4757' }]}>
+                  <Text style={[styles.lvlDeltaText, { color: levelDelta > 0 ? '#98A581' : '#BB7865' }]}>
                     {levelDelta > 0 ? `+${levelDelta}` : `${levelDelta}`}
                   </Text>
                 </View>
@@ -645,8 +644,8 @@ export default function PostGameScreen() {
               <Text style={[styles.lvlNum, { color: colors.mutedForeground }]}>{levelBefore}</Text>
               {levelDelta !== 0 && (
                 <>
-                  <Feather name="arrow-right" size={14} color={levelDelta > 0 ? '#00FF88' : '#FF4757'} />
-                  <Text style={[styles.lvlNum, { color: levelDelta > 0 ? '#00FF88' : '#FF4757' }]}>{levelAfter}</Text>
+                  <Feather name="arrow-right" size={14} color={levelDelta > 0 ? '#98A581' : '#BB7865'} />
+                  <Text style={[styles.lvlNum, { color: levelDelta > 0 ? '#98A581' : '#BB7865' }]}>{levelAfter}</Text>
                 </>
               )}
               {levelDelta === 0 && <Text style={[styles.lvlStable, { color: colors.mutedForeground }]}>— No change</Text>}
@@ -657,12 +656,12 @@ export default function PostGameScreen() {
 
         {/* Achievement unlock */}
         {newAchievement && (
-          <View style={[styles.achieveCard, { borderColor: '#C8820A' }]}>
-            <LinearGradient colors={['#C8820A22', '#C8820A08']} style={StyleSheet.absoluteFill} />
-            <Feather name="award" size={20} color="#C8820A" />
+          <View style={[styles.achieveCard, { borderColor: '#BB7865' }]}>
+            <LinearGradient colors={['#BB786522', '#BB786508']} style={StyleSheet.absoluteFill} />
+            <Feather name="award" size={20} color="#BB7865" />
             <View style={{ flex: 1 }}>
               <Text style={styles.achieveTitle}>Achievement Unlocked!</Text>
-              <Text style={[styles.achieveName, { color: '#C8820A' }]}>{newAchievement}</Text>
+              <Text style={[styles.achieveName, { color: '#BB7865' }]}>{newAchievement}</Text>
             </View>
           </View>
         )}
@@ -682,7 +681,7 @@ export default function PostGameScreen() {
               style={[styles.achieveCard, { borderColor: meta.color + '88', backgroundColor: 'transparent' }]}
             >
               <LinearGradient
-                colors={[meta.color + '30', meta.color + '10', '#00000000']}
+                colors={[meta.color + '30', meta.color + '10', '#191B1900']}
                 style={StyleSheet.absoluteFill}
               />
               <Text style={{ fontSize: 32 }}>{meta.emoji}</Text>
@@ -705,11 +704,11 @@ export default function PostGameScreen() {
           {isArcade ? (
             <Pressable
               onPress={() => router.replace('/arcade' as never)}
-              style={({ pressed }) => [styles.playAgainBtn, { shadowColor: '#00FF88' }, pressed && { opacity: 0.85 }]}
+              style={({ pressed }) => [styles.playAgainBtn, { shadowColor: '#98A581' }, pressed && { opacity: 0.85 }]}
             >
               <ShimmerCard active={true} borderRadius={10} style={{ flex: 1 }}>
-                <LinearGradient colors={['#00DD66', '#00AA44']} style={styles.playAgainGrad}>
-                  <Feather name="refresh-cw" size={18} color="#080814" />
+                <LinearGradient colors={['#98A581', '#98A581']} style={styles.playAgainGrad}>
+                  <Feather name="refresh-cw" size={18} color="#191B19" />
                   <Text style={styles.playAgainText}>RETRY</Text>
                 </LinearGradient>
               </ShimmerCard>
@@ -720,8 +719,8 @@ export default function PostGameScreen() {
               style={({ pressed }) => [styles.playAgainBtn, pressed && { opacity: 0.85 }]}
             >
               <ShimmerCard active={true} borderRadius={10} style={{ flex: 1 }}>
-                <LinearGradient colors={['#FFE020', '#FFB800']} style={styles.playAgainGrad}>
-                  <Feather name="refresh-cw" size={18} color="#080814" />
+                <LinearGradient colors={['#D0AF66', '#BB7865']} style={styles.playAgainGrad}>
+                  <Feather name="refresh-cw" size={18} color="#191B19" />
                   <Text style={styles.playAgainText}>PLAY AGAIN</Text>
                 </LinearGradient>
               </ShimmerCard>
@@ -733,7 +732,7 @@ export default function PostGameScreen() {
               onPress={() => router.push('/match-highlights')}
               style={({ pressed }) => [styles.seeClipBtn, { opacity: pressed ? 0.88 : 1 }]}
             >
-              <LinearGradient colors={['#0D0800', '#1C1000', '#0D0800']} style={StyleSheet.absoluteFill} />
+              <LinearGradient colors={['#191B19', '#191B19', '#191B19']} style={StyleSheet.absoluteFill} />
               <View style={styles.seeClipBorder} />
               <View style={styles.seeClipInner}>
                 <Text style={{ fontSize: 26 }}>🎬</Text>
@@ -743,8 +742,8 @@ export default function PostGameScreen() {
                     {momentCount} moment{momentCount > 1 ? 's' : ''} detected · Edit · Share · Earn
                   </Text>
                 </View>
-                <View style={[styles.seeClipArrow, { backgroundColor: '#FFD70020' }]}>
-                  <Text style={{ fontSize: 18, color: '#FFD700' }}>›</Text>
+                <View style={[styles.seeClipArrow, { backgroundColor: '#D0AF6620' }]}>
+                  <Text style={{ fontSize: 18, color: '#D0AF66' }}>›</Text>
                 </View>
               </View>
             </Pressable>
@@ -755,7 +754,7 @@ export default function PostGameScreen() {
               onPress={() => router.push('/clip-viewer')}
               style={({ pressed }) => [styles.seeClipBtn, { opacity: pressed ? 0.88 : 1 }]}
             >
-              <LinearGradient colors={['#1A0C00', '#2A1500', '#1A0C00']} style={StyleSheet.absoluteFill} />
+              <LinearGradient colors={['#191B19', '#191B19', '#191B19']} style={StyleSheet.absoluteFill} />
               <View style={styles.seeClipBorder} />
               <View style={styles.seeClipInner}>
                 <Text style={{ fontSize: 28 }}>🎬</Text>
@@ -764,7 +763,7 @@ export default function PostGameScreen() {
                   <Text style={styles.seeClipSub}>Watch · Edit · Share · Save</Text>
                 </View>
                 <View style={styles.seeClipArrow}>
-                  <Text style={{ fontSize: 18, color: '#FFD700' }}>›</Text>
+                  <Text style={{ fontSize: 18, color: '#D0AF66' }}>›</Text>
                 </View>
               </View>
             </Pressable>
@@ -777,7 +776,7 @@ export default function PostGameScreen() {
                 onPress={() => setShowShareCard(true)}
                 style={({ pressed }) => [styles.challengeBtn, pressed && { opacity: 0.82 }]}
               >
-                <LinearGradient colors={['#1E3A5F', '#0E1F3A']} style={styles.challengeBtnGrad}>
+                <LinearGradient colors={['#A6AEA7', '#222520']} style={styles.challengeBtnGrad}>
                   <Text style={styles.challengeBtnText}>⚡  CHALLENGE</Text>
                 </LinearGradient>
               </Pressable>
@@ -801,7 +800,7 @@ export default function PostGameScreen() {
 
         {/* Win streak */}
         {profile.winStreak > 1 && !activeLuckyBlock && (
-          <Text style={[styles.streakText, { color: '#FF6B35' }]}>
+          <Text style={[styles.streakText, { color: '#BB7865' }]}>
             🔥 {profile.winStreak} win streak
           </Text>
         )}
@@ -839,63 +838,63 @@ export default function PostGameScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  star: { position: 'absolute', width: 3, height: 3, borderRadius: 1.5 },
+  star: { position: 'absolute', width: 3, height: 3, borderRadius: 2 },
   content: { paddingHorizontal: 20, gap: 14, alignItems: 'stretch' },
-  resultBanner: { alignItems: 'center', overflow: 'hidden', borderRadius: 22 },
-  bannerGrad: { width: '100%', alignItems: 'center', paddingVertical: 30, paddingHorizontal: 20, gap: 6, borderRadius: 22 },
-  medalEmoji: { fontSize: 68, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24 },
-  positionText: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 5 },
+  resultBanner: { alignItems: 'center', overflow: 'hidden', borderRadius: 2 },
+  bannerGrad: { width: '100%', alignItems: 'center', paddingVertical: 30, paddingHorizontal: 20, gap: 6, borderRadius: 2 },
+  medalEmoji: { fontSize: 68, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  positionText: { fontFamily: 'System', fontSize: 11, letterSpacing: 5 },
   resultText:   { fontFamily: 'Rajdhani_700Bold', fontSize: 38, letterSpacing: 3 },
-  scoreDisplay: { fontFamily: 'Inter_700Bold', fontSize: 64, letterSpacing: -2, lineHeight: 68 },
+  scoreDisplay: { fontFamily: 'System', fontSize: 64, letterSpacing: -2, lineHeight: 68 },
   victoryEmoji: { fontSize: 40, marginTop: 4 },
-  statsCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 14 },
-  statsTitle: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2 },
+  statsCard: { borderRadius: 2, borderWidth: 1, padding: 16, gap: 14 },
+  statsTitle: { fontFamily: 'System', fontSize: 10, letterSpacing: 2 },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   statItem: { flex: 1, minWidth: '40%', alignItems: 'center', gap: 4 },
-  statValue: { fontFamily: 'Inter_700Bold', fontSize: 22 },
-  statLabel: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1.5 },
-  xpCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 10 },
+  statValue: { fontFamily: 'System', fontSize: 22 },
+  statLabel: { fontFamily: 'System', fontSize: 9, letterSpacing: 1.5 },
+  xpCard: { borderRadius: 2, borderWidth: 1, padding: 16, gap: 10 },
   xpHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  xpLabel: { fontFamily: 'Inter_700Bold', fontSize: 14, flex: 1 },
-  rankUpBadge: { fontFamily: 'Inter_700Bold', fontSize: 10, borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  xpTrack: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  xpFill: { height: '100%', borderRadius: 4 },
-  xpSub: { fontFamily: 'Inter_400Regular', fontSize: 11 },
-  achieveCard: { borderRadius: 14, borderWidth: 1.5, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, overflow: 'hidden' },
-  achieveTitle: { color: '#FFFFFF88', fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1.5 },
-  achieveName: { fontFamily: 'Inter_700Bold', fontSize: 15 },
-  lvlCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 10 },
+  xpLabel: { fontFamily: 'System', fontSize: 14, flex: 1 },
+  rankUpBadge: { fontFamily: 'System', fontSize: 10, borderWidth: 1, borderRadius: 2, paddingHorizontal: 8, paddingVertical: 3 },
+  xpTrack: { height: 8, borderRadius: 2, overflow: 'hidden' },
+  xpFill: { height: '100%', borderRadius: 2 },
+  xpSub: { fontFamily: 'System', fontSize: 11 },
+  achieveCard: { borderRadius: 2, borderWidth: 1.5, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, overflow: 'hidden' },
+  achieveTitle: { color: '#EEE7D888', fontFamily: 'System', fontSize: 9, letterSpacing: 1.5 },
+  achieveName: { fontFamily: 'System', fontSize: 15 },
+  lvlCard: { borderRadius: 2, borderWidth: 1, padding: 16, gap: 10 },
   lvlRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  lvlLabel: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2 },
-  lvlDeltaBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
-  lvlDeltaText: { fontFamily: 'Inter_700Bold', fontSize: 14 },
+  lvlLabel: { fontFamily: 'System', fontSize: 10, letterSpacing: 2 },
+  lvlDeltaBadge: { borderRadius: 2, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
+  lvlDeltaText: { fontFamily: 'System', fontSize: 14 },
   lvlBefore: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  lvlNum: { fontFamily: 'Inter_700Bold', fontSize: 20 },
-  lvlStable: { fontFamily: 'Inter_400Regular', fontSize: 13 },
-  lvlSuffix: { fontFamily: 'Inter_400Regular', fontSize: 12 },
-  seeClipBtn:    { borderRadius: 16, overflow: 'hidden', borderWidth: 1.5, borderColor: '#FFD70044' },
-  seeClipBorder: { position: 'absolute', inset: 0, borderRadius: 16, borderWidth: 1, borderColor: '#FFD70022' },
+  lvlNum: { fontFamily: 'System', fontSize: 20 },
+  lvlStable: { fontFamily: 'System', fontSize: 13 },
+  lvlSuffix: { fontFamily: 'System', fontSize: 12 },
+  seeClipBtn:    { borderRadius: 2, overflow: 'hidden', borderWidth: 1.5, borderColor: '#D0AF6644' },
+  seeClipBorder: { position: 'absolute', inset: 0, borderRadius: 2, borderWidth: 1, borderColor: '#D0AF6622' },
   seeClipInner:  { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12 },
-  seeClipTitle:  { fontFamily: 'Rajdhani_700Bold', fontSize: 20, color: '#FFD700', letterSpacing: 1.5 },
-  seeClipSub:    { fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFD70099', letterSpacing: 0.3, marginTop: 1 },
-  seeClipArrow:  { width: 28, height: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFD70015', borderRadius: 14 },
+  seeClipTitle:  { fontFamily: 'Rajdhani_700Bold', fontSize: 20, color: '#D0AF66', letterSpacing: 1.5 },
+  seeClipSub:    { fontFamily: 'System', fontSize: 10, color: '#D0AF6699', letterSpacing: 0.3, marginTop: 1 },
+  seeClipArrow:  { width: 28, height: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: '#D0AF6615', borderRadius: 2 },
   buttons: { flexDirection: 'row', gap: 10 },
-  playAgainBtn: { borderRadius: 16, overflow: 'hidden', elevation: 6, shadowColor: '#C8820A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 14 },
+  playAgainBtn: { borderRadius: 2, overflow: 'hidden', elevation: 0, shadowColor: '#BB7865', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0, shadowRadius: 0 },
   playAgainGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 15, gap: 10 },
-  playAgainText: { color: '#080814', fontFamily: 'Inter_700Bold', fontSize: 15, letterSpacing: 1 },
-  challengeBtn:    { flex: 1, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: '#00BFFF44' },
+  playAgainText: { color: '#191B19', fontFamily: 'System', fontSize: 15, letterSpacing: 1 },
+  challengeBtn:    { flex: 1, borderRadius: 2, overflow: 'hidden', borderWidth: 1, borderColor: '#A6AEA744' },
   challengeBtnGrad:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14 },
-  challengeBtnText:{ fontFamily: 'Inter_700Bold', fontSize: 13, color: '#00BFFF', letterSpacing: 0.5 },
-  homeBtn: { width: 54, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  bonusCard:      { borderRadius: 16, borderWidth: 1, padding: 14, gap: 10 },
-  bonusTitle:     { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.2 },
+  challengeBtnText:{ fontFamily: 'System', fontSize: 13, color: '#A6AEA7', letterSpacing: 0.5 },
+  homeBtn: { width: 54, borderRadius: 2, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  bonusCard:      { borderRadius: 2, borderWidth: 1, padding: 14, gap: 10 },
+  bonusTitle:     { fontFamily: 'System', fontSize: 10, letterSpacing: 1.2 },
   bonusRows:      { gap: 8 },
   bonusRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
   bonusIcon:      { fontSize: 16, width: 22, textAlign: 'center' },
-  bonusLabel:     { flex: 1, fontFamily: 'Inter_400Regular', fontSize: 13 },
-  bonusMult:      { fontFamily: 'Inter_700Bold', fontSize: 13 },
+  bonusLabel:     { flex: 1, fontFamily: 'System', fontSize: 13 },
+  bonusMult:      { fontFamily: 'System', fontSize: 13 },
   bonusTotalRow:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, paddingTop: 8, marginTop: 2 },
-  bonusTotalLabel:{ fontFamily: 'Inter_600SemiBold', fontSize: 12 },
-  bonusTotalMult: { fontFamily: 'Inter_700Bold', fontSize: 15 },
-  streakText: { textAlign: 'center', fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  bonusTotalLabel:{ fontFamily: 'System', fontSize: 12 },
+  bonusTotalMult: { fontFamily: 'System', fontSize: 15 },
+  streakText: { textAlign: 'center', fontFamily: 'System', fontSize: 14 },
 });

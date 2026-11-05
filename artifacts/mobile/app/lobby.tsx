@@ -1,18 +1,11 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/FlatSurface';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Easing,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Animated, Easing, Platform, Pressable, ScrollView, StyleSheet, View,  } from 'react-native';
 import Reanimated, {
   FadeIn,
   SlideInRight,
@@ -51,14 +44,14 @@ function genPlayerId(): string {
 }
 
 const VARIANT_META: Record<string, { emoji: string; name: string; color: string }> = {
-  duos:         { emoji: '👥', name: 'DUOS',         color: '#1E8AAA' },
-  blitz:        { emoji: '⚡', name: 'BLITZ',        color: '#C8820A' },
-  chaos:        { emoji: '🌪️', name: 'CHAOS',        color: '#D04818' },
-  survival:     { emoji: '🛡️', name: 'SURVIVAL',     color: '#4A8A38' },
-  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', color: '#C03820' },
-  turbo:        { emoji: '🚀', name: 'TURBO',        color: '#7A50A0' },
-  pinball:      { emoji: '🎰', name: 'PINBALL',      color: '#D07018' },
-  six_player:   { emoji: '6️⃣', name: '6-PLAYER',     color: '#D07018' },
+  duos:         { emoji: '👥', name: 'DUOS',         color: '#A6AEA7' },
+  blitz:        { emoji: '⚡', name: 'BLITZ',        color: '#BB7865' },
+  chaos:        { emoji: '🌪️', name: 'CHAOS',        color: '#BB7865' },
+  survival:     { emoji: '🛡️', name: 'SURVIVAL',     color: '#98A581' },
+  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', color: '#BB7865' },
+  turbo:        { emoji: '🚀', name: 'TURBO',        color: '#A6AEA7' },
+  pinball:      { emoji: '🎰', name: 'PINBALL',      color: '#BB7865' },
+  six_player:   { emoji: '6️⃣', name: '6-PLAYER',     color: '#BB7865' },
 };
 
 const VARIANT_RULES: Record<string, string[]> = {
@@ -155,11 +148,11 @@ const goFlashStyles = StyleSheet.create({
   overlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#00000055',
+    backgroundColor: '#191B1955',
   },
   text: {
-    fontFamily: 'Inter_700Bold', fontSize: 112, color: '#00FF88',
-    textShadowColor: '#00FF88', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 40,
+    fontFamily: 'System', fontSize: 112, color: '#98A581',
+    textShadowColor: '#98A581', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0,
   },
 });
 
@@ -200,12 +193,12 @@ function CountdownOverlay({ countdown }: { countdown: number }) {
     <View style={styles.countdownOverlay} pointerEvents="none">
       <Animated.View style={{
         position: 'absolute', width: 100, height: 100, borderRadius: 50,
-        borderWidth: 3, borderColor: '#C8820A',
+        borderWidth: 3, borderColor: '#BB7865',
         opacity: ring1Opacity, transform: [{ scale: ring1Scale }],
       }} />
       <Animated.View style={{
         position: 'absolute', width: 100, height: 100, borderRadius: 50,
-        borderWidth: 2, borderColor: '#FFD700',
+        borderWidth: 2, borderColor: '#D0AF66',
         opacity: ring2Opacity, transform: [{ scale: ring2Scale }],
       }} />
       <Reanimated.Text style={[styles.countdownText, numStyle]}>
@@ -255,14 +248,14 @@ export default function LobbyScreen() {
 
   // Pulse animation
   useEffect(() => {
-    const pulse = Animated.loop(
+    const pulse = idleAnimation(
       Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
         Animated.timing(pulseAnim, { toValue: 0.5, duration: 700, useNativeDriver: true }),
       ])
     );
     // Staggered 3-dot bounce loader
-    const makeDot = (anim: Animated.Value, delay: number) => Animated.loop(
+    const makeDot = (anim: Animated.Value, delay: number) => idleAnimation(
       Animated.sequence([
         Animated.delay(delay),
         Animated.timing(anim, { toValue: 1, duration: 300, useNativeDriver: true }),
@@ -402,14 +395,14 @@ export default function LobbyScreen() {
 
     // Fallback: simulated matchmaking (when API is unreachable)
     const FALLBACK_POOL = [
-      { id: 'f1', name: 'ArcReaper',   rank: 'Diamond',  color: '#00BFFF' },
-      { id: 'f2', name: 'VoidDash',    rank: 'Platinum', color: '#9B59B6' },
-      { id: 'f3', name: 'PhantomBolt', rank: 'Master 1', color: '#FF4757' },
-      { id: 'f4', name: 'NightHawk',   rank: 'Gold III', color: '#FF6B35' },
-      { id: 'f5', name: 'ZeroShift',   rank: 'Diamond',  color: '#00FF88' },
-      { id: 'f6', name: 'CyberAce',    rank: 'Master 2', color: '#FF00FF' },
-      { id: 'f7', name: 'SlipStream7', rank: 'Silver II', color: '#C0C0C0' },
-      { id: 'f8', name: 'GhostPad',    rank: 'Gold I',   color: '#FFD700' },
+      { id: 'f1', name: 'ArcReaper',   rank: 'Diamond',  color: '#A6AEA7' },
+      { id: 'f2', name: 'VoidDash',    rank: 'Platinum', color: '#A6AEA7' },
+      { id: 'f3', name: 'PhantomBolt', rank: 'Master 1', color: '#BB7865' },
+      { id: 'f4', name: 'NightHawk',   rank: 'Gold III', color: '#BB7865' },
+      { id: 'f5', name: 'ZeroShift',   rank: 'Diamond',  color: '#98A581' },
+      { id: 'f6', name: 'CyberAce',    rank: 'Master 2', color: '#A6AEA7' },
+      { id: 'f7', name: 'SlipStream7', rank: 'Silver II', color: '#B9BDAF' },
+      { id: 'f8', name: 'GhostPad',    rank: 'Gold I',   color: '#D0AF66' },
     ];
     function simulateFallback() {
       const shuffled = [...FALLBACK_POOL].sort(() => Math.random() - 0.5).slice(0, 3);
@@ -454,14 +447,14 @@ export default function LobbyScreen() {
     : opponents.length === 0
     ? 'Scanning for players...'
     : `${opponents.length}/3 players found — waiting...`;
-  const statusColor = status === 'searching' ? '#C8820A' : '#00FF88';
+  const statusColor = status === 'searching' ? '#BB7865' : '#98A581';
 
   return (
     <Reanimated.View entering={SlideInRight.duration(260)} exiting={SlideOutRight.duration(220)} style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#191B19', '#222520', '#191B19']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.5} />
       <LinearGradient
-        colors={['#C8820A1A', '#C8820A08', 'transparent']}
+        colors={['#BB78651A', '#BB786508', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 220 }}
         pointerEvents="none"
       />
@@ -472,12 +465,12 @@ export default function LobbyScreen() {
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </Pressable>
         <View style={{ alignItems: 'center', gap: 4 }}>
-          <GlowText intensity="soft" color="#C8820A" style={[styles.headerTitle, { color: colors.foreground }]}>MATCHMAKING</GlowText>
+          <GlowText intensity="soft" color="#BB7865" style={[styles.headerTitle, { color: colors.foreground }]}>MATCHMAKING</GlowText>
           <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
             {(() => {
               const isGauntlet = config.matchType === 'gauntlet';
               const isRanked   = config.matchType === 'ranked';
-              const c = isGauntlet ? '#FFD700' : isRanked ? '#C8820A' : '#1E8AAA';
+              const c = isGauntlet ? '#D0AF66' : isRanked ? '#BB7865' : '#A6AEA7';
               const label = isGauntlet
                 ? `⚔️ GAUNTLET · Round ${getGauntletState().roundNumber}`
                 : isRanked ? '⚔️ RANKED' : '🎮 CASUAL';
@@ -489,7 +482,7 @@ export default function LobbyScreen() {
             })()}
             {config.variant !== 'classic' && (() => {
               const vm = VARIANT_META[config.variant];
-              const c  = vm?.color ?? '#FFFFFF';
+              const c  = vm?.color ?? '#EEE7D8';
               return (
                 <View style={[styles.modeBadge, { backgroundColor: c + '22', borderColor: c + '55' }]}>
                   <Text style={[styles.modeBadgeText, { color: c }]}>
@@ -508,8 +501,8 @@ export default function LobbyScreen() {
               );
             })()}
             {profile.totalGames < 5 && (
-              <View style={[styles.modeBadge, { backgroundColor: '#00FF8820', borderColor: '#00FF8855' }]}>
-                <Text style={[styles.modeBadgeText, { color: '#00FF88' }]}>
+              <View style={[styles.modeBadge, { backgroundColor: '#98A58120', borderColor: '#98A58155' }]}>
+                <Text style={[styles.modeBadgeText, { color: '#98A581' }]}>
                   🎓 TRAINING · {5 - profile.totalGames} left
                 </Text>
               </View>
@@ -526,44 +519,44 @@ export default function LobbyScreen() {
             <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
               {([dot1Anim, dot2Anim, dot3Anim] as Animated.Value[]).map((anim, i) => (
                 <Animated.View key={i} style={{
-                  width: 8, height: 8, borderRadius: 4, backgroundColor: '#C8820A',
+                  width: 8, height: 8, borderRadius: 2, backgroundColor: '#BB7865',
                   opacity: anim,
                   transform: [{ scale: anim.interpolate({ inputRange: [0.2, 1], outputRange: [0.7, 1] }) }],
                 }} />
               ))}
             </View>
           ) : (
-            <View style={[styles.dot, { backgroundColor: '#00FF88' }]} />
+            <View style={[styles.dot, { backgroundColor: '#98A581' }]} />
           )}
           <Text style={[styles.statusText, { color: statusColor }]}>{searchingLabel}</Text>
         </View>
 
         {/* ── Lives Bank ── */}
-        <View style={{ marginBottom: 8, backgroundColor: '#FF475710', borderRadius: 14, borderWidth: 1, borderColor: '#FF475733', padding: 14, gap: 10 }}>
+        <View style={{ marginBottom: 8, backgroundColor: '#BB786510', borderRadius: 2, borderWidth: 1, borderColor: '#BB786533', padding: 14, gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View style={{ width: 3, height: 14, backgroundColor: '#FF6B88', borderRadius: 2 }} />
-            <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 2, color: '#FF6B88' }}>LIVES BANK</Text>
+            <View style={{ width: 3, height: 14, backgroundColor: '#BB7865', borderRadius: 2 }} />
+            <Text style={{ fontFamily: 'System', fontSize: 11, letterSpacing: 2, color: '#BB7865' }}>LIVES BANK</Text>
             <View style={{ flex: 1 }} />
             {bankLives > 0 ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                 {Array.from({ length: Math.min(bankLives, 6) }).map((_, i) => (
                   <Text key={i} style={{ fontSize: 11 }}>❤️</Text>
                 ))}
-                {bankLives > 6 && <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#FF6B88AA' }}>+{bankLives - 6}</Text>}
+                {bankLives > 6 && <Text style={{ fontFamily: 'System', fontSize: 10, color: '#BB7865AA' }}>+{bankLives - 6}</Text>}
               </View>
             ) : (
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#FFFFFF33' }}>Empty</Text>
+              <Text style={{ fontFamily: 'System', fontSize: 11, color: '#EEE7D833' }}>Empty</Text>
             )}
           </View>
 
           {bankLives > 0 ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 12, color: '#FFFFFF99' }}>
+                <Text style={{ fontFamily: 'System', fontSize: 12, color: '#EEE7D899' }}>
                   Use {livesUsed} {livesUsed === 1 ? 'life' : 'lives'} this match
                 </Text>
                 {isChampionPlus && (
-                  <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FF6B8866', marginTop: 2 }}>
+                  <Text style={{ fontFamily: 'System', fontSize: 10, color: '#BB786566', marginTop: 2 }}>
                     👑 Champion+ cap: 2 lives per match
                   </Text>
                 )}
@@ -571,23 +564,23 @@ export default function LobbyScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Pressable
                   onPress={() => { setLivesUsed(v => Math.max(0, v - 1)); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                  style={[{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#FF475720', borderWidth: 1, borderColor: '#FF475744', alignItems: 'center', justifyContent: 'center' }, livesUsed === 0 && { opacity: 0.35 }]}
+                  style={[{ width: 32, height: 32, borderRadius: 2, backgroundColor: '#BB786520', borderWidth: 1, borderColor: '#BB786544', alignItems: 'center', justifyContent: 'center' }, livesUsed === 0 && { opacity: 0.35 }]}
                   disabled={livesUsed === 0}
                 >
-                  <Text style={{ color: '#FF6B88', fontFamily: 'Inter_700Bold', fontSize: 20, lineHeight: 22 }}>−</Text>
+                  <Text style={{ color: '#BB7865', fontFamily: 'System', fontSize: 20, lineHeight: 22 }}>−</Text>
                 </Pressable>
-                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 24, color: '#FF6B88', minWidth: 22, textAlign: 'center' }}>{livesUsed}</Text>
+                <Text style={{ fontFamily: 'System', fontSize: 24, color: '#BB7865', minWidth: 22, textAlign: 'center' }}>{livesUsed}</Text>
                 <Pressable
                   onPress={() => { setLivesUsed(v => Math.min(livesCap, v + 1)); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                  style={[{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#FF475720', borderWidth: 1, borderColor: '#FF475744', alignItems: 'center', justifyContent: 'center' }, livesUsed >= livesCap && { opacity: 0.35 }]}
+                  style={[{ width: 32, height: 32, borderRadius: 2, backgroundColor: '#BB786520', borderWidth: 1, borderColor: '#BB786544', alignItems: 'center', justifyContent: 'center' }, livesUsed >= livesCap && { opacity: 0.35 }]}
                   disabled={livesUsed >= livesCap}
                 >
-                  <Text style={{ color: '#FF6B88', fontFamily: 'Inter_700Bold', fontSize: 20, lineHeight: 22 }}>+</Text>
+                  <Text style={{ color: '#BB7865', fontFamily: 'System', fontSize: 20, lineHeight: 22 }}>+</Text>
                 </Pressable>
               </View>
             </View>
           ) : (
-            <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 12, color: '#FFFFFF44', lineHeight: 18 }}>
+            <Text style={{ fontFamily: 'System', fontSize: 12, color: '#EEE7D844', lineHeight: 18 }}>
               Earn lives from Gold Strikes (Dragon Cache &amp; Nexus Core), the Premium Pass, the Shop, or by referring friends.
             </Text>
           )}
@@ -595,21 +588,21 @@ export default function LobbyScreen() {
 
         {/* Party panel — only visible when player is in a party */}
         {isInParty && (
-          <View style={{ marginBottom: 8, backgroundColor: '#BF5FFF0F', borderRadius: 14, borderWidth: 1, borderColor: '#BF5FFF44', padding: 12, gap: 8 }}>
+          <View style={{ marginBottom: 8, backgroundColor: '#A6AEA70F', borderRadius: 2, borderWidth: 1, borderColor: '#A6AEA744', padding: 12, gap: 8 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <View style={{ width: 3, height: 14, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 2, color: '#BF5FFF' }}>YOUR PARTY</Text>
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#BF5FFF88', letterSpacing: 1.5 }}>· {partyCode}</Text>
+              <View style={{ width: 3, height: 14, backgroundColor: '#A6AEA7', borderRadius: 2 }} />
+              <Text style={{ fontFamily: 'System', fontSize: 11, letterSpacing: 2, color: '#A6AEA7' }}>YOUR PARTY</Text>
+              <Text style={{ fontFamily: 'System', fontSize: 10, color: '#A6AEA788', letterSpacing: 1.5 }}>· {partyCode}</Text>
               <View style={{ flex: 1 }} />
-              <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF55' }}>Queueing together</Text>
+              <Text style={{ fontFamily: 'System', fontSize: 10, color: '#EEE7D855' }}>Queueing together</Text>
             </View>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {partyMembers.map(m => (
-                <View key={m.playerId} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFFFFF08', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}>
+                <View key={m.playerId} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#EEE7D808', borderRadius: 2, paddingHorizontal: 8, paddingVertical: 5 }}>
                   <Text style={{ fontSize: 14 }}>{m.avatarEmoji}</Text>
                   <View>
-                    <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#FFFFFF' }}>{m.name}</Text>
-                    <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 9, color: '#FFFFFF55' }}>{m.rank}</Text>
+                    <Text style={{ fontFamily: 'System', fontSize: 11, color: '#EEE7D8' }}>{m.name}</Text>
+                    <Text style={{ fontFamily: 'System', fontSize: 9, color: '#EEE7D855' }}>{m.rank}</Text>
                   </View>
                   {m.isLeader && <Text style={{ fontSize: 10 }}>👑</Text>}
                 </View>
@@ -621,9 +614,8 @@ export default function LobbyScreen() {
         {/* Players */}
         <View style={styles.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>PLAYERS</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
           </View>
           <View style={styles.playersList}>
             {/* Human player */}
@@ -663,9 +655,8 @@ export default function LobbyScreen() {
         {/* Map select */}
         <View style={styles.section}>
           <View style={[styles.sectionHead, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
-            <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>ARENA</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
           </View>
           <ScrollView
             horizontal
@@ -689,9 +680,9 @@ export default function LobbyScreen() {
                     opacity: unlocked ? 1 : 0.55,
                     shadowColor: map.accent,
                     shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: selected ? 0.55 : 0,
-                    shadowRadius: selected ? 10 : 0,
-                    elevation: selected ? 6 : 0,
+                    shadowOpacity: 0,
+                    shadowRadius: 0,
+                    elevation: 0,
                   }]}
                 >
                   <LinearGradient colors={map.arenaBg} style={StyleSheet.absoluteFill} />
@@ -700,8 +691,8 @@ export default function LobbyScreen() {
                   <Text style={[styles.mapDesc, { color: colors.mutedForeground }]} numberOfLines={3}>{map.desc}</Text>
                   {unlocked
                     ? (selected
-                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#0D0A06" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
-                        : <View style={[styles.mapBadge, { backgroundColor: '#FFFFFF14' }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
+                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#191B19" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
+                        : <View style={[styles.mapBadge, { backgroundColor: '#EEE7D814' }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
                     : <View style={[styles.mapLockBadge, { borderColor: reqRank?.color + '66' }]}><Feather name="lock" size={9} color={reqRank?.color} /><Text style={[styles.mapLockText, { color: reqRank?.color }]}>{reqRank?.name}</Text></View>}
                 </Pressable>
               );
@@ -717,13 +708,12 @@ export default function LobbyScreen() {
             : colors.border,
         }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <View style={{ width: 3, height: 16, backgroundColor: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? '#C8820A') : '#C8820A', borderRadius: 2 }} />
             <Text style={[styles.rulesTitle, { color: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? colors.foreground) : colors.foreground, marginBottom: 0 }]}>
               {config.variant !== 'classic'
                 ? `${VARIANT_META[config.variant]?.name ?? ''} RULES`
                 : 'HOW TO PLAY'}
             </Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D80E' }} />
           </View>
           <View style={styles.rulesList}>
             {(VARIANT_RULES[config.variant] ?? VARIANT_RULES['classic']!).map((rule, i) => (
@@ -755,33 +745,33 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12 },
   backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 2 },
-  modeBadge:   { borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 4 },
-  modeBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.5 },
+  headerTitle: { fontFamily: 'System', fontSize: 16, letterSpacing: 2 },
+  modeBadge:   { borderRadius: 2, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 4 },
+  modeBadgeText: { fontFamily: 'System', fontSize: 10, letterSpacing: 1.5 },
   content: { paddingHorizontal: 20, paddingBottom: 40, gap: 20 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 },
-  dot: { width: 8, height: 8, borderRadius: 4 },
-  statusText: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
+  dot: { width: 8, height: 8, borderRadius: 2 },
+  statusText: { fontFamily: 'System', fontSize: 13 },
   section: { gap: 10 },
   sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 2 },
+  sectionTitle: { fontFamily: 'System', fontSize: 11, letterSpacing: 2 },
   playersList: { gap: 8 },
-  emptySlot: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 14, borderWidth: 1, borderStyle: 'dashed' },
-  emptyText: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
-  mapCard: { width: 128, padding: 12, borderRadius: 14, borderWidth: 1.5, gap: 5, overflow: 'hidden' },
+  emptySlot: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 2, borderWidth: 1, borderStyle: 'dashed' },
+  emptyText: { fontFamily: 'System', fontSize: 13 },
+  mapCard: { width: 128, padding: 12, borderRadius: 2, borderWidth: 1.5, gap: 5, overflow: 'hidden' },
   mapIcon: { fontSize: 24 },
-  mapName: { fontFamily: 'Inter_700Bold', fontSize: 13 },
-  mapDesc: { fontFamily: 'Inter_400Regular', fontSize: 10, lineHeight: 14, minHeight: 42 },
-  mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
-  mapBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#07090F', letterSpacing: 0.5 },
-  mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 6, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
-  mapLockText: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
-  rulesCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 10 },
-  rulesTitle: { fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1.5 },
+  mapName: { fontFamily: 'System', fontSize: 13 },
+  mapDesc: { fontFamily: 'System', fontSize: 10, lineHeight: 14, minHeight: 42 },
+  mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 2, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
+  mapBadgeText: { fontFamily: 'System', fontSize: 9, color: '#191B19', letterSpacing: 0.5 },
+  mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 2, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
+  mapLockText: { fontFamily: 'System', fontSize: 9, letterSpacing: 0.5 },
+  rulesCard: { borderRadius: 2, borderWidth: 1, padding: 16, gap: 10 },
+  rulesTitle: { fontFamily: 'System', fontSize: 12, letterSpacing: 1.5 },
   rulesList: { gap: 8 },
   ruleItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  ruleDot: { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
-  ruleText: { fontFamily: 'Inter_400Regular', fontSize: 13, flex: 1, lineHeight: 19 },
-  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#00000099', alignItems: 'center', justifyContent: 'center' },
-  countdownText: { color: '#C8820A', fontSize: 96, fontFamily: 'Inter_700Bold', textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 30 },
+  ruleDot: { width: 6, height: 6, borderRadius: 2, marginTop: 6 },
+  ruleText: { fontFamily: 'System', fontSize: 13, flex: 1, lineHeight: 19 },
+  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#191B1999', alignItems: 'center', justifyContent: 'center' },
+  countdownText: { color: '#BB7865', fontSize: 96, fontFamily: 'System', textShadowColor: '#BB7865', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
 });

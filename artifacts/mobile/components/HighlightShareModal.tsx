@@ -1,3 +1,4 @@
+import { Text } from '@/components/ui/Text';
 /**
  * HighlightShareModal
  *
@@ -11,16 +12,7 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Animated,
-  InteractionManager,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Animated, InteractionManager, Modal, Pressable, StyleSheet, View,  } from 'react-native';
 import { Image } from 'expo-image';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -203,7 +195,7 @@ export function HighlightShareModal({
           <View style={styles.previewArea}>
             {encoding && (
               <View style={styles.centred}>
-                <ActivityIndicator size="large" color="#C8820A" />
+                <ActivityIndicator size="large" color="#BB7865" />
                 <Text style={styles.hintText}>Encoding clip…</Text>
               </View>
             )}
@@ -230,7 +222,7 @@ export function HighlightShareModal({
                 key={i}
                 style={[
                   styles.capDot,
-                  { backgroundColor: i < (MAX_DAILY_REWARDS - remainingToday) ? tier.color : '#FFFFFF18' },
+                  { backgroundColor: i < (MAX_DAILY_REWARDS - remainingToday) ? tier.color : '#EEE7D818' },
                 ]}
               />
             ))}
@@ -244,13 +236,13 @@ export function HighlightShareModal({
             <Pressable
               style={[
                 styles.shareBtn,
-                { backgroundColor: rewarded ? '#1A3A1A' : tier.color },
+                { backgroundColor: rewarded ? '#222520' : tier.color },
                 (!gifUri || encoding || sharing) && styles.shareBtnDisabled,
               ]}
               onPress={handleShare}
               disabled={!gifUri || encoding || sharing || capReached}
             >
-              <Text style={[styles.shareBtnText, { color: rewarded ? '#4CAF50' : '#000000' }]}>
+              <Text style={[styles.shareBtnText, { color: rewarded ? '#98A581' : '#191B19' }]}>
                 {sharing ? 'Opening share sheet…' : rewarded ? '✅ Shared & Rewarded' : capReached ? '📤 Share (cap reached)' : '📤 Share & Earn'}
               </Text>
             </Pressable>
@@ -275,15 +267,15 @@ export function HighlightShareModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: '#000000CC',
+    backgroundColor: '#191B19CC',
     justifyContent: 'flex-end',
   },
   card: {
-    backgroundColor: '#111008',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: '#191B19',
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
     borderWidth: 1,
-    borderColor: '#C8820A44',
+    borderColor: '#BB786544',
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 44,
@@ -294,77 +286,77 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   typeLabel: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'System',
     fontSize: 14,
-    color: '#C8820A',
+    color: '#BB7865',
     letterSpacing: 1.2,
   },
   scoreLabel: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'System',
     fontSize: 11,
-    color: '#FFFFFF44',
+    color: '#EEE7D844',
     letterSpacing: 0.8,
     marginTop: 2,
   },
   closeBtn: {
     fontSize: 18,
-    color: '#FFFFFF55',
+    color: '#EEE7D855',
     paddingHorizontal: 4,
   },
   tierBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
   tierEmoji: { fontSize: 28 },
   tierLabel: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'System',
     fontSize: 14,
     letterSpacing: 0.8,
   },
   tierSub: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'System',
     fontSize: 11,
-    color: '#FFFFFF55',
+    color: '#EEE7D855',
     marginTop: 2,
   },
   rewardBox: {
-    backgroundColor: '#0E2A0E',
-    borderRadius: 12,
+    backgroundColor: '#191B19',
+    borderRadius: 2,
     borderWidth: 1,
-    borderColor: '#4CAF5055',
+    borderColor: '#98A58155',
     padding: 14,
     alignItems: 'center',
     gap: 4,
   },
   rewardTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'System',
     fontSize: 15,
-    color: '#4CAF50',
+    color: '#98A581',
   },
   rewardLine: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'System',
     fontSize: 18,
-    color: '#FFFFFF',
+    color: '#EEE7D8',
   },
   rewardRemain: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'System',
     fontSize: 11,
-    color: '#FFFFFF55',
+    color: '#EEE7D855',
     marginTop: 2,
   },
   previewArea: {
     width: '100%',
     aspectRatio: 1,
     maxHeight: 240,
-    backgroundColor: '#0A0804',
-    borderRadius: 12,
+    backgroundColor: '#191B19',
+    borderRadius: 2,
     borderWidth: 1,
-    borderColor: '#FFFFFF0A',
+    borderColor: '#EEE7D80A',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -372,9 +364,9 @@ const styles = StyleSheet.create({
   },
   centred: { alignItems: 'center', gap: 10 },
   hintText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'System',
     fontSize: 13,
-    color: '#FFFFFF55',
+    color: '#EEE7D855',
   },
   gifPreview: { width: '100%', height: '100%' },
   capRow: {
@@ -385,42 +377,42 @@ const styles = StyleSheet.create({
   capDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: 2,
   },
   capText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'System',
     fontSize: 11,
-    color: '#FFFFFF33',
+    color: '#EEE7D833',
     marginLeft: 4,
   },
   actions: { gap: 8 },
   shareBtn: {
-    borderRadius: 12,
+    borderRadius: 2,
     paddingVertical: 16,
     alignItems: 'center',
   },
   shareBtnDisabled: { opacity: 0.45 },
   shareBtnText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'System',
     fontSize: 15,
     letterSpacing: 0.5,
   },
   earnHint: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'System',
     fontSize: 12,
-    color: '#FFFFFF44',
+    color: '#EEE7D844',
     textAlign: 'center',
   },
   cancelBtn: { alignItems: 'center', paddingVertical: 10 },
   cancelText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'System',
     fontSize: 14,
-    color: '#FFFFFF44',
+    color: '#EEE7D844',
   },
   caption: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'System',
     fontSize: 10,
-    color: '#FFFFFF1A',
+    color: '#EEE7D81A',
     textAlign: 'center',
     letterSpacing: 0.8,
   },
