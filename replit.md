@@ -13,7 +13,7 @@ A 4-player air-hockey "last-one-standing" mobile game built with Expo SDK 54. Pl
 - Expo SDK 54, React Native 0.81.5, TypeScript 5.9
 - Navigation: Expo Router 6 (file-based, tab + stack)
 - State: React Context (`PlayerContext`) + `AsyncStorage` (device-local only)
-- Fonts: `@expo-google-fonts/inter` (Inter 400/500/600/700)
+- Fonts: Barlow Condensed headings + Source Sans 3 body (OFL)
 - Animations: React Native Animated API + `expo-haptics`
 - Audio: Web Audio API (web-only, platform-guarded)
 - Build: EAS Build (for App Store submission)
@@ -31,11 +31,12 @@ A 4-player air-hockey "last-one-standing" mobile game built with Expo SDK 54. Pl
 
 ## Architecture decisions
 
-- **All data is device-local.** AsyncStorage key `@goldrush_v3_{username}`. No servers, no auth, no network. Enables 100% offline play and simplifies privacy compliance.
+- **Progress is device-local, not all features.** AsyncStorage key `@goldrush_v3_{username}`. No authenticated player/cloud-save system. Parties, matchmaking, referrals, challenges and web purchases call the API server. Native digital purchases use RevenueCat/app stores; web checkout uses Stripe.
+- **The arena is local bot gameplay.** Party coordination and matchmaking do not synchronize paddle inputs or ball state between human devices. Do not market this build as real four-human PvP.
 - **PlayerContext is the single store.** All game state (XP, coins, skins, relics, Trophy Road, supers) flows through one context + `save()` fn that persists atomically to AsyncStorage.
 - **Expo Router file-based navigation.** Tabs live in `(tabs)/`, full-screen flows (game, postgame, settings, legal) are Stack screens registered in `app/_layout.tsx`.
 - **Trophy Road bypasses rank gates.** Relics and skins earned via Trophy Road are added to `trophyUnlockedRelics[]` / `ownedSkins[]`, and `equipRelic` + `upgradeRelic` check both rank AND Trophy Road unlocks.
-- **Web Audio API for sound.** Guarded by `Platform.OS === 'web'` to avoid crashes on native. Native audio is a v1.1 task (requires `expo-av`).
+- **Audio:** Web Audio on web; native WAV playback uses expo-av. Keep platform guards and test global mute on device. expo-av deprecation is a future maintenance concern.
 
 ## Product
 
@@ -45,13 +46,15 @@ A 4-player air-hockey "last-one-standing" mobile game built with Expo SDK 54. Pl
 - **Cosmetics:** 14 skins, 6 arena themes, 10 relics (each upgradeable to L10)
 - **Supers:** 3 super abilities (Iron Wall, Slow Field, Banish) — charges during match, bots also use supers
 
-## App Store Submission (see PRD.md for full checklist)
+## Release status
+
+**Not App Store ready.** Current release gates and four-device test protocol are in `docs/arena/release-checklist.md`. Product brief, visual rules and QA findings are in `docs/arena/`.
 
 Before submitting:
 1. Replace placeholder App Store URLs in `app/settings.tsx` with real URLs
 2. Add Privacy Policy URL to App Store Connect
 3. Capture screenshots from TestFlight on a physical device
-4. Run `eas build --platform all --profile production`
+4. Validate a native pre-release build through the project's managed publishing flow; this task does not publish.
 
 Key config in `app.json`:
 - iOS bundle identifier: `com.goldrush.arena`
@@ -64,11 +67,11 @@ Key config in `app.json`:
 - **Postgame refresh guard:** if `params.won` is missing on load (hard-refresh on web), the screen redirects to `/` to prevent a blank zero-stats display.
 - **Native audio warm-up:** On first launch, `useSoundFX` and `BackgroundMusic` write WAV files to `expo-file-system`'s cache directory. There is a brief delay on the very first note/hit — subsequent plays are instant (cached).
 - **Rate button (Settings):** Uses `expo-store-review` for native in-app review. Shows a "coming soon" alert on web or before the app is published.
-- **EAS Build required** for any real device testing or App Store submission. `expo start` only serves the dev bundle.
+- Browser verification is not native-device evidence. Use the managed phone preview for development; store builds need their own device checks.
 
 ## User preferences
 
-- Keep the dark space/arena aesthetic throughout all screens
-- Gold (#C8820A / #FFD700) as the primary accent color
-- Inter font family across all text
-- Push code to GitHub after every significant feature: `git push github main --force`
+- Use flat graphite, off-white and restrained ochre, near-square geometry and the sports-scoreboard identity in `docs/arena/visual-rules.md`.
+- The explicit avoidance list supersedes the former space/glow-heavy styling and Inter preferences. Do not reintroduce decorative gradients, emoji UI, neon, glass, or soft panels.
+- Preserve saved avatar strings, inventory IDs, reward values, prices, progression, lives-bank caps and hidden Relics/Forge migration data.
+- Never force-push or rewrite Git history. Task work stays on its branch until merged; no production publishing from a task fork.

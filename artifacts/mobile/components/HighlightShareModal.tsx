@@ -6,13 +6,14 @@
  * the open animation so the spinner renders first), then shows:
  *   • the clip tier badge + reward breakdown (coins + XP)
  *   • an animated GIF preview via expo-image
- *   • a "Share & Earn" button — shares via native share sheet then grants
+ *   • a "Share & Earn" button, shares via native share sheet then grants
  *     the coin/XP reward (up to MAX_DAILY_REWARDS clips rewarded per day)
  */
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   InteractionManager,
   Modal,
@@ -22,7 +23,7 @@ import {
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
 import { createHighlightGIF } from '@/utils/gifEncoder';
@@ -34,15 +35,16 @@ import {
   type ClipTier,
 } from '@/utils/clipRewards';
 import { usePlayer } from '@/context/PlayerContext';
+import { Glyph } from '@/components/ui/Glyph';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 export type HighlightType = 'multi_block' | 'near_death' | 'hot_streak' | 'manual';
 
 const TYPE_LABELS: Record<HighlightType, string> = {
-  multi_block: '🌊 MULTI-BALL BLOCK',
-  near_death:  '❤️  NEAR-DEATH SAVE',
-  hot_streak:  '🔥 HOT STREAK',
-  manual:      '📹 YOUR CLIP',
+  multi_block: 'MULTI-BALL BLOCK',
+  near_death:  'NEAR-DEATH SAVE',
+  hot_streak:  'HOT STREAK',
+  manual:      'YOUR CLIP',
 };
 
 const GIF_W   = 200;
@@ -120,6 +122,10 @@ export function HighlightShareModal({
     if (!gifUri || sharing) return;
     setSharing(true);
     try {
+      if (!await Sharing.isAvailableAsync()) {
+        Alert.alert('Sharing unavailable', 'Use a supported device to share this clip. No share reward was claimed.');
+        return;
+      }
       await Sharing.shareAsync(gifUri, {
         mimeType:    'image/gif',
         dialogTitle: 'Share your GoldRush highlight',
@@ -141,7 +147,7 @@ export function HighlightShareModal({
         }
       }
     } catch {
-      // Share dismissed or failed — silent
+      Alert.alert('Share failed', 'Could not open the share sheet. Try again.');
     } finally {
       setSharing(false);
     }
@@ -163,17 +169,17 @@ export function HighlightShareModal({
           {/* Header */}
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.typeLabel}>{TYPE_LABELS[highlightType] ?? '🎬 HIGHLIGHT'}</Text>
+              <Text style={styles.typeLabel}>{TYPE_LABELS[highlightType] ?? 'HIGHLIGHT'}</Text>
               <Text style={styles.scoreLabel}>{score} DEFLECTIONS</Text>
             </View>
             <Pressable onPress={onClose} hitSlop={12}>
-              <Text style={styles.closeBtn}>✕</Text>
+              <Glyph style={styles.closeBtn} value="✕" />
             </Pressable>
           </View>
 
           {/* Tier badge */}
           <View style={[styles.tierBadge, { borderColor: tier.color + '66', backgroundColor: tier.color + '18' }]}>
-            <Text style={styles.tierEmoji}>{tier.emoji}</Text>
+            <Glyph style={styles.tierEmoji} value={tier.emoji} />
             <View>
               <Text style={[styles.tierLabel, { color: tier.color }]}>{tier.label} CLIP</Text>
               <Text style={styles.tierSub}>
@@ -189,12 +195,12 @@ export function HighlightShareModal({
           {/* Reward confirmation (shown after sharing) */}
           {rewardGranted && (
             <Animated.View style={[styles.rewardBox, { transform: [{ scale: rewardPulse }] }]}>
-              <Text style={styles.rewardTitle}>🎉 Reward Earned!</Text>
+              <Text style={styles.rewardTitle}>Reward Earned!</Text>
               <Text style={styles.rewardLine}>+{rewardGranted.coins} coins · +{rewardGranted.xp} XP</Text>
               <Text style={styles.rewardRemain}>
                 {remainingToday > 0
                   ? `${remainingToday} more reward${remainingToday !== 1 ? 's' : ''} available today`
-                  : `Daily cap reached — back tomorrow!`}
+                  : `Daily cap reached, back tomorrow!`}
               </Text>
             </Animated.View>
           )}
@@ -203,13 +209,13 @@ export function HighlightShareModal({
           <View style={styles.previewArea}>
             {encoding && (
               <View style={styles.centred}>
-                <ActivityIndicator size="large" color="#C8820A" />
+                <ActivityIndicator size="large" color="#C99A2E" />
                 <Text style={styles.hintText}>Encoding clip…</Text>
               </View>
             )}
             {shareError && !encoding && (
               <View style={styles.centred}>
-                <Text style={{ fontSize: 32 }}>⚠️</Text>
+                <Glyph style={{ fontSize: 32 }} value="⚠️" />
                 <Text style={styles.hintText}>Could not encode clip</Text>
               </View>
             )}
@@ -230,7 +236,7 @@ export function HighlightShareModal({
                 key={i}
                 style={[
                   styles.capDot,
-                  { backgroundColor: i < (MAX_DAILY_REWARDS - remainingToday) ? tier.color : '#FFFFFF18' },
+                  { backgroundColor: i < (MAX_DAILY_REWARDS - remainingToday) ? tier.color : '#ECE7DC18' },
                 ]}
               />
             ))}
@@ -244,14 +250,14 @@ export function HighlightShareModal({
             <Pressable
               style={[
                 styles.shareBtn,
-                { backgroundColor: rewarded ? '#1A3A1A' : tier.color },
+                { backgroundColor: rewarded ? '#2A2C31' : tier.color },
                 (!gifUri || encoding || sharing) && styles.shareBtnDisabled,
               ]}
               onPress={handleShare}
               disabled={!gifUri || encoding || sharing || capReached}
             >
-              <Text style={[styles.shareBtnText, { color: rewarded ? '#4CAF50' : '#000000' }]}>
-                {sharing ? 'Opening share sheet…' : rewarded ? '✅ Shared & Rewarded' : capReached ? '📤 Share (cap reached)' : '📤 Share & Earn'}
+              <Text style={[styles.shareBtnText, { color: rewarded ? '#6F8A5B' : '#16171A' }]}>
+                {sharing ? 'Opening share sheet…' : rewarded ? 'Shared & Rewarded' : capReached ? 'Share (cap reached)' : 'Share & Earn'}
               </Text>
             </Pressable>
             {!rewarded && !capReached && (
@@ -275,15 +281,15 @@ export function HighlightShareModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: '#000000CC',
+    backgroundColor: '#16171ACC',
     justifyContent: 'flex-end',
   },
   card: {
-    backgroundColor: '#111008',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: '#16171A',
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
     borderWidth: 1,
-    borderColor: '#C8820A44',
+    borderColor: '#C99A2E44',
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 44,
@@ -294,77 +300,77 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   typeLabel: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'SourceSans3_700Bold',
     fontSize: 14,
-    color: '#C8820A',
+    color: '#C99A2E',
     letterSpacing: 1.2,
   },
   scoreLabel: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#FFFFFF44',
+    color: '#ECE7DC44',
     letterSpacing: 0.8,
     marginTop: 2,
   },
   closeBtn: {
     fontSize: 18,
-    color: '#FFFFFF55',
+    color: '#ECE7DC55',
     paddingHorizontal: 4,
   },
   tierBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    borderRadius: 12,
+    borderRadius: 3,
     borderWidth: 1,
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
   tierEmoji: { fontSize: 28 },
   tierLabel: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'SourceSans3_700Bold',
     fontSize: 14,
     letterSpacing: 0.8,
   },
   tierSub: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#FFFFFF55',
+    color: '#ECE7DC55',
     marginTop: 2,
   },
   rewardBox: {
-    backgroundColor: '#0E2A0E',
-    borderRadius: 12,
+    backgroundColor: '#1F2125',
+    borderRadius: 3,
     borderWidth: 1,
-    borderColor: '#4CAF5055',
+    borderColor: '#6F8A5B55',
     padding: 14,
     alignItems: 'center',
     gap: 4,
   },
   rewardTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'SourceSans3_700Bold',
     fontSize: 15,
-    color: '#4CAF50',
+    color: '#6F8A5B',
   },
   rewardLine: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'SourceSans3_700Bold',
     fontSize: 18,
-    color: '#FFFFFF',
+    color: '#ECE7DC',
   },
   rewardRemain: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#FFFFFF55',
+    color: '#ECE7DC55',
     marginTop: 2,
   },
   previewArea: {
     width: '100%',
     aspectRatio: 1,
     maxHeight: 240,
-    backgroundColor: '#0A0804',
-    borderRadius: 12,
+    backgroundColor: '#16171A',
+    borderRadius: 3,
     borderWidth: 1,
-    borderColor: '#FFFFFF0A',
+    borderColor: '#ECE7DC0A',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -372,9 +378,9 @@ const styles = StyleSheet.create({
   },
   centred: { alignItems: 'center', gap: 10 },
   hintText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'SourceSans3_400Regular',
     fontSize: 13,
-    color: '#FFFFFF55',
+    color: '#ECE7DC55',
   },
   gifPreview: { width: '100%', height: '100%' },
   capRow: {
@@ -388,39 +394,39 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   capText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#FFFFFF33',
+    color: '#ECE7DC33',
     marginLeft: 4,
   },
   actions: { gap: 8 },
   shareBtn: {
-    borderRadius: 12,
+    borderRadius: 3,
     paddingVertical: 16,
     alignItems: 'center',
   },
   shareBtnDisabled: { opacity: 0.45 },
   shareBtnText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'SourceSans3_700Bold',
     fontSize: 15,
     letterSpacing: 0.5,
   },
   earnHint: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'SourceSans3_400Regular',
     fontSize: 12,
-    color: '#FFFFFF44',
+    color: '#ECE7DC44',
     textAlign: 'center',
   },
   cancelBtn: { alignItems: 'center', paddingVertical: 10 },
   cancelText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'SourceSans3_400Regular',
     fontSize: 14,
-    color: '#FFFFFF44',
+    color: '#ECE7DC44',
   },
   caption: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'SourceSans3_400Regular',
     fontSize: 10,
-    color: '#FFFFFF1A',
+    color: '#ECE7DC1A',
     textAlign: 'center',
     letterSpacing: 0.8,
   },

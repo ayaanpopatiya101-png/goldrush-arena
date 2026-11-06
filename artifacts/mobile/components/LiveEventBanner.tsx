@@ -1,25 +1,27 @@
 /**
  * LiveEventBanner
  *
- * Primary row  : Active featured mode — name, descriptor, live D/H/M/S countdown,
+ * Primary row  : Active featured mode, name, descriptor, live D/H/M/S countdown,
  *                theme-coloured accent that shifts per mode.
  * Secondary row: Rotating news ticker (existing behaviour, unchanged).
  */
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { GlowText } from '@/components/effects';
 import { useFeaturedModeCountdown } from '@/utils/featuredModes';
+import { Glyph } from '@/components/ui/Glyph';
+import { staticLoop } from '@/components/ui/motion';
 
 // ── News ticker ──────────────────────────────────────────────────────────────
 const NEWS_ITEMS = [
-  '🔥 Season 7 now live — earn exclusive Gold Rush skins!',
-  '⚡ Double XP weekend: Friday – Sunday',
-  '🏆 Tournament finals this Saturday — top 8 compete live',
-  '🎯 New arena skin "Neon Storm" available in Shop',
-  '🌍 Regional leaderboards reset every Monday at 00:00 UTC',
-  '💎 Diamond players: exclusive Diamond Clash event starts soon',
+  'Season 7 now live, earn exclusive Gold Rush skins!',
+  'Double XP weekend: Friday – Sunday',
+  'Tournament finals this Saturday, top 8 compete live',
+  'New arena skin "Neon Storm" available in Shop',
+  'Regional leaderboards reset every Monday at 00:00 UTC',
+  'Diamond players: exclusive Diamond Clash event starts soon',
 ];
 
 function NewsTicker() {
@@ -67,7 +69,7 @@ export function LiveEventBanner() {
 
   // Gentle pulse on the card
   useEffect(() => {
-    Animated.loop(Animated.sequence([
+    staticLoop(Animated.sequence([
       Animated.timing(pulseAnim, { toValue: 1.02, duration: 1100, useNativeDriver: true }),
       Animated.timing(pulseAnim, { toValue: 1,    duration: 1100, useNativeDriver: true }),
     ])).start();
@@ -79,10 +81,10 @@ export function LiveEventBanner() {
     colorAnim.setValue(0);
   }, [mode?.id]);
 
-  const color       = mode?.color       ?? '#C8820A';
-  const gradient    = mode?.gradient    ?? (['#1A0060', '#2A0085'] as [string, string]);
+  const color       = mode?.color       ?? '#C99A2E';
+  const gradient    = mode?.gradient    ?? (['#2A2C31', '#8C8F7A'] as [string, string]);
   const name        = mode?.name        ?? 'Gold Rush Championship';
-  const descriptor  = mode?.descriptor  ?? 'Exclusive summer event — earn bonus rewards';
+  const descriptor  = mode?.descriptor  ?? 'Exclusive summer event, earn bonus rewards';
   const emoji       = mode?.emoji       ?? '⚡';
 
   const { d, h, m, s } = timeLeft;
@@ -99,13 +101,11 @@ export function LiveEventBanner() {
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        {/* Corner glow */}
-        <View style={[styles.cornerGlow, { backgroundColor: color + '18' }]} />
 
         {/* Top row: badge + "FEATURED" label */}
         <View style={styles.topRow}>
           <View style={[styles.modeBadge, { backgroundColor: color + '22', borderColor: color + '55' }]}>
-            <Text style={{ fontSize: 12 }}>{emoji}</Text>
+            <Glyph style={{ fontSize: 12 }} value={emoji} />
             <Text style={[styles.modeBadgeText, { color }]}>FEATURED MODE</Text>
           </View>
           <View style={[styles.liveChip]}>
@@ -144,36 +144,36 @@ export function LiveEventBanner() {
 // ── Styles ────────────────────────────────────────────────────────────────────
 const cd = StyleSheet.create({
   unit:  { alignItems: 'center', minWidth: 26 },
-  value: { fontFamily: 'Inter_700Bold', fontSize: 16, lineHeight: 20 },
-  label: { fontFamily: 'Inter_500Medium', fontSize: 8, color: '#FFFFFF55', letterSpacing: 0.5 },
-  sep:   { fontFamily: 'Inter_700Bold', fontSize: 16, lineHeight: 20, marginBottom: 10 },
+  value: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, lineHeight: 20 },
+  label: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8, color: '#ECE7DC55', letterSpacing: 0.5 },
+  sep:   { fontFamily: 'SourceSans3_700Bold', fontSize: 16, lineHeight: 20, marginBottom: 10 },
 });
 
 const tk = StyleSheet.create({
-  wrap:     { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FFFFFF08', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10 },
-  liveBadge:{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FF475722', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  liveDot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FF4757' },
-  liveText: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#FF4757', letterSpacing: 1 },
-  news:     { flex: 1, fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFFCC' },
+  wrap:     { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#ECE7DC08', borderRadius: 3, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10 },
+  liveBadge:{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#B4533A22', borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
+  liveDot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: '#B4533A' },
+  liveText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#B4533A', letterSpacing: 1 },
+  news:     { flex: 1, fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#ECE7DCCC' },
 });
 
 const styles = StyleSheet.create({
   container:    { paddingHorizontal: 16, marginBottom: 14, gap: 0 },
-  card:         { borderRadius: 18, overflow: 'hidden', padding: 16, borderWidth: 1, gap: 10 },
-  cornerGlow:   { position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: 50 },
+  card:         { borderRadius: 3, overflow: 'hidden', padding: 16, borderWidth: 1, gap: 10 },
+  cornerGlow:   { position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: 3 },
 
   topRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  modeBadge:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1 },
-  modeBadgeText:{ fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1 },
-  liveChip:     { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#00FF8818', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: '#00FF8833' },
-  liveDot:      { width: 5, height: 5, borderRadius: 3, backgroundColor: '#00FF88' },
-  liveText:     { fontFamily: 'Inter_700Bold', fontSize: 8, color: '#00FF88', letterSpacing: 0.8 },
+  modeBadge:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1 },
+  modeBadgeText:{ fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 1 },
+  liveChip:     { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#6F8A5B18', borderRadius: 3, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: '#6F8A5B33' },
+  liveDot:      { width: 5, height: 5, borderRadius: 3, backgroundColor: '#6F8A5B' },
+  liveText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 8, color: '#6F8A5B', letterSpacing: 0.8 },
 
   midRow:       { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  eventTitle:   { fontFamily: 'Inter_700Bold', fontSize: 16 },
-  eventSub:     { fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF88', lineHeight: 16 },
+  eventTitle:   { fontFamily: 'SourceSans3_700Bold', fontSize: 16 },
+  eventSub:     { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#ECE7DC88', lineHeight: 16 },
 
   countdownRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  endsIn:       { fontFamily: 'Inter_500Medium', fontSize: 9, color: '#FFFFFF55', letterSpacing: 1.5 },
+  endsIn:       { fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#ECE7DC55', letterSpacing: 1.5 },
   countdown:    { flexDirection: 'row', alignItems: 'center', gap: 4 },
 });

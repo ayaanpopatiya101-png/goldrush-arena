@@ -32,6 +32,8 @@ export interface GameSessionConfig {
   practice?:       boolean;
   /** Lives taken from the bank for this match (chosen in the lobby). */
   bankLivesUsed?:           number;
+  /** Lobby already displayed 3, 2, 1. Consumed when the game mounts. */
+  countdownComplete?:      boolean;
   /** Daily challenge seed (YYYYMMDD) — set when entering via a challenge deep link. */
   challengeSeed?:           string;
   /** Server-issued single-use nonce that authorises score submission for this run. */

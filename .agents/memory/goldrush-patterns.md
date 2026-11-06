@@ -17,8 +17,12 @@ New optional props (all have defaults so existing callers don't break):
 - `onGameStart: () => void` — fires once when the countdown finishes and play begins
 - `paused: boolean` — freezes RAF loop (skips simulation); game.tsx sets this via AppState listener on app-background
 
-## Native audio (expo-av + expo-file-system v57)
-- expo-file-system v57 uses class-based API: `new File(Paths.cache, 'name.wav')`, `file.write(Uint8Array)`, `file.exists` (boolean property), `file.uri` (string). No `FileSystem.cacheDirectory` or `writeAsStringAsync`.
+## Native audio
+- Keep Expo-native packages aligned with the app SDK rather than installing the newest standalone major. Legacy GIF helpers and class-based WAV helpers use different API entry points.
+
+**Why:** Installing SDK-57-era file/sharing packages in an SDK-54 app introduced duplicate native modules and invalid legacy filesystem calls.
+
+**How to apply:** Run Expo compatibility checks before changing native package versions; preserve explicit legacy imports for GIF IO.
 - `useSoundFX.ts` generates mono 16-bit 22050 Hz WAV bytes on-device and caches to `Paths.cache`. Synchronous write, async playback via `Audio.Sound.createAsync`.
 - `BackgroundMusic.tsx` does the same for melody notes. Both are Platform-guarded (native path only).
 - `prewarmNativeAudio()` exported from `useSoundFX.ts` — call at game screen mount to pre-write all WAV files before the first hit sound fires.

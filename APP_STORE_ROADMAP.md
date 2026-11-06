@@ -1,5 +1,7 @@
 # GoldRush Arena -- App Store Submission Guide
 
+> **Historical guide, not a readiness report.** Follow [current release gates and four-device protocol](docs/arena/release-checklist.md). Checked items below were not re-certified by this upgrade. Do not use old CLI publishing instructions or old privacy claims as current guidance.
+
 > **Version:** 1.0.0  
 > **Last Updated:** July 2026  
 > **Target Platforms:** iOS (App Store), Android (Google Play)

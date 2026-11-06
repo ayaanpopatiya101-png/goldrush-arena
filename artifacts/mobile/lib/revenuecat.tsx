@@ -18,10 +18,15 @@ export function initializeRevenueCat(): boolean {
     return false;
   }
 
-  Purchases.setLogLevel(__DEV__ ? LOG_LEVEL.DEBUG : LOG_LEVEL.WARN);
-  Purchases.configure({ apiKey });
-  configured = true;
-  return true;
+  try {
+    Purchases.setLogLevel(__DEV__ ? LOG_LEVEL.DEBUG : LOG_LEVEL.WARN);
+    Purchases.configure({ apiKey });
+    configured = true;
+    return true;
+  } catch {
+    console.warn('[RevenueCat] Store initialization failed; gameplay remains available.');
+    return false;
+  }
 }
 
 function useRevenueCatState() {
@@ -57,6 +62,7 @@ function useRevenueCatState() {
     getPackage: (identifier: string) => packages.find(pkg => pkg.identifier === identifier),
     purchase: purchaseMutation.mutateAsync,
     restore: restoreMutation.mutateAsync,
+    retry: () => offeringsQuery.refetch(),
   };
 }
 

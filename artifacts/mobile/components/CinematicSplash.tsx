@@ -1,6 +1,7 @@
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Easing, Platform, StyleSheet, Text, View } from 'react-native';
+import { staticLoop } from '@/components/ui/motion';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 const TITLE = 'GOLDRUSH ARENA';
@@ -13,7 +14,7 @@ function GoldParticle({ x, delay, size, dur }: { x: number; delay: number; size:
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const id = setTimeout(() => {
-      Animated.loop(
+      staticLoop(
         Animated.timing(anim, { toValue: 1, duration: dur, useNativeDriver: true, easing: Easing.linear })
       ).start();
     }, delay);
@@ -52,7 +53,7 @@ export function CinematicSplash({ onDone }: Props) {
 
     // Phase 2: Glow pulse starts (200ms)
     setTimeout(() => {
-      Animated.loop(Animated.sequence([
+      staticLoop(Animated.sequence([
         Animated.timing(glowAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
         Animated.timing(glowAnim, { toValue: 0, duration: 700, useNativeDriver: true }),
       ])).start();
@@ -106,12 +107,8 @@ export function CinematicSplash({ onDone }: Props) {
 
   return (
     <Animated.View style={[styles.root, { opacity: masterFade }]} pointerEvents="none">
-      <LinearGradient colors={['#000000', '#080020', '#000000']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#16171A', '#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
 
-      {/* Particles */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        {particles.map((p, i) => <GoldParticle key={i} {...p} />)}
-      </View>
 
       {/* Centre content */}
       <View style={styles.center}>
@@ -129,7 +126,7 @@ export function CinematicSplash({ onDone }: Props) {
           width: lineW.interpolate({ inputRange: [0, 1], outputRange: [0, 200] }),
         }]} />
 
-        {/* GOLDRUSH ARENA — letter by letter */}
+        {/* GOLDRUSH ARENA, letter by letter */}
         <View style={styles.titleRow}>
           {TITLE.split('').map((ch, i) => (
             <Text key={i} style={[
@@ -149,7 +146,7 @@ export function CinematicSplash({ onDone }: Props) {
 
         {/* Season badge */}
         <Animated.View style={[styles.seasonBadge, { opacity: textOpacity }]}>
-          <Text style={styles.seasonText}>⚡ SEASON 7 ACTIVE</Text>
+          <Text style={styles.seasonText}>SEASON 7 ACTIVE</Text>
         </Animated.View>
       </View>
     </Animated.View>
@@ -159,14 +156,14 @@ export function CinematicSplash({ onDone }: Props) {
 const styles = StyleSheet.create({
   root:         { ...StyleSheet.absoluteFillObject, zIndex: 9999, alignItems: 'center', justifyContent: 'center' },
   center:       { alignItems: 'center', gap: 16 },
-  particle:     { position: 'absolute', backgroundColor: '#C8820A' },
+  particle:     { position: 'absolute', backgroundColor: '#C99A2E' },
   logoWrap:     { width: 96, height: 96, alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  logoGlow:     { position: 'absolute', width: 96, height: 96, borderRadius: 48, backgroundColor: '#C8820A', shadowColor: '#C8820A', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 40 },
-  logoText:     { fontFamily: 'Rajdhani_700Bold', fontSize: 46, color: '#C8820A', letterSpacing: 4, zIndex: 1, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 20 },
-  divider:      { height: 1.5, backgroundColor: '#C8820A88', borderRadius: 1 },
+  logoGlow:     { position: 'absolute', width: 96, height: 96, borderRadius: 3, backgroundColor: '#C99A2E', shadowColor: '#C99A2E', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
+  logoText:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 46, color: '#C99A2E', letterSpacing: 4, zIndex: 1, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  divider:      { height: 1.5, backgroundColor: '#C99A2E88', borderRadius: 1 },
   titleRow:     { flexDirection: 'row', flexWrap: 'nowrap' },
-  titleLetter:  { fontFamily: 'Rajdhani_700Bold', fontSize: Platform.OS === 'web' ? 25 : 27, color: '#FFFFFF', letterSpacing: 3, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 8 },
-  subtitle:     { fontFamily: 'Inter_500Medium', fontSize: 11, color: '#FFFFFF66', letterSpacing: 2 },
-  seasonBadge:  { marginTop: 4, backgroundColor: '#C8820A22', borderRadius: 20, borderWidth: 1, borderColor: '#C8820A55', paddingHorizontal: 14, paddingVertical: 5 },
-  seasonText:   { fontFamily: 'Rajdhani_700Bold', fontSize: 12, color: '#C8820A', letterSpacing: 1.5 },
+  titleLetter:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: Platform.OS === 'web' ? 25 : 27, color: '#ECE7DC', letterSpacing: 3, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  subtitle:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: '#ECE7DC66', letterSpacing: 2 },
+  seasonBadge:  { marginTop: 4, backgroundColor: '#C99A2E22', borderRadius: 3, borderWidth: 1, borderColor: '#C99A2E55', paddingHorizontal: 14, paddingVertical: 5 },
+  seasonText:   { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, color: '#C99A2E', letterSpacing: 1.5 },
 });

@@ -1,14 +1,14 @@
 /**
- * ShareCard — viral post-game share overlay.
+ * ShareCard, viral post-game share overlay.
  *
  * Shows a beautiful card the player can screenshot, plus a native Share sheet
  * with a pre-written message and deep-link URL for challenging friends.
  *
- * No new native packages required — uses Share API + styled React Native Views.
+ * No new native packages required, uses Share API + styled React Native Views.
  */
 
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef } from 'react';
 import {
   Animated, Modal, Platform, Pressable, Share, StyleSheet, Text, View,
@@ -16,6 +16,7 @@ import {
 import Reanimated, { FadeIn, FadeOut, ZoomIn } from 'react-native-reanimated';
 import { GlowText } from '@/components/effects';
 import { buildChallengeLink } from '@/utils/dailyChallenge';
+import { Glyph } from '@/components/ui/Glyph';
 
 interface ShareCardProps {
   visible:       boolean;
@@ -45,12 +46,12 @@ export function ShareCard({
   const link    = buildChallengeLink(seed, score, playerName);
 
   async function handleShare() {
-    const pbNote = isNewPB ? ' 🏆 NEW PERSONAL BEST!' : personalBest > 0 ? ` (best: ${personalBest})` : '';
+    const pbNote = isNewPB ? 'NEW PERSONAL BEST!' : personalBest > 0 ? ` (best: ${personalBest})` : '';
     const rankNote = dailyRank ? ` · #${dailyRank} globally today` : '';
 
     const message =
-      `🎮 GoldRush Arena\n` +
-      `⚡ I survived ${score} hit${score !== 1 ? 's' : ''}!${pbNote}${rankNote}\n\n` +
+      `GoldRush Arena\n` +
+      `I survived ${score} hit${score !== 1 ? 's' : ''}!${pbNote}${rankNote}\n\n` +
       `Can you beat ${score}? Challenge me:\n${link}`;
 
     try {
@@ -69,29 +70,29 @@ export function ShareCard({
 
       <View style={styles.centerer} pointerEvents="box-none">
         <Reanimated.View entering={ZoomIn.springify().damping(14).stiffness(180)} style={styles.cardWrap}>
-          {/* Card body — screenshot-able */}
+          {/* Card body, screenshot-able */}
           <View style={styles.card}>
             <LinearGradient
-              colors={['#0A0F20', '#0D1830', '#080C18']}
+              colors={['#1F2125', '#1F2125', '#16171A']}
               style={StyleSheet.absoluteFill}
             />
             {/* Gold top border */}
             <LinearGradient
-              colors={['#C8820A', '#FFD700', '#C8820A']}
+              colors={['#C99A2E', '#C99A2E', '#C99A2E']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.topBorder}
             />
 
             {/* Logo */}
             <View style={styles.logoRow}>
-              <Text style={styles.logoEmoji}>👑</Text>
+              <Glyph style={styles.logoEmoji} value="👑" />
               <Text style={styles.logoText}>GOLDRUSH ARENA</Text>
             </View>
 
             {/* Score hero */}
             <View style={styles.scoreSection}>
               <Text style={styles.survivedLabel}>I SURVIVED</Text>
-              <GlowText intensity="strong" color="#FFD700" style={styles.scoreNumber}>
+              <GlowText intensity="strong" color="#C99A2E" style={styles.scoreNumber}>
                 {score}
               </GlowText>
               <Text style={styles.hitsLabel}>HIT{score !== 1 ? 'S' : ''}</Text>
@@ -112,7 +113,7 @@ export function ShareCard({
               )}
               {dailyRank && totalPlayers > 1 && (
                 <View style={styles.statItem}>
-                  <Text style={[styles.statValue, { color: '#C8820A' }]}>
+                  <Text style={[styles.statValue, { color: '#C99A2E' }]}>
                     #{dailyRank}
                   </Text>
                   <Text style={styles.statLabel}>OF {totalPlayers} TODAY</Text>
@@ -126,13 +127,13 @@ export function ShareCard({
             </View>
 
             {/* Player name */}
-            <Text style={styles.playerTag}>— {playerName}</Text>
+            <Text style={styles.playerTag}>- {playerName}</Text>
           </View>
 
           {/* Action buttons */}
           <Pressable onPress={handleShare} style={styles.shareBtn}>
-            <LinearGradient colors={['#F0A428', '#C8820A']} style={styles.shareBtnGrad}>
-              <Text style={styles.shareBtnText}>📤  SHARE &amp; CHALLENGE</Text>
+            <LinearGradient colors={['#C99A2E', '#C99A2E']} style={styles.shareBtnGrad}>
+              <Text style={styles.shareBtnText}>SHARE &amp; CHALLENGE</Text>
             </LinearGradient>
           </Pressable>
 
@@ -146,13 +147,13 @@ export function ShareCard({
 }
 
 const styles = StyleSheet.create({
-  backdrop:     { backgroundColor: '#000000CC' },
+  backdrop:     { backgroundColor: '#16171ACC' },
   centerer:     { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
   cardWrap:     { width: '100%', maxWidth: 360, gap: 10 },
 
   card: {
-    borderRadius: 20, overflow: 'hidden',
-    borderWidth: 1.5, borderColor: '#C8820A44',
+    borderRadius: 3, overflow: 'hidden',
+    borderWidth: 1.5, borderColor: '#C99A2E44',
     paddingHorizontal: 24, paddingBottom: 24, paddingTop: 0,
     alignItems: 'center', gap: 0,
   },
@@ -160,33 +161,33 @@ const styles = StyleSheet.create({
 
   logoRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   logoEmoji:  { fontSize: 20 },
-  logoText:   { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 3, color: '#C8820A' },
+  logoText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 3, color: '#C99A2E' },
 
   scoreSection: { alignItems: 'center', gap: 0 },
-  survivedLabel: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 4, color: '#FFFFFF55', marginBottom: 4 },
+  survivedLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 4, color: '#ECE7DC55', marginBottom: 4 },
   scoreNumber: {
-    fontFamily: 'Rajdhani_700Bold', fontSize: 96, lineHeight: 96,
-    color: '#FFD700',
-    textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24,
+    fontFamily: 'BarlowCondensed_700Bold', fontSize: 96, lineHeight: 96,
+    color: '#C99A2E',
+    textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0,
   },
-  hitsLabel:  { fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 5, color: '#FFFFFF88', marginTop: -8 },
+  hitsLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 18, letterSpacing: 5, color: '#ECE7DC88', marginTop: -8 },
 
-  divider: { width: '80%', height: 1, backgroundColor: '#FFFFFF11', marginVertical: 16 },
+  divider: { width: '80%', height: 1, backgroundColor: '#ECE7DC11', marginVertical: 16 },
 
   statsRow:   { flexDirection: 'row', gap: 32, justifyContent: 'center', marginBottom: 16 },
   statItem:   { alignItems: 'center', gap: 4 },
-  statValue:  { fontFamily: 'Inter_700Bold', fontSize: 22, color: '#00FF88' },
-  statLabel:  { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 2, color: '#FFFFFF44' },
+  statValue:  { fontFamily: 'SourceSans3_700Bold', fontSize: 22, color: '#6F8A5B' },
+  statLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 8, letterSpacing: 2, color: '#ECE7DC44' },
 
-  ctaRow:     { backgroundColor: '#C8820A15', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A33', paddingHorizontal: 20, paddingVertical: 10, marginBottom: 12 },
-  ctaText:    { fontFamily: 'Rajdhani_700Bold', fontSize: 18, color: '#FFD700', letterSpacing: 1 },
+  ctaRow:     { backgroundColor: '#C99A2E15', borderRadius: 3, borderWidth: 1, borderColor: '#C99A2E33', paddingHorizontal: 20, paddingVertical: 10, marginBottom: 12 },
+  ctaText:    { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: '#C99A2E', letterSpacing: 1 },
 
-  playerTag:  { fontFamily: 'Inter_400Regular', fontSize: 12, color: '#FFFFFF44', fontStyle: 'italic' },
+  playerTag:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#ECE7DC44', fontStyle: 'italic' },
 
-  shareBtn:     { borderRadius: 14, overflow: 'hidden', elevation: 8, shadowColor: '#C8820A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.6, shadowRadius: 18 },
+  shareBtn:     { borderRadius: 3, overflow: 'hidden', elevation: 0, shadowColor: '#C99A2E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0, shadowRadius: 0 },
   shareBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  shareBtnText: { fontFamily: 'Inter_700Bold', fontSize: 15, color: '#07090F', letterSpacing: 1 },
+  shareBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#16171A', letterSpacing: 1 },
 
   closeBtn:     { alignItems: 'center', paddingVertical: 10 },
-  closeBtnText: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: '#FFFFFF44' },
+  closeBtnText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: '#ECE7DC44' },
 });

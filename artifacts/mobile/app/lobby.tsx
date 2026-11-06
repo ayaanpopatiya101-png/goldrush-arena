@@ -1,8 +1,8 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { LinearGradient } from '@/components/ui/Flat';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -36,6 +36,8 @@ import { useColors } from '@/hooks/useColors';
 import { useSettings } from '@/hooks/useSettings';
 import { useSoundFX } from '@/hooks/useSoundFX';
 import { apiUrl } from '@/utils/api';
+import { Glyph } from '@/components/ui/Glyph';
+import { staticLoop } from '@/components/ui/motion';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface MatchPlayer {
@@ -51,20 +53,20 @@ function genPlayerId(): string {
 }
 
 const VARIANT_META: Record<string, { emoji: string; name: string; color: string }> = {
-  duos:         { emoji: '👥', name: 'DUOS',         color: '#1E8AAA' },
-  blitz:        { emoji: '⚡', name: 'BLITZ',        color: '#C8820A' },
-  chaos:        { emoji: '🌪️', name: 'CHAOS',        color: '#D04818' },
-  survival:     { emoji: '🛡️', name: 'SURVIVAL',     color: '#4A8A38' },
-  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', color: '#C03820' },
-  turbo:        { emoji: '🚀', name: 'TURBO',        color: '#7A50A0' },
-  pinball:      { emoji: '🎰', name: 'PINBALL',      color: '#D07018' },
-  six_player:   { emoji: '6️⃣', name: '6-PLAYER',     color: '#D07018' },
+  duos:         { emoji: '👥', name: 'DUOS',         color: '#8C8F7A' },
+  blitz:        { emoji: '⚡', name: 'BLITZ',        color: '#C99A2E' },
+  chaos:        { emoji: '🌪️', name: 'CHAOS',        color: '#B4533A' },
+  survival:     { emoji: '🛡️', name: 'SURVIVAL',     color: '#6F8A5B' },
+  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', color: '#B4533A' },
+  turbo:        { emoji: '🚀', name: 'TURBO',        color: '#8C8F7A' },
+  pinball:      { emoji: '🎰', name: 'PINBALL',      color: '#C99A2E' },
+  six_player:   { emoji: '6️⃣', name: '6-PLAYER',     color: '#C99A2E' },
 };
 
 const VARIANT_RULES: Record<string, string[]> = {
   classic: [
     'Swipe anywhere to move YOUR GOLD paddle',
-    'Deflect balls — let them through and lose a life',
+    'Deflect balls, let them through and lose a life',
     'Each player starts with 5 lives',
     'New balls spawn every 15 seconds',
     'Collect power-ups near your paddle zone',
@@ -74,34 +76,34 @@ const VARIANT_RULES: Record<string, string[]> = {
     'Team Battle: Bottom+Right (Gold) vs Top+Left (Blue)',
     'Your teammate bot covers the opposite wall',
     'Both teammates must be eliminated to lose',
-    'No phase transitions — 4-player arena throughout',
+    'No phase transitions, 4-player arena throughout',
     'The last surviving team wins!',
   ],
   blitz: [
     'EXTREME: everyone has only 1 life',
     'One goal = instant elimination',
     '2 balls launch from the start',
-    '1.5× speed — no time to breathe',
+    '1.5× speed, no time to breathe',
     'Matches last under 60 seconds',
   ],
   chaos: [
     '5 balls launch simultaneously at game start',
     'Every player starts with just 3 lives',
-    'No power-ups — pure skill only',
+    'No power-ups, pure skill only',
     '1.2× starting speed, escalating fast',
     'More balls spawn every 5 seconds',
   ],
   survival: [
-    'Each player has 12 lives — outlast the storm',
+    'Each player has 12 lives, outlast the storm',
     'New balls spawn every 5 seconds',
     'Speed increases with every ball added',
-    'Power-ups still appear — grab them fast',
+    'Power-ups still appear, grab them fast',
     'Last player with lives remaining wins',
   ],
   sudden_death: [
     'MAXIMUM DANGER: 1 life each, 3 balls at launch',
-    'Ball speed starts at 2× — no warmup',
-    'No power-ups — nothing to save you',
+    'Ball speed starts at 2×, no warmup',
+    'No power-ups, nothing to save you',
     'Every single ball is a death threat',
     'Average match: under 20 seconds',
   ],
@@ -109,23 +111,23 @@ const VARIANT_RULES: Record<string, string[]> = {
     'Ball speed starts at 1.8× from the first second',
     'Balls spawn every 8 seconds',
     'Power-ups still appear for a chance to swing',
-    '5 lives each — need them all',
+    '5 lives each, need them all',
     'Fast hands and sharp reflexes required',
   ],
   pinball: [
     'A new ball spawns every 3 seconds',
     'Up to 8 balls can be in play at once',
-    'Slower starting speed — but volume is brutal',
+    'Slower starting speed, but volume is brutal',
     'Power-ups spawn normally',
     'Last player standing in the ball storm wins',
   ],
   six_player: [
-    '6 fighters — each wall is split into two zones',
+    '6 fighters, each wall is split into two zones',
     'You guard the LEFT half of the bottom wall',
     'Top wall is split between two bots (left & right)',
     'Left and right walls each have their own bot',
-    '4 lives each — no phase transitions, pure survival',
-    'Last of 6 standing wins — largest bracket ever!',
+    '4 lives each, no phase transitions, pure survival',
+    'Last of 6 standing wins, largest bracket ever!',
   ],
 };
 
@@ -155,11 +157,11 @@ const goFlashStyles = StyleSheet.create({
   overlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#00000055',
+    backgroundColor: '#16171A55',
   },
   text: {
-    fontFamily: 'Inter_700Bold', fontSize: 112, color: '#00FF88',
-    textShadowColor: '#00FF88', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 40,
+    fontFamily: 'SourceSans3_700Bold', fontSize: 112, color: '#6F8A5B',
+    textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0,
   },
 });
 
@@ -199,13 +201,13 @@ function CountdownOverlay({ countdown }: { countdown: number }) {
   return (
     <View style={styles.countdownOverlay} pointerEvents="none">
       <Animated.View style={{
-        position: 'absolute', width: 100, height: 100, borderRadius: 50,
-        borderWidth: 3, borderColor: '#C8820A',
+        position: 'absolute', width: 100, height: 100, borderRadius: 3,
+        borderWidth: 3, borderColor: '#C99A2E',
         opacity: ring1Opacity, transform: [{ scale: ring1Scale }],
       }} />
       <Animated.View style={{
-        position: 'absolute', width: 100, height: 100, borderRadius: 50,
-        borderWidth: 2, borderColor: '#FFD700',
+        position: 'absolute', width: 100, height: 100, borderRadius: 3,
+        borderWidth: 2, borderColor: '#C99A2E',
         opacity: ring2Opacity, transform: [{ scale: ring2Scale }],
       }} />
       <Reanimated.Text style={[styles.countdownText, numStyle]}>
@@ -248,21 +250,21 @@ export default function LobbyScreen() {
   const selectedMapRef = useRef(selectedMap);
   selectedMapRef.current = selectedMap;
   const roomIdRef     = useRef<string | null>(null);
-  const pulseAnim     = useRef(new Animated.Value(0.5)).current;
-  const dot1Anim      = useRef(new Animated.Value(0.2)).current;
-  const dot2Anim      = useRef(new Animated.Value(0.2)).current;
-  const dot3Anim      = useRef(new Animated.Value(0.2)).current;
+  const pulseAnim     = useRef(new Animated.Value(1)).current;
+  const dot1Anim      = useRef(new Animated.Value(0.8)).current;
+  const dot2Anim      = useRef(new Animated.Value(0.8)).current;
+  const dot3Anim      = useRef(new Animated.Value(0.8)).current;
 
   // Pulse animation
   useEffect(() => {
-    const pulse = Animated.loop(
+    const pulse = staticLoop(
       Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
         Animated.timing(pulseAnim, { toValue: 0.5, duration: 700, useNativeDriver: true }),
       ])
     );
     // Staggered 3-dot bounce loader
-    const makeDot = (anim: Animated.Value, delay: number) => Animated.loop(
+    const makeDot = (anim: Animated.Value, delay: number) => staticLoop(
       Animated.sequence([
         Animated.delay(delay),
         Animated.timing(anim, { toValue: 1, duration: 300, useNativeDriver: true }),
@@ -277,7 +279,7 @@ export default function LobbyScreen() {
     return () => { pulse.stop(); d1.stop(); d2.stop(); d3.stop(); };
   }, []);
 
-  // Lives bank — player chooses how many bank lives to spend this match
+  // Lives bank, player chooses how many bank lives to spend this match
   const bankLives       = profile.extraLivesInventory ?? 0;
   const isChampionPlus  = getRankIndex(profile.rank) >= 15; // Champion 1–5 = index 15–19
   const maxLivesPerGame = isChampionPlus ? 2 : 3;
@@ -288,10 +290,22 @@ export default function LobbyScreen() {
   useEffect(() => { updateGameConfig({ bankLivesUsed: livesUsed }); }, [livesUsed]);
 
   // Matchmaking logic
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     let cancelled = false;
+    let readyScheduled = false;
+    let navigated = false;
     let pollTimer: ReturnType<typeof setInterval> | null = null;
     let countdownTimer: ReturnType<typeof setInterval> | null = null;
+    const delayed = new Set<ReturnType<typeof setTimeout>>();
+    const later = (callback: () => void, delay: number) => {
+      const timer = setTimeout(() => {
+        delayed.delete(timer);
+        if (!cancelled) callback();
+      }, delay);
+      delayed.add(timer);
+      return timer;
+    };
+    updateGameConfig({ countdownComplete: false });
 
     function startCountdown(finalOpponents: MatchPlayer[]) {
       if (cancelled) return;
@@ -312,17 +326,20 @@ export default function LobbyScreen() {
         if (c > 0) sfxRef.current.countdown();
         if (c <= 0) {
           if (countdownTimer) clearInterval(countdownTimer);
-          updateGameConfig({ mapId: selectedMapRef.current });
+          updateGameConfig({ mapId: selectedMapRef.current, countdownComplete: true });
           setShowGoFlash(true);
-          setTimeout(() => {
-            if (!cancelled) router.replace('/game');
+          later(() => {
+            if (!cancelled && !navigated) {
+              navigated = true;
+              router.replace('/game');
+            }
           }, 400);
         }
       }, 1000);
     }
 
     function handlePollResult(players: MatchPlayer[], isReady: boolean) {
-      if (cancelled) return;
+      if (cancelled || readyScheduled) return;
       // Filter out the human player
       const others = players.filter(p => p.id !== playerIdRef.current);
       // Animate new arrivals one by one
@@ -331,7 +348,7 @@ export default function LobbyScreen() {
       if (curr > prev) {
         for (let i = prev; i < curr; i++) {
           const idx = i;
-          setTimeout(() => {
+          later(() => {
             if (cancelled) return;
             setOpponents(o => {
               if (o.length <= idx) {
@@ -346,14 +363,15 @@ export default function LobbyScreen() {
           }, (i - prev) * 500);
         }
       }
-      if (isReady && status !== 'countdown') {
+      if (isReady && !readyScheduled) {
+        readyScheduled = true;
         // Wait for animations to finish before counting down
-        setTimeout(() => {
+        later(() => {
           if (cancelled) return;
           const allOthers = players.filter(p => p.id !== playerIdRef.current);
           setOpponents(allOthers);
           setStatus('found');
-          setTimeout(() => startCountdown(allOthers), 600);
+          later(() => startCountdown(allOthers), 600);
         }, (curr - prev) * 500 + 200);
         if (pollTimer) clearInterval(pollTimer);
       }
@@ -375,13 +393,20 @@ export default function LobbyScreen() {
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json() as { roomId: string; players: MatchPlayer[]; isReady: boolean };
-        if (cancelled) return;
+        if (cancelled) {
+          fetch(apiUrl(`/matchmaking/room/${data.roomId}/leave`), {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ playerId: playerIdRef.current }),
+          }).catch(() => {});
+          return;
+        }
         setApiAvailable(true);
         roomIdRef.current = data.roomId;
         handlePollResult(data.players, data.isReady);
 
         // Start polling every 2s
-        pollTimer = setInterval(async () => {
+        if (!readyScheduled) pollTimer = setInterval(async () => {
           if (cancelled || !roomIdRef.current) return;
           try {
             const pollRes = await fetch(
@@ -390,10 +415,10 @@ export default function LobbyScreen() {
             if (!pollRes.ok) return;
             const pollData = await pollRes.json() as { players: MatchPlayer[]; isReady: boolean };
             handlePollResult(pollData.players, pollData.isReady);
-          } catch { /* network hiccup — keep polling */ }
+          } catch { /* network hiccup, keep polling */ }
         }, 2000);
       } catch {
-        // API unavailable — fall back to simulated matchmaking
+        // API unavailable, fall back to simulated matchmaking
         if (cancelled) return;
         setApiAvailable(false);
         simulateFallback();
@@ -402,41 +427,41 @@ export default function LobbyScreen() {
 
     // Fallback: simulated matchmaking (when API is unreachable)
     const FALLBACK_POOL = [
-      { id: 'f1', name: 'ArcReaper',   rank: 'Diamond',  color: '#00BFFF' },
-      { id: 'f2', name: 'VoidDash',    rank: 'Platinum', color: '#9B59B6' },
-      { id: 'f3', name: 'PhantomBolt', rank: 'Master 1', color: '#FF4757' },
-      { id: 'f4', name: 'NightHawk',   rank: 'Gold III', color: '#FF6B35' },
-      { id: 'f5', name: 'ZeroShift',   rank: 'Diamond',  color: '#00FF88' },
-      { id: 'f6', name: 'CyberAce',    rank: 'Master 2', color: '#FF00FF' },
-      { id: 'f7', name: 'SlipStream7', rank: 'Silver II', color: '#C0C0C0' },
-      { id: 'f8', name: 'GhostPad',    rank: 'Gold I',   color: '#FFD700' },
+      { id: 'f1', name: 'ArcReaper',   rank: 'Diamond',  color: '#8C8F7A' },
+      { id: 'f2', name: 'VoidDash',    rank: 'Platinum', color: '#8C8F7A' },
+      { id: 'f3', name: 'PhantomBolt', rank: 'Master 1', color: '#B4533A' },
+      { id: 'f4', name: 'NightHawk',   rank: 'Gold III', color: '#B4533A' },
+      { id: 'f5', name: 'ZeroShift',   rank: 'Diamond',  color: '#6F8A5B' },
+      { id: 'f6', name: 'CyberAce',    rank: 'Master 2', color: '#8C8F7A' },
+      { id: 'f7', name: 'SlipStream7', rank: 'Silver II', color: '#B7B2A6' },
+      { id: 'f8', name: 'GhostPad',    rank: 'Gold I',   color: '#C99A2E' },
     ];
     function simulateFallback() {
       const shuffled = [...FALLBACK_POOL].sort(() => Math.random() - 0.5).slice(0, 3);
-      const timers: ReturnType<typeof setTimeout>[] = [];
       shuffled.forEach((p, i) => {
-        timers.push(setTimeout(() => {
+        later(() => {
           if (cancelled) return;
           setOpponents(prev => [...prev, p]);
           if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           sfxRef.current.playerJoin();
-        }, (i + 1) * 900));
+        }, (i + 1) * 900);
       });
-      timers.push(setTimeout(() => {
+      later(() => {
         if (cancelled) return;
         setStatus('found');
-        setTimeout(() => startCountdown(shuffled), 400);
-      }, 3600));
+        later(() => startCountdown(shuffled), 400);
+      }, 3600);
     }
 
     joinMatchmaking();
 
     return () => {
       cancelled = true;
+      delayed.forEach(clearTimeout);
       if (pollTimer) clearInterval(pollTimer);
       if (countdownTimer) clearInterval(countdownTimer);
       // Leave the room gracefully
-      if (roomIdRef.current && apiAvailable) {
+      if (roomIdRef.current) {
         fetch(apiUrl(`/matchmaking/room/${roomIdRef.current}/leave`), {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
@@ -445,7 +470,7 @@ export default function LobbyScreen() {
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []));
 
   const searchingLabel = status === 'countdown' && countdown !== null
     ? `Match found! Starting in ${countdown}...`
@@ -453,34 +478,34 @@ export default function LobbyScreen() {
     ? 'All players ready!'
     : opponents.length === 0
     ? 'Scanning for players...'
-    : `${opponents.length}/3 players found — waiting...`;
-  const statusColor = status === 'searching' ? '#C8820A' : '#00FF88';
+    : `${opponents.length}/3 players found, waiting...`;
+  const statusColor = status === 'searching' ? '#C99A2E' : '#6F8A5B';
 
   return (
     <Reanimated.View entering={SlideInRight.duration(260)} exiting={SlideOutRight.duration(220)} style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#16171A', '#1F2125', '#16171A']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.5} />
       <LinearGradient
-        colors={['#C8820A1A', '#C8820A08', 'transparent']}
+        colors={['#C99A2E1A', '#C99A2E08', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 220 }}
         pointerEvents="none"
       />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Leave lobby" testID="leave-lobby" onPress={() => router.back()} style={styles.backBtn}>
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </Pressable>
         <View style={{ alignItems: 'center', gap: 4 }}>
-          <GlowText intensity="soft" color="#C8820A" style={[styles.headerTitle, { color: colors.foreground }]}>MATCHMAKING</GlowText>
+          <GlowText intensity="soft" color="#C99A2E" style={[styles.headerTitle, { color: colors.foreground }]}>MATCHMAKING</GlowText>
           <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
             {(() => {
               const isGauntlet = config.matchType === 'gauntlet';
               const isRanked   = config.matchType === 'ranked';
-              const c = isGauntlet ? '#FFD700' : isRanked ? '#C8820A' : '#1E8AAA';
+              const c = isGauntlet ? '#C99A2E' : isRanked ? '#C99A2E' : '#8C8F7A';
               const label = isGauntlet
-                ? `⚔️ GAUNTLET · Round ${getGauntletState().roundNumber}`
-                : isRanked ? '⚔️ RANKED' : '🎮 CASUAL';
+                ? `GAUNTLET · Round ${getGauntletState().roundNumber}`
+                : isRanked ? 'RANKED' : 'CASUAL';
               return (
                 <View style={[styles.modeBadge, { backgroundColor: c + '22', borderColor: c + '66' }]}>
                   <Text style={[styles.modeBadgeText, { color: c }]}>{label}</Text>
@@ -489,11 +514,11 @@ export default function LobbyScreen() {
             })()}
             {config.variant !== 'classic' && (() => {
               const vm = VARIANT_META[config.variant];
-              const c  = vm?.color ?? '#FFFFFF';
+              const c  = vm?.color ?? '#ECE7DC';
               return (
                 <View style={[styles.modeBadge, { backgroundColor: c + '22', borderColor: c + '55' }]}>
                   <Text style={[styles.modeBadgeText, { color: c }]}>
-                    {vm?.emoji} {vm?.name}
+                    {vm?.name}
                   </Text>
                 </View>
               );
@@ -503,14 +528,14 @@ export default function LobbyScreen() {
               if (!fm || fm.id !== config.featuredModeId) return null;
               return (
                 <View style={[styles.modeBadge, { backgroundColor: fm.color + '22', borderColor: fm.color + '55' }]}>
-                  <Text style={[styles.modeBadgeText, { color: fm.color }]}>{fm.emoji} {fm.name.toUpperCase()}</Text>
+                  <Text style={[styles.modeBadgeText, { color: fm.color }]}>{fm.name.toUpperCase()}</Text>
                 </View>
               );
             })()}
             {profile.totalGames < 5 && (
-              <View style={[styles.modeBadge, { backgroundColor: '#00FF8820', borderColor: '#00FF8855' }]}>
-                <Text style={[styles.modeBadgeText, { color: '#00FF88' }]}>
-                  🎓 TRAINING · {5 - profile.totalGames} left
+              <View style={[styles.modeBadge, { backgroundColor: '#6F8A5B20', borderColor: '#6F8A5B55' }]}>
+                <Text style={[styles.modeBadgeText, { color: '#6F8A5B' }]}>
+                   TRAINING · {5 - profile.totalGames} left
                 </Text>
               </View>
             )}
@@ -526,92 +551,90 @@ export default function LobbyScreen() {
             <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
               {([dot1Anim, dot2Anim, dot3Anim] as Animated.Value[]).map((anim, i) => (
                 <Animated.View key={i} style={{
-                  width: 8, height: 8, borderRadius: 4, backgroundColor: '#C8820A',
+                  width: 8, height: 8, borderRadius: 4, backgroundColor: '#C99A2E',
                   opacity: anim,
                   transform: [{ scale: anim.interpolate({ inputRange: [0.2, 1], outputRange: [0.7, 1] }) }],
                 }} />
               ))}
             </View>
           ) : (
-            <View style={[styles.dot, { backgroundColor: '#00FF88' }]} />
+            <View style={[styles.dot, { backgroundColor: '#6F8A5B' }]} />
           )}
           <Text style={[styles.statusText, { color: statusColor }]}>{searchingLabel}</Text>
         </View>
 
         {/* ── Lives Bank ── */}
-        <View style={{ marginBottom: 8, backgroundColor: '#FF475710', borderRadius: 14, borderWidth: 1, borderColor: '#FF475733', padding: 14, gap: 10 }}>
+        <View style={{ marginBottom: 8, backgroundColor: '#B4533A10', borderRadius: 3, borderWidth: 1, borderColor: '#B4533A33', padding: 14, gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View style={{ width: 3, height: 14, backgroundColor: '#FF6B88', borderRadius: 2 }} />
-            <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 2, color: '#FF6B88' }}>LIVES BANK</Text>
+            <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, color: '#B4533A' }}>LIVES BANK</Text>
             <View style={{ flex: 1 }} />
             {bankLives > 0 ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                 {Array.from({ length: Math.min(bankLives, 6) }).map((_, i) => (
-                  <Text key={i} style={{ fontSize: 11 }}>❤️</Text>
+                  <Glyph key={i} style={{ fontSize: 11 }} value="❤️" />
                 ))}
-                {bankLives > 6 && <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#FF6B88AA' }}>+{bankLives - 6}</Text>}
+                {bankLives > 6 && <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: '#B4533AAA' }}>+{bankLives - 6}</Text>}
               </View>
             ) : (
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#FFFFFF33' }}>Empty</Text>
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: '#ECE7DC33' }}>Empty</Text>
             )}
           </View>
 
           {bankLives > 0 ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 12, color: '#FFFFFF99' }}>
+                <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#ECE7DC99' }}>
                   Use {livesUsed} {livesUsed === 1 ? 'life' : 'lives'} this match
                 </Text>
                 {isChampionPlus && (
-                  <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FF6B8866', marginTop: 2 }}>
-                    👑 Champion+ cap: 2 lives per match
+                  <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#B4533A66', marginTop: 2 }}>
+                     Champion+ cap: 2 lives per match
                   </Text>
                 )}
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Pressable
                   onPress={() => { setLivesUsed(v => Math.max(0, v - 1)); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                  style={[{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#FF475720', borderWidth: 1, borderColor: '#FF475744', alignItems: 'center', justifyContent: 'center' }, livesUsed === 0 && { opacity: 0.35 }]}
+                  style={[{ width: 32, height: 32, borderRadius: 3, backgroundColor: '#B4533A20', borderWidth: 1, borderColor: '#B4533A44', alignItems: 'center', justifyContent: 'center' }, livesUsed === 0 && { opacity: 0.35 }]}
                   disabled={livesUsed === 0}
                 >
-                  <Text style={{ color: '#FF6B88', fontFamily: 'Inter_700Bold', fontSize: 20, lineHeight: 22 }}>−</Text>
+                  <Text style={{ color: '#B4533A', fontFamily: 'SourceSans3_700Bold', fontSize: 20, lineHeight: 22 }}>−</Text>
                 </Pressable>
-                <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 24, color: '#FF6B88', minWidth: 22, textAlign: 'center' }}>{livesUsed}</Text>
+                <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 24, color: '#B4533A', minWidth: 22, textAlign: 'center' }}>{livesUsed}</Text>
                 <Pressable
                   onPress={() => { setLivesUsed(v => Math.min(livesCap, v + 1)); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                  style={[{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#FF475720', borderWidth: 1, borderColor: '#FF475744', alignItems: 'center', justifyContent: 'center' }, livesUsed >= livesCap && { opacity: 0.35 }]}
+                  style={[{ width: 32, height: 32, borderRadius: 3, backgroundColor: '#B4533A20', borderWidth: 1, borderColor: '#B4533A44', alignItems: 'center', justifyContent: 'center' }, livesUsed >= livesCap && { opacity: 0.35 }]}
                   disabled={livesUsed >= livesCap}
                 >
-                  <Text style={{ color: '#FF6B88', fontFamily: 'Inter_700Bold', fontSize: 20, lineHeight: 22 }}>+</Text>
+                  <Text style={{ color: '#B4533A', fontFamily: 'SourceSans3_700Bold', fontSize: 20, lineHeight: 22 }}>+</Text>
                 </Pressable>
               </View>
             </View>
           ) : (
-            <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 12, color: '#FFFFFF44', lineHeight: 18 }}>
+            <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#ECE7DC44', lineHeight: 18 }}>
               Earn lives from Gold Strikes (Dragon Cache &amp; Nexus Core), the Premium Pass, the Shop, or by referring friends.
             </Text>
           )}
         </View>
 
-        {/* Party panel — only visible when player is in a party */}
+        {/* Party panel, only visible when player is in a party */}
         {isInParty && (
-          <View style={{ marginBottom: 8, backgroundColor: '#BF5FFF0F', borderRadius: 14, borderWidth: 1, borderColor: '#BF5FFF44', padding: 12, gap: 8 }}>
+          <View style={{ marginBottom: 8, backgroundColor: '#8C8F7A0F', borderRadius: 3, borderWidth: 1, borderColor: '#8C8F7A44', padding: 12, gap: 8 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <View style={{ width: 3, height: 14, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 2, color: '#BF5FFF' }}>YOUR PARTY</Text>
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, color: '#BF5FFF88', letterSpacing: 1.5 }}>· {partyCode}</Text>
+              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, color: '#8C8F7A' }}>YOUR PARTY</Text>
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: '#8C8F7A88', letterSpacing: 1.5 }}>· {partyCode}</Text>
               <View style={{ flex: 1 }} />
-              <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 10, color: '#FFFFFF55' }}>Queueing together</Text>
+              <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#ECE7DC55' }}>Queueing together</Text>
             </View>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {partyMembers.map(m => (
-                <View key={m.playerId} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFFFFF08', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}>
-                  <Text style={{ fontSize: 14 }}>{m.avatarEmoji}</Text>
+                <View key={m.playerId} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#ECE7DC08', borderRadius: 3, paddingHorizontal: 8, paddingVertical: 5 }}>
+                  <Glyph style={{ fontSize: 14 }} value={m.avatarEmoji} />
                   <View>
-                    <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 11, color: '#FFFFFF' }}>{m.name}</Text>
-                    <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 9, color: '#FFFFFF55' }}>{m.rank}</Text>
+                    <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: '#ECE7DC' }}>{m.name}</Text>
+                    <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#ECE7DC55' }}>{m.rank}</Text>
                   </View>
-                  {m.isLeader && <Text style={{ fontSize: 10 }}>👑</Text>}
+                  {m.isLeader && <Glyph style={{ fontSize: 10 }} value="👑" />}
                 </View>
               ))}
             </View>
@@ -621,10 +644,12 @@ export default function LobbyScreen() {
         {/* Players */}
         <View style={styles.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>PLAYERS</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>MATCH SEATS</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
           </View>
+          <Text style={{ color: '#B8B5AA', fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20 }}>
+            You control South. Opponent paddles are local bots, even when matchmaking supplies player names. Parties coordinate entry, not synchronized human gameplay.
+          </Text>
           <View style={styles.playersList}>
             {/* Human player */}
             <PlayerCard
@@ -636,7 +661,7 @@ export default function LobbyScreen() {
               isBot={false}
               isReady={true}
             />
-            {/* Opponents (real or bot — no distinction shown) */}
+            {/* Opponents (real or bot, no distinction shown) */}
             {opponents.map((opp) => (
               <Reanimated.View key={opp.id} entering={ZoomIn.springify().damping(13).stiffness(160)}>
                 <PlayerCard
@@ -663,9 +688,8 @@ export default function LobbyScreen() {
         {/* Map select */}
         <View style={styles.section}>
           <View style={[styles.sectionHead, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
-            <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>ARENA</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
           </View>
           <ScrollView
             horizontal
@@ -695,13 +719,13 @@ export default function LobbyScreen() {
                   }]}
                 >
                   <LinearGradient colors={map.arenaBg} style={StyleSheet.absoluteFill} />
-                  <Text style={styles.mapIcon}>{map.icon}</Text>
+                  <Glyph style={styles.mapIcon} value={map.icon} />
                   <Text style={[styles.mapName, { color: selected ? map.accent : colors.foreground }]} numberOfLines={1}>{map.name}</Text>
                   <Text style={[styles.mapDesc, { color: colors.mutedForeground }]} numberOfLines={3}>{map.desc}</Text>
                   {unlocked
                     ? (selected
-                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#0D0A06" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
-                        : <View style={[styles.mapBadge, { backgroundColor: '#FFFFFF14' }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
+                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#16171A" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
+                        : <View style={[styles.mapBadge, { backgroundColor: '#ECE7DC14' }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
                     : <View style={[styles.mapLockBadge, { borderColor: reqRank?.color + '66' }]}><Feather name="lock" size={9} color={reqRank?.color} /><Text style={[styles.mapLockText, { color: reqRank?.color }]}>{reqRank?.name}</Text></View>}
                 </Pressable>
               );
@@ -717,13 +741,12 @@ export default function LobbyScreen() {
             : colors.border,
         }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <View style={{ width: 3, height: 16, backgroundColor: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? '#C8820A') : '#C8820A', borderRadius: 2 }} />
             <Text style={[styles.rulesTitle, { color: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? colors.foreground) : colors.foreground, marginBottom: 0 }]}>
               {config.variant !== 'classic'
                 ? `${VARIANT_META[config.variant]?.name ?? ''} RULES`
                 : 'HOW TO PLAY'}
             </Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
           </View>
           <View style={styles.rulesList}>
             {(VARIANT_RULES[config.variant] ?? VARIANT_RULES['classic']!).map((rule, i) => (
@@ -745,7 +768,7 @@ export default function LobbyScreen() {
         <CountdownOverlay key={countdown} countdown={countdown} />
       )}
 
-      {/* GO! flash — shown when countdown hits zero */}
+      {/* GO! flash, shown when countdown hits zero */}
       {showGoFlash && <GoFlash key="go-flash" />}
     </Reanimated.View>
   );
@@ -755,33 +778,33 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12 },
   backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 2 },
-  modeBadge:   { borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 4 },
-  modeBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.5 },
+  headerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 2 },
+  modeBadge:   { borderRadius: 3, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 4 },
+  modeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 1.5 },
   content: { paddingHorizontal: 20, paddingBottom: 40, gap: 20 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  statusText: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
+  statusText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
   section: { gap: 10 },
   sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 2 },
+  sectionTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2 },
   playersList: { gap: 8 },
-  emptySlot: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 14, borderWidth: 1, borderStyle: 'dashed' },
-  emptyText: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
-  mapCard: { width: 128, padding: 12, borderRadius: 14, borderWidth: 1.5, gap: 5, overflow: 'hidden' },
+  emptySlot: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 3, borderWidth: 1, borderStyle: 'dashed' },
+  emptyText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
+  mapCard: { width: 128, padding: 12, borderRadius: 3, borderWidth: 1.5, gap: 5, overflow: 'hidden' },
   mapIcon: { fontSize: 24 },
-  mapName: { fontFamily: 'Inter_700Bold', fontSize: 13 },
-  mapDesc: { fontFamily: 'Inter_400Regular', fontSize: 10, lineHeight: 14, minHeight: 42 },
-  mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
-  mapBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#07090F', letterSpacing: 0.5 },
-  mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 6, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
-  mapLockText: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
-  rulesCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 10 },
-  rulesTitle: { fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1.5 },
+  mapName: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
+  mapDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, lineHeight: 14, minHeight: 42 },
+  mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
+  mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#16171A', letterSpacing: 0.5 },
+  mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
+  mapLockText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
+  rulesCard: { borderRadius: 3, borderWidth: 1, padding: 16, gap: 10 },
+  rulesTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5 },
   rulesList: { gap: 8 },
   ruleItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   ruleDot: { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
-  ruleText: { fontFamily: 'Inter_400Regular', fontSize: 13, flex: 1, lineHeight: 19 },
-  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#00000099', alignItems: 'center', justifyContent: 'center' },
-  countdownText: { color: '#C8820A', fontSize: 96, fontFamily: 'Inter_700Bold', textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 30 },
+  ruleText: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, flex: 1, lineHeight: 19 },
+  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#16171A99', alignItems: 'center', justifyContent: 'center' },
+  countdownText: { color: '#C99A2E', fontSize: 96, fontFamily: 'SourceSans3_700Bold', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
 });

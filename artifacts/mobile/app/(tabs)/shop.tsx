@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Reanimated, { ZoomIn, FadeInRight } from 'react-native-reanimated';
@@ -12,6 +12,9 @@ import { useColors } from '@/hooks/useColors';
 import { FloatingOrbs, ORBS_GOLD, GlowText, HolographicShimmer, ShimmerCard, PulseRing, GlowBorder } from '@/components/effects';
 import { trackEvent } from '@/utils/analytics';
 import { useRevenueCat } from '@/lib/revenuecat';
+import { apiUrl } from '@/utils/api';
+import { withTimeout } from '@/utils/withTimeout';
+import { Glyph } from '@/components/ui/Glyph';
 
 const NATIVE_PACKAGE_IDS: Record<string, string> = {
   'Starter Sack': 'starter_sack',
@@ -27,14 +30,10 @@ const NATIVE_PACKAGE_IDS: Record<string, string> = {
   'GoldRush Battle Pass Premium': 'battle_pass_premium_s1',
 };
 
-const API_BASE = Platform.OS === 'web'
-  ? '/api'
-  : `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
-
 const STORE_COIN_PACKS = [
   { key: 'Starter Sack',    emoji: '🪙', name: 'Starter Sack',    desc: '1,000 Coins',                   usd: '$0.99',  highlight: false },
   { key: 'Gold Pouch',      emoji: '💰', name: 'Gold Pouch',      desc: '5,000 Coins',                   usd: '$3.99',  highlight: false },
-  { key: 'Treasure Chest',  emoji: '🎁', name: 'Treasure Chest',  desc: '15,000 Coins — best deal!',     usd: '$9.99',  highlight: true  },
+  { key: 'Treasure Chest',  emoji: '🎁', name: 'Treasure Chest',  desc: '15,000 Coins, best deal!',     usd: '$9.99',  highlight: true  },
   { key: 'Dragon Vault',    emoji: '🐉', name: 'Dragon Vault',    desc: '50,000 Coins',                  usd: '$24.99', highlight: false },
 ];
 const STORE_SKIN_PACKS = [
@@ -44,39 +43,39 @@ const STORE_SKIN_PACKS = [
 ];
 const STORE_SEASON_PASS = {
   key: 'GoldRush Season Pass', emoji: '🌟', name: 'GoldRush Season Pass',
-  desc: 'Instantly unlock all Season Pass tiers — exclusive skins, coins & more',
+  desc: 'Instantly unlock all Season Pass tiers, exclusive skins, coins & more',
   usd: '$4.99',
 };
 const STORE_BATTLE_PASS = {
   key: 'GoldRush Battle Pass Premium', emoji: '👑', name: 'GoldRush Battle Pass Premium',
-  desc: 'Season 1 — 2× rewards on all 50 tiers · 2 exclusive skins · 5× Ultra Drop at Tier 50',
+  desc: 'Season 1, 2× rewards on all 50 tiers · 2 exclusive skins · 5× Ultra Drop at Tier 50',
   usd: '$4.99',
 };
 
 const POWERUP_BUNDLES = [
-  { id: 'shield3', name: 'Shield Pack', desc: '3x Shield Power-ups', icon: 'shield', price: 80, color: '#FFD700' },
-  { id: 'speed3', name: 'Speed Pack', desc: '3x Speed Boosts', icon: 'zap', price: 80, color: '#00FF88' },
-  { id: 'mixed5', name: 'Mixed Bundle', desc: '5x Random Power-ups', icon: 'gift', price: 100, color: '#00E5FF' },
+  { id: 'shield3', name: 'Shield Pack', desc: '3x Shield Power-ups', icon: 'shield', price: 80, color: '#C99A2E' },
+  { id: 'speed3', name: 'Speed Pack', desc: '3x Speed Boosts', icon: 'zap', price: 80, color: '#6F8A5B' },
+  { id: 'mixed5', name: 'Mixed Bundle', desc: '5x Random Power-ups', icon: 'gift', price: 100, color: '#8C8F7A' },
 ];
 
 const EXTRA_LIVES = [
-  { id: 'life1', name: '1 Extra Life', desc: 'Start with 4 lives', icon: 'heart', price: 60, color: '#FF69B4' },
-  { id: 'life2', name: '2 Extra Lives', desc: 'Start with 5 lives', icon: 'heart', price: 100, color: '#FF69B4' },
+  { id: 'life1', name: '1 Extra Life', desc: 'Start with 4 lives', icon: 'heart', price: 60, color: '#B4533A' },
+  { id: 'life2', name: '2 Extra Lives', desc: 'Start with 5 lives', icon: 'heart', price: 100, color: '#B4533A' },
 ];
 
 const BALL_TRAILS = [
-  { id: 'trail_fire', name: 'Fire Trail', desc: 'Balls leave fire trails', price: 200, color: '#FF6B35' },
-  { id: 'trail_ice',  name: 'Ice Trail',  desc: 'Balls leave ice trails', price: 200, color: '#00BFFF' },
-  { id: 'trail_neon', name: 'Neon Trail', desc: 'Rainbow neon trails',   price: 300, color: '#FF00FF' },
+  { id: 'trail_fire', name: 'Fire Trail', desc: 'Balls leave fire trails', price: 200, color: '#B4533A' },
+  { id: 'trail_ice',  name: 'Ice Trail',  desc: 'Balls leave ice trails', price: 200, color: '#8C8F7A' },
+  { id: 'trail_neon', name: 'Neon Trail', desc: 'Rainbow neon trails',   price: 300, color: '#8C8F7A' },
 ];
 
 const ARENA_THEMES = [
-  { id: 'default',   name: 'Dark Void',       desc: 'Classic deep-space arena',     price: 0,   color: '#6655FF', preview: ['#0D0035','#16005A'] },
-  { id: 'solar',     name: 'Solar Flare',      desc: 'Scorching red-orange arena',   price: 300, color: '#FF6B35', preview: ['#350000','#5A1000'] },
-  { id: 'arctic',    name: 'Arctic Ice',       desc: 'Cool blue frost arena',        price: 300, color: '#00BFFF', preview: ['#001828','#003050'] },
-  { id: 'toxic',     name: 'Toxic Wasteland',  desc: 'Neon green hazard zone',       price: 350, color: '#00FF88', preview: ['#001A08','#003020'] },
-  { id: 'cosmic',    name: 'Cosmic Dream',     desc: 'Purple nebula atmosphere',     price: 400, color: '#BF5FFF', preview: ['#180030','#2A0060'] },
-  { id: 'golden',    name: 'Gold Rush',        desc: 'Prestige golden arena',        price: 500, color: '#FFD700', preview: ['#1A1200','#2A2000'] },
+  { id: 'default',   name: 'Dark Void',       desc: 'Classic deep-space arena',     price: 0,   color: '#8C8F7A', preview: ['#1F2125','#2A2C31'] },
+  { id: 'solar',     name: 'Solar Flare',      desc: 'Scorching red-orange arena',   price: 300, color: '#B4533A', preview: ['#1F2125','#2A2C31'] },
+  { id: 'arctic',    name: 'Arctic Ice',       desc: 'Cool blue frost arena',        price: 300, color: '#8C8F7A', preview: ['#16171A','#2A2C31'] },
+  { id: 'toxic',     name: 'Toxic Wasteland',  desc: 'Neon green hazard zone',       price: 350, color: '#6F8A5B', preview: ['#16171A','#16171A'] },
+  { id: 'cosmic',    name: 'Cosmic Dream',     desc: 'Purple nebula atmosphere',     price: 400, color: '#8C8F7A', preview: ['#16171A','#2A2C31'] },
+  { id: 'golden',    name: 'Gold Rush',        desc: 'Prestige golden arena',        price: 500, color: '#C99A2E', preview: ['#16171A','#16171A'] },
 ];
 
 export default function ShopScreen() {
@@ -91,6 +90,8 @@ export default function ShopScreen() {
 
   // Store: product price ID cache (keyed by product name)
   const priceCache = useRef<Record<string, string>>({});
+  const [webPrices, setWebPrices] = useState<Record<string, string>>({});
+  const [catalogAttempt, setCatalogAttempt] = useState(0);
   const [storeLoading, setStoreLoading] = useState(false);
   const [storeError, setStoreError] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
@@ -98,7 +99,8 @@ export default function ShopScreen() {
   const catalogLoading = Platform.OS === 'web' ? storeLoading : revenueCat.isLoading;
   const catalogError = Platform.OS === 'web'
     ? storeError
-    : revenueCat.error ? 'Could not load App Store products. Try again shortly.' : null;
+    : !revenueCat.available ? 'Native purchases are not configured for this build. Gameplay remains available.'
+      : revenueCat.error ? 'Could not load App Store products. Try again shortly.' : null;
 
   useEffect(() => {
     if (Platform.OS !== 'web') return;
@@ -106,7 +108,7 @@ export default function ShopScreen() {
     if (Object.keys(priceCache.current).length > 0) return;
     setStoreLoading(true);
     setStoreError(null);
-    fetch(`${API_BASE}/store/products`)
+    withTimeout(Promise.resolve().then(() => fetch(apiUrl('/store/products'))))
       .then(async r => {
         const data = await r.json();
         if (!r.ok) throw new Error(data.error ?? 'Could not load store.');
@@ -114,22 +116,29 @@ export default function ShopScreen() {
       })
       .then((data: any) => {
         const cache: Record<string, string> = {};
+        const display: Record<string, string> = {};
         for (const p of (data.data ?? [])) {
-          const firstPrice = p.prices?.[0]?.id;
-          if (firstPrice) cache[p.name] = firstPrice;
+          const price = p.prices?.[0];
+          if (price?.id && typeof price.unit_amount === 'number' && price.currency) {
+            cache[p.name] = price.id;
+            display[p.name] = new Intl.NumberFormat(undefined, {
+              style: 'currency', currency: price.currency,
+            }).format(price.unit_amount / (['jpy', 'krw', 'vnd', 'clp', 'xaf', 'xof', 'xpf', 'djf', 'gnf', 'bif', 'kmf', 'mga', 'pyg', 'rwf', 'ugx', 'vuv'].includes(price.currency.toLowerCase()) ? 1 : 100));
+          }
         }
         if (Object.keys(cache).length === 0) throw new Error('No store products are available.');
         priceCache.current = cache;
+        setWebPrices(display);
         setStoreLoading(false);
       })
       .catch(() => {
         setStoreError('Could not load store. Check your connection.');
         setStoreLoading(false);
       });
-  }, [activeTab]);
+  }, [activeTab, catalogAttempt]);
 
-  function nativePrice(productName: string, webFallback: string) {
-    if (Platform.OS === 'web') return webFallback;
+  function nativePrice(productName: string, _webFallback: string) {
+    if (Platform.OS === 'web') return webPrices[productName] ?? 'Unavailable';
     return revenueCat.getPackage(NATIVE_PACKAGE_IDS[productName])?.product.priceString ?? 'Unavailable';
   }
 
@@ -176,7 +185,7 @@ export default function ShopScreen() {
     setCheckingOut(productName);
     trackEvent('store_checkout_started', { product: productName });
     try {
-      const resp = await fetch(`${API_BASE}/store/checkout`, {
+      const resp = await fetch(apiUrl('/store/checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ priceId }),
@@ -214,34 +223,35 @@ export default function ShopScreen() {
       if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       return;
     }
+    const skin = SKINS.find(s => s.id === skinId);
+    if (skin && 'exclusive' in skin && skin.exclusive) {
+      xAlert('Locked', 'Earn this exclusive skin from its Premium Battle Pass tier.');
+      return;
+    }
     if (profile.coins < price) {
       xAlert('Not enough coins', `You need ${price - profile.coins} more coins.`);
       return;
     }
     xConfirm(`Buy ${skinName}?`, `Cost: ${price} coins`, async () => {
       setPurchasing(skinId);
-      const ok = await purchaseSkin(skinId);
-      setPurchasing(null);
-      if (ok) {
-        await equipSkin(skinId);
-        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        xAlert('Purchased!', `${skinName} equipped.`);
+      try {
+        const ok = await purchaseSkin(skinId);
+        if (ok) {
+          if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          xAlert('Purchased!', `${skinName} equipped.`);
+        } else {
+          xAlert('Purchase unavailable', 'This item is locked, already owned, or your balance changed. No new item was purchased.');
+        }
+      } catch {
+        xAlert('Could not save purchase', 'Check device storage and retry. No purchase success was recorded.');
+      } finally {
+        setPurchasing(null);
       }
     }, 'Buy');
   }
 
   async function handleBuyBundle(item: { id: string; name: string; price: number }) {
-    if (profile.coins < item.price) {
-      xAlert('Not enough coins', `You need ${item.price - profile.coins} more coins.`);
-      return;
-    }
-    xConfirm(`Buy ${item.name}?`, `Cost: ${item.price} coins`, async () => {
-      const ok = await spendCoins(item.price);
-      if (ok) {
-        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        xAlert('Purchased!', `${item.name} added to your inventory!`);
-      }
-    }, 'Buy');
+    xAlert('Unavailable', `${item.name} cannot be equipped in this build. No coins have been spent.`);
   }
 
   function handleExtraLife(item: { id: string; name: string; price: number }) {
@@ -251,14 +261,14 @@ export default function ShopScreen() {
   return (
     <Reanimated.View style={[styles.root, { backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.7} />
-      <LinearGradient colors={['#070B1E', '#04060E', '#06091A']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#16171A', '#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#C8820A24', '#C8820A0E', 'transparent']}
+        colors={['#C99A2E24', '#C99A2E0E', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 380 }}
         pointerEvents="none"
       />
       <LinearGradient
-        colors={['transparent', '#05081888']}
+        colors={['transparent', '#16171A88']}
         style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 }}
         pointerEvents="none"
       />
@@ -266,19 +276,19 @@ export default function ShopScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <View>
-          <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#FFFFFF44', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
-          <GlowText intensity="medium" color='#C8820A' pulse style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</GlowText>
+          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#ECE7DC44', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
+          <GlowText intensity="medium" color='#C99A2E' pulse style={[styles.headerTitle, { color: colors.foreground }]}>SHOP</GlowText>
         </View>
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
           <View style={styles.coinDisplay}>
-            <Feather name="circle" size={14} color="#FFD700" />
+            <Feather name="circle" size={14} color="#C99A2E" />
             <Text style={styles.coinAmount}>{profile.coins}</Text>
           </View>
           <Pressable
             onPress={() => setRedeemVisible(true)}
             style={({ pressed }) => [styles.redeemCodeBtn, { opacity: pressed ? 0.75 : 1 }]}
           >
-            <Feather name="gift" size={13} color="#C8820A" />
+            <Feather name="gift" size={13} color="#C99A2E" />
             <Text style={styles.redeemCodeTxt}>REDEEM</Text>
           </Pressable>
         </View>
@@ -287,14 +297,14 @@ export default function ShopScreen() {
       {/* Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 44 }} contentContainerStyle={[styles.tabRow, { borderBottomColor: colors.border }]}>
         {(['skins', 'themes', 'powerups', 'extras', 'store'] as const).map(t => (
-          <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: t === 'store' ? '#FFD700' : colors.primary }]}>
+          <Pressable key={t} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { borderBottomColor: t === 'store' ? '#C99A2E' : colors.primary }]}>
             {activeTab === t ? (
-              <GlowText intensity="soft" color='#C8820A' style={styles.tabText}>
-                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'store' ? '💳 STORE' : 'EXTRAS'}
+              <GlowText intensity="soft" color='#C99A2E' style={styles.tabText}>
+                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'store' ? 'STORE' : 'EXTRAS'}
               </GlowText>
             ) : (
               <Text style={[styles.tabText, { color: colors.mutedForeground }]}>
-                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'store' ? '💳 STORE' : 'EXTRAS'}
+                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'store' ? 'STORE' : 'EXTRAS'}
               </Text>
             )}
           </Pressable>
@@ -305,10 +315,9 @@ export default function ShopScreen() {
         {activeTab === 'skins' && (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#C8820A', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C8820A' }}>PADDLE SKINS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>TAP TO EQUIP</Text>
+              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#C99A2E' }}>PADDLE SKINS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#ECE7DC33', letterSpacing: 1 }}>TAP TO EQUIP</Text>
             </View>
             <View style={styles.skinGrid}>
               {SKINS.map((skin, idx) => {
@@ -345,8 +354,8 @@ export default function ShopScreen() {
                       <Text style={[styles.skinName, { color: equipped ? skin.color : colors.foreground }]}>{skin.name}</Text>
                       {!owned ? (
                         <View style={styles.priceRow}>
-                          <Feather name="circle" size={10} color="#FFD700" />
-                          <Text style={styles.priceText}>{skin.price}</Text>
+                          <Feather name="circle" size={10} color="#C99A2E" />
+                          <Text style={styles.priceText}>{'exclusive' in skin && skin.exclusive ? 'PASS LOCKED' : skin.price}</Text>
                         </View>
                       ) : (
                         <Text style={[styles.ownedLabel, { color: skin.color }]}>
@@ -362,10 +371,9 @@ export default function ShopScreen() {
 
             {/* Ball Trails */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#00BFFF', borderRadius: 2 }} />
               <Text style={[styles.subsectionTitle, { color: colors.foreground, marginBottom: 0 }]}>BALL TRAILS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>COMING SOON</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#ECE7DC33', letterSpacing: 1 }}>COMING SOON</Text>
             </View>
             {BALL_TRAILS.map(trail => (
               <Pressable
@@ -379,7 +387,7 @@ export default function ShopScreen() {
                   <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{trail.desc}</Text>
                 </View>
                 <View style={styles.priceRow}>
-                  <Feather name="circle" size={12} color="#FFD700" />
+                  <Feather name="circle" size={12} color="#C99A2E" />
                   <Text style={styles.priceText}>{trail.price}</Text>
                 </View>
               </Pressable>
@@ -390,10 +398,9 @@ export default function ShopScreen() {
         {activeTab === 'themes' && (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#BF5FFF', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#BF5FFF' }}>ARENA THEMES</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
-              <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 9, color: '#FFFFFF33', letterSpacing: 1 }}>VISUAL ONLY</Text>
+              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#8C8F7A' }}>ARENA THEMES</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#ECE7DC33', letterSpacing: 1 }}>VISUAL ONLY</Text>
             </View>
             {ARENA_THEMES.map((theme, idx) => {
               const owned = (profile.ownedThemes ?? ['default']).includes(theme.id);
@@ -402,22 +409,7 @@ export default function ShopScreen() {
                 <Reanimated.View key={theme.id} entering={FadeInRight.delay(idx * 60).duration(300)}>
                 <Pressable
                   onPress={async () => {
-                    if (equipped) return;
-                    if (owned) {
-                      xAlert('Theme Equipped', `${theme.name} is now your arena theme!`);
-                      return;
-                    }
-                    if (profile.coins < theme.price) {
-                      xAlert('Not enough coins', `You need ${theme.price - profile.coins} more coins.`);
-                      return;
-                    }
-                    xConfirm(`Buy ${theme.name}?`, `Cost: ${theme.price} coins`, async () => {
-                      const ok = await spendCoins(theme.price);
-                      if (ok) {
-                        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                        xAlert('Purchased!', `${theme.name} is now your arena theme!`);
-                      }
-                    }, 'Buy');
+                    xAlert('Unavailable', 'Arena theme purchases and equipping are unavailable in this build. Your saved ownership is preserved. No coins have been spent.');
                   }}
                   style={({ pressed }) => [styles.bundleCard, {
                     backgroundColor: equipped ? theme.color + '22' : colors.card,
@@ -432,19 +424,18 @@ export default function ShopScreen() {
                   </LinearGradient>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.itemName, { color: equipped ? theme.color : colors.foreground }]}>{theme.name}</Text>
-                    <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{theme.desc}</Text>
-                    {equipped && <Text style={[styles.ownedLabel, { color: theme.color }]}>● EQUIPPED</Text>}
-                    {owned && !equipped && <Text style={[styles.ownedLabel, { color: theme.color + '88' }]}>OWNED — TAP TO EQUIP</Text>}
+                    <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>Unavailable · saved ownership preserved</Text>
+                    {owned && <Text style={[styles.ownedLabel, { color: theme.color }]}>OWNED · PREVIEW ONLY</Text>}
                   </View>
                   {!owned && theme.price > 0 && (
                     <View style={[styles.buyBtn, { backgroundColor: theme.color + '22', borderColor: theme.color + '55' }]}>
-                      <Feather name="circle" size={10} color="#FFD700" />
+                      <Feather name="circle" size={10} color="#C99A2E" />
                       <Text style={[styles.buyBtnText, { color: theme.color }]}>{theme.price}</Text>
                     </View>
                   )}
                   {!owned && theme.price === 0 && (
-                    <View style={[styles.buyBtn, { backgroundColor: '#FFFFFF11', borderColor: '#FFFFFF22' }]}>
-                      <Text style={[styles.buyBtnText, { color: '#FFFFFF55' }]}>FREE</Text>
+                    <View style={[styles.buyBtn, { backgroundColor: '#ECE7DC11', borderColor: '#ECE7DC22' }]}>
+                      <Text style={[styles.buyBtnText, { color: '#ECE7DC55' }]}>FREE</Text>
                     </View>
                   )}
                 </Pressable>
@@ -457,9 +448,8 @@ export default function ShopScreen() {
         {activeTab === 'powerups' && (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#00FF88', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#00FF88' }}>POWER-UP BUNDLES</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#6F8A5B' }}>POWER-UP BUNDLES</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
             </View>
             {POWERUP_BUNDLES.map(bundle => (
               <Pressable
@@ -476,15 +466,15 @@ export default function ShopScreen() {
                   <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{bundle.desc}</Text>
                 </View>
                 <View style={[styles.buyBtn, { backgroundColor: bundle.color + '22', borderColor: bundle.color + '55' }]}>
-                  <Feather name="circle" size={10} color="#FFD700" />
+                  <Feather name="circle" size={10} color="#C99A2E" />
                   <Text style={[styles.buyBtnText, { color: bundle.color }]}>{bundle.price}</Text>
                 </View>
               </Pressable>
             ))}
 
             {/* Earn coins section */}
-            <View style={[styles.earnCard, { backgroundColor: colors.card, borderColor: '#FFD70033' }]}>
-              <Feather name="star" size={18} color="#FFD700" />
+            <View style={[styles.earnCard, { backgroundColor: colors.card, borderColor: '#C99A2E33' }]}>
+              <Feather name="star" size={18} color="#C99A2E" />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.earnTitle, { color: colors.foreground }]}>Earn Coins</Text>
                 <Text style={[styles.earnDesc, { color: colors.mutedForeground }]}>
@@ -499,24 +489,23 @@ export default function ShopScreen() {
           <>
             {/* Inventory badge */}
             {(profile.extraLivesInventory ?? 0) > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FF69B414', borderRadius: 12, borderWidth: 1, borderColor: '#FF69B433', padding: 12, marginBottom: 4 }}>
-                <Text style={{ fontSize: 20 }}>❤️</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#B4533A14', borderRadius: 3, borderWidth: 1, borderColor: '#B4533A33', padding: 12, marginBottom: 4 }}>
+                <Glyph style={{ fontSize: 20 }} value="❤️" />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 13, color: '#FF69B4' }}>
+                  <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#B4533A' }}>
                     {profile.extraLivesInventory} Extra {(profile.extraLivesInventory ?? 0) === 1 ? 'Life' : 'Lives'} Ready
                   </Text>
-                  <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 11, color: colors.mutedForeground, marginTop: 2 }}>
+                  <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: colors.mutedForeground, marginTop: 2 }}>
                     You start your next {(profile.extraLivesInventory ?? 0) === 1 ? 'match' : `${profile.extraLivesInventory} matches`} with 1 bonus life.
                   </Text>
                 </View>
               </View>
             )}
 
-            {/* Extra Lives — real Stripe checkout */}
+            {/* Extra Lives, real Stripe checkout */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#FF69B4', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FF69B4' }}>EXTRA LIVES</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#B4533A' }}>EXTRA LIVES</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
             </View>
 
             {[
@@ -528,20 +517,20 @@ export default function ShopScreen() {
                 onPress={() => handleBuyFromStore(item.storeKey)}
                 disabled={checkingOut === item.storeKey}
                 style={({ pressed }) => [styles.bundleCard, {
-                  backgroundColor: colors.card, borderColor: '#FF69B433', opacity: pressed ? 0.8 : 1,
+                  backgroundColor: colors.card, borderColor: '#B4533A33', opacity: pressed ? 0.8 : 1,
                 }]}
               >
-                <LinearGradient colors={['#FF69B418', '#FF69B408']} style={StyleSheet.absoluteFill} />
-                <View style={[styles.bundleIcon, { backgroundColor: '#FF69B418', borderColor: '#FF69B433' }]}>
-                  <Text style={{ fontSize: 22 }}>{item.emoji}</Text>
+                <LinearGradient colors={['#B4533A18', '#B4533A08']} style={StyleSheet.absoluteFill} />
+                <View style={[styles.bundleIcon, { backgroundColor: '#B4533A18', borderColor: '#B4533A33' }]}>
+                  <Glyph style={{ fontSize: 22 }} value={item.emoji} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.itemName, { color: colors.foreground }]}>{item.name}</Text>
                   <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{item.desc}</Text>
                 </View>
-                <ShimmerCard active={!checkingOut} borderRadius={8} shimmerColor="rgba(255,255,255,0.1)">
-                  <View style={[storeStyles.usdBtn, { backgroundColor: '#FF69B422', borderColor: '#FF69B466' }]}>
-                    <Text style={[storeStyles.usdBtnText, { color: '#FF69B4' }]}>
+                <ShimmerCard active={!checkingOut} borderRadius={3} shimmerColor="rgba(255,255,255,0.1)">
+                  <View style={[storeStyles.usdBtn, { backgroundColor: '#B4533A22', borderColor: '#B4533A66' }]}>
+                    <Text style={[storeStyles.usdBtnText, { color: '#B4533A' }]}>
                       {checkingOut === item.storeKey ? '…' : nativePrice(item.storeKey, item.usd)}
                     </Text>
                   </View>
@@ -549,28 +538,27 @@ export default function ShopScreen() {
               </Pressable>
             ))}
 
-            {/* Coin Packs — redirect to STORE tab */}
+            {/* Coin Packs, redirect to STORE tab */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, marginBottom: 4 }}>
-              <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
-              <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>COIN PACKS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#FFFFFF0E' }} />
+              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#C99A2E' }}>COIN PACKS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
             </View>
             <Pressable
               onPress={() => setActiveTab('store')}
               style={({ pressed }) => [styles.bundleCard, {
-                backgroundColor: '#C8820A14', borderColor: '#C8820A44', opacity: pressed ? 0.8 : 1,
+                backgroundColor: '#C99A2E14', borderColor: '#C99A2E44', opacity: pressed ? 0.8 : 1,
               }]}
             >
-              <LinearGradient colors={['#C8820A18', '#C8820A06']} style={StyleSheet.absoluteFill} />
-              <View style={[styles.bundleIcon, { backgroundColor: '#C8820A22', borderColor: '#C8820A44' }]}>
-                <Text style={{ fontSize: 22 }}>🪙</Text>
+              <LinearGradient colors={['#C99A2E18', '#C99A2E06']} style={StyleSheet.absoluteFill} />
+              <View style={[styles.bundleIcon, { backgroundColor: '#C99A2E22', borderColor: '#C99A2E44' }]}>
+                <Glyph style={{ fontSize: 22 }} value="🪙" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.itemName, { color: '#FFB830' }]}>Coin Packs</Text>
-                <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>From $0.99 — up to 50,000 coins</Text>
+                <Text style={[styles.itemName, { color: '#C99A2E' }]}>Coin Packs</Text>
+                <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>From $0.99, up to 50,000 coins</Text>
               </View>
-              <View style={[styles.buyBtn, { backgroundColor: '#C8820A22', borderColor: '#C8820A66' }]}>
-                <Text style={[styles.buyBtnText, { color: '#FFD700' }]}>STORE →</Text>
+              <View style={[styles.buyBtn, { backgroundColor: '#C99A2E22', borderColor: '#C99A2E66' }]}>
+                <Text style={[styles.buyBtnText, { color: '#C99A2E' }]}>STORE →</Text>
               </View>
             </Pressable>
           </>
@@ -579,27 +567,35 @@ export default function ShopScreen() {
         {activeTab === 'store' && (
           <>
             {/* Header banner */}
-            <View style={[storeStyles.banner, { borderColor: '#C8820A44' }]}>
-              <LinearGradient colors={['#C8820A22', '#C8820A08']} style={StyleSheet.absoluteFill} />
-              <Text style={{ fontSize: 28 }}>🏆</Text>
+            <View style={[storeStyles.banner, { borderColor: '#C99A2E44' }]}>
+              <LinearGradient colors={['#C99A2E22', '#C99A2E08']} style={StyleSheet.absoluteFill} />
+              <Glyph style={{ fontSize: 28 }} value="🏆" />
               <View style={{ flex: 1 }}>
                 <Text style={storeStyles.bannerTitle}>GOLDRUSH STORE</Text>
                 <Text style={[storeStyles.bannerSub, { color: colors.mutedForeground }]}>
-                  Real-money purchases • Secure Stripe checkout • Get a code to redeem in-game
+                  {Platform.OS === 'web' ? 'Stripe checkout · redeem your purchase code in-game' : 'App-store purchases through RevenueCat · localized prices'}
                 </Text>
               </View>
             </View>
 
             {catalogLoading && (
-              <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-                <Text style={{ color: '#FFFFFF55', fontFamily: 'Inter_400Regular', fontSize: 13 }}>Loading store…</Text>
+              <View accessibilityLabel="Loading store products" accessibilityState={{ busy: true }} style={{ gap: 12, paddingVertical: 20 }}>
+                {[0, 1, 2, 3].map(i => <View key={i} style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, minHeight: 76, padding: 16, gap: 12 }}>
+                  <View style={{ backgroundColor: colors.muted, width: '55%', height: 14 }} />
+                  <View style={{ backgroundColor: colors.muted, width: '80%', height: 10 }} />
+                </View>)}
+                <Text style={{ color: colors.foreground, fontFamily: 'SourceSans3_400Regular', fontSize: 14 }}>Loading store…</Text>
               </View>
             )}
             {catalogError && !catalogLoading && (
-              <View style={[storeStyles.errorBox, { borderColor: '#FF475733' }]}>
-                <Text style={{ color: '#FF4757', fontFamily: 'Inter_400Regular', fontSize: 13, textAlign: 'center' }}>{catalogError}</Text>
-                <Pressable onPress={() => { priceCache.current = {}; setActiveTab('skins'); setTimeout(() => setActiveTab('store'), 50); }}>
-                  <Text style={{ color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 12, marginTop: 8 }}>Retry</Text>
+              <View style={[storeStyles.errorBox, { borderColor: '#B4533A33' }]}>
+                <Text style={{ color: '#B4533A', fontFamily: 'SourceSans3_400Regular', fontSize: 13, textAlign: 'center' }}>{catalogError}</Text>
+                <Pressable accessibilityRole="button" accessibilityLabel="Retry loading store" onPress={() => {
+                  if (Platform.OS !== 'web') { void revenueCat.retry(); return; }
+                  priceCache.current = {};
+                  setCatalogAttempt(n => n + 1);
+                }}>
+                  <Text style={{ color: '#C99A2E', fontFamily: 'SourceSans3_700Bold', fontSize: 12, marginTop: 8 }}>Retry</Text>
                 </Pressable>
               </View>
             )}
@@ -608,27 +604,26 @@ export default function ShopScreen() {
               <>
                 {/* Battle Pass Premium */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                  <View style={{ width: 3, height: 16, backgroundColor: '#C084FC', borderRadius: 2 }} />
-                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#C084FC' }}>BATTLE PASS</Text>
+                  <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#8C8F7A' }}>BATTLE PASS</Text>
                 </View>
-                <HolographicShimmer borderRadius={16}>
+                <HolographicShimmer borderRadius={3}>
                   <Pressable
                     onPress={() => handleBuyFromStore(STORE_BATTLE_PASS.key)}
                     disabled={checkingOut === STORE_BATTLE_PASS.key || !!profile.battlePassPremiumOwned}
-                    style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#8B5CF666' }]}
+                    style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#8C8F7A66' }]}
                   >
-                    <LinearGradient colors={['#8B5CF622', '#6D28D911']} style={StyleSheet.absoluteFill} />
-                    <Text style={{ fontSize: 32 }}>{STORE_BATTLE_PASS.emoji}</Text>
+                    <LinearGradient colors={['#8C8F7A22', '#8C8F7A11']} style={StyleSheet.absoluteFill} />
+                    <Glyph style={{ fontSize: 32 }} value={STORE_BATTLE_PASS.emoji} />
                     <View style={{ flex: 1 }}>
-                      <GlowText intensity="medium" color='#A855F7' style={storeStyles.passName}>{STORE_BATTLE_PASS.name}</GlowText>
+                      <GlowText intensity="medium" color='#8C8F7A' style={storeStyles.passName}>{STORE_BATTLE_PASS.name}</GlowText>
                       <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>{STORE_BATTLE_PASS.desc}</Text>
                       {profile.battlePassPremiumOwned && (
-                        <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#C084FC', letterSpacing: 1, marginTop: 4 }}>✓ OWNED — SEASON 1</Text>
+                        <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#8C8F7A', letterSpacing: 1, marginTop: 4 }}>OWNED, SEASON 1</Text>
                       )}
                     </View>
                     {!profile.battlePassPremiumOwned && (
-                      <View style={[storeStyles.usdBtn, { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' }]}>
-                        <Text style={[storeStyles.usdBtnText, { color: '#F5F3FF' }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : nativePrice(STORE_BATTLE_PASS.key, STORE_BATTLE_PASS.usd)}</Text>
+                      <View style={[storeStyles.usdBtn, { backgroundColor: '#8C8F7A', borderColor: '#8C8F7A' }]}>
+                        <Text style={[storeStyles.usdBtnText, { color: '#ECE7DC' }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : nativePrice(STORE_BATTLE_PASS.key, STORE_BATTLE_PASS.usd)}</Text>
                       </View>
                     )}
                   </Pressable>
@@ -636,22 +631,21 @@ export default function ShopScreen() {
 
                 {/* Season Pass */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2, marginTop: 6 }}>
-                  <View style={{ width: 3, height: 16, backgroundColor: '#FFD700', borderRadius: 2 }} />
-                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFD700' }}>SEASON PASS</Text>
+                  <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#C99A2E' }}>SEASON PASS</Text>
                 </View>
-                <ShimmerCard shimmerColor="rgba(255,215,0,0.18)" duration={1800} borderRadius={14}>
+                <ShimmerCard shimmerColor="rgba(255,215,0,0.18)" duration={1800} borderRadius={3}>
                   <Pressable
                     onPress={() => handleBuyFromStore(STORE_SEASON_PASS.key)}
                     disabled={checkingOut === STORE_SEASON_PASS.key || !!profile.seasonPassPurchased}
-                    style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#FFD70066' }]}
+                    style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: '#C99A2E66' }]}
                   >
-                    <LinearGradient colors={['#FFD70022', '#C8820A11']} style={StyleSheet.absoluteFill} />
-                    <Text style={{ fontSize: 32 }}>{STORE_SEASON_PASS.emoji}</Text>
+                    <LinearGradient colors={['#C99A2E22', '#C99A2E11']} style={StyleSheet.absoluteFill} />
+                    <Glyph style={{ fontSize: 32 }} value={STORE_SEASON_PASS.emoji} />
                     <View style={{ flex: 1 }}>
-                      <GlowText intensity="soft" color='#C8820A' style={storeStyles.passName}>{STORE_SEASON_PASS.name}</GlowText>
+                      <GlowText intensity="soft" color='#C99A2E' style={storeStyles.passName}>{STORE_SEASON_PASS.name}</GlowText>
                       <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>{STORE_SEASON_PASS.desc}</Text>
                       {profile.seasonPassPurchased && (
-                        <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFD700', letterSpacing: 1, marginTop: 4 }}>✓ OWNED</Text>
+                        <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#C99A2E', letterSpacing: 1, marginTop: 4 }}>OWNED</Text>
                       )}
                     </View>
                     {!profile.seasonPassPurchased && (
@@ -664,8 +658,7 @@ export default function ShopScreen() {
 
                 {/* Coin Packs */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
-                  <View style={{ width: 3, height: 16, backgroundColor: '#FFB830', borderRadius: 2 }} />
-                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#FFB830' }}>COIN PACKS</Text>
+                  <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#C99A2E' }}>COIN PACKS</Text>
                 </View>
                 {STORE_COIN_PACKS.map(pack => {
                   const cardContent = (
@@ -674,26 +667,26 @@ export default function ShopScreen() {
                       onPress={() => handleBuyFromStore(pack.key)}
                       disabled={checkingOut === pack.key}
                       style={({ pressed }) => [storeStyles.storeCard, {
-                        borderColor: pack.highlight ? '#C8820A88' : '#FFFFFF18',
-                        backgroundColor: pack.highlight ? '#C8820A14' : colors.card,
+                        borderColor: pack.highlight ? '#C99A2E88' : '#ECE7DC18',
+                        backgroundColor: pack.highlight ? '#C99A2E14' : colors.card,
                         opacity: pressed ? 0.82 : 1,
                       }]}
                     >
-                      {pack.highlight && <LinearGradient colors={['#C8820A18', '#C8820A06']} style={StyleSheet.absoluteFill} />}
-                      <Text style={{ fontSize: 26, width: 36, textAlign: 'center' }}>{pack.emoji}</Text>
+                      {pack.highlight && <LinearGradient colors={['#C99A2E18', '#C99A2E06']} style={StyleSheet.absoluteFill} />}
+                      <Glyph style={{ fontSize: 26, width: 36, textAlign: 'center' }} value={pack.emoji} />
                       <View style={{ flex: 1 }}>
-                        <Text style={[storeStyles.storeName, { color: pack.highlight ? '#FFB830' : colors.foreground }]}>{pack.name}</Text>
+                        <Text style={[storeStyles.storeName, { color: pack.highlight ? '#C99A2E' : colors.foreground }]}>{pack.name}</Text>
                         <Text style={[storeStyles.storeDesc, { color: colors.mutedForeground }]}>{pack.desc}</Text>
                       </View>
-                      <View style={[storeStyles.usdBtn, pack.highlight && { backgroundColor: '#C8820A33', borderColor: '#C8820A88' }]}>
-                        <Text style={[storeStyles.usdBtnText, pack.highlight && { color: '#FFD700' }]}>
+                      <View style={[storeStyles.usdBtn, pack.highlight && { backgroundColor: '#C99A2E33', borderColor: '#C99A2E88' }]}>
+                        <Text style={[storeStyles.usdBtnText, pack.highlight && { color: '#C99A2E' }]}>
                           {checkingOut === pack.key ? '…' : nativePrice(pack.key, pack.usd)}
                         </Text>
                       </View>
                     </Pressable>
                   );
                   return pack.highlight ? (
-                    <GlowBorder key={pack.key} color='#FFD700' borderRadius={12} spread={8}>
+                    <GlowBorder key={pack.key} color='#C99A2E' borderRadius={3} spread={8}>
                       {cardContent}
                     </GlowBorder>
                   ) : cardContent;
@@ -701,22 +694,21 @@ export default function ShopScreen() {
 
                 {/* Skin Packs */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
-                  <View style={{ width: 3, height: 16, backgroundColor: '#00E5FF', borderRadius: 2 }} />
-                  <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 2, color: '#00E5FF' }}>SKIN PACKS</Text>
+                  <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#8C8F7A' }}>SKIN PACKS</Text>
                 </View>
                 {STORE_SKIN_PACKS.map(pack => (
                   <Pressable
                     key={pack.key}
                     onPress={() => handleBuyFromStore(pack.key)}
                     disabled={checkingOut === pack.key}
-                    style={({ pressed }) => [storeStyles.storeCard, { borderColor: '#00E5FF22', opacity: pressed ? 0.82 : 1 }]}
+                    style={({ pressed }) => [storeStyles.storeCard, { borderColor: '#8C8F7A22', opacity: pressed ? 0.82 : 1 }]}
                   >
-                    <Text style={{ fontSize: 26, width: 36, textAlign: 'center' }}>{pack.emoji}</Text>
+                    <Glyph style={{ fontSize: 26, width: 36, textAlign: 'center' }} value={pack.emoji} />
                     <View style={{ flex: 1 }}>
                       <Text style={[storeStyles.storeName, { color: colors.foreground }]}>{pack.name}</Text>
                       <Text style={[storeStyles.storeDesc, { color: colors.mutedForeground }]}>{pack.desc}</Text>
                     </View>
-                    <ShimmerCard active={!checkingOut} borderRadius={8} shimmerColor="rgba(255,255,255,0.1)">
+                    <ShimmerCard active={!checkingOut} borderRadius={3} shimmerColor="rgba(255,255,255,0.1)">
                       <View style={storeStyles.usdBtn}>
                         <Text style={storeStyles.usdBtnText}>{checkingOut === pack.key ? '…' : nativePrice(pack.key, pack.usd)}</Text>
                       </View>
@@ -725,13 +717,13 @@ export default function ShopScreen() {
                 ))}
 
                 {/* How it works */}
-                <View style={[storeStyles.howItWorks, { borderColor: '#FFFFFF12' }]}>
+                <View style={[storeStyles.howItWorks, { borderColor: '#ECE7DC12' }]}>
                   <Text style={[storeStyles.howTitle, { color: colors.foreground }]}>How it works</Text>
                   {Platform.OS === 'web' ? (
                     <>
                       <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>1. Tap a product and complete secure Stripe checkout</Text>
                       <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>2. Your receipt page shows a unique code (e.g. GR-A1B2-C3D4)</Text>
-                      <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>3. Return here → tap <Text style={{ color: '#C8820A', fontFamily: 'Inter_700Bold' }}>REDEEM</Text> → enter your code</Text>
+                      <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>3. Return here → tap <Text style={{ color: '#C99A2E', fontFamily: 'SourceSans3_700Bold' }}>REDEEM</Text> → enter your code</Text>
                       <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>4. Your reward is added instantly!</Text>
                     </>
                   ) : (
@@ -776,14 +768,14 @@ export default function ShopScreen() {
             </Text>
             <View style={storeStyles.confirmActions}>
               <Pressable style={storeStyles.confirmCancel} onPress={() => setPendingNativeProduct(null)}>
-                <Text style={{ color: colors.mutedForeground, fontFamily: 'Inter_700Bold' }}>CANCEL</Text>
+                <Text style={{ color: colors.mutedForeground, fontFamily: 'SourceSans3_700Bold' }}>CANCEL</Text>
               </Pressable>
               <Pressable style={storeStyles.confirmBuy} onPress={() => {
                 const product = pendingNativeProduct;
                 setPendingNativeProduct(null);
                 if (product) void completeNativePurchase(product);
               }}>
-                <Text style={{ color: '#080812', fontFamily: 'Inter_700Bold' }}>PURCHASE</Text>
+                <Text style={{ color: '#16171A', fontFamily: 'SourceSans3_700Bold' }}>PURCHASE</Text>
               </Pressable>
             </View>
           </View>
@@ -796,70 +788,70 @@ export default function ShopScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 12 },
-  headerTitle: { fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 2 },
-  coinDisplay: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#C8820A1A', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A44', paddingHorizontal: 9, paddingVertical: 4 },
-  coinAmount: { color: '#FFB830', fontFamily: 'Inter_700Bold', fontSize: 13 },
+  headerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 20, letterSpacing: 2 },
+  coinDisplay: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#C99A2E1A', borderRadius: 3, borderWidth: 1, borderColor: '#C99A2E44', paddingHorizontal: 9, paddingVertical: 4 },
+  coinAmount: { color: '#C99A2E', fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   tabRow: { flexDirection: 'row', borderBottomWidth: 1, marginHorizontal: 16, marginBottom: 4 },
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabText: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1 },
-  sectionInfo: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
-  subsectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 12, letterSpacing: 1.8, marginTop: 8, marginBottom: 2, color: '#FFFFFF99', borderLeftWidth: 2, borderLeftColor: '#C8820A', paddingLeft: 8 },
+  tabText: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 1 },
+  sectionInfo: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18 },
+  subsectionTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.8, marginTop: 8, marginBottom: 2, color: '#ECE7DC99', borderLeftWidth: 2, borderLeftColor: '#C99A2E', paddingLeft: 8 },
   skinGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  skinCard: { width: '47%', flex: 1, minWidth: 140, borderRadius: 16, borderWidth: 1.5, overflow: 'hidden' },
+  skinCard: { width: '47%', flex: 1, minWidth: 140, borderRadius: 3, borderWidth: 1.5, overflow: 'hidden' },
   skinPreview: { height: 88, alignItems: 'center', justifyContent: 'center' },
-  paddlePreview: { width: 72, height: 13, borderRadius: 7, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.9, shadowRadius: 10, elevation: 4 },
+  paddlePreview: { width: 72, height: 13, borderRadius: 3, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
   ownedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
-  ownedText: { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 0.5 },
+  ownedText: { fontFamily: 'SourceSans3_700Bold', fontSize: 8, letterSpacing: 0.5 },
   equippedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-  equippedText: { fontFamily: 'Inter_700Bold', fontSize: 8, color: '#07090F', letterSpacing: 0.5 },
+  equippedText: { fontFamily: 'SourceSans3_700Bold', fontSize: 8, color: '#16171A', letterSpacing: 0.5 },
   skinInfo: { padding: 10, gap: 3 },
-  skinName: { fontFamily: 'Inter_700Bold', fontSize: 13 },
+  skinName: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  priceText: { color: '#FFB830', fontFamily: 'Inter_700Bold', fontSize: 13 },
-  ownedLabel: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
-  itemRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, padding: 14, gap: 12 },
-  trailDot: { width: 26, height: 26, borderRadius: 13, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.9, shadowRadius: 8, elevation: 4 },
-  itemName: { fontFamily: 'Inter_700Bold', fontSize: 15 },
-  itemDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, marginTop: 1 },
-  bundleCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, padding: 14, gap: 12, overflow: 'hidden' },
-  bundleIcon: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 9, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6 },
-  buyBtnText: { fontFamily: 'Inter_700Bold', fontSize: 13 },
-  iapBtn: { borderRadius: 10, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 },
-  iapText: { fontFamily: 'Inter_700Bold', fontSize: 12 },
-  earnCard: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 14, borderWidth: 1, padding: 14, gap: 10 },
-  earnTitle: { fontFamily: 'Inter_700Bold', fontSize: 14 },
-  earnDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18, marginTop: 2 },
-  themePreview: { width: 64, height: 64, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  themeArena: { width: 50, height: 50, borderRadius: 8, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
+  priceText: { color: '#C99A2E', fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
+  ownedLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
+  itemRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 3, borderWidth: 1, padding: 14, gap: 12 },
+  trailDot: { width: 26, height: 26, borderRadius: 3, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
+  itemName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
+  itemDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 1 },
+  bundleCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 3, borderWidth: 1, padding: 14, gap: 12, overflow: 'hidden' },
+  bundleIcon: { width: 44, height: 44, borderRadius: 3, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6 },
+  buyBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
+  iapBtn: { borderRadius: 3, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 },
+  iapText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12 },
+  earnCard: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 3, borderWidth: 1, padding: 14, gap: 10 },
+  earnTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
+  earnDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18, marginTop: 2 },
+  themePreview: { width: 64, height: 64, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
+  themeArena: { width: 50, height: 50, borderRadius: 3, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
   themePaddle: { width: 30, height: 5, borderRadius: 3, opacity: 0.9 },
-  redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#C8820A18', borderRadius: 10, borderWidth: 1, borderColor: '#C8820A55', paddingHorizontal: 10, paddingVertical: 6 },
-  redeemCodeTxt: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.5, color: '#C8820A' },
+  redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#C99A2E18', borderRadius: 3, borderWidth: 1, borderColor: '#C99A2E55', paddingHorizontal: 10, paddingVertical: 6 },
+  redeemCodeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 1.5, color: '#C99A2E' },
 });
 
 const storeStyles = StyleSheet.create({
-  banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 14, borderWidth: 1, padding: 14, overflow: 'hidden' },
-  bannerTitle: { fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 2, color: '#FFD700' },
-  bannerSub: { fontFamily: 'Inter_400Regular', fontSize: 11, lineHeight: 16, marginTop: 2 },
-  errorBox: { alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 16 },
-  passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1.5, padding: 16, overflow: 'hidden' },
-  passName: { fontFamily: 'Inter_700Bold', fontSize: 15, color: '#FFD700', letterSpacing: 0.5 },
-  passDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17, marginTop: 2 },
-  storeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, padding: 14, gap: 10, overflow: 'hidden' },
-  storeName: { fontFamily: 'Inter_700Bold', fontSize: 14 },
-  storeDesc: { fontFamily: 'Inter_400Regular', fontSize: 12, marginTop: 1 },
-  usdBtn: { backgroundColor: '#FFFFFF0F', borderRadius: 10, borderWidth: 1, borderColor: '#FFFFFF22', paddingHorizontal: 12, paddingVertical: 7 },
-  usdBtnText: { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#FFFFFF' },
-  howItWorks: { backgroundColor: '#FFFFFF08', borderRadius: 12, borderWidth: 1, padding: 14, gap: 6 },
-  howTitle: { fontFamily: 'Inter_700Bold', fontSize: 13, marginBottom: 4 },
-  howStep: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
-  restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 8, borderWidth: 1, borderColor: '#C8820A88', backgroundColor: '#C8820A18', paddingHorizontal: 12, paddingVertical: 8 },
-  restoreText: { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1 },
-  confirmBackdrop: { flex: 1, backgroundColor: '#000000AA', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  confirmCard: { width: '100%', maxWidth: 360, borderRadius: 18, borderWidth: 1, borderColor: '#C8820A66', padding: 20 },
-  confirmTitle: { fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 1 },
-  confirmText: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 21, marginTop: 8 },
+  banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 3, borderWidth: 1, padding: 14, overflow: 'hidden' },
+  bannerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, letterSpacing: 2, color: '#C99A2E' },
+  bannerSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 11, lineHeight: 16, marginTop: 2 },
+  errorBox: { alignItems: 'center', borderRadius: 3, borderWidth: 1, padding: 16 },
+  passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 3, borderWidth: 1.5, padding: 16, overflow: 'hidden' },
+  passName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#C99A2E', letterSpacing: 0.5 },
+  passDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 17, marginTop: 2 },
+  storeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 3, borderWidth: 1, padding: 14, gap: 10, overflow: 'hidden' },
+  storeName: { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
+  storeDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 1 },
+  usdBtn: { backgroundColor: '#ECE7DC0F', borderRadius: 3, borderWidth: 1, borderColor: '#ECE7DC22', paddingHorizontal: 12, paddingVertical: 7 },
+  usdBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#ECE7DC' },
+  howItWorks: { backgroundColor: '#ECE7DC08', borderRadius: 3, borderWidth: 1, padding: 14, gap: 6 },
+  howTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, marginBottom: 4 },
+  howStep: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18 },
+  restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 3, borderWidth: 1, borderColor: '#C99A2E88', backgroundColor: '#C99A2E18', paddingHorizontal: 12, paddingVertical: 8 },
+  restoreText: { color: '#C99A2E', fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 1 },
+  confirmBackdrop: { flex: 1, backgroundColor: '#16171AAA', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  confirmCard: { width: '100%', maxWidth: 360, borderRadius: 3, borderWidth: 1, borderColor: '#C99A2E66', padding: 20 },
+  confirmTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 18, letterSpacing: 1 },
+  confirmText: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 21, marginTop: 8 },
   confirmActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 20 },
-  confirmCancel: { borderRadius: 9, borderWidth: 1, borderColor: '#FFFFFF22', paddingHorizontal: 14, paddingVertical: 10 },
-  confirmBuy: { borderRadius: 9, backgroundColor: '#FFD700', paddingHorizontal: 14, paddingVertical: 10 },
+  confirmCancel: { borderRadius: 3, borderWidth: 1, borderColor: '#ECE7DC22', paddingHorizontal: 14, paddingVertical: 10 },
+  confirmBuy: { borderRadius: 3, backgroundColor: '#C99A2E', paddingHorizontal: 14, paddingVertical: 10 },
 });

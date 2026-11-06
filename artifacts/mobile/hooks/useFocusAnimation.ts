@@ -2,25 +2,24 @@ import { useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useSharedValue, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+
 /**
- * Returns an animated style that fades in to opacity:1 each time the screen
- * comes into focus, and fades out to opacity:0 when the screen loses focus.
- * Works for both initial mount and repeat tab navigation (unlike Reanimated
- * entering= / exiting= which only fire on mount/unmount).
+ * Short opacity fade when a screen gains focus. With Reduce Motion enabled the
+ * screen is shown immediately at full opacity and never fades.
  */
-export function useFocusAnimation(enterDuration = 320, exitDuration = 180) {
-  const opacity = useSharedValue(0);
+export function useFocusAnimation(enterDuration = 160, exitDuration = 0) {
+  const reduced = useReducedMotion();
+  const opacity = useSharedValue(1);
   useFocusEffect(
     useCallback(() => {
-      // Enter: fade in
-      opacity.value = 0;
+      if (reduced) { opacity.value = 1; return () => { opacity.value = 1; }; }
+      opacity.value = 0.6;
       opacity.value = withTiming(1, { duration: enterDuration });
-
-      // Exit: fade out on blur
       return () => {
-        opacity.value = withTiming(0, { duration: exitDuration });
+        opacity.value = exitDuration > 0 ? withTiming(1, { duration: exitDuration }) : 1;
       };
-    }, [enterDuration, exitDuration])
+    }, [enterDuration, exitDuration, reduced])
   );
   return useAnimatedStyle(() => ({ opacity: opacity.value }));
 }

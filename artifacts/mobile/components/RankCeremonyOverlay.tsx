@@ -1,12 +1,12 @@
 /**
- * RankCeremonyOverlay — full-screen cinematic rank promotion sequence.
+ * RankCeremonyOverlay, full-screen cinematic rank promotion sequence.
  *
  * Phase 1 (0–0.6 s):   screen fades in black + pulsing radial glow
  * Phase 2 (0.6–1.4 s): medal badge zooms in (0 → 1.2 → 1.0), particles burst
  * Phase 3 (1.4–2.2 s): rank name + flavor text slide up; shimmer sweeps badge
  * After 2.2 s:         "CLAIM" button fades in; tap anywhere skips
  */
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -29,6 +29,7 @@ import Reanimated, {
 import { RankBadge } from '@/components/RankBadge';
 import { RANKS } from '@/context/PlayerContext';
 import * as Haptics from 'expo-haptics';
+import { staticLoop } from '@/components/ui/motion';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -102,10 +103,10 @@ function CeremonyParticle({ p, triggered, rankColor }: { p: ParticleData; trigge
         width: p.size,
         height: p.size,
         borderRadius: p.size / 2,
-        backgroundColor: p.id % 4 === 0 ? '#FFFFFF' : rankColor,
+        backgroundColor: p.id % 4 === 0 ? '#ECE7DC' : rankColor,
         shadowColor: rankColor,
-        shadowOpacity: 0.9,
-        shadowRadius: 6,
+        shadowOpacity: 0,
+        shadowRadius: 0,
         shadowOffset: { width: 0, height: 0 },
         opacity: op,
         transform: [{ translateX: tx }, { translateY: ty }, { scale: sc }],
@@ -184,7 +185,7 @@ export function RankCeremonyOverlay({ newRank, visible, onDismiss }: RankCeremon
     ]).start();
 
     // Start glow pulse loop
-    glowLoop.current = Animated.loop(
+    glowLoop.current = staticLoop(
       Animated.sequence([
         Animated.timing(glowScale, { toValue: 1.08, duration: 900, useNativeDriver: true }),
         Animated.timing(glowScale, { toValue: 0.95, duration: 900, useNativeDriver: true }),
@@ -243,7 +244,7 @@ export function RankCeremonyOverlay({ newRank, visible, onDismiss }: RankCeremon
   }
 
   function handleSkip() {
-    if (showClaim) return; // Already done — let the claim button handle it
+    if (showClaim) return; // Already done, let the claim button handle it
     // Jump to end of sequence immediately
     glowLoop.current?.stop();
     badgeOp.setValue(1);
@@ -264,66 +265,26 @@ export function RankCeremonyOverlay({ newRank, visible, onDismiss }: RankCeremon
       <Pressable style={{ flex: 1 }} onPress={handleSkip}>
         <Animated.View style={[s.overlay, { opacity: overlayOp }]}>
           {/* Dark bg */}
-          <LinearGradient colors={['#050508', '#0A0A12', '#050508']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['#16171A', '#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
 
-          {/* Radial glow in rank color */}
-          <Animated.View
-            pointerEvents="none"
-            style={[s.radialGlow, {
-              backgroundColor: rankColor + '28',
-              shadowColor: rankColor,
-              transform: [{ scale: glowScale }],
-              opacity: glowOp,
-            }]}
-          />
-          <Animated.View
-            pointerEvents="none"
-            style={[s.radialGlowInner, {
-              backgroundColor: rankColor + '18',
-              shadowColor: rankColor,
-              transform: [{ scale: glowScale }],
-              opacity: glowOp,
-            }]}
-          />
 
-          {/* Ambient star dots */}
-          {Array.from({ length: 18 }).map((_, i) => (
-            <View key={i} pointerEvents="none" style={[s.star, {
-              top:  `${(i * 5.9 + 4) % 100}%` as never,
-              left: `${(i * 7.3 + 8) % 100}%` as never,
-              opacity: 0.06 + (i % 5) * 0.05,
-              width: 1 + (i % 3), height: 1 + (i % 3),
-            }]} />
-          ))}
+
 
           {/* Center stage */}
           <Animated.View style={[s.stage, { transform: [{ scale: exitScale }] }]}>
             {/* RANK LABEL at top */}
             <Animated.View style={{ opacity: textOp, transform: [{ translateY: Animated.multiply(textY, new Animated.Value(-0.5)) }] }}>
-              <Text style={s.rankUpLabel}>RANK UP!</Text>
+              <Text style={s.rankUpLabel}>RANK UP</Text>
             </Animated.View>
 
             {/* Badge + particle burst container */}
             <View style={s.badgeWrap}>
-              {/* Particles — rendered relative to badge center */}
-              <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-                <View style={s.particleOrigin}>
-                  {particles.map(p => (
-                    <CeremonyParticle key={p.id} p={p} triggered={particlesTriggered} rankColor={rankColor} />
-                  ))}
-                </View>
-              </View>
 
-              {/* Badge with shimmer — use Animated.View for opacity, Reanimated for scale */}
+              {/* Badge with shimmer, use Animated.View for opacity, Reanimated for scale */}
               <Animated.View style={{ opacity: badgeOp }}>
                 <Reanimated.View style={badgeAnimStyle}>
                   <View style={s.badgeInner}>
                     <RankBadge rank={newRank} size="lg" showLabel={false} />
-                    {/* Shimmer sweep */}
-                    <Animated.View
-                      pointerEvents="none"
-                      style={[s.shimmer, { transform: [{ translateX: shimmerX }] }]}
-                    />
                   </View>
                 </Reanimated.View>
               </Animated.View>
@@ -363,8 +324,8 @@ const s = StyleSheet.create({
     height: SW * 1.4,
     borderRadius: SW * 0.7,
     shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 120,
-    shadowOpacity: 1,
+    shadowRadius: 0,
+    shadowOpacity: 0,
   },
   radialGlowInner: {
     position: 'absolute',
@@ -372,23 +333,23 @@ const s = StyleSheet.create({
     height: SW * 0.7,
     borderRadius: SW * 0.35,
     shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 60,
-    shadowOpacity: 1,
+    shadowRadius: 0,
+    shadowOpacity: 0,
   },
   star: {
     position: 'absolute',
-    borderRadius: 99,
-    backgroundColor: '#FFFFFF',
+    borderRadius: 3,
+    backgroundColor: '#ECE7DC',
   },
   stage: {
     alignItems: 'center',
     paddingHorizontal: 32,
   },
   rankUpLabel: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'SourceSans3_700Bold',
     fontSize: 11,
     letterSpacing: 5,
-    color: '#FFFFFF55',
+    color: '#ECE7DC55',
     marginBottom: 24,
     textTransform: 'uppercase',
   },
@@ -409,14 +370,14 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    borderRadius: 40,
+    borderRadius: 3,
   },
   shimmer: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     width: 60,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#ECE7DC',
     opacity: 0.22,
     transform: [{ skewX: '-15deg' }],
   },
@@ -426,29 +387,29 @@ const s = StyleSheet.create({
     gap: 8,
   },
   rankName: {
-    fontFamily: 'Rajdhani_700Bold',
+    fontFamily: 'BarlowCondensed_700Bold',
     fontSize: 42,
     letterSpacing: 4,
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 20,
-    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowRadius: 0,
+    textShadowColor: 'transparent',
   },
   flavorText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'SourceSans3_400Regular',
     fontSize: 15,
-    color: '#FFFFFF88',
+    color: '#ECE7DC88',
     letterSpacing: 0.5,
     textAlign: 'center',
   },
   claimBtn: {
     paddingHorizontal: 52,
     paddingVertical: 16,
-    borderRadius: 14,
+    borderRadius: 3,
   },
   claimBtnText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'SourceSans3_700Bold',
     fontSize: 16,
     letterSpacing: 3,
-    color: '#050508',
+    color: '#16171A',
   },
 });

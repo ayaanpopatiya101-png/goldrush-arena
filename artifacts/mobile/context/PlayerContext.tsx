@@ -1,4 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StartupState } from '@/components/StartupState';
+import { withTimeout } from '@/utils/withTimeout';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { getGameConfig } from '@/store/gameSession';
 import { trackEvent } from '@/utils/analytics';
@@ -15,37 +17,37 @@ export const RANKS = [
   { name: 'Silver 2',    minXP: 3_600,    color: '#B8C0CC' },  // 4
   { name: 'Silver 3',    minXP: 5_400,    color: '#C8D0DC' },  // 5
   // ── Gold ────────────────────────────────────────────────────────────────────
-  { name: 'Gold 1',      minXP: 8_000,    color: '#E8C040' },  // 6
-  { name: 'Gold 2',      minXP: 11_500,   color: '#EFD050' },  // 7
-  { name: 'Gold 3',      minXP: 16_000,   color: '#F6E060' },  // 8
+  { name: 'Gold 1',      minXP: 8_000,    color: '#C99A2E' },  // 6
+  { name: 'Gold 2',      minXP: 11_500,   color: '#C99A2E' },  // 7
+  { name: 'Gold 3',      minXP: 16_000,   color: '#C99A2E' },  // 8
   // ── Diamond ─────────────────────────────────────────────────────────────────
-  { name: 'Diamond 1',   minXP: 22_000,   color: '#7DD8FF' },  // 9
-  { name: 'Diamond 2',   minXP: 31_000,   color: '#50CCFF' },  // 10
-  { name: 'Diamond 3',   minXP: 43_000,   color: '#00BFFF' },  // 11
+  { name: 'Diamond 1',   minXP: 22_000,   color: '#B8B8AD' },  // 9
+  { name: 'Diamond 2',   minXP: 31_000,   color: '#B8B8AD' },  // 10
+  { name: 'Diamond 3',   minXP: 43_000,   color: '#B8B8AD' },  // 11
   // ── Master ──────────────────────────────────────────────────────────────────
-  { name: 'Master 1',    minXP: 58_000,   color: '#CC88FF' },  // 12
-  { name: 'Master 2',    minXP: 78_000,   color: '#BB66FF' },  // 13
-  { name: 'Master 3',    minXP: 105_000,  color: '#AA44FF' },  // 14
+  { name: 'Master 1',    minXP: 58_000,   color: '#A99D81' },  // 12
+  { name: 'Master 2',    minXP: 78_000,   color: '#A99D81' },  // 13
+  { name: 'Master 3',    minXP: 105_000,  color: '#A99D81' },  // 14
   // ── Champion (top-100 leaderboard) ──────────────────────────────────────────
-  { name: 'Champion 1',  minXP: 138_000,  color: '#FF9944' },  // 15
-  { name: 'Champion 2',  minXP: 180_000,  color: '#FF7722' },  // 16
-  { name: 'Champion 3',  minXP: 232_000,  color: '#FF5500' },  // 17
-  { name: 'Champion 4',  minXP: 295_000,  color: '#FF2244' },  // 18
-  { name: 'Champion 5',  minXP: 370_000,  color: '#FF0066' },  // 19
+  { name: 'Champion 1',  minXP: 138_000,  color: '#C99A2E' },  // 15
+  { name: 'Champion 2',  minXP: 180_000,  color: '#C99A2E' },  // 16
+  { name: 'Champion 3',  minXP: 232_000,  color: '#C99A2E' },  // 17
+  { name: 'Champion 4',  minXP: 295_000,  color: '#C99A2E' },  // 18
+  { name: 'Champion 5',  minXP: 370_000,  color: '#C99A2E' },  // 19
 ];
 
 export const SKINS = [
-  { id: 'default',        name: 'Classic',       color: '#FFD700', glowColor: '#FFD70055', price: 0   },
-  { id: 'plasma',         name: 'Plasma',        color: '#FF4757', glowColor: '#FF475755', price: 150 },
-  { id: 'frost',          name: 'Frost',         color: '#00BFFF', glowColor: '#00BFFF55', price: 150 },
-  { id: 'toxic',          name: 'Toxic',         color: '#00FF88', glowColor: '#00FF8855', price: 200 },
-  { id: 'void',           name: 'Void',          color: '#9B59B6', glowColor: '#9B59B655', price: 250 },
-  { id: 'inferno',        name: 'Inferno',       color: '#FF6B35', glowColor: '#FF6B3555', price: 300 },
-  { id: 'chrome',         name: 'Chrome',        color: '#E0E0E8', glowColor: '#E0E0E855', price: 350 },
-  { id: 'cosmic',         name: 'Cosmic',        color: '#FF00FF', glowColor: '#FF00FF55', price: 500 },
+  { id: 'default',        name: 'Classic',       color: '#C99A2E', glowColor: '#C99A2E55', price: 0   },
+  { id: 'plasma',         name: 'Plasma',        color: '#B4533A', glowColor: '#B4533A55', price: 150 },
+  { id: 'frost',          name: 'Frost',         color: '#B7BFBE', glowColor: '#B7BFBE55', price: 150 },
+  { id: 'toxic',          name: 'Toxic',         color: '#7F9065', glowColor: '#7F906555', price: 200 },
+  { id: 'void',           name: 'Void',          color: '#77746D', glowColor: '#77746D55', price: 250 },
+  { id: 'inferno',        name: 'Inferno',       color: '#C27E49', glowColor: '#C27E4955', price: 300 },
+  { id: 'chrome',         name: 'Chrome',        color: '#D4D0C6', glowColor: '#D4D0C655', price: 350 },
+  { id: 'cosmic',         name: 'Cosmic',        color: '#A99572', glowColor: '#A9957255', price: 500 },
   // ── Season 1 exclusive skins (Battle Pass premium only) ─────────────────────
-  { id: 'season_aurora',  name: 'Aurora',        color: '#7FFFD4', glowColor: '#7FFFD455', price: 0, exclusive: true },
-  { id: 'season_phantom', name: 'Phantom',       color: '#B06EFF', glowColor: '#B06EFF55', price: 0, exclusive: true },
+  { id: 'season_aurora',  name: 'Aurora',        color: '#B1BA91', glowColor: '#B1BA9155', price: 0, exclusive: true },
+  { id: 'season_phantom', name: 'Phantom',       color: '#9D998F', glowColor: '#9D998F55', price: 0, exclusive: true },
 ];
 
 // ─── Rank helpers ─────────────────────────────────────────────────────────────
@@ -795,7 +797,9 @@ const profileKey    = (u: string) => `@goldrush_v3_${u}`;
 export async function getSavedAccounts(): Promise<SavedAccountMeta[]> {
   const raw = await AsyncStorage.getItem(ACCOUNTS_KEY);
   if (!raw) return [];
-  try { return JSON.parse(raw) as SavedAccountMeta[]; } catch { return []; }
+  const accounts = JSON.parse(raw);
+  if (!Array.isArray(accounts)) throw new Error('Saved accounts could not be read.');
+  return accounts as SavedAccountMeta[];
 }
 
 export async function loginAccount(username: string, avatarEmoji: string, avatarColor: string): Promise<void> {
@@ -1085,15 +1089,24 @@ export function PlayerProvider({ username, onLogout, children }: {
 }) {
   const [profile, setProfile]             = useState<PlayerProfile>(DEFAULT_PROFILE);
   const [isLoaded, setIsLoaded]           = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [showStreakModal, setShowStreakModal] = useState(false);
 
   const KEY = profileKey(username);
 
   useEffect(() => {
-    AsyncStorage.getItem(KEY).then(raw => {
+    let active = true;
+    setLoadError(null);
+    withTimeout(AsyncStorage.getItem(KEY)).then(async raw => {
+      if (!active) return;
       let base = { ...DEFAULT_PROFILE, name: username };
       if (raw) {
-        try { base = { ...base, ...JSON.parse(raw) }; } catch { /* ignore */ }
+        const saved = JSON.parse(raw);
+        if (!saved || typeof saved !== 'object' || Array.isArray(saved)) {
+          throw new Error('Saved progress could not be read.');
+        }
+        base = { ...base, ...saved };
       }
       // Daily streak logic on load
       const today = todayStr();
@@ -1118,17 +1131,21 @@ export function PlayerProvider({ username, onLogout, children }: {
       if ((base.lastWeeklyReset ?? '') !== weekKey) {
         base = { ...base, weeklyQuestProgress: {}, weeklyQuestClaimed: [], lastWeeklyReset: weekKey };
       }
+      // Save updated streak + quest resets
+      await withTimeout(AsyncStorage.setItem(KEY, JSON.stringify(base)));
+      if (!active) return;
       setProfile(base);
       setIsLoaded(true);
       if (showModal) setShowStreakModal(true);
-      // Save updated streak + quest resets
-      AsyncStorage.setItem(KEY, JSON.stringify(base));
+    }).catch(() => {
+      if (active) setLoadError('Could not load saved progress. Your existing save has not been reset. Check device storage and retry.');
     });
-  }, [KEY]);
+    return () => { active = false; };
+  }, [KEY, loadAttempt]);
 
   const save = useCallback(async (updated: PlayerProfile) => {
-    setProfile(updated);
     await AsyncStorage.setItem(KEY, JSON.stringify(updated));
+    setProfile(updated);
     // Update saved accounts meta
     const accounts = await getSavedAccounts();
     const idx = accounts.findIndex(a => a.username === username);
@@ -1249,8 +1266,8 @@ export function PlayerProvider({ username, onLogout, children }: {
 
   const purchaseSkin = useCallback(async (skinId: string): Promise<boolean> => {
     const skin = SKINS.find(s => s.id === skinId);
-    if (!skin || profile.ownedSkins.includes(skinId) || profile.coins < skin.price) return false;
-    await save({ ...profile, coins: profile.coins - skin.price, ownedSkins: [...profile.ownedSkins, skinId] });
+    if (!skin || ('exclusive' in skin && skin.exclusive) || profile.ownedSkins.includes(skinId) || profile.coins < skin.price) return false;
+    await save({ ...profile, coins: profile.coins - skin.price, ownedSkins: [...profile.ownedSkins, skinId], currentSkin: skinId });
     return true;
   }, [profile, save]);
 
@@ -1743,6 +1760,8 @@ export function PlayerProvider({ username, onLogout, children }: {
   }, [profile, save]);
 
   const dismissStreakModal = useCallback(() => setShowStreakModal(false), []);
+
+  if (!isLoaded) return <StartupState error={loadError} onRetry={() => setLoadAttempt(n => n + 1)} />;
 
   return (
     <PlayerContext.Provider value={{

@@ -1,10 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BlurView } from 'expo-blur';
+import { BlurView } from '@/components/ui/Flat';
 import { router, Tabs } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import { useColors } from '@/hooks/useColors';
+import { staticLoop } from '@/components/ui/motion';
 
 function TabIcon({ name, color, label, focused }: {
   name: React.ComponentProps<typeof Feather>['name'];
@@ -17,48 +18,26 @@ function TabIcon({ name, color, label, focused }: {
   const pipScaleAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (focused) {
-      // Spring-bounce icon + fade in glow + slide-in pip
-      Animated.parallel([
-        Animated.spring(scaleAnim, { toValue: 1.18, useNativeDriver: true, bounciness: 14, speed: 16 }),
-        Animated.timing(glowAnim,  { toValue: 1,    duration: 200, useNativeDriver: true }),
-        Animated.spring(pipScaleAnim, { toValue: 1, useNativeDriver: true, bounciness: 10, speed: 14 }),
-      ]).start(() => {
-        // Gentle idle pulse
-        Animated.loop(Animated.sequence([
-          Animated.timing(scaleAnim, { toValue: 1.13, duration: 1400, useNativeDriver: true }),
-          Animated.timing(scaleAnim, { toValue: 1.18, duration: 1400, useNativeDriver: true }),
-        ])).start();
-      });
-    } else {
-      Animated.parallel([
-        Animated.spring(scaleAnim,    { toValue: 1,  useNativeDriver: true, bounciness: 6 }),
-        Animated.timing(glowAnim,     { toValue: 0,  duration: 180, useNativeDriver: true }),
-        Animated.timing(pipScaleAnim, { toValue: 0,  duration: 120, useNativeDriver: true }),
-      ]).start();
-    }
+    scaleAnim.setValue(1);
+    glowAnim.setValue(0);
+    pipScaleAnim.setValue(focused ? 1 : 0);
   }, [focused]);
 
   return (
     <View style={styles.tabItem}>
-      {/* Glow halo behind icon */}
-      <Animated.View style={[
-        styles.glowHalo,
-        { backgroundColor: color + '18', shadowColor: color, opacity: glowAnim },
-      ]} />
 
       <Animated.View style={[
         styles.iconWrap,
         focused && { backgroundColor: color + '22' },
         { transform: [{ scale: scaleAnim }] },
       ]}>
-        <Feather name={name} size={21} color={focused ? color : '#FFFFFF2E'} />
+        <Feather name={name} size={21} color={focused ? color : '#B8B5AA'} />
       </Animated.View>
 
       <Text style={[styles.tabLabel, {
-        color: focused ? color : '#FFFFFF26',
-        fontFamily: focused ? 'Inter_700Bold' : 'Inter_400Regular',
-        fontSize: 9,
+        color: focused ? color : '#B8B5AA',
+        fontFamily: focused ? 'SourceSans3_700Bold' : 'SourceSans3_400Regular',
+        fontSize: 11,
       }]}>
         {label}
       </Text>
@@ -87,7 +66,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: '#3A4255',
+        tabBarInactiveTintColor: '#8C8F7A',
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
@@ -95,7 +74,7 @@ export default function TabLayout() {
           backgroundColor: 'transparent',
           borderTopWidth: 0,
           elevation: 0,
-          height: Platform.OS === 'web' ? 74 : 66,
+          height: Platform.OS === 'web' ? 84 : 66,
         },
         tabBarBackground: () => (
           <View style={StyleSheet.absoluteFill}>
@@ -171,7 +150,7 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBg: {
-    backgroundColor: '#04060CF2',
+    backgroundColor: '#16171AF2',
   },
   tabBorder: {
     position: 'absolute',
@@ -179,7 +158,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: '#FFFFFF14',
+    backgroundColor: '#ECE7DC14',
   },
   tabItem: {
     alignItems: 'center',
@@ -191,15 +170,15 @@ const styles = StyleSheet.create({
     top: 2,
     width: 48,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 3,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 10,
+    shadowOpacity: 0,
+    shadowRadius: 0,
   },
   iconWrap: {
     width: 44,
     height: 30,
-    borderRadius: 12,
+    borderRadius: 3,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -209,8 +188,8 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     marginTop: 1,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 6,
+    shadowOpacity: 0,
+    shadowRadius: 0,
   },
   tabLabel: {
     letterSpacing: 0.5,
