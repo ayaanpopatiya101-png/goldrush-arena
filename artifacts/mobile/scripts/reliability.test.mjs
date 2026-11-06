@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
+import vm from 'node:vm';
 import { withTimeout } from '../utils/withTimeout.ts';
 
 const source = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
@@ -53,5 +55,54 @@ test('unavailable sharing exits before claiming rewards', async () => {
     assert.match(content, /isAvailableAsync/);
     assert.match(content, /Sharing unavailable/);
     assert.match(content, /expo-file-system\/legacy/);
+  }
+});
+
+test('native Shop loads and renders its unavailable store without a server address', async () => {
+  const require = createRequire(import.meta.url);
+  const ts = require('typescript');
+  const shop = await source('app/(tabs)/shop.tsx');
+  const code = ts.transpileModule(shop, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, esModuleInterop: true },
+  }).outputText;
+  for (const platform of ['ios', 'android']) {
+    let addressCalls = 0;
+    const profile = {
+      name: 'Test player', rank: 'Bronze 1', currentSkin: 'classic',
+      ownedSkins: ['classic'], ownedThemes: ['default'], currentArenaTheme: 'default',
+      coins: 250, extraLivesInventory: 0, ownedRelics: [],
+    };
+    const native = {
+      Platform: { OS: platform }, StyleSheet: { create: styles => styles, absoluteFill: {} },
+      Text: 'Text', View: 'View', Pressable: 'Pressable', ScrollView: 'ScrollView', Modal: 'Modal',
+    };
+    const react = {
+      createElement: (type, props, ...children) => ({ type: typeof type === 'string' ? type : 'Component', props, children }),
+      useState: initial => [initial === 'skins' ? 'store' : typeof initial === 'function' ? initial() : initial, () => {}],
+      useRef: current => ({ current }),
+      useEffect: effect => { effect(); },
+    };
+    const fluent = new Proxy(() => fluent, { get: () => fluent });
+    const generic = new Proxy({}, { get: () => fluent });
+    const modules = {
+      react,
+      'react-native': native,
+      'react-native-reanimated': { __esModule: true, default: { View: 'AnimatedView' }, ZoomIn: fluent, FadeInRight: fluent },
+      'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
+      '@/hooks/useFocusAnimation': { useFocusAnimation: () => ({ opacity: 1 }) },
+      '@/hooks/useColors': { useColors: () => new Proxy({}, { get: () => '#16171A' }) },
+      '@/context/PlayerContext': { SKINS: [{ id: 'classic', color: '#C99A2E', glowColor: '#C99A2E' }], getRankIndex: () => 0, usePlayer: () => ({ profile }) },
+      '@/lib/revenuecat': { useRevenueCat: () => ({ available: false, isLoading: false, getPackage: () => null }) },
+      '@/utils/api': { apiUrl: () => { addressCalls++; throw new Error('The game server address is not configured.'); } },
+    };
+    const exports = {};
+    vm.runInNewContext(code, {
+      exports, require: id => modules[id] ?? generic,
+      process: { env: {} }, __DEV__: false,
+    });
+    const tree = exports.default();
+    assert.equal(addressCalls, 0, `${platform} must not resolve a web server address`);
+    assert.match(JSON.stringify(tree), /Native purchases are not configured for this build/);
+    assert.match(JSON.stringify(tree), /Gameplay remains available/);
   }
 });

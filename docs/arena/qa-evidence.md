@@ -20,7 +20,7 @@ Date: 6 November 2026. This is development evidence, not store certification.
 
 ## Automated/static evidence
 - `pnpm --filter @workspace/mobile run typecheck`: passed after final app fixes.
-- `pnpm --filter @workspace/mobile run test:reliability`: 6 passed. Two tests execute startup timeout behavior; four are source-contract checks, not simulated matches.
+- `pnpm --filter @workspace/mobile run test:reliability`: 7 passed. Two tests execute startup timeout behavior; four are source-contract checks, not simulated matches. One executes the transpiled Shop module and Store render under iOS and Android platform adapters with both server-address settings absent and an unavailable RevenueCat hook. It asserts no address resolution occurs and the unavailable/gameplay-accessible message renders. This is an isolated native-platform regression check, not physical-device verification.
 - `CI=1 pnpm exec expo install --check` from `artifacts/mobile`: passed after alignment.
 - `pnpm dlx expo-doctor@latest` from `artifacts/mobile`: 18/18 passed.
 - Store GET returned HTTP 200 and 11 products. No paid checkout was completed.
@@ -58,6 +58,7 @@ The same tester continued only the failed match flow and unfinished viewport/mot
 - 390 × 844 with reduced-motion media enabled paused the demo and displayed an explicit Run Preview action.
 - Screenshot references: cancellation `k1j5mg`, stayed Home `3wbkj5`, result `2rsox1`, wide Home `6yufdt`, reduced motion `4y1kg3`.
 - After screenshot inspection, inactive tab labels/icons were made legible and the web tab bar safe-area height corrected. This presentation-only fix was checked statically, not with another browser pass.
+- The completion check found that Shop's module-level web API address lookup could throw on an unconfigured native build. API lookup now happens only inside guarded web catalog/checkout operations; catalog lookup failures enter the existing actionable error state. The new iOS/Android-adapter regression test and mobile typecheck both passed after this fix.
 
 ## Not executed / not established
 Physical iOS/Android devices, TestFlight, native receipts/restoration, native audio/haptics and capture performance; four-human synchronized PvP; cloud-save recovery; legal compliance and provider production setup. Follow the release checklist rather than treating any of these as passed.

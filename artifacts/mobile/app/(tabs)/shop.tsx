@@ -30,8 +30,6 @@ const NATIVE_PACKAGE_IDS: Record<string, string> = {
   'GoldRush Battle Pass Premium': 'battle_pass_premium_s1',
 };
 
-const API_BASE = apiUrl('');
-
 const STORE_COIN_PACKS = [
   { key: 'Starter Sack',    emoji: '🪙', name: 'Starter Sack',    desc: '1,000 Coins',                   usd: '$0.99',  highlight: false },
   { key: 'Gold Pouch',      emoji: '💰', name: 'Gold Pouch',      desc: '5,000 Coins',                   usd: '$3.99',  highlight: false },
@@ -110,7 +108,7 @@ export default function ShopScreen() {
     if (Object.keys(priceCache.current).length > 0) return;
     setStoreLoading(true);
     setStoreError(null);
-    withTimeout(fetch(`${API_BASE}/store/products`))
+    withTimeout(Promise.resolve().then(() => fetch(apiUrl('/store/products'))))
       .then(async r => {
         const data = await r.json();
         if (!r.ok) throw new Error(data.error ?? 'Could not load store.');
@@ -187,7 +185,7 @@ export default function ShopScreen() {
     setCheckingOut(productName);
     trackEvent('store_checkout_started', { product: productName });
     try {
-      const resp = await fetch(`${API_BASE}/store/checkout`, {
+      const resp = await fetch(apiUrl('/store/checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ priceId }),
