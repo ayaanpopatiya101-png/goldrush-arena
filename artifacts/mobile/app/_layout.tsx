@@ -1,22 +1,16 @@
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  useFonts,
-} from '@expo-google-fonts/inter';
-import {
-  Rajdhani_600SemiBold,
-  Rajdhani_700Bold,
-} from '@expo-google-fonts/rajdhani';
+import { useFonts, BarlowCondensed_600SemiBold, BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed';
+import { SourceSans3_400Regular, SourceSans3_500Medium, SourceSans3_600SemiBold, SourceSans3_700Bold } from '@expo-google-fonts/source-sans-3';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { StartupState } from '@/components/StartupState';
+import { withTimeout } from '@/utils/withTimeout';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { PlayerProvider, getSavedAccounts, getLoggedInUser } from '@/context/PlayerContext';
@@ -26,23 +20,13 @@ import { CinematicSplash, cinemaHasShown } from '@/components/CinematicSplash';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { initializeRevenueCat, RevenueCatProvider } from '@/lib/revenuecat';
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 initializeRevenueCat();
 
 const queryClient = new QueryClient();
 
 function AppLoadingScreen() {
-  return (
-    <SafeAreaProvider>
-      <View style={{ flex: 1, backgroundColor: '#080812', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-        <Text style={{ fontSize: 48 }}>👑</Text>
-        <Text style={{ color: '#C8820A', fontSize: 14, letterSpacing: 4, fontFamily: 'Rajdhani_700Bold' }}>
-          GOLDRUSH ARENA
-        </Text>
-        <ActivityIndicator color="#C8820A55" size="small" style={{ marginTop: 8 }} />
-      </View>
-    </SafeAreaProvider>
-  );
+  return <StartupState />;
 }
 
 function RootLayoutNav() {
@@ -65,29 +49,45 @@ function RootLayoutNav() {
 interface AuthUser { username: string; emoji: string; color: string }
 
 export default function RootLayout() {
+  const reducedMotion = useReducedMotion();
   const [fontsLoaded, fontError] = useFonts({
-    Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold,
-    Rajdhani_600SemiBold, Rajdhani_700Bold,
+    SourceSans3_400Regular, SourceSans3_500Medium, SourceSans3_600SemiBold, SourceSans3_700Bold,
+    BarlowCondensed_600SemiBold, BarlowCondensed_700Bold,
   });
+  const [fontTimedOut, setFontTimedOut] = useState(false);
+  const [startupError, setStartupError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const [authState, setAuthState] = useState<'loading' | 'in' | 'out'>('loading');
   const [authUser,  setAuthUser]  = useState<AuthUser | null>(null);
   const [showCinematic, setShowCinematic] = useState(!cinemaHasShown());
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
-    if (!fontsLoaded && !fontError) return;
-    SplashScreen.hideAsync();
-    getLoggedInUser().then(async username => {
+    const timer = setTimeout(() => setFontTimedOut(true), 10000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!fontsLoaded && !fontError && !fontTimedOut) return;
+    let active = true;
+    setStartupError(null);
+    SplashScreen.hideAsync().catch(() => {});
+    withTimeout((async () => {
+      const username = await getLoggedInUser();
       if (username) {
         const accounts = await getSavedAccounts();
+        if (!active) return;
         const acct     = accounts.find(a => a.username === username);
         setAuthUser({ username, emoji: acct?.avatarEmoji ?? '🎮', color: acct?.avatarColor ?? '#FFD700' });
         setAuthState('in');
       } else {
-        setAuthState('out');
+        if (active) setAuthState('out');
       }
+    })()).catch(() => {
+      if (active) setStartupError('Could not read saved accounts. Check device storage and retry. No saved data has been deleted.');
     });
-  }, [fontsLoaded, fontError]);
+    return () => { active = false; };
+  }, [fontsLoaded, fontError, fontTimedOut, attempt]);
 
   function handleLogin(username: string, emoji: string, color: string, isNew = false) {
     setAuthUser({ username, emoji, color });
@@ -100,7 +100,8 @@ export default function RootLayout() {
     setAuthState('out');
   }
 
-  if (!fontsLoaded && !fontError) return <AppLoadingScreen />;
+  if (startupError) return <StartupState error={startupError} onRetry={() => setAttempt(n => n + 1)} />;
+  if (!fontsLoaded && !fontError && !fontTimedOut) return <AppLoadingScreen />;
   if (authState === 'loading')    return <AppLoadingScreen />;
 
   if (authState === 'out') {
@@ -113,15 +114,16 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <ReducedMotionConfig mode={ReduceMotion.System} />
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <RevenueCatProvider>
-            <PlayerProvider username={authUser!.username} onLogout={handleLogout}>
+            <PlayerProvider key={authUser!.username} username={authUser!.username} onLogout={handleLogout}>
               <PartyProvider>
               <GestureHandlerRootView style={{ flex: 1 }}>
                 <KeyboardProvider>
                   <RootLayoutNav />
-                  {showCinematic && (
+                  {showCinematic && !reducedMotion && (
                     <CinematicSplash onDone={() => setShowCinematic(false)} />
                   )}
                   {showTutorial && (

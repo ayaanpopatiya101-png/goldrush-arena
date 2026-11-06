@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/Flat';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Modal, Platform, Pressable, StyleSheet, Text, Animated, View, useWindowDimensions } from 'react-native';
@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
 import { usePlayer, getMap, getRankIndex, MAX_RANK_INDEX, RANKS, MAPS, getStreakMultiplier, getDifficultyMultiplier, levelFromRank } from '@/context/PlayerContext';
-import { getGameConfig, getActiveEvent, clearActiveEvent, getQualifierContext, clearQualifierContext } from '@/store/gameSession';
+import { getGameConfig, updateGameConfig, getActiveEvent, clearActiveEvent, getQualifierContext, clearQualifierContext } from '@/store/gameSession';
 import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
 import { useHighlightCapture } from '@/hooks/useHighlightCapture';
@@ -18,10 +18,11 @@ import { computeClipScore, getClipTier } from '@/utils/clipRewards';
 import { startMatchTracking, getCurrentMatchId, recordMatchEvent, getBestMatchEvents } from '@/store/matchEvents';
 import { saveClipToLibrary } from '@/store/clipLibrary';
 import { trackEvent } from '@/utils/analytics';
+import { Glyph } from '@/components/ui/Glyph';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
 const BOT_RANKS  = ['Gold', 'Platinum', 'Diamond', 'Master 1', 'Master 2'];
-const BOT_COLORS = ['#C03820',  '#1E8AAA',  '#4A8A38', '#D07018',   '#7A50A0'];
+const BOT_COLORS = ['#B4533A',  '#8C8F7A',  '#6F8A5B', '#C99A2E',   '#8C8F7A'];
 
 const VARIANT_PROPS: Record<string, {
   initialLives?: number;
@@ -33,7 +34,7 @@ const VARIANT_PROPS: Record<string, {
   sixPlayer?: boolean;
   phantomBalls?: boolean;
   playerBonusLives?: number;
-  maxSkillBots?: boolean; // game.tsx only — forces botSkill to 1.0
+  maxSkillBots?: boolean; // game.tsx only, forces botSkill to 1.0
 }> = {
   classic:       {},
   duos:          { duoMode: true },
@@ -51,7 +52,7 @@ const VARIANT_PROPS: Record<string, {
 };
 
 const MODE_LABELS: Record<GameMode, string> = { square:'4-PLAYER', triangle:'3-PLAYER', duel:'1v1' };
-const MODE_COLORS: Record<GameMode, string> = { square:'#C8820A', triangle:'#4A8A38', duel:'#C03820' };
+const MODE_COLORS: Record<GameMode, string> = { square:'#C99A2E', triangle:'#6F8A5B', duel:'#B4533A' };
 
 function fmtTime(secs: number) {
   const m = Math.floor(secs / 60);
@@ -64,6 +65,10 @@ export default function GameScreen() {
   const insets   = useSafeAreaInsets();
   const { addMatchResult, profile, consumeExtraLives } = usePlayer();
   const config   = getGameConfig();
+  const countdownComplete = useRef(Boolean(config.countdownComplete)).current;
+  const startedRef = useRef(false);
+  const completedRef = useRef(false);
+  useEffect(() => { updateGameConfig({ countdownComplete: false }); }, []);
   const music    = useBackgroundMusic();
   const { settings } = useSettings();
 
@@ -79,7 +84,7 @@ export default function GameScreen() {
   // hasn't unlocked, even if a stale/corrupt session id slips through the UI gates.
   const playerRankIdx = getRankIndex(profile.rank);
 
-  // Generate ±1 rank slots for each bot — computed once on mount so the
+  // Generate ±1 rank slots for each bot, computed once on mount so the
   // opponents don't shuffle on every re-render.  Lobby path overrides these
   // with matchmaker-assigned ranks via config.opponentRanks.
   const generatedBotRanks = useMemo(() =>
@@ -133,7 +138,7 @@ export default function GameScreen() {
     // Challenge: disable power-ups entirely so extra-life pickups can't break
     // the 1-life rule and so scores aren't affected by different power-up luck.
     noPowerups:       isChallenge ? true : (variantCfgRest.noPowerups ?? mapMods.noPowerups),
-    // Challenge: locked config — 1 life (one miss ends the run), no bank lives.
+    // Challenge: locked config, 1 life (one miss ends the run), no bank lives.
     // This overrides the survival variant's default 12 lives so every challenger
     // faces identical starting conditions regardless of inventory.
     initialLives:     isChallenge ? 1 : variantCfgRest.initialLives,
@@ -143,6 +148,7 @@ export default function GameScreen() {
   const [gameOver,     setGameOver]     = useState(false);
   const [gameMode,     setGameMode]     = useState<GameMode>('square');
   const [playerLives,  setPlayerLives]  = useState(variantCfg.initialLives ?? 5);
+  const [seatLives, setSeatLives] = useState<number[]>([]);
   const [activeBalls,  setActiveBalls]  = useState(1);
   const [paused,       setPaused]       = useState(false);
   const [timerSecs,    setTimerSecs]    = useState(0);
@@ -198,6 +204,8 @@ export default function GameScreen() {
   }
 
   function handleGameStart() {
+    if (startedRef.current) return;
+    startedRef.current = true;
     setTimerRunning(true);
     startCapture(arenaWrapRef as any);
     setCaptureStarted(true);
@@ -208,7 +216,7 @@ export default function GameScreen() {
       challenge: isChallenge,
       bank_lives: bankLivesUsed,
     });
-    // Deduct the chosen bank lives — consumed once at match start, non-refundable
+    // Deduct the chosen bank lives, consumed once at match start, non-refundable
     if (bankLivesUsed > 0) consumeExtraLives(bankLivesUsed);
   }
 
@@ -255,14 +263,16 @@ export default function GameScreen() {
   }, [gameMode]);
 
   function handleGameOver(result: GameResult) {
+    if (completedRef.current) return;
+    completedRef.current = true;
     // Store the best clip for the post-game share button (no-op on web)
     const hlClip = stopAndGetClip();
     const existing = getPendingClip();
     if (existing?.type === 'manual') {
-      // Player manually triggered — preserve their clip, just attach the final score
+      // Player manually triggered, preserve their clip, just attach the final score
       setPendingClip(existing.frames, 'manual', result.deflections, existing.clipScore);
     } else if (hlClip) {
-      // Auto-highlight — use the clip-score captured at trigger time
+      // Auto-highlight, use the clip-score captured at trigger time
       setPendingClip(hlClip.frames, hlClip.type, result.deflections, clipScoreRef.current);
     }
 
@@ -270,7 +280,7 @@ export default function GameScreen() {
     const bestEvents   = getBestMatchEvents(5);
     const matchId      = getCurrentMatchId();
     const momentCount  = bestEvents.length;
-    // Save the top 3 worth-saving clips in the background (no GIF yet — encoded lazily in viewer)
+    // Save the top 3 worth-saving clips in the background (no GIF yet, encoded lazily in viewer)
     bestEvents.slice(0, 3).forEach(ev => {
       if (ev.clipScore < 25) return; // skip very low-quality moments
       const { label: tierLabel, color: tierColor } = getClipTier(ev.clipScore);
@@ -357,7 +367,7 @@ export default function GameScreen() {
         won: result.won ? '1' : '0',
         position: String(result.position),
         deflections: String(result.deflections),
-        // Challenge context — only non-empty when the match was seeded by the daily challenge
+        // Challenge context, only non-empty when the match was seeded by the daily challenge
         challengeSeed: config.challengeSeed ?? '',
         matchNonce:    config.matchNonce    ?? '',
         goalsAgainst: String(result.goalsAgainst),
@@ -375,7 +385,7 @@ export default function GameScreen() {
         evName:  ev?.eventName  ?? '',
         evEmoji: ev?.eventEmoji ?? '',
         evColor: ev?.eventColor ?? '',
-        // Qualifier context — non-empty when this was a qualifier match
+        // Qualifier context, non-empty when this was a qualifier match
         qPeriodKey:   qCtx?.periodKey    ?? '',
         qRoundIdx:    String(qCtx?.roundIdx    ?? -1),
         qRoundName:   qCtx?.roundName    ?? '',
@@ -388,7 +398,7 @@ export default function GameScreen() {
         qEventName:   qCtx?.eventName   ?? '',
         qEventEmoji:  qCtx?.eventEmoji  ?? '',
         qEventColor:  qCtx?.eventColor  ?? '',
-        // Match highlights — multi-clip auto-detected moments
+        // Match highlights, multi-clip auto-detected moments
         momentCount:       String(momentCount),
         matchHighlightsId: matchId,
       },
@@ -396,7 +406,7 @@ export default function GameScreen() {
   }
 
   function handleBuyExtraLife() {
-    // Challenge runs enforce a strict 1-life rule — no extra lives allowed.
+    // Challenge runs enforce a strict 1-life rule, no extra lives allowed.
     if (isChallenge) return;
     if (extraLifeUsed.current) {
       return;
@@ -412,20 +422,18 @@ export default function GameScreen() {
   return (
     <Reanimated.View entering={SlideInRight.duration(260)} exiting={SlideOutRight.duration(220)} style={[styles.root, { paddingTop: topPad }]} onTouchStart={ensureMusic}>
       <LinearGradient
-        colors={map.bg}
+        colors={['#16171A', '#16171A']}
         style={StyleSheet.absoluteFill}
       />
 
       {/* HUD Top */}
       <View style={styles.hud}>
-        <Pressable onPress={() => setPaused(true)} style={styles.iconBtn}>
-          <Feather name="pause" size={20} color="#FFFFFF88" />
+        <Pressable accessibilityRole="button" accessibilityLabel="Pause match" testID="pause-match" onPress={() => setPaused(true)} style={styles.iconBtn}>
+          <Feather name="pause" size={20} color="#ECE7DC88" />
         </Pressable>
         {captureStarted && !gameOver && (
           <Pressable onPress={handleManualRecord} style={styles.iconBtn} hitSlop={8}>
-            <Text style={{ fontSize: 17, opacity: clipSaved ? 1 : 0.7 }}>
-              {clipSaved ? '✅' : '📹'}
-            </Text>
+            <Glyph style={{ fontSize: 17, opacity: clipSaved ? 1 : 0.7 }} value={clipSaved ? '✅' : '📹'} />
           </Pressable>
         )}
 
@@ -441,32 +449,31 @@ export default function GameScreen() {
       {/* Timer + Ball Count row */}
       <View style={[styles.infoRow, { width: arenaSize }]}>
         <View style={styles.timerBadge}>
-          <Feather name="clock" size={10} color="#FFFFFF55" />
+          <Feather name="clock" size={10} color="#ECE7DC55" />
           <Text style={styles.timerText}>{fmtTime(timerSecs)}</Text>
         </View>
         <View style={{ flex: 1 }} />
         <View style={styles.ballsBadge}>
-          <View style={[styles.ballDot, { backgroundColor: activeBalls > 3 ? '#FF4757' : activeBalls > 1 ? '#C8820A' : '#FFFFFF55' }]} />
+          <View style={[styles.ballDot, { backgroundColor: activeBalls > 3 ? '#B4533A' : activeBalls > 1 ? '#C99A2E' : '#ECE7DC55' }]} />
           <Text style={styles.ballsText}>{activeBalls} {activeBalls === 1 ? 'BALL' : 'BALLS'}</Text>
         </View>
       </View>
 
-      {/* Bot name labels */}
-      <View style={[styles.labelsRow, { width: arenaSize }]}>
-        <Text style={[styles.sideLabel, { color: BOT_COLORS[1]+'AA' }]} numberOfLines={1}>{BOT_NAMES[1]}</Text>
-        <View style={{ flex: 1 }} />
-        <Text style={[styles.sideLabel, { color: BOT_COLORS[2]+'AA' }]} numberOfLines={1}>{BOT_NAMES[2]}</Text>
+      <View style={{ width: arenaSize, flexDirection: 'row', borderWidth: 1, borderColor: '#46484C', marginBottom: 8 }}
+        accessibilityLabel="Live seat scoreboard: you control South; opponents are local bots">
+        {(isChallenge ? ['SOUTH'] : mergedCfg.sixPlayer ? ['SOUTH L', 'NORTH L', 'WEST', 'EAST', 'SOUTH R', 'NORTH R'] : ['SOUTH', 'NORTH', 'WEST', 'EAST']).map((seat, i) => (
+          <View key={seat} style={{ flex: 1, paddingVertical: 7, paddingHorizontal: 3, alignItems: 'center', borderRightWidth: i === 3 ? 0 : 1, borderRightColor: '#46484C' }}>
+            <Text style={{ color: '#B8B5AA', fontFamily: 'SourceSans3_600SemiBold', fontSize: 10 }}>{seat}</Text>
+            <Text style={{ color: '#ECE7DC', fontFamily: 'BarlowCondensed_700Bold', fontSize: 17 }}>{i === 0 ? 'YOU' : 'BOT'} {seatLives[i] ?? (variantCfg.initialLives ?? 5)}</Text>
+          </View>
+        ))}
       </View>
 
       {/* Arena */}
       <View style={[styles.arenaWrap, { width: arenaSize }]}>
-        <View style={styles.topBotLabel}>
-          <View style={[styles.labelDot, { backgroundColor: '#FF4757' }]} />
-          <Text style={[styles.labelTxt, { color: '#FF4757' }]}>{BOT_NAMES[0]}</Text>
-        </View>
 
         {!gameOver && (
-          /* arenaWrapRef — used by useHighlightCapture to screen-capture frames */
+          /* arenaWrapRef, used by useHighlightCapture to screen-capture frames */
           /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
           <View ref={arenaWrapRef as any} style={{ alignSelf: 'stretch' }}>
           <GameArena
@@ -482,18 +489,20 @@ export default function GameScreen() {
             onGameOver={handleGameOver}
             onGameModeChange={handleGameModeChange}
             onPlayerLivesChange={handleLivesChange}
+            onSeatLivesChange={setSeatLives}
             grantExtraLifeRef={grantExtraLifeRef}
             onEliminatedSpectating={() => {}}
-            colorBoard={settings.colorBoard}
+            colorBoard={false}
             soundEnabled={settings.soundEnabled}
             sensitivity={settings.sensitivity}
             onActiveBallsChange={setActiveBalls}
             botDifficulty={botDifficulty}
             onGameStart={handleGameStart}
+            skipCountdown={countdownComplete}
             paused={paused}
             playerRelic={undefined}
             botSkill={isChallenge ? 0 : effectiveBotSkill}
-            arenaBg={effectiveMap.arenaBg}
+            arenaBg={['#16171A', '#16171A', '#16171A']}
             playerSuperType={profile.selectedSuper ?? 1}
             practice={config.practice}
             onHighlight={handleHighlight}
@@ -520,7 +529,7 @@ export default function GameScreen() {
 
         {!isChallenge && playerLives > 0 && playerLives <= 4 && !extraLifeUsed.current && (
           <Pressable onPress={handleBuyExtraLife} style={styles.extraLifeBtn}>
-            <Feather name="heart" size={12} color="#FF69B4" />
+            <Feather name="heart" size={12} color="#B4533A" />
             <Text style={styles.extraLifeText}>+3 Lives</Text>
           </Pressable>
         )}
@@ -529,8 +538,8 @@ export default function GameScreen() {
 
         <View style={styles.puRow}>
           {[
-            { c:'#C8820A', l:'SHD' }, { c:'#00FF88', l:'SPD' }, { c:'#FF4757', l:'SHK' },
-            { c:'#FF69B4', l:'+3L' }, { c:'#00E5FF', l:'MLB' },
+            { c:'#C99A2E', l:'SHD' }, { c:'#6F8A5B', l:'SPD' }, { c:'#B4533A', l:'SHK' },
+            { c:'#B4533A', l:'+3L' }, { c:'#8C8F7A', l:'MLB' },
           ].map(pu => (
             <View key={pu.l} style={styles.puLegend}>
               <View style={[styles.puDot, { backgroundColor: pu.c }]} />
@@ -544,8 +553,8 @@ export default function GameScreen() {
       <Modal visible={paused} transparent animationType="fade">
         <View style={styles.pauseOverlay}>
           <View style={styles.pauseCard}>
-            <LinearGradient colors={['#0D0035','#16005A','#0D0035']} style={StyleSheet.absoluteFill} />
-            <Text style={styles.pauseTitle}>⏸ PAUSED</Text>
+            <LinearGradient colors={['#1F2125','#2A2C31','#1F2125']} style={StyleSheet.absoluteFill} />
+            <Text style={styles.pauseTitle}>PAUSED</Text>
             <View style={styles.pauseStats}>
               <View style={styles.pauseStat}>
                 <Text style={styles.pauseStatVal}>{fmtTime(timerSecs)}</Text>
@@ -563,18 +572,18 @@ export default function GameScreen() {
               </View>
             </View>
             <Pressable onPress={() => setPaused(false)} style={styles.resumeBtn}>
-              <LinearGradient colors={['#FFE020','#FFB800']} style={styles.resumeGrad}>
-                <Feather name="play" size={18} color="#080814" />
+              <LinearGradient colors={['#C99A2E','#C99A2E']} style={styles.resumeGrad}>
+                <Feather name="play" size={18} color="#16171A" />
                 <Text style={styles.resumeText}>RESUME</Text>
               </LinearGradient>
             </Pressable>
             <Pressable onPress={() => { setPaused(false); music.stop(); router.replace('/'); }} style={styles.quitBtn}>
-              <Feather name="home" size={14} color="#FF475788" />
+              <Feather name="home" size={14} color="#B4533A88" />
               <Text style={styles.quitText}>Quit to Menu</Text>
             </Pressable>
             {!isChallenge && playerLives > 0 && playerLives <= 4 && !extraLifeUsed.current && (
               <Pressable onPress={() => { handleBuyExtraLife(); setPaused(false); }} style={styles.lifeBtn}>
-                <Feather name="heart" size={13} color="#FF69B4" />
+                <Feather name="heart" size={13} color="#B4533A" />
                 <Text style={styles.lifeBtnText}>Buy +3 Lives · $0.99</Text>
               </Pressable>
             )}
@@ -589,45 +598,45 @@ const styles = StyleSheet.create({
   root: { flex:1, alignItems:'center' },
   hud:  { flexDirection:'row', alignItems:'center', width:'100%', paddingHorizontal:12, height:48 },
   iconBtn: { width:36, height:36, alignItems:'center', justifyContent:'center' },
-  modeChip: { flex:1, alignSelf:'center', maxWidth:140, borderRadius:10, borderWidth:1, paddingHorizontal:12, paddingVertical:5, alignItems:'center', marginHorizontal:8 },
-  modeText: { fontFamily:'Inter_700Bold', fontSize:12, letterSpacing:1.5 },
+  modeChip: { flex:1, alignSelf:'center', maxWidth:140, borderRadius:3, borderWidth:1, paddingHorizontal:12, paddingVertical:5, alignItems:'center', marginHorizontal:8 },
+  modeText: { fontFamily:'SourceSans3_700Bold', fontSize:12, letterSpacing:1.5 },
   hudRight: { width:36, alignItems:'flex-end' },
   infoRow: { flexDirection:'row', alignItems:'center', paddingHorizontal:12, height:22 },
   timerBadge: { flexDirection:'row', alignItems:'center', gap:4 },
-  timerText: { fontFamily:'Inter_600SemiBold', fontSize:11, color:'#FFFFFF55', letterSpacing:0.8 },
+  timerText: { fontFamily:'SourceSans3_600SemiBold', fontSize:11, color:'#ECE7DC55', letterSpacing:0.8 },
   ballsBadge: { flexDirection:'row', alignItems:'center', gap:5 },
   ballDot: { width:7, height:7, borderRadius:4 },
-  ballsText: { fontFamily:'Inter_600SemiBold', fontSize:10, color:'#FFFFFF88', letterSpacing:0.5 },
+  ballsText: { fontFamily:'SourceSans3_600SemiBold', fontSize:10, color:'#ECE7DC88', letterSpacing:0.5 },
   labelsRow:  { flexDirection:'row', paddingHorizontal:10, paddingBottom:2, alignItems:'center' },
-  sideLabel:  { fontFamily:'Inter_500Medium', fontSize:10, letterSpacing:0.5 },
+  sideLabel:  { fontFamily:'SourceSans3_600SemiBold', fontSize:10, letterSpacing:0.5 },
   arenaWrap:  { alignItems:'center', gap:3 },
   topBotLabel: { flexDirection:'row', alignItems:'center', gap:6 },
   labelDot: { width:8, height:8, borderRadius:4 },
-  labelTxt: { fontFamily:'Inter_600SemiBold', fontSize:11, letterSpacing:0.5 },
+  labelTxt: { fontFamily:'SourceSans3_600SemiBold', fontSize:11, letterSpacing:0.5 },
   hudBottom:   { flexDirection:'row', alignItems:'center', flexWrap:'wrap', paddingTop:8, paddingHorizontal:16, gap:8, width:'100%' },
   livesWrap:   { flexDirection:'row', alignItems:'center', gap:4 },
-  livesLabel:  { fontFamily:'Inter_500Medium', fontSize:9, color:'#FFFFFF44', letterSpacing:1, marginRight:2 },
-  lifeHeart:   { width:10, height:10, borderRadius:5 },
-  elimText:    { color:'#FF4757', fontFamily:'Inter_700Bold', fontSize:11, letterSpacing:1 },
-  extraLifeBtn: { flexDirection:'row', alignItems:'center', gap:4, backgroundColor:'#FF69B422', borderRadius:10, borderWidth:1, borderColor:'#FF69B455', paddingHorizontal:8, paddingVertical:4 },
-  extraLifeText: { color:'#FF69B4', fontFamily:'Inter_600SemiBold', fontSize:11 },
+  livesLabel:  { fontFamily:'SourceSans3_600SemiBold', fontSize:9, color:'#ECE7DC44', letterSpacing:1, marginRight:2 },
+  lifeHeart:   { width:10, height:10, borderRadius:3 },
+  elimText:    { color:'#B4533A', fontFamily:'SourceSans3_700Bold', fontSize:11, letterSpacing:1 },
+  extraLifeBtn: { flexDirection:'row', alignItems:'center', gap:4, backgroundColor:'#B4533A22', borderRadius:3, borderWidth:1, borderColor:'#B4533A55', paddingHorizontal:8, paddingVertical:4 },
+  extraLifeText: { color:'#B4533A', fontFamily:'SourceSans3_600SemiBold', fontSize:11 },
   puRow:    { flexDirection:'row', gap:8 },
   puLegend: { flexDirection:'row', alignItems:'center', gap:3 },
   puDot:    { width:6, height:6, borderRadius:3 },
-  puLabel:  { fontFamily:'Inter_500Medium', fontSize:9, letterSpacing:0.3 },
-  pauseOverlay: { flex:1, backgroundColor:'#000000BB', alignItems:'center', justifyContent:'center' },
-  pauseCard: { width:280, borderRadius:24, overflow:'hidden', padding:28, alignItems:'center', gap:18, borderWidth:1, borderColor:'#FFFFFF11' },
-  pauseTitle: { fontFamily:'Inter_700Bold', fontSize:28, color:'#FFFFFF', letterSpacing:3 },
-  pauseStats: { flexDirection:'row', alignItems:'center', gap:0, backgroundColor:'#FFFFFF08', borderRadius:12, paddingVertical:10, paddingHorizontal:8, width:'100%', justifyContent:'space-around' },
+  puLabel:  { fontFamily:'SourceSans3_600SemiBold', fontSize:9, letterSpacing:0.3 },
+  pauseOverlay: { flex:1, backgroundColor:'#16171ABB', alignItems:'center', justifyContent:'center' },
+  pauseCard: { width:280, borderRadius:3, overflow:'hidden', padding:28, alignItems:'center', gap:18, borderWidth:1, borderColor:'#ECE7DC11' },
+  pauseTitle: { fontFamily:'SourceSans3_700Bold', fontSize:28, color:'#ECE7DC', letterSpacing:3 },
+  pauseStats: { flexDirection:'row', alignItems:'center', gap:0, backgroundColor:'#ECE7DC08', borderRadius:3, paddingVertical:10, paddingHorizontal:8, width:'100%', justifyContent:'space-around' },
   pauseStat: { alignItems:'center', flex:1 },
-  pauseStatVal: { fontFamily:'Inter_700Bold', fontSize:20, color:'#FFFFFF' },
-  pauseStatLbl: { fontFamily:'Inter_500Medium', fontSize:10, color:'#FFFFFF55', letterSpacing:1 },
-  pauseDivider: { width:1, height:36, backgroundColor:'#FFFFFF22' },
-  resumeBtn: { width:'100%', borderRadius:14, overflow:'hidden' },
+  pauseStatVal: { fontFamily:'SourceSans3_700Bold', fontSize:20, color:'#ECE7DC' },
+  pauseStatLbl: { fontFamily:'SourceSans3_600SemiBold', fontSize:10, color:'#ECE7DC55', letterSpacing:1 },
+  pauseDivider: { width:1, height:36, backgroundColor:'#ECE7DC22' },
+  resumeBtn: { width:'100%', borderRadius:3, overflow:'hidden' },
   resumeGrad: { flexDirection:'row', alignItems:'center', justifyContent:'center', paddingVertical:14, gap:8 },
-  resumeText: { fontFamily:'Inter_700Bold', fontSize:16, color:'#080814', letterSpacing:1 },
+  resumeText: { fontFamily:'SourceSans3_700Bold', fontSize:16, color:'#16171A', letterSpacing:1 },
   quitBtn: { flexDirection:'row', alignItems:'center', gap:8, paddingVertical:6 },
-  quitText: { fontFamily:'Inter_500Medium', fontSize:13, color:'#FF475777' },
-  lifeBtn: { flexDirection:'row', alignItems:'center', gap:6, backgroundColor:'#FF69B422', borderRadius:10, borderWidth:1, borderColor:'#FF69B444', paddingHorizontal:14, paddingVertical:8 },
-  lifeBtnText: { fontFamily:'Inter_600SemiBold', fontSize:13, color:'#FF69B4' },
+  quitText: { fontFamily:'SourceSans3_600SemiBold', fontSize:13, color:'#B4533A77' },
+  lifeBtn: { flexDirection:'row', alignItems:'center', gap:6, backgroundColor:'#B4533A22', borderRadius:3, borderWidth:1, borderColor:'#B4533A44', paddingHorizontal:14, paddingVertical:8 },
+  lifeBtnText: { fontFamily:'SourceSans3_600SemiBold', fontSize:13, color:'#B4533A' },
 });

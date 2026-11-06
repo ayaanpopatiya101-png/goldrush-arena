@@ -1,37 +1,54 @@
-// ── Deep Cosmos palette ───────────────────────────────────────────────────────
-// Near-black midnight navy base — makes gold/copper accents explode with
-// contrast while giving a premium "dark velvet" arena feel.
+// GoldRush Arena: flat graphite scoreboard palette.
+// Graphite surfaces, off-white text, restrained ochre action color.
+// Seat colors are muted, distinguishable sports-kit tones (no neon, no rainbow).
 
-const PLAYER_COLORS = ['#C8820A', '#C03820', '#1E8AAA', '#4A8A38'] as const;
-const PLAYER_GLOW   = ['#C8820A66', '#C0382066', '#1E8AAA66', '#4A8A3866'] as const;
+const PLAYER_COLORS = ['#C99A2E', '#B4533A', '#8C8F7A', '#6F8A5B'] as const;
+// Kept for API compatibility; no glow is rendered. Same as seat colors.
+const PLAYER_GLOW = PLAYER_COLORS;
+
+export const palette = {
+  ink: '#16171A',        // page background
+  graphite: '#1F2125',   // panel
+  graphite2: '#2A2C31',  // raised panel / input
+  line: '#3A3D44',       // borders
+  lineStrong: '#555963',
+  paper: '#ECE7DC',      // off-white text
+  paperDim: '#B7B2A6',
+  muted: '#8A867D',
+  ochre: '#C99A2E',      // action
+  ochreDeep: '#9E7620',
+  ochreInk: '#1A1508',   // text on ochre
+  clay: '#B4533A',       // danger / loss
+  moss: '#6F8A5B',       // success / owned
+} as const;
 
 const gameTheme = {
-  text:                 '#F0EAE0',
-  tint:                 '#C8820A',
-  background:           '#07090F',
-  foreground:           '#F0EAE0',
-  card:                 '#0C1020',
-  cardForeground:       '#F0EAE0',
-  primary:              '#C8820A',
-  primaryForeground:    '#07090F',
-  secondary:            '#101828',
-  secondaryForeground:  '#F0EAE0',
-  muted:                '#131E2C',
-  mutedForeground:      '#607888',
-  accent:               '#1E8AAA',
-  accentForeground:     '#07090F',
-  destructive:          '#C03820',
-  destructiveForeground:'#F0EAE0',
-  border:               '#1A2840',
-  input:                '#101828',
-  playerColors:         PLAYER_COLORS,
-  playerGlow:           PLAYER_GLOW,
+  text: palette.paper,
+  tint: palette.ochre,
+  background: palette.ink,
+  foreground: palette.paper,
+  card: palette.graphite,
+  cardForeground: palette.paper,
+  primary: palette.ochre,
+  primaryForeground: palette.ochreInk,
+  secondary: palette.graphite2,
+  secondaryForeground: palette.paper,
+  muted: palette.graphite2,
+  mutedForeground: palette.muted,
+  accent: palette.moss,
+  accentForeground: palette.ink,
+  destructive: palette.clay,
+  destructiveForeground: palette.paper,
+  border: palette.line,
+  input: palette.graphite2,
+  playerColors: PLAYER_COLORS,
+  playerGlow: PLAYER_GLOW,
 };
 
 const colors = {
   light: gameTheme,
-  dark:  gameTheme,
-  radius: 12,
+  dark: gameTheme,
+  radius: 3,
 };
 
 export default colors;

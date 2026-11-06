@@ -1,5 +1,5 @@
 /**
- * Challenge entry screen — deep-link target.
+ * Challenge entry screen, deep-link target.
  *
  * Opened when someone taps a friend's challenge link:
  *   goldrush://challenge?seed=YYYYMMDD&score=47&player=Alex
@@ -9,7 +9,7 @@
  */
 
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/Flat';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import { Alert, Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -20,6 +20,8 @@ import { setGameConfig } from '@/store/gameSession';
 import { SKINS, usePlayer } from '@/context/PlayerContext';
 import { fetchTodayChallenge } from '@/utils/dailyChallenge';
 import { getDeviceId } from '@/utils/deviceId';
+import { Glyph } from '@/components/ui/Glyph';
+import { staticLoop } from '@/components/ui/motion';
 
 export default function ChallengeScreen() {
   const insets = useSafeAreaInsets();
@@ -37,7 +39,7 @@ export default function ChallengeScreen() {
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   useEffect(() => {
-    const loop = Animated.loop(Animated.sequence([
+    const loop = staticLoop(Animated.sequence([
       Animated.timing(pulseAnim, { toValue: 1.08, duration: 800, useNativeDriver: true }),
       Animated.timing(pulseAnim, { toValue: 1,    duration: 800, useNativeDriver: true }),
     ]));
@@ -55,7 +57,7 @@ export default function ChallengeScreen() {
     const deviceId  = await getDeviceId();
     const challenge = await fetchTodayChallenge(deviceId);
 
-    // Require valid server config — without a nonce the run would be random and
+    // Require valid server config, without a nonce the run would be random and
     // ineligible for the leaderboard; show a recoverable error instead.
     if (!challenge?.matchNonce || !challenge?.seedHash) {
       Alert.alert(
@@ -88,10 +90,10 @@ export default function ChallengeScreen() {
 
   return (
     <Reanimated.View entering={FadeIn.duration(400)} style={[styles.root]}>
-      <LinearGradient colors={['#07090F', '#0D1428', '#07090F']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#16171A', '#1F2125', '#16171A']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.6} />
       <LinearGradient
-        colors={['#C8820A1A', '#C8820A08', 'transparent']}
+        colors={['#C99A2E1A', '#C99A2E08', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300 }}
         pointerEvents="none"
       />
@@ -99,7 +101,7 @@ export default function ChallengeScreen() {
       <View style={[styles.content, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 32 }]}>
         {/* Crown + challenger name */}
         <View style={styles.challengerRow}>
-          <Text style={styles.crown}>👑</Text>
+          <Glyph style={styles.crown} value="👑" />
           <View>
             <Text style={styles.challengerLabel}>CHALLENGE FROM</Text>
             <Text style={styles.challengerName}>{challengerName}</Text>
@@ -107,10 +109,10 @@ export default function ChallengeScreen() {
         </View>
 
         {/* Target score */}
-        <PulseRing color="#FFD700" size={200} rings={3} duration={2000} opacity={0.12}>
+        <PulseRing color="#C99A2E" size={200} rings={3} duration={2000} opacity={0.12}>
           <Animated.View style={{ transform: [{ scale: pulseAnim }], alignItems: 'center' }}>
             <Text style={styles.beatLabel}>BEAT</Text>
-            <GlowText intensity="strong" color="#FFD700" style={styles.scoreHero}>
+            <GlowText intensity="strong" color="#C99A2E" style={styles.scoreHero}>
               {targetScore}
             </GlowText>
             <Text style={styles.hitsLabel}>HITS</Text>
@@ -120,15 +122,15 @@ export default function ChallengeScreen() {
         {/* Info */}
         <View style={styles.infoCard}>
           <LinearGradient
-            colors={['#C8820A18', '#C8820A08']}
+            colors={['#C99A2E18', '#C99A2E08']}
             style={StyleSheet.absoluteFill}
           />
-          <View style={{ width: 3, height: '100%', backgroundColor: '#C8820A', borderRadius: 2, position: 'absolute', left: 0 }} />
+          <View style={{ width: 3, height: '100%', backgroundColor: '#C99A2E', borderRadius: 2, position: 'absolute', left: 0 }} />
           <View style={{ paddingLeft: 14, gap: 4 }}>
             <Text style={styles.infoTitle}>DAILY CHALLENGE · {seed}</Text>
             <Text style={styles.infoBody}>
               Same ball-speed pattern for everyone today.
-              Deflect the ball as many times as you can — one miss ends the run.
+              Deflect the ball as many times as you can, one miss ends the run.
             </Text>
           </View>
         </View>
@@ -138,8 +140,8 @@ export default function ChallengeScreen() {
           onPress={handlePlay}
           style={({ pressed }) => [styles.playBtn, pressed && { opacity: 0.88 }]}
         >
-          <LinearGradient colors={['#F0A428', '#D08A14', '#A86008']} style={styles.playBtnGrad}>
-            <Text style={styles.playBtnText}>⚡  ACCEPT CHALLENGE</Text>
+          <LinearGradient colors={['#C99A2E', '#C99A2E', '#9E7620']} style={styles.playBtnGrad}>
+            <Text style={styles.playBtnText}>ACCEPT CHALLENGE</Text>
           </LinearGradient>
         </Pressable>
 
@@ -158,27 +160,27 @@ const styles = StyleSheet.create({
 
   challengerRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   crown:         { fontSize: 38 },
-  challengerLabel: { fontFamily: 'Inter_700Bold', fontSize: 10, color: '#FFFFFF55', letterSpacing: 2, marginBottom: 2 },
-  challengerName:  { fontFamily: 'Rajdhani_700Bold', fontSize: 26, color: '#FFFFFF' },
+  challengerLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#ECE7DC55', letterSpacing: 2, marginBottom: 2 },
+  challengerName:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: '#ECE7DC' },
 
-  beatLabel:   { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 4, color: '#FFFFFF55', marginBottom: 2 },
+  beatLabel:   { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 4, color: '#ECE7DC55', marginBottom: 2 },
   scoreHero: {
-    fontFamily: 'Rajdhani_700Bold', fontSize: 100, lineHeight: 100,
-    color: '#FFD700',
-    textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 30,
+    fontFamily: 'BarlowCondensed_700Bold', fontSize: 100, lineHeight: 100,
+    color: '#C99A2E',
+    textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0,
   },
-  hitsLabel: { fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 5, color: '#FFFFFF88', marginTop: -4 },
+  hitsLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 18, letterSpacing: 5, color: '#ECE7DC88', marginTop: -4 },
 
   infoCard: {
-    width: '100%', borderRadius: 14, borderWidth: 1, borderColor: '#C8820A33',
+    width: '100%', borderRadius: 3, borderWidth: 1, borderColor: '#C99A2E33',
     paddingVertical: 14, paddingHorizontal: 14, overflow: 'hidden',
   },
-  infoTitle: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 2, color: '#C8820A', marginBottom: 4 },
-  infoBody:  { fontFamily: 'Inter_400Regular', fontSize: 13, color: '#FFFFFF88', lineHeight: 19 },
+  infoTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 2, color: '#C99A2E', marginBottom: 4 },
+  infoBody:  { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#ECE7DC88', lineHeight: 19 },
 
-  playBtn:     { width: '100%', borderRadius: 18, overflow: 'hidden', elevation: 10, shadowColor: '#C8820A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.7, shadowRadius: 24 },
+  playBtn:     { width: '100%', borderRadius: 3, overflow: 'hidden', elevation: 0, shadowColor: '#C99A2E', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0, shadowRadius: 0 },
   playBtnGrad: { paddingVertical: 18, alignItems: 'center' },
-  playBtnText: { fontFamily: 'Inter_700Bold', fontSize: 17, color: '#07090F', letterSpacing: 1 },
+  playBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 17, color: '#16171A', letterSpacing: 1 },
 
-  skipText: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: '#FFFFFF33' },
+  skipText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: '#ECE7DC33' },
 });

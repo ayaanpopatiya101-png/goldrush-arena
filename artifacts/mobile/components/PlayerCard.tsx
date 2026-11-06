@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/Flat';
 import Reanimated, {
   useAnimatedStyle,
   useSharedValue,
@@ -86,7 +86,7 @@ export function PlayerCard({
           </View>
         </View>
         {isReady != null && (
-          <View style={[styles.readyDot, { backgroundColor: isReady ? '#00FF88' : colors.muted }]} />
+          <View style={[styles.readyDot, { backgroundColor: isReady ? '#6F8A5B' : colors.muted }]} />
         )}
       </LinearGradient>
     </ShimmerCard>
@@ -99,25 +99,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    borderRadius: 14,
+    borderRadius: 3,
     borderWidth: 1,
     gap: 10,
   },
   cardSmall: {
     padding: 8,
-    borderRadius: 10,
+    borderRadius: 3,
     gap: 7,
   },
   avatar: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: 3,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'SourceSans3_700Bold',
   },
   info: {
     flex: 1,
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   name: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'SourceSans3_700Bold',
     flex: 1,
   },
   botBadge: {
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
   },
   botText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'SourceSans3_600SemiBold',
     fontSize: 8,
     letterSpacing: 0.5,
   },
@@ -149,19 +149,19 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   rankText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'SourceSans3_600SemiBold',
   },
   levelText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
   },
   wins: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
   },
   readyDot: {
     width: 10,
     height: 10,
-    borderRadius: 5,
+    borderRadius: 3,
   },
 });

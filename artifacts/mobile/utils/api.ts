@@ -20,7 +20,11 @@ export function getApiBase(): string {
     return `${protocol}//${apiHost}`;
   }
   // Native: use EXPO_PUBLIC_API_BASE (set this to your deployed domain)
-  return process.env['EXPO_PUBLIC_API_BASE'] ?? '';
+  const explicit = process.env['EXPO_PUBLIC_API_BASE'];
+  if (explicit) return explicit.replace(/\/$/, '');
+  const domain = process.env.EXPO_PUBLIC_DOMAIN;
+  if (!domain) throw new Error('The game server address is not configured.');
+  return `https://${domain}`;
 }
 
 export function apiUrl(path: string): string {

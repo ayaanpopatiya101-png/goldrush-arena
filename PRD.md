@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0  
 **Last updated:** July 2026  
-**Status:** Ready for App Store submission
+**Status:** Pre-release; not ready for App Store submission. The current source of truth is [release checklist](docs/arena/release-checklist.md). Historical claims below must not be used as verification evidence.
 
 ---
 
@@ -10,7 +10,7 @@
 
 GoldRush Arena is a fast-paced, 4-player air-hockey "last-one-standing" mobile game built with Expo SDK 54. Players control paddles to deflect a ball and eliminate opponents. The last player standing wins coins and XP, which unlock cosmetics, relics, and progression milestones on the Trophy Road.
 
-The game is designed for **quick sessions (2–5 minutes)**, is fully **offline-first** (no internet required to play), and stores all progress locally on the device.
+Core bot matches run locally and progress is stored on-device. Online parties, matchmaking, referrals, challenges, analytics on supported web builds and paid checkout involve external services. Party entry is not synchronized human PvP. See [current brief](docs/arena/game-brief.md).
 
 ---
 

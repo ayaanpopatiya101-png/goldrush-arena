@@ -6,10 +6,15 @@ import {
 import Reanimated, {
   FadeInDown, FadeInUp, ZoomIn,
   interpolate, useAnimatedScrollHandler, useAnimatedStyle,
-  useSharedValue, withRepeat, withSequence, withSpring, withTiming,
+  useSharedValue, withSequence, withSpring, withTiming,
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import type { SharedValue } from 'react-native-reanimated';
+
+// Decorative loops are disabled: play a single cycle and settle.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const withRepeat = <T,>(anim: T, ..._rest: unknown[]): T => anim;
+import { LinearGradient } from '@/components/ui/Flat';
+import { BlurView } from '@/components/ui/Flat';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -20,6 +25,8 @@ import {
 } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 import { ParticleField, GlowBorder, ShimmerCard } from '@/components/effects';
+import { Glyph } from '@/components/ui/Glyph';
+import { staticLoop } from '@/components/ui/motion';
 
 const { width: SW } = Dimensions.get('window');
 const RVIEW = Reanimated.createAnimatedComponent(View);
@@ -30,16 +37,16 @@ interface RoadZone {
   bg: [string, string, string]; decor: string[]; milestones: TrophyMilestone[];
 }
 const ZONES: RoadZone[] = [
-  { name: 'Dusty Trail',         subtitle: 'Where legends begin…',        accent: '#C87820', dim: '#7A4A0E',
-    bg: ['#2A1200', '#160900', '#08040088'], decor: ['🌵','⛺','🏜️','🌅','🌵','🐪'],   milestones: TROPHY_ROAD.slice(0, 5)  },
-  { name: 'Gold Rush Gulch',     subtitle: 'Strike it rich',               accent: '#FFD700', dim: '#9A8000',
-    bg: ['#251A00', '#120D00', '#08060088'], decor: ['⛏️','🪨','💰','🔦','⚙️','🏅'],   milestones: TROPHY_ROAD.slice(5, 10) },
-  { name: 'Crimson Canyon',      subtitle: 'Heat rises — do you?',         accent: '#FF5520', dim: '#8A2A00',
-    bg: ['#220600', '#120200', '#08010088'], decor: ['🌋','🔥','💥','🏔️','🌋','🌪️'],   milestones: TROPHY_ROAD.slice(10, 15)},
-  { name: 'Crystal Caverns',     subtitle: 'Beneath the surface',          accent: '#00E5FF', dim: '#007A8A',
-    bg: ['#001A1A', '#000D0D', '#00080888'], decor: ['💎','🔮','✨','🫧','💎','🌊'],   milestones: TROPHY_ROAD.slice(15, 20)},
-  { name: 'Summit of Champions', subtitle: 'Only the elite reach here',    accent: '#C084FC', dim: '#6B30C8',
-    bg: ['#0E0022', '#070010', '#02000888'], decor: ['👑','⚡','🏆','🌟','⚡','🌠'],   milestones: TROPHY_ROAD.slice(20, 25)},
+  { name: 'Dusty Trail',         subtitle: 'Where legends begin…',        accent: '#C99A2E', dim: '#9E7620',
+    bg: ['#16171A', '#16171A', '#16171A88'], decor: ['🌵','⛺','🏜️','🌅','🌵','🐪'],   milestones: TROPHY_ROAD.slice(0, 5)  },
+  { name: 'Gold Rush Gulch',     subtitle: 'Strike it rich',               accent: '#C99A2E', dim: '#9E7620',
+    bg: ['#16171A', '#16171A', '#16171A88'], decor: ['⛏️','🪨','💰','🔦','⚙️','🏅'],   milestones: TROPHY_ROAD.slice(5, 10) },
+  { name: 'Crimson Canyon',      subtitle: 'Heat rises, do you?',         accent: '#B4533A', dim: '#7E3A29',
+    bg: ['#16171A', '#16171A', '#16171A88'], decor: ['🌋','🔥','💥','🏔️','🌋','🌪️'],   milestones: TROPHY_ROAD.slice(10, 15)},
+  { name: 'Crystal Caverns',     subtitle: 'Beneath the surface',          accent: '#8C8F7A', dim: '#8C8F7A',
+    bg: ['#16171A', '#16171A', '#16171A88'], decor: ['💎','🔮','✨','🫧','💎','🌊'],   milestones: TROPHY_ROAD.slice(15, 20)},
+  { name: 'Summit of Champions', subtitle: 'Only the elite reach here',    accent: '#8C8F7A', dim: '#8C8F7A',
+    bg: ['#16171A', '#16171A', '#16171A88'], decor: ['👑','⚡','🏆','🌟','⚡','🌠'],   milestones: TROPHY_ROAD.slice(20, 25)},
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -58,11 +65,11 @@ function trLabel(r: TrophyReward): string {
   return 'Reward';
 }
 function trColor(r: TrophyReward): string {
-  if (r.type === 'coins')      return '#FFD700';
-  if (r.type === 'skin')       return '#00E5FF';
-  if (r.type === 'relic')      return '#FF6B35';
+  if (r.type === 'coins')      return '#C99A2E';
+  if (r.type === 'skin')       return '#8C8F7A';
+  if (r.type === 'relic')      return '#B4533A';
   if (r.type === 'luckyblock') return LUCKY_BLOCK_META[r.tier].color;
-  return '#FFFFFF';
+  return '#ECE7DC';
 }
 function fmtXP(n: number): string {
   return n >= 1000 ? (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'K' : String(n);
@@ -71,7 +78,7 @@ function fmtXP(n: number): string {
 // ─── Floating depth layer ─────────────────────────────────────────────────────
 // Three layers (far/mid/near) each drifting at different rates
 function FloatLayer({ emoji, size, x, yBase, speed, scrollY, zoneY }:
-  { emoji: string; size: number; x: number; yBase: number; speed: number; scrollY: Reanimated.SharedValue<number>; zoneY: number }) {
+  { emoji: string; size: number; x: number; yBase: number; speed: number; scrollY: SharedValue<number>; zoneY: number }) {
   const drift = useSharedValue(0);
   useEffect(() => {
     drift.value = withRepeat(
@@ -90,7 +97,7 @@ function FloatLayer({ emoji, size, x, yBase, speed, scrollY, zoneY }:
   }));
   return (
     <RVIEW style={[{ position: 'absolute', left: x, top: yBase }, style]}>
-      <Text style={{ fontSize: size }}>{emoji}</Text>
+      <Glyph style={{ fontSize: size }} value={emoji} />
     </RVIEW>
   );
 }
@@ -125,14 +132,12 @@ function GlowPath({ fromRight, accent }: { fromRight: boolean; accent: string })
           <View style={[line, { right: 2, top: 26, bottom: 0, width: 2 }]} />
         </>
       )}
-      {/* Travelling glow dot */}
-      <RVIEW style={[{ position: 'absolute', right: fromRight ? 0 : undefined, left: fromRight ? undefined : 0, top: 12, width: 8, height: 8, borderRadius: 4, backgroundColor: accent, shadowColor: accent, shadowRadius: 6, shadowOpacity: 0.9, shadowOffset: { width: 0, height: 0 } }, dotStyle]} />
     </View>
   );
 }
 
 // ─── 3D Zone Banner ───────────────────────────────────────────────────────────
-function ZoneBanner({ zone, zoneIdx, scrollY }: { zone: RoadZone; zoneIdx: number; scrollY: Reanimated.SharedValue<number> }) {
+function ZoneBanner({ zone, zoneIdx, scrollY }: { zone: RoadZone; zoneIdx: number; scrollY: SharedValue<number> }) {
   // Approximate Y position of this zone's banner
   const ZONE_H = 1040;
   const MY_Y   = 220 + zoneIdx * ZONE_H;
@@ -158,15 +163,13 @@ function ZoneBanner({ zone, zoneIdx, scrollY }: { zone: RoadZone; zoneIdx: numbe
         style={s.zoneBannerGrad}
       >
         <LinearGradient colors={[zone.bg[0], zone.bg[1]]} style={StyleSheet.absoluteFill} />
-        {/* Shimmer strip at top */}
-        <View style={[s.zoneBannerShimmer, { backgroundColor: zone.accent + '30' }]} />
 
-        {/* Floating decor — right side */}
+        {/* Floating decor, right side */}
         <View style={s.zoneBannerDecorRow} pointerEvents="none">
-          {zone.decor.slice(0, 4).map((e, i) => {
+          {zone.decor.slice(0, 0).map((e, i) => {
             const fl = useRef(new Animated.Value(0)).current;
             useEffect(() => {
-              Animated.loop(Animated.sequence([
+              staticLoop(Animated.sequence([
                 Animated.timing(fl, { toValue: -5 - i * 2, duration: 1400 + i * 300, useNativeDriver: true }),
                 Animated.timing(fl, { toValue: 0,          duration: 1400 + i * 300, useNativeDriver: true }),
               ])).start();
@@ -181,7 +184,7 @@ function ZoneBanner({ zone, zoneIdx, scrollY }: { zone: RoadZone; zoneIdx: numbe
 
         {/* Zone meta */}
         <Text style={[s.zonePill, { color: zone.accent }]}>ZONE {zoneIdx + 1} OF 5</Text>
-        <Text style={[s.zoneName, { color: '#FFFFFF', textShadowColor: zone.accent, textShadowRadius: 12, textShadowOffset: { width: 0, height: 0 } }]}>
+        <Text style={[s.zoneName, { color: '#ECE7DC', textShadowColor: 'transparent', textShadowRadius: 0, textShadowOffset: { width: 0, height: 0 } }]}>
           {zone.name.toUpperCase()}
         </Text>
         <Text style={[s.zoneSub, { color: zone.accent + 'CC' }]}>{zone.subtitle}</Text>
@@ -229,7 +232,7 @@ function MilestoneNode({ ms, globalIdx, zone, claimed, canClaim, isLeft, onClaim
     transform: [{ scale: 1 + glow.value * 0.15 }],
   }));
 
-  const borderColor = claimed ? zone.accent + '55' : canClaim ? zone.accent : '#FFFFFF1A';
+  const borderColor = claimed ? zone.accent + '55' : canClaim ? zone.accent : '#ECE7DC1A';
   const cardBg1     = claimed ? zone.accent + '22' : canClaim ? zone.accent + '3A' : zone.accent + '0A';
   const opacity     = claimed ? 0.65 : canClaim ? 1 : 0.30;
   const rc          = trColor(ms.reward);
@@ -248,8 +251,6 @@ function MilestoneNode({ ms, globalIdx, zone, claimed, canClaim, isLeft, onClaim
       entering={FadeInDown.delay(globalIdx * 55 + 100).duration(420).springify()}
       style={[s.nodeRow, { justifyContent: isLeft ? 'flex-start' : 'flex-end' }]}
     >
-      {/* Outer glow ring (visible when claimable) */}
-      <RVIEW style={[s.nodeGlowRing, { borderColor: zone.accent + '60', shadowColor: zone.accent }, glowStyle]} />
 
       <RVIEW style={nodeStyle}>
         <Pressable
@@ -257,7 +258,7 @@ function MilestoneNode({ ms, globalIdx, zone, claimed, canClaim, isLeft, onClaim
           style={({ pressed }) => [
             s.nodeCard,
             { borderColor, opacity: pressed ? 0.75 : opacity },
-            canClaim && { shadowColor: zone.accent, shadowRadius: 20, shadowOpacity: 0.8, elevation: 14 },
+            canClaim && { shadowColor: zone.accent, shadowRadius: 0, shadowOpacity: 0, elevation: 0 },
           ]}
         >
           <LinearGradient colors={[cardBg1, 'transparent']} style={StyleSheet.absoluteFill} />
@@ -270,8 +271,8 @@ function MilestoneNode({ ms, globalIdx, zone, claimed, canClaim, isLeft, onClaim
             <Text style={[s.numTxt, { color: zone.accent }]}>#{globalIdx + 1}</Text>
           </View>
 
-          {/* Reward icon — larger when claimable */}
-          <Text style={{ fontSize: canClaim ? 36 : 30, marginVertical: 5 }}>{trEmoji(ms.reward)}</Text>
+          {/* Reward icon, larger when claimable */}
+          <Glyph style={{ fontSize: canClaim ? 36 : 30, marginVertical: 5 }} value={trEmoji(ms.reward)} />
 
           {/* Reward name */}
           <Text style={[s.rewardTxt, { color: rc }]} numberOfLines={2}>{trLabel(ms.reward)}</Text>
@@ -281,16 +282,16 @@ function MilestoneNode({ ms, globalIdx, zone, claimed, canClaim, isLeft, onClaim
 
           {/* State chip */}
           {claimed ? (
-            <View style={[s.chip, { backgroundColor: '#00CC5518', borderColor: '#00CC5545' }]}>
-              <Text style={[s.chipTxt, { color: '#00CC55' }]}>✓  CLAIMED</Text>
+            <View style={[s.chip, { backgroundColor: '#6F8A5B18', borderColor: '#6F8A5B45' }]}>
+              <Text style={[s.chipTxt, { color: '#6F8A5B' }]}>CLAIMED</Text>
             </View>
           ) : canClaim ? (
             <View style={[s.chip, { backgroundColor: zone.accent + '28', borderColor: zone.accent + '88' }]}>
               <Text style={[s.chipTxt, { color: zone.accent }]}>TAP TO CLAIM</Text>
             </View>
           ) : (
-            <View style={[s.chip, { backgroundColor: '#FFFFFF07', borderColor: '#FFFFFF14' }]}>
-              <Text style={[s.chipTxt, { color: '#FFFFFF30' }]}>🔒  {fmtXP(ms.xp)} XP</Text>
+            <View style={[s.chip, { backgroundColor: '#ECE7DC07', borderColor: '#ECE7DC14' }]}>
+              <Text style={[s.chipTxt, { color: '#ECE7DC30' }]}> {fmtXP(ms.xp)} XP</Text>
             </View>
           )}
         </Pressable>
@@ -308,20 +309,20 @@ function ZoneTransition({ fromAccent, toAccent }: { fromAccent: string; toAccent
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={{ height: 2, width: '60%' }}
       />
-      <Text style={{ fontSize: 11, color: '#FFFFFF22', marginVertical: 4 }}>⬇</Text>
+      <Glyph style={{ fontSize: 11, color: '#ECE7DC22', marginVertical: 4 }} value="⬇" />
       <Text style={s.zoneTransitionTxt}>NEXT ZONE</Text>
     </Reanimated.View>
   );
 }
 
 // ─── 3D Title ─────────────────────────────────────────────────────────────────
-function Title3D({ text, size = 32, color = '#FFD700', shadow = '#7A4C00' }: {
+function Title3D({ text, size = 32, color = '#C99A2E', shadow = '#9E7620' }: {
   text: string; size?: number; color?: string; shadow?: string;
 }) {
   return (
     <View style={{ position: 'relative' }}>
       <Text style={[s.titleLayer, { fontSize: size, color: shadow,   top: 4,   left: 4,   position: 'absolute' }]}>{text}</Text>
-      <Text style={[s.titleLayer, { fontSize: size, color: '#C07800', top: 2,   left: 2,   position: 'absolute' }]}>{text}</Text>
+      <Text style={[s.titleLayer, { fontSize: size, color: '#C99A2E', top: 2,   left: 2,   position: 'absolute' }]}>{text}</Text>
       <Text style={[s.titleLayer, { fontSize: size, color }]}>{text}</Text>
     </View>
   );
@@ -339,7 +340,7 @@ function Toast({ label, color, onDone }: { label: string; color: string; onDone:
   }, []);
   return (
     <Animated.View style={[s.toast, { borderColor: color + '88', shadowColor: color, opacity: op }]}>
-      <Text style={{ fontSize: 16 }}>✨</Text>
+      <Glyph style={{ fontSize: 16 }} value="✨" />
       <Text style={[s.toastTxt, { color }]}>{label}</Text>
     </Animated.View>
   );
@@ -390,14 +391,14 @@ export default function TrophyRoadMap() {
   return (
     <View style={s.root}>
       {/* Deep space background */}
-      <LinearGradient colors={['#03010A', '#060310', '#03010A']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#16171A', '#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
       <ParticleField count={50} mode="stars" />
 
-      {/* Per-zone parallax depth emojis — rendered behind everything */}
+      {/* Per-zone parallax depth emojis, rendered behind everything */}
       {ZONES.map((zone, zi) => {
         const ZONE_H = 1040;
         const zoneY  = 220 + zi * ZONE_H;
-        return zone.decor.slice(0, 6).map((emoji, ei) => (
+        return zone.decor.slice(0, 0).map((emoji, ei) => (
           <FloatLayer
             key={`${zi}-${ei}`}
             emoji={emoji}
@@ -414,18 +415,18 @@ export default function TrophyRoadMap() {
       {/* ── Sticky header ── */}
       <RVIEW style={[s.header, { paddingTop: insets.top + 4 }, headerStyle]}>
         <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
-        <LinearGradient colors={['#0A0520CC', '#06030EAA']} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={['#16171ACC', '#16171AAA']} style={StyleSheet.absoluteFill} />
 
         <Pressable onPress={() => router.back()} style={s.backBtn} hitSlop={10}>
-          <Feather name="chevron-left" size={22} color="#FFFFFF99" />
+          <Feather name="chevron-left" size={22} color="#ECE7DC99" />
         </Pressable>
 
         <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-          <Title3D text="TROPHY ROAD" size={18} color="#FFD700" shadow="#5A3800" />
+          <Title3D text="TROPHY ROAD" size={18} color="#C99A2E" shadow="#1A1508" />
           <View style={s.headerProgress}>
             <View style={s.headerBarBg}>
               <RVIEW style={[s.headerBarFill, barStyle]}>
-                <LinearGradient colors={['#FFD700', '#FF8C00']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} />
+                <LinearGradient colors={['#C99A2E', '#C99A2E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} />
               </RVIEW>
             </View>
             <Text style={s.headerProgressTxt}>{done}/{total}</Text>
@@ -448,19 +449,19 @@ export default function TrophyRoadMap() {
         {/* Hero title block */}
         <Reanimated.View entering={FadeInDown.duration(600).springify()} style={s.hero}>
           <View style={{ alignItems: 'center', gap: 6 }}>
-            <Text style={{ fontSize: 52 }}>🏆</Text>
-            <Title3D text="TROPHY ROAD" size={28} color="#FFD700" shadow="#5A3800" />
+            <Glyph style={{ fontSize: 52 }} value="🏆" />
+            <Title3D text="TROPHY ROAD" size={28} color="#C99A2E" shadow="#1A1508" />
             <Text style={s.heroSub}>25 milestones · 5 legendary zones</Text>
           </View>
-          <View style={[s.heroProgressCard, { borderColor: '#FFD70033' }]}>
-            <LinearGradient colors={['#FFD70012', '#FF8C0008']} style={StyleSheet.absoluteFill} />
+          <View style={[s.heroProgressCard, { borderColor: '#C99A2E33' }]}>
+            <LinearGradient colors={['#C99A2E12', '#C99A2E08']} style={StyleSheet.absoluteFill} />
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
               <Text style={s.heroProgressLbl}>PROGRESS</Text>
-              <Text style={[s.heroProgressLbl, { color: '#FFD700' }]}>{done} / {total} claimed</Text>
+              <Text style={[s.heroProgressLbl, { color: '#C99A2E' }]}>{done} / {total} claimed</Text>
             </View>
             <View style={s.heroBarBg}>
               <RVIEW style={[s.heroBarFill, barStyle]}>
-                <LinearGradient colors={['#FFD700', '#FF8C00', '#FF5500']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} />
+                <LinearGradient colors={['#C99A2E', '#C99A2E', '#B4533A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} />
                 <View style={s.heroBarShine} />
               </RVIEW>
             </View>
@@ -512,10 +513,10 @@ export default function TrophyRoadMap() {
         {/* Completion banner */}
         {done === total && (
           <Reanimated.View entering={ZoomIn.duration(600).springify()} style={s.completeBanner}>
-            <LinearGradient colors={['#FFD70030', '#C0840015', '#00000000']} style={StyleSheet.absoluteFill} />
-            <Text style={{ fontSize: 52 }}>🏆</Text>
-            <Text style={[s.titleLayer, { fontSize: 22, color: '#FFD700', letterSpacing: 3 }]}>ROAD COMPLETE!</Text>
-            <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 12, color: '#FFFFFF66', textAlign: 'center', marginTop: 4 }}>
+            <LinearGradient colors={['#C99A2E30', '#C99A2E15', '#16171A00']} style={StyleSheet.absoluteFill} />
+            <Glyph style={{ fontSize: 52 }} value="🏆" />
+            <Text style={[s.titleLayer, { fontSize: 22, color: '#C99A2E', letterSpacing: 3 }]}>ROAD COMPLETE!</Text>
+            <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#ECE7DC66', textAlign: 'center', marginTop: 4 }}>
               You've conquered every zone.{'\n'}True GoldRush Champion.
             </Text>
           </Reanimated.View>
@@ -541,74 +542,74 @@ export default function TrophyRoadMap() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#03010A' },
+  root: { flex: 1, backgroundColor: '#16171A' },
 
   // Header
   header: {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: 14, paddingBottom: 10,
-    borderBottomWidth: 1, borderBottomColor: '#FFFFFF0D',
+    borderBottomWidth: 1, borderBottomColor: '#ECE7DC0D',
     overflow: 'hidden',
   },
   backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   headerProgress: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 3 },
-  headerBarBg:   { flex: 1, height: 5, backgroundColor: '#FFFFFF0D', borderRadius: 3, overflow: 'hidden' },
+  headerBarBg:   { flex: 1, height: 5, backgroundColor: '#ECE7DC0D', borderRadius: 3, overflow: 'hidden' },
   headerBarFill: { height: 5, borderRadius: 3, overflow: 'hidden' },
-  headerProgressTxt: { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#FFD700', letterSpacing: 0.5 },
-  xpBadge: { alignItems: 'center', backgroundColor: '#FFD70020', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: '#FFD70040' },
-  xpBadgeVal: { fontFamily: 'Inter_700Bold', fontSize: 16, color: '#FFD700', lineHeight: 18 },
-  xpBadgeLbl: { fontFamily: 'Inter_700Bold', fontSize: 7, color: '#FFD70099', letterSpacing: 2 },
+  headerProgressTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#C99A2E', letterSpacing: 0.5 },
+  xpBadge: { alignItems: 'center', backgroundColor: '#C99A2E20', borderRadius: 3, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: '#C99A2E40' },
+  xpBadgeVal: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#C99A2E', lineHeight: 18 },
+  xpBadgeLbl: { fontFamily: 'SourceSans3_700Bold', fontSize: 7, color: '#C99A2E99', letterSpacing: 2 },
 
   // Hero
   hero: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 24, paddingBottom: 12, gap: 18 },
-  heroSub: { fontFamily: 'Inter_400Regular', fontSize: 11, color: '#FFFFFF44', letterSpacing: 0.5, textAlign: 'center' },
-  heroProgressCard: { width: '100%', borderRadius: 16, borderWidth: 1, overflow: 'hidden', padding: 14 },
-  heroProgressLbl:  { fontFamily: 'Inter_700Bold', fontSize: 9, color: '#FFFFFF44', letterSpacing: 2 },
-  heroBarBg:   { height: 10, backgroundColor: '#FFFFFF0D', borderRadius: 5, overflow: 'hidden' },
-  heroBarFill: { height: 10, borderRadius: 5, overflow: 'hidden' },
-  heroBarShine:{ position: 'absolute', top: 1.5, left: '5%', width: '55%', height: 4, borderRadius: 2, backgroundColor: '#FFFFFF44' },
+  heroSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#ECE7DC44', letterSpacing: 0.5, textAlign: 'center' },
+  heroProgressCard: { width: '100%', borderRadius: 3, borderWidth: 1, overflow: 'hidden', padding: 14 },
+  heroProgressLbl:  { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#ECE7DC44', letterSpacing: 2 },
+  heroBarBg:   { height: 10, backgroundColor: '#ECE7DC0D', borderRadius: 3, overflow: 'hidden' },
+  heroBarFill: { height: 10, borderRadius: 3, overflow: 'hidden' },
+  heroBarShine:{ position: 'absolute', top: 1.5, left: '5%', width: '55%', height: 4, borderRadius: 2, backgroundColor: '#ECE7DC44' },
   zoneDot: { width: 8, height: 8, borderRadius: 4 },
 
   // Zone banner
-  zoneBannerGrad: { borderRadius: 20, borderWidth: 1.5, overflow: 'hidden', padding: 18, borderColor: '#FFFFFF10' },
+  zoneBannerGrad: { borderRadius: 3, borderWidth: 1.5, overflow: 'hidden', padding: 18, borderColor: '#ECE7DC10' },
   zoneBannerShimmer: { position: 'absolute', top: 0, left: 0, right: 0, height: 2 },
   zoneBannerDecorRow: { position: 'absolute', right: 12, top: 12, flexDirection: 'row', gap: 5, alignItems: 'flex-start' },
-  zonePill: { fontFamily: 'Inter_700Bold', fontSize: 8, letterSpacing: 3.5, marginBottom: 4 },
-  zoneName: { fontFamily: 'Rajdhani_700Bold', fontSize: 26, letterSpacing: 2, lineHeight: 30 },
-  zoneSub:  { fontFamily: 'Inter_400Regular', fontSize: 10, marginTop: 2 },
-  zoneXPPill: { alignSelf: 'flex-start', marginTop: 10, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4 },
-  zoneXPTxt:  { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 0.5 },
+  zonePill: { fontFamily: 'SourceSans3_700Bold', fontSize: 8, letterSpacing: 3.5, marginBottom: 4 },
+  zoneName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, letterSpacing: 2, lineHeight: 30 },
+  zoneSub:  { fontFamily: 'SourceSans3_400Regular', fontSize: 10, marginTop: 2 },
+  zoneXPPill: { alignSelf: 'flex-start', marginTop: 10, borderRadius: 3, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4 },
+  zoneXPTxt:  { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 0.5 },
 
   // Milestone nodes
   nodeRow:     { paddingHorizontal: 26, marginVertical: 0 },
   nodeGlowRing:{
     position: 'absolute', width: 148, height: 240,
-    borderRadius: 22, borderWidth: 2,
-    shadowRadius: 16, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.9,
+    borderRadius: 3, borderWidth: 2,
+    shadowRadius: 0, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0,
   },
   nodeCard: {
-    width: 136, borderRadius: 20, borderWidth: 2,
+    width: 136, borderRadius: 3, borderWidth: 2,
     overflow: 'hidden', alignItems: 'center',
     paddingVertical: 12, paddingHorizontal: 10,
     shadowOffset: { width: 0, height: 4 },
-    backgroundColor: '#08060F',
+    backgroundColor: '#16171A',
   },
   nodeTopStripe: { position: 'absolute', top: 0, left: 0, right: 0, height: 3 },
-  numBadge: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 2, marginBottom: 2 },
-  numTxt:   { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 0.5 },
-  rewardTxt:{ fontFamily: 'Inter_700Bold', fontSize: 11, textAlign: 'center', letterSpacing: 0.3, lineHeight: 14 },
-  xpTxt:    { fontFamily: 'Inter_600SemiBold', fontSize: 8, color: '#FFFFFF44', letterSpacing: 0.3, marginTop: 3 },
-  chip:     { borderRadius: 6, borderWidth: 1, paddingHorizontal: 7, paddingVertical: 3, marginTop: 7 },
-  chipTxt:  { fontFamily: 'Inter_700Bold', fontSize: 7, letterSpacing: 1 },
+  numBadge: { borderRadius: 3, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 2, marginBottom: 2 },
+  numTxt:   { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
+  rewardTxt:{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, textAlign: 'center', letterSpacing: 0.3, lineHeight: 14 },
+  xpTxt:    { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8, color: '#ECE7DC44', letterSpacing: 0.3, marginTop: 3 },
+  chip:     { borderRadius: 3, borderWidth: 1, paddingHorizontal: 7, paddingVertical: 3, marginTop: 7 },
+  chipTxt:  { fontFamily: 'SourceSans3_700Bold', fontSize: 7, letterSpacing: 1 },
 
   // Zone transition
   zoneTransition:    { alignItems: 'center', paddingVertical: 14 },
-  zoneTransitionTxt: { fontFamily: 'Inter_700Bold', fontSize: 7, color: '#FFFFFF20', letterSpacing: 3, marginTop: 2 },
+  zoneTransitionTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 7, color: '#ECE7DC20', letterSpacing: 3, marginTop: 2 },
 
   // Completion banner
   completeBanner: {
-    margin: 20, borderRadius: 20, borderWidth: 1.5, borderColor: '#FFD70055',
+    margin: 20, borderRadius: 3, borderWidth: 1.5, borderColor: '#C99A2E55',
     overflow: 'hidden', alignItems: 'center', padding: 28, gap: 6,
   },
 
@@ -616,12 +617,12 @@ const s = StyleSheet.create({
   toast: {
     position: 'absolute', bottom: 110, alignSelf: 'center',
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#0C0A18', borderWidth: 1.5, borderRadius: 16,
+    backgroundColor: '#16171A', borderWidth: 1.5, borderRadius: 3,
     paddingHorizontal: 20, paddingVertical: 12,
-    shadowOpacity: 0.8, shadowRadius: 16, shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 },
   },
-  toastTxt: { fontFamily: 'Inter_700Bold', fontSize: 13, color: '#FFFFFF' },
+  toastTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#ECE7DC' },
 
   // 3D title layers
-  titleLayer: { fontFamily: 'Rajdhani_700Bold', letterSpacing: 2.5, textTransform: 'uppercase' },
+  titleLayer: { fontFamily: 'BarlowCondensed_700Bold', letterSpacing: 2.5, textTransform: 'uppercase' },
 });

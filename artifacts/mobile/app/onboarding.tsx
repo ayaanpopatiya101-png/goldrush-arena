@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert, Animated, Dimensions, Easing, KeyboardAvoidingView,
@@ -8,12 +8,14 @@ import {
 } from 'react-native';
 import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle, Defs, Line, Path, RadialGradient as SvgRadialGradient, Stop } from 'react-native-svg';
+import Svg, { Circle, Line, Path } from 'react-native-svg';
 import { AVATAR_COLORS, AVATAR_EMOJIS, SavedAccountMeta, deleteAccount, getSavedAccounts, loginAccount } from '@/context/PlayerContext';
+import { Glyph } from '@/components/ui/Glyph';
+import { staticLoop } from '@/components/ui/motion';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
-const PLAYER_COLORS = ['#C8820A', '#C03820', '#1E8AAA', '#4A8A38'] as const;
+const PLAYER_COLORS = ['#C99A2E', '#B4533A', '#8C8F7A', '#6F8A5B'] as const;
 const PLAYER_EMOJIS = ['⚔️', '🛡️', '🔮', '🏹'] as const;
 const PARTICLE_CHARS = ['✨', '💫', '⭐', '🪙', '⚡', '🔥'];
 
@@ -32,7 +34,7 @@ function StarField() {
   useEffect(() => {
     STARS.forEach((s, i) => {
       if (!s.twinkle) return;
-      const loop = Animated.loop(Animated.sequence([
+      const loop = staticLoop(Animated.sequence([
         Animated.delay(s.delay),
         Animated.timing(anims[i], { toValue: 0.15, duration: 1200, useNativeDriver: true }),
         Animated.timing(anims[i], { toValue: 1,    duration: 1200, useNativeDriver: true }),
@@ -41,6 +43,7 @@ function StarField() {
     });
   }, []);
 
+  if (anims.length >= 0) return null; // star field removed by the visual rules
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {STARS.map((s, i) => (
@@ -49,7 +52,7 @@ function StarField() {
           left: `${s.x}%` as any,
           top:  `${s.y}%` as any,
           width: s.size, height: s.size, borderRadius: s.size / 2,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: '#ECE7DC',
           opacity: anims[i],
         }} />
       ))}
@@ -62,8 +65,8 @@ function Shockwave({ anim }: { anim: Animated.Value }) {
   return (
     <Animated.View pointerEvents="none" style={{
       position: 'absolute',
-      width: 120, height: 120, borderRadius: 60,
-      borderWidth: 3, borderColor: '#C8820A',
+      width: 120, height: 120, borderRadius: 3,
+      borderWidth: 3, borderColor: '#C99A2E',
       opacity: anim.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 0.9, 0] }),
       transform: [{ scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.4, 3.5] }) }],
     }} />
@@ -77,7 +80,7 @@ function Particle({ x, delay, duration, char, startY }: {
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const id = setTimeout(() => {
-      Animated.loop(
+      staticLoop(
         Animated.timing(anim, { toValue: 1, duration, useNativeDriver: true, easing: Easing.linear })
       ).start();
     }, delay);
@@ -100,7 +103,7 @@ function Warrior({ color, emoji, enterAnim, size = 56 }: {
 }) {
   const pulse = useRef(new Animated.Value(1)).current;
   useEffect(() => {
-    const loop = Animated.loop(Animated.sequence([
+    const loop = staticLoop(Animated.sequence([
       Animated.timing(pulse, { toValue: 1.09, duration: 1000, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
       Animated.timing(pulse, { toValue: 1,    duration: 1000, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
     ]));
@@ -120,13 +123,13 @@ function Warrior({ color, emoji, enterAnim, size = 56 }: {
         width: size, height: size, borderRadius: size / 2,
         backgroundColor: color + '22', borderWidth: 2, borderColor: color + '90',
         alignItems: 'center', justifyContent: 'center',
-        shadowColor: color, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 18,
+        shadowColor: color, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0,
       }}>
-        <Text style={{ fontSize: size * 0.44 }}>{emoji}</Text>
+        <Glyph style={{ fontSize: size * 0.44 }} value={emoji} />
       </View>
       <View style={{
-        width: size * 0.85, height: 9, borderRadius: 4.5, backgroundColor: color,
-        marginTop: 5, shadowColor: color, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 12,
+        width: size * 0.85, height: 9, borderRadius: 3, backgroundColor: color,
+        marginTop: 5, shadowColor: color, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0,
       }} />
     </Animated.View>
   );
@@ -149,38 +152,14 @@ function ArenaScene({ w1, w2, w3, w4, ballGlowAnim, ballEnter, ringRotate }: {
     <View style={{ width: S, height: S, position: 'relative', alignItems: 'center', justifyContent: 'center' }}>
       {/* SVG base */}
       <Svg width={S} height={S} style={StyleSheet.absoluteFill} pointerEvents="none">
-        <Defs>
-          <SvgRadialGradient id="floor3" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%"   stopColor="#3A1A00" stopOpacity="0.45" />
-            <Stop offset="55%"  stopColor="#1A0C00" stopOpacity="0.60" />
-            <Stop offset="100%" stopColor="#0A0604" stopOpacity="0.90" />
-          </SvgRadialGradient>
-          <SvgRadialGradient id="zG" cx="50%" cy="100%" r="60%"><Stop offset="0%" stopColor="#C8820A" stopOpacity="0.28" /><Stop offset="100%" stopColor="#C8820A" stopOpacity="0" /></SvgRadialGradient>
-          <SvgRadialGradient id="zR" cx="50%" cy="0%"   r="60%"><Stop offset="0%" stopColor="#C03820" stopOpacity="0.28" /><Stop offset="100%" stopColor="#C03820" stopOpacity="0" /></SvgRadialGradient>
-          <SvgRadialGradient id="zB" cx="0%"   cy="50%" r="60%"><Stop offset="0%" stopColor="#1E8AAA" stopOpacity="0.22" /><Stop offset="100%" stopColor="#1E8AAA" stopOpacity="0" /></SvgRadialGradient>
-          <SvgRadialGradient id="zGn" cx="100%" cy="50%" r="60%"><Stop offset="0%" stopColor="#4A8A38" stopOpacity="0.22" /><Stop offset="100%" stopColor="#4A8A38" stopOpacity="0" /></SvgRadialGradient>
-        </Defs>
-        <Circle cx={AC} cy={AC} r={AR} fill="url(#floor3)" />
-        <Circle cx={AC} cy={AC} r={AR} fill="url(#zG)" />
-        <Circle cx={AC} cy={AC} r={AR} fill="url(#zR)" />
-        <Circle cx={AC} cy={AC} r={AR} fill="url(#zB)" />
-        <Circle cx={AC} cy={AC} r={AR} fill="url(#zGn)" />
-        <Circle cx={AC} cy={AC} r={AR}        fill="none" stroke="#FFFFFF30" strokeWidth={2} />
-        <Circle cx={AC} cy={AC} r={AR * 0.55} fill="none" stroke="#FFFFFF14" strokeWidth={1} />
-        <Circle cx={AC} cy={AC} r={AR * 0.17} fill="none" stroke="#C8820A55" strokeWidth={1.5} />
-        <Line x1={AC} y1={SCENE_PAD} x2={AC} y2={S - SCENE_PAD} stroke="#FFFFFF0C" strokeWidth={1} />
-        <Line x1={SCENE_PAD} y1={AC} x2={S - SCENE_PAD} y2={AC} stroke="#FFFFFF0C" strokeWidth={1} />
+        <Circle cx={AC} cy={AC} r={AR} fill="#1F2125" />
+        <Circle cx={AC} cy={AC} r={AR}        fill="none" stroke="#ECE7DC30" strokeWidth={2} />
+        <Circle cx={AC} cy={AC} r={AR * 0.55} fill="none" stroke="#ECE7DC14" strokeWidth={1} />
+        <Circle cx={AC} cy={AC} r={AR * 0.17} fill="none" stroke="#C99A2E55" strokeWidth={1.5} />
+        <Line x1={AC} y1={SCENE_PAD} x2={AC} y2={S - SCENE_PAD} stroke="#ECE7DC0C" strokeWidth={1} />
+        <Line x1={SCENE_PAD} y1={AC} x2={S - SCENE_PAD} y2={AC} stroke="#ECE7DC0C" strokeWidth={1} />
       </Svg>
 
-      {/* Slowly rotating outer ring */}
-      <Animated.View pointerEvents="none" style={{
-        position: 'absolute', width: AR * 2 + 6, height: AR * 2 + 6,
-        borderRadius: AR + 3, borderWidth: 1.5,
-        borderColor: 'transparent',
-        borderTopColor: '#C8820A55',
-        borderRightColor: '#C0382033',
-        transform: [{ rotate: ringRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }],
-      }} />
 
       {/* BOTTOM warrior */}
       <Animated.View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center',
@@ -207,22 +186,13 @@ function ArenaScene({ w1, w2, w3, w4, ballGlowAnim, ballEnter, ringRotate }: {
       </Animated.View>
 
       {/* Ball + shockwave */}
-      <Shockwave anim={ballEnter} />
       <Animated.View style={{
-        position: 'absolute', width: 30, height: 30, borderRadius: 15,
-        backgroundColor: '#C8820A',
+        position: 'absolute', width: 30, height: 30, borderRadius: 3,
+        backgroundColor: '#C99A2E',
         top: AC - 15, left: AC - 15,
         opacity: ballEnter,
         transform: [{ scale: ballEnter.interpolate({ inputRange: [0, 0.4, 0.7, 1], outputRange: [0.1, 1.5, 0.9, 1.1] }) }],
-        shadowColor: '#C8820A', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 22,
-      }} />
-      {/* Ball outer glow ring */}
-      <Animated.View style={{
-        position: 'absolute', width: 66, height: 66, borderRadius: 33,
-        borderWidth: 2, borderColor: '#C8820A60',
-        top: AC - 33, left: AC - 33,
-        opacity: ballEnter,
-        transform: [{ scale: ballGlowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.25] }) }],
+        shadowColor: '#C99A2E', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0,
       }} />
     </View>
   );
@@ -234,7 +204,7 @@ function ShimmerButton({ onPress, loading, label, icon }: {
 }) {
   const shimmer = useRef(new Animated.Value(-1)).current;
   useEffect(() => {
-    Animated.loop(Animated.sequence([
+    staticLoop(Animated.sequence([
       Animated.delay(1800),
       Animated.timing(shimmer, { toValue: 1, duration: 650, useNativeDriver: true, easing: Easing.ease }),
       Animated.timing(shimmer, { toValue: -1, duration: 0, useNativeDriver: true }),
@@ -242,13 +212,10 @@ function ShimmerButton({ onPress, loading, label, icon }: {
   }, []);
   return (
     <Pressable onPress={onPress} disabled={loading} style={({ pressed }) => [s.ctaBtn, pressed && { opacity: 0.85 }]}>
-      <LinearGradient colors={['#E09620', '#C8820A', '#A86008']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.ctaGrad}>
-        {icon ? <Feather name={icon as never} size={22} color="#1A0800" /> : null}
+      <LinearGradient colors={['#C99A2E', '#C99A2E', '#9E7620']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.ctaGrad}>
+        {icon ? <Feather name={icon as never} size={22} color="#16171A" /> : null}
         <Text style={s.ctaText}>{loading ? 'ENTERING...' : label}</Text>
       </LinearGradient>
-      <Animated.View pointerEvents="none" style={[s.shimmer, {
-        transform: [{ translateX: shimmer.interpolate({ inputRange: [-1, 1], outputRange: [-100, SW + 100] }) }, { skewX: '-20deg' }],
-      }]} />
     </Pressable>
   );
 }
@@ -258,11 +225,11 @@ function EnterButton({ onPress, anim }: { onPress: () => void; anim: Animated.Va
   const glow  = useRef(new Animated.Value(0)).current;
   const shimmer = useRef(new Animated.Value(-1)).current;
   useEffect(() => {
-    Animated.loop(Animated.sequence([
+    staticLoop(Animated.sequence([
       Animated.timing(glow, { toValue: 1, duration: 900, useNativeDriver: false, easing: Easing.inOut(Easing.ease) }),
       Animated.timing(glow, { toValue: 0, duration: 900, useNativeDriver: false, easing: Easing.inOut(Easing.ease) }),
     ])).start();
-    Animated.loop(Animated.sequence([
+    staticLoop(Animated.sequence([
       Animated.delay(1400),
       Animated.timing(shimmer, { toValue: 1, duration: 600, useNativeDriver: true, easing: Easing.ease }),
       Animated.timing(shimmer, { toValue: -1, duration: 0, useNativeDriver: true }),
@@ -276,18 +243,14 @@ function EnterButton({ onPress, anim }: { onPress: () => void; anim: Animated.Va
     }}>
       <Pressable onPress={onPress} style={({ pressed }) => [s.enterBtn, pressed && { opacity: 0.88, transform: [{ scale: 0.97 }] }]}>
         <LinearGradient
-          colors={['#FFE035', '#FFB200', '#FF7700']}
+          colors={['#C99A2E', '#C99A2E', '#C99A2E']}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={s.enterGrad}
         >
-          <Feather name="play" size={24} color="#160800" />
+          <Feather name="play" size={24} color="#16171A" />
           <Text style={s.enterText}>ENTER ARENA</Text>
-          <Feather name="chevron-right" size={20} color="#160800AA" />
+          <Feather name="chevron-right" size={20} color="#16171AAA" />
         </LinearGradient>
-        {/* Shimmer sweep */}
-        <Animated.View pointerEvents="none" style={[s.enterShimmer, {
-          transform: [{ translateX: shimmer.interpolate({ inputRange: [-1, 1], outputRange: [-120, SW + 120] }) }, { skewX: '-18deg' }],
-        }]} />
       </Pressable>
 
       {/* Tap hint */}
@@ -376,7 +339,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
     setTimeout(() => {
       Animated.spring(enterBtnAnim, { toValue: 1, friction: 6, tension: 70, useNativeDriver: true }).start(() => {
         // Idle logo pulse after intro completes
-        Animated.loop(Animated.sequence([
+        staticLoop(Animated.sequence([
           Animated.timing(logoPulse, { toValue: 1.028, duration: 1800, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
           Animated.timing(logoPulse, { toValue: 1,     duration: 1800, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
         ])).start();
@@ -384,17 +347,17 @@ export default function OnboardingScreen({ onSuccess }: Props) {
     }, 1650);
 
     // ── Continuous loops ──────────────────────────────────────────────
-    Animated.loop(Animated.sequence([
+    staticLoop(Animated.sequence([
       Animated.timing(ballGlow, { toValue: 1, duration: 1100, useNativeDriver: false }),
       Animated.timing(ballGlow, { toValue: 0, duration: 1100, useNativeDriver: false }),
     ])).start();
 
-    Animated.loop(Animated.sequence([
+    staticLoop(Animated.sequence([
       Animated.timing(bgGlow, { toValue: 1, duration: 3200, useNativeDriver: false }),
       Animated.timing(bgGlow, { toValue: 0, duration: 3200, useNativeDriver: false }),
     ])).start();
 
-    Animated.loop(
+    staticLoop(
       Animated.timing(ringRotate, { toValue: 1, duration: 8000, useNativeDriver: true, easing: Easing.linear })
     ).start();
   }, []);
@@ -462,28 +425,14 @@ export default function OnboardingScreen({ onSuccess }: Props) {
 
       {/* ── Deep space background ── */}
       <LinearGradient
-        colors={['#07090F', '#0D1428', '#0C1835', '#07090F']}
+        colors={['#16171A', '#1F2125', '#1F2125', '#16171A']}
         locations={[0, 0.3, 0.65, 1]}
         style={StyleSheet.absoluteFill}
       />
 
-      {/* Starfield */}
-      <StarField />
 
-      {/* Atmospheric glow pulse */}
-      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, {
-        opacity: bgGlow.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0.55] }),
-      }]}>
-        <LinearGradient
-          colors={['#C8820A44', '#80400A22', '#00000000']}
-          style={{ height: SH * 0.6, width: '100%' }}
-        />
-      </Animated.View>
 
-      {/* Floating particles */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        {particles.map(p => <Particle key={p.id} {...p} />)}
-      </View>
+
 
       {/* ── SPLASH CONTENT (logo + arena) ── */}
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: splashOpacity }]}>
@@ -494,23 +443,20 @@ export default function OnboardingScreen({ onSuccess }: Props) {
           opacity: logoOpacity,
         }]}>
           {/* Crown */}
-          <Text style={s.crown}>👑</Text>
 
           {/* GOLDRUSH with layered shadow */}
           <View style={s.titleWrap}>
-            <Text style={s.titleShadow2}>GOLDRUSH</Text>
-            <Text style={s.titleShadow1}>GOLDRUSH</Text>
             <Text style={s.titleMain}>GOLDRUSH</Text>
           </View>
 
           {/* ARENA */}
-          <Text style={s.titleArena}>A R E N A</Text>
+          <Text style={s.titleArena}>ARENA</Text>
 
           {/* Divider line */}
           <View style={s.divider} />
 
           {/* Tagline */}
-          <Text style={s.tagline}>4-Player · Air Hockey · Last One Standing</Text>
+          <Text style={s.tagline}>Four seats. Real paddles. Last player standing.</Text>
         </Animated.View>
 
         {/* Arena scene */}
@@ -530,7 +476,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
       <Animated.View style={[s.formSheet, { transform: [{ translateY: formY }], opacity: formOpacity }]}>
         {/* Glassmorphism top edge */}
         <LinearGradient
-          colors={['#FFFFFF15', '#FFFFFF00']}
+          colors={['#ECE7DC15', '#ECE7DC00']}
           style={s.formSheetTopGlow}
           pointerEvents="none"
         />
@@ -542,7 +488,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
           {(['signup', 'login'] as const).map(t => (
             <Pressable key={t} onPress={() => { setTab(t); setError(''); }} style={[s.tabBtn, tab === t && s.tabBtnActive]}>
               <Text style={[s.tabText, tab === t && s.tabTextActive]}>
-                {t === 'signup' ? '⚔️  CREATE HERO' : '🎮  LOG IN'}
+                {t === 'signup' ? 'CREATE HERO' : 'LOG IN'}
               </Text>
             </Pressable>
           ))}
@@ -558,12 +504,12 @@ export default function OnboardingScreen({ onSuccess }: Props) {
             <>
               {/* Username */}
               <View style={s.field}>
-                <Text style={s.label}>⚔️  YOUR HERO NAME</Text>
+                <Text style={s.label}>YOUR HERO NAME</Text>
                 <View style={s.inputRow}>
                   <TextInput
                     style={s.input}
                     placeholder="Choose your battle name..."
-                    placeholderTextColor="#FFFFFF33"
+                    placeholderTextColor="#ECE7DC33"
                     value={username}
                     onChangeText={v => { setUsername(v); setError(''); }}
                     maxLength={16}
@@ -576,12 +522,12 @@ export default function OnboardingScreen({ onSuccess }: Props) {
 
               {/* Icon */}
               <View style={s.field}>
-                <Text style={s.label}>🎨  HERO ICON</Text>
+                <Text style={s.label}>HERO ICON</Text>
                 <View style={s.emojiRow}>
                   {AVATAR_EMOJIS.map(e => (
                     <Pressable key={e} onPress={() => setSelectedEmoji(e)}
                       style={[s.emojiBtn, selectedEmoji === e && { borderColor: selectedColor, backgroundColor: selectedColor + '25', transform: [{ scale: 1.18 }] }]}>
-                      <Text style={s.emojiText}>{e}</Text>
+                      <Glyph style={s.emojiText} value={e} />
                     </Pressable>
                   ))}
                 </View>
@@ -589,12 +535,12 @@ export default function OnboardingScreen({ onSuccess }: Props) {
 
               {/* Color */}
               <View style={s.field}>
-                <Text style={s.label}>🎨  HERO COLOR</Text>
+                <Text style={s.label}>HERO COLOR</Text>
                 <View style={s.colorRow}>
                   {AVATAR_COLORS.map(c => (
                     <Pressable key={c} onPress={() => setSelectedColor(c)}
-                      style={[s.colorDot, { backgroundColor: c, borderColor: selectedColor === c ? '#FFFFFF' : 'transparent', transform: [{ scale: selectedColor === c ? 1.28 : 1 }] }]}>
-                      {selectedColor === c && <Feather name="check" size={11} color="#000" />}
+                      style={[s.colorDot, { backgroundColor: c, borderColor: selectedColor === c ? '#ECE7DC' : 'transparent', transform: [{ scale: selectedColor === c ? 1.28 : 1 }] }]}>
+                      {selectedColor === c && <Feather name="check" size={11} color='#16171A' />}
                     </Pressable>
                   ))}
                 </View>
@@ -604,7 +550,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
               <View style={[s.preview, { borderColor: selectedColor + '44' }]}>
                 <LinearGradient colors={[selectedColor + '1C', selectedColor + '06']} style={StyleSheet.absoluteFill} />
                 <View style={[s.previewAvatar, { borderColor: selectedColor, backgroundColor: selectedColor + '33' }]}>
-                  <Text style={s.previewEmoji}>{selectedEmoji}</Text>
+                  <Glyph style={s.previewEmoji} value={selectedEmoji} />
                 </View>
                 <View>
                   <Text style={[s.previewName, { color: selectedColor }]}>{username || 'Hero Name'}</Text>
@@ -619,9 +565,9 @@ export default function OnboardingScreen({ onSuccess }: Props) {
               {error !== '' && <Text style={s.error}>{error}</Text>}
 
               <ShimmerButton onPress={handleSignUp} loading={loading} label="ENTER THE ARENA" icon="play" />
-              <Text style={[s.terms, { color: '#C8820A55' }]}>
+              <Text style={[s.terms, { color: '#C99A2E55' }]}>
                 By joining, you agree to our{' '}
-                <Text style={{ color: '#C8820A99', textDecorationLine: 'underline' }}>
+                <Text style={{ color: '#C99A2E99', textDecorationLine: 'underline' }}>
                   Terms of Service & Privacy Policy
                 </Text>
               </Text>
@@ -630,13 +576,13 @@ export default function OnboardingScreen({ onSuccess }: Props) {
             <>
               {savedAccounts.length > 0 && (
                 <View style={s.field}>
-                  <Text style={s.label}>🏆  YOUR HEROES</Text>
+                  <Text style={s.label}>YOUR HEROES</Text>
                   {savedAccounts.map(acct => (
                     <View key={acct.username} style={[s.savedRow, { borderColor: acct.avatarColor + '44' }]}>
                       <LinearGradient colors={[acct.avatarColor + '14', acct.avatarColor + '06']} style={StyleSheet.absoluteFill} />
                       <Pressable style={s.savedRowMain} onPress={() => handleLogin(acct)}>
                         <View style={[s.savedAvatar, { borderColor: acct.avatarColor, backgroundColor: acct.avatarColor + '33' }]}>
-                          <Text style={s.savedEmoji}>{acct.avatarEmoji}</Text>
+                          <Glyph style={s.savedEmoji} value={acct.avatarEmoji} />
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text style={s.savedName}>{acct.username}</Text>
@@ -648,7 +594,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
                         </View>
                       </Pressable>
                       <Pressable onPress={() => handleDeleteAccount(acct)} style={s.deleteBtn} hitSlop={8}>
-                        <Feather name="trash-2" size={16} color="#FF4444" />
+                        <Feather name="trash-2" size={16} color="#B4533A" />
                       </Pressable>
                     </View>
                   ))}
@@ -656,12 +602,12 @@ export default function OnboardingScreen({ onSuccess }: Props) {
               )}
 
               <View style={s.field}>
-                <Text style={s.label}>{savedAccounts.length > 0 ? '🔑  OR ENTER NAME' : '🔑  ENTER YOUR NAME'}</Text>
+                <Text style={s.label}>{savedAccounts.length > 0 ? 'OR ENTER NAME' : 'ENTER YOUR NAME'}</Text>
                 <View style={s.inputRow}>
                   <TextInput
                     style={s.input}
                     placeholder="Your hero name..."
-                    placeholderTextColor="#FFFFFF33"
+                    placeholderTextColor="#ECE7DC33"
                     value={loginInput}
                     onChangeText={v => { setLoginInput(v); setError(''); }}
                     autoCapitalize="none"
@@ -692,84 +638,84 @@ const s = StyleSheet.create({
   enterWrap:  { position: 'absolute', left: 0, right: 0, alignItems: 'center', paddingHorizontal: 32 },
 
   // Logo
-  crown:        { fontSize: 50, textAlign: 'center', textShadowColor: '#FF8800', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 24 },
+  crown:        { fontSize: 50, textAlign: 'center', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
   titleWrap:    { position: 'relative', alignItems: 'center', justifyContent: 'center', height: 62, width: SW - 24, alignSelf: 'center', marginTop: 2 },
-  titleMain:    { position: 'absolute', fontFamily: 'Inter_700Bold', fontSize: 48, letterSpacing: 4, color: '#C8820A', textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 22 },
-  titleShadow1: { position: 'absolute', fontFamily: 'Inter_700Bold', fontSize: 48, letterSpacing: 4, color: '#FF4400', opacity: 0.5, transform: [{ translateX: 3 }, { translateY: 4 }] },
-  titleShadow2: { position: 'absolute', fontFamily: 'Inter_700Bold', fontSize: 48, letterSpacing: 4, color: '#880022', opacity: 0.3, transform: [{ translateX: 6 }, { translateY: 8 }] },
-  titleArena:   { fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 12, color: '#FFFFFFCC', marginTop: 4, textShadowColor: '#C8820A', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 16 },
-  divider:      { width: 80, height: 1.5, backgroundColor: '#FFFFFF18', borderRadius: 1, marginTop: 10, marginBottom: 6 },
-  tagline:      { color: '#FFFFFF55', fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 0.8 },
+  titleMain:    { position: 'absolute', fontFamily: 'SourceSans3_700Bold', fontSize: 48, letterSpacing: 4, color: '#C99A2E', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  titleShadow1: { position: 'absolute', fontFamily: 'SourceSans3_700Bold', fontSize: 48, letterSpacing: 4, color: '#B4533A', opacity: 0.5, transform: [{ translateX: 3 }, { translateY: 4 }] },
+  titleShadow2: { position: 'absolute', fontFamily: 'SourceSans3_700Bold', fontSize: 48, letterSpacing: 4, color: '#7E3A29', opacity: 0.3, transform: [{ translateX: 6 }, { translateY: 8 }] },
+  titleArena:   { fontFamily: 'SourceSans3_700Bold', fontSize: 20, letterSpacing: 12, color: '#ECE7DCCC', marginTop: 4, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  divider:      { width: 80, height: 1.5, backgroundColor: '#ECE7DC18', borderRadius: 1, marginTop: 10, marginBottom: 6 },
+  tagline:      { color: '#ECE7DC55', fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, letterSpacing: 0.8 },
 
   // Enter Arena button
-  enterBtn:     { borderRadius: 20, overflow: 'hidden', shadowColor: '#C8820A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.75, shadowRadius: 20, elevation: 14, width: '100%' },
+  enterBtn:     { borderRadius: 3, overflow: 'hidden', shadowColor: '#C99A2E', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0, width: '100%' },
   enterGrad:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 19, gap: 12 },
-  enterText:    { color: '#160800', fontFamily: 'Inter_700Bold', fontSize: 20, letterSpacing: 2 },
-  enterShimmer: { position: 'absolute', top: 0, bottom: 0, width: 100, backgroundColor: '#FFFFFF44' },
-  tapHint:      { color: '#FFFFFF40', fontFamily: 'Inter_500Medium', fontSize: 11, letterSpacing: 2, textAlign: 'center', marginTop: 14 },
+  enterText:    { color: '#16171A', fontFamily: 'SourceSans3_700Bold', fontSize: 20, letterSpacing: 2 },
+  enterShimmer: { position: 'absolute', top: 0, bottom: 0, width: 100, backgroundColor: '#ECE7DC44' },
+  tapHint:      { color: '#ECE7DC40', fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, letterSpacing: 2, textAlign: 'center', marginTop: 14 },
 
   // Form sheet
   formSheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: '#100C06F8',
-    borderTopLeftRadius: 32, borderTopRightRadius: 32,
+    backgroundColor: '#16171AF8',
+    borderTopLeftRadius: 3, borderTopRightRadius: 3,
     borderTopWidth: 1.5, borderLeftWidth: 1, borderRightWidth: 1,
-    borderColor: '#FFFFFF20',
+    borderColor: '#ECE7DC20',
     height: SH * 0.70,
     paddingTop: 8,
     overflow: 'hidden',
   },
   formSheetTopGlow: {
     position: 'absolute', top: 0, left: 0, right: 0, height: 60,
-    borderTopLeftRadius: 32, borderTopRightRadius: 32,
+    borderTopLeftRadius: 3, borderTopRightRadius: 3,
   },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#FFFFFF30', alignSelf: 'center', marginBottom: 16 },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#ECE7DC30', alignSelf: 'center', marginBottom: 16 },
 
   // Tabs
-  tabRow:        { flexDirection: 'row', marginHorizontal: 20, backgroundColor: '#FFFFFF0C', borderRadius: 16, padding: 4, marginBottom: 16 },
-  tabBtn:        { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 13 },
-  tabBtnActive:  { backgroundColor: '#1A1008' },
-  tabText:       { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 1.2, color: '#FFFFFF44' },
-  tabTextActive: { color: '#E09620' },
+  tabRow:        { flexDirection: 'row', marginHorizontal: 20, backgroundColor: '#ECE7DC0C', borderRadius: 3, padding: 4, marginBottom: 16 },
+  tabBtn:        { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 3 },
+  tabBtnActive:  { backgroundColor: '#16171A' },
+  tabText:       { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 1.2, color: '#ECE7DC44' },
+  tabTextActive: { color: '#C99A2E' },
 
   // Fields
   field:     { gap: 8 },
-  label:     { color: '#FFFFFF66', fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.5 },
-  inputRow:  { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF0C', borderRadius: 14, borderWidth: 1, borderColor: '#FFFFFF20', height: 54 },
-  input:     { flex: 1, paddingHorizontal: 16, color: '#F0F0FF', fontFamily: 'Inter_600SemiBold', fontSize: 15 },
-  charCount: { paddingRight: 14, color: '#FFFFFF33', fontFamily: 'Inter_400Regular', fontSize: 11 },
+  label:     { color: '#ECE7DC66', fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 1.5 },
+  inputRow:  { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ECE7DC0C', borderRadius: 3, borderWidth: 1, borderColor: '#ECE7DC20', height: 54 },
+  input:     { flex: 1, paddingHorizontal: 16, color: '#ECE7DC', fontFamily: 'SourceSans3_600SemiBold', fontSize: 15 },
+  charCount: { paddingRight: 14, color: '#ECE7DC33', fontFamily: 'SourceSans3_400Regular', fontSize: 11 },
   emojiRow:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  emojiBtn:  { width: 46, height: 46, borderRadius: 13, borderWidth: 1.5, borderColor: '#FFFFFF18', backgroundColor: '#FFFFFF0A', alignItems: 'center', justifyContent: 'center' },
+  emojiBtn:  { width: 46, height: 46, borderRadius: 3, borderWidth: 1.5, borderColor: '#ECE7DC18', backgroundColor: '#ECE7DC0A', alignItems: 'center', justifyContent: 'center' },
   emojiText: { fontSize: 24 },
   colorRow:  { flexDirection: 'row', gap: 10 },
-  colorDot:  { width: 33, height: 33, borderRadius: 17, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  colorDot:  { width: 33, height: 33, borderRadius: 3, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
 
   // Preview
-  preview:          { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1, padding: 14, overflow: 'hidden' },
-  previewAvatar:    { width: 52, height: 52, borderRadius: 26, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  preview:          { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 3, borderWidth: 1, padding: 14, overflow: 'hidden' },
+  previewAvatar:    { width: 52, height: 52, borderRadius: 3, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
   previewEmoji:     { fontSize: 26 },
-  previewName:      { fontFamily: 'Inter_700Bold', fontSize: 17 },
-  previewRank:      { color: '#FFFFFF55', fontFamily: 'Inter_500Medium', fontSize: 11, marginTop: 2 },
-  previewBadge:     { borderRadius: 9, borderWidth: 1, paddingHorizontal: 9, paddingVertical: 5 },
-  previewBadgeText: { fontFamily: 'Inter_700Bold', fontSize: 9, letterSpacing: 1.5 },
+  previewName:      { fontFamily: 'SourceSans3_700Bold', fontSize: 17 },
+  previewRank:      { color: '#ECE7DC55', fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, marginTop: 2 },
+  previewBadge:     { borderRadius: 3, borderWidth: 1, paddingHorizontal: 9, paddingVertical: 5 },
+  previewBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 1.5 },
 
   // CTA (form submit)
-  ctaBtn:  { borderRadius: 16, overflow: 'hidden', shadowColor: '#C8820A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.55, shadowRadius: 16, elevation: 10 },
+  ctaBtn:  { borderRadius: 3, overflow: 'hidden', shadowColor: '#C99A2E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
   ctaGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 17, gap: 10 },
-  ctaText: { color: '#1A0800', fontFamily: 'Inter_700Bold', fontSize: 17, letterSpacing: 1.5 },
-  shimmer: { position: 'absolute', top: 0, bottom: 0, width: 80, backgroundColor: '#FFFFFF40' },
+  ctaText: { color: '#16171A', fontFamily: 'SourceSans3_700Bold', fontSize: 17, letterSpacing: 1.5 },
+  shimmer: { position: 'absolute', top: 0, bottom: 0, width: 80, backgroundColor: '#ECE7DC40' },
 
-  error: { color: '#FF4757', fontFamily: 'Inter_500Medium', fontSize: 13, textAlign: 'center' },
-  terms: { color: '#FFFFFF28', fontFamily: 'Inter_400Regular', fontSize: 10, textAlign: 'center' },
+  error: { color: '#B4533A', fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, textAlign: 'center' },
+  terms: { color: '#ECE7DC28', fontFamily: 'SourceSans3_400Regular', fontSize: 10, textAlign: 'center' },
 
   // Saved accounts
-  savedRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
+  savedRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 3, borderWidth: 1, overflow: 'hidden' },
   savedRowMain:{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, padding: 12 },
   deleteBtn:   { paddingHorizontal: 14, paddingVertical: 12, justifyContent: 'center', alignItems: 'center' },
-  savedAvatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  savedAvatar: { width: 48, height: 48, borderRadius: 3, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   savedEmoji:  { fontSize: 24 },
-  savedName:   { color: '#F0F0FF', fontFamily: 'Inter_700Bold', fontSize: 16 },
-  savedRank:   { fontFamily: 'Inter_600SemiBold', fontSize: 11, marginTop: 2 },
-  playBtn:     { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 10, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 },
-  playBtnText: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 0.5 },
+  savedName:   { color: '#ECE7DC', fontFamily: 'SourceSans3_700Bold', fontSize: 16 },
+  savedRank:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, marginTop: 2 },
+  playBtn:     { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 3, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 },
+  playBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 0.5 },
 });

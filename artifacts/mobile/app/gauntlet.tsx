@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/Flat';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -13,6 +13,7 @@ import {
 } from '@/store/gauntletSession';
 import { updateGameConfig } from '@/store/gameSession';
 import { useColors } from '@/hooks/useColors';
+import { Glyph } from '@/components/ui/Glyph';
 
 // ─── Win-dot row for a player ─────────────────────────────────────────────────
 function WinDots({ wins, isPlayer }: { wins: number; isPlayer: boolean }) {
@@ -22,14 +23,14 @@ function WinDots({ wins, isPlayer }: { wins: number; isPlayer: boolean }) {
         <View
           key={i}
           style={{
-            width: 13, height: 13, borderRadius: 7,
+            width: 13, height: 13, borderRadius: 3,
             backgroundColor: i < wins
-              ? (isPlayer ? '#FFD700' : '#FF4757')
-              : '#FFFFFF18',
+              ? (isPlayer ? '#C99A2E' : '#B4533A')
+              : '#ECE7DC18',
             borderWidth: 1,
             borderColor: i < wins
-              ? (isPlayer ? '#FFD70099' : '#FF475788')
-              : '#FFFFFF28',
+              ? (isPlayer ? '#C99A2E99' : '#B4533A88')
+              : '#ECE7DC28',
           }}
         />
       ))}
@@ -78,7 +79,7 @@ export default function GauntletScreen() {
 
   return (
     <Reanimated.View entering={FadeIn.duration(350)} style={s.root}>
-      <LinearGradient colors={['#1A1000', '#0C0800', '#0A0600']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#16171A', '#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -91,24 +92,24 @@ export default function GauntletScreen() {
         {/* ── Header ── */}
         <View style={s.header}>
           <Text style={s.headerEyebrow}>CHAMPION'S GAUNTLET</Text>
-          <Text style={s.headerTitle}>⚔️ ROUND {completedRound} COMPLETE</Text>
+          <Text style={s.headerTitle}> ROUND {completedRound} COMPLETE</Text>
         </View>
 
         {/* ── Round result banner ── */}
         <Animated.View style={[
           s.resultBanner,
           roundWon
-            ? { backgroundColor: '#00FF8812', borderColor: '#00FF8850' }
-            : { backgroundColor: '#FF475712', borderColor: '#FF475750' },
+            ? { backgroundColor: '#6F8A5B12', borderColor: '#6F8A5B50' }
+            : { backgroundColor: '#B4533A12', borderColor: '#B4533A50' },
           { transform: [{ scale: bannerScale }] },
         ]}>
-          <Text style={s.resultEmoji}>{roundWon ? '🥇' : '💀'}</Text>
-          <Text style={[s.resultLabel, { color: roundWon ? '#00FF88' : '#FF4757' }]}>
+          <Glyph style={s.resultEmoji} value={roundWon ? '🥇' : '💀'} />
+          <Text style={[s.resultLabel, { color: roundWon ? '#6F8A5B' : '#B4533A' }]}>
             {roundWon ? 'ROUND WIN!' : 'ELIMINATED'}
           </Text>
           <View style={s.resultRewards}>
             <Text style={s.rewardXP}>+{xpEarned} XP</Text>
-            <Text style={s.rewardCoins}>+{coinsEarned} 🪙</Text>
+            <Text style={s.rewardCoins}>+{coinsEarned} </Text>
           </View>
           <Text style={s.bonusNote}>3× GAUNTLET BONUS APPLIED</Text>
         </Animated.View>
@@ -117,23 +118,23 @@ export default function GauntletScreen() {
         <Text style={s.sectionLabel}>STANDINGS · FIRST TO {GAUNTLET_TARGET_WINS}</Text>
         <View style={s.scoreboard}>
           {/* Human player */}
-          <View style={[s.playerRow, { borderColor: '#FFD70044', backgroundColor: '#FFD70010' }]}>
+          <View style={[s.playerRow, { borderColor: '#C99A2E44', backgroundColor: '#C99A2E10' }]}>
             <View style={s.playerInfo}>
-              <Text style={[s.playerName, { color: '#FFD700' }]}>{profile.name}</Text>
+              <Text style={[s.playerName, { color: '#C99A2E' }]}>{profile.name}</Text>
               <Text style={s.playerTag}>YOU</Text>
             </View>
             <WinDots wins={state.playerWins} isPlayer />
-            <Text style={[s.winCount, { color: '#FFD700' }]}>{state.playerWins}</Text>
+            <Text style={[s.winCount, { color: '#C99A2E' }]}>{state.playerWins}</Text>
           </View>
           {/* Bots */}
           {state.bots.map((bot, i) => (
-            <View key={bot.name} style={[s.playerRow, { borderColor: '#FFFFFF18', backgroundColor: '#FFFFFF05' }]}>
+            <View key={bot.name} style={[s.playerRow, { borderColor: '#ECE7DC18', backgroundColor: '#ECE7DC05' }]}>
               <View style={s.playerInfo}>
                 <Text style={[s.playerName, { color: bot.color }]}>{bot.name}</Text>
                 <Text style={s.playerTag}>BOT</Text>
               </View>
               <WinDots wins={state.botWins[i]} isPlayer={false} />
-              <Text style={[s.winCount, { color: '#FFFFFF77' }]}>{state.botWins[i]}</Text>
+              <Text style={[s.winCount, { color: '#ECE7DC77' }]}>{state.botWins[i]}</Text>
             </View>
           ))}
         </View>
@@ -143,39 +144,39 @@ export default function GauntletScreen() {
           <View style={s.endState}>
             {gauntletWon ? (
               <>
-                <Text style={s.endEmoji}>🏆</Text>
-                <Text style={[s.endTitle, { color: '#FFD700' }]}>CHAMPION!</Text>
-                <Text style={[s.endSub, { color: '#C8820A' }]}>You dominated the gauntlet!</Text>
+                <Glyph style={s.endEmoji} value="🏆" />
+                <Text style={[s.endTitle, { color: '#C99A2E' }]}>CHAMPION!</Text>
+                <Text style={[s.endSub, { color: '#C99A2E' }]}>You dominated the gauntlet!</Text>
                 <View style={s.totalRewards}>
                   <View style={s.rewardPill}>
-                    <Text style={[s.rewardPillNum, { color: '#FFD700' }]}>{state.totalXP}</Text>
+                    <Text style={[s.rewardPillNum, { color: '#C99A2E' }]}>{state.totalXP}</Text>
                     <Text style={s.rewardPillLabel}>TOTAL XP</Text>
                   </View>
                   <View style={s.rewardDivider} />
                   <View style={s.rewardPill}>
-                    <Text style={[s.rewardPillNum, { color: '#C8820A' }]}>{state.totalCoins}</Text>
+                    <Text style={[s.rewardPillNum, { color: '#C99A2E' }]}>{state.totalCoins}</Text>
                     <Text style={s.rewardPillLabel}>TOTAL COINS</Text>
                   </View>
                 </View>
                 <View style={s.championBonus}>
-                  <Text style={s.championBonusText}>🎖️ +1500 CHAMPION BONUS XP AWARDED</Text>
+                  <Text style={s.championBonusText}>+1500 CHAMPION BONUS XP AWARDED</Text>
                 </View>
               </>
             ) : (
               <>
-                <Text style={s.endEmoji}>💀</Text>
-                <Text style={[s.endTitle, { color: '#FF4757' }]}>DEFEATED</Text>
-                <Text style={[s.endSub, { color: '#FF475788' }]}>
+                <Glyph style={s.endEmoji} value="💀" />
+                <Text style={[s.endTitle, { color: '#B4533A' }]}>DEFEATED</Text>
+                <Text style={[s.endSub, { color: '#B4533A88' }]}>
                   The gauntlet claims another challenger.
                 </Text>
                 <View style={s.totalRewards}>
                   <View style={s.rewardPill}>
-                    <Text style={[s.rewardPillNum, { color: '#FFD700' }]}>{state.totalXP}</Text>
+                    <Text style={[s.rewardPillNum, { color: '#C99A2E' }]}>{state.totalXP}</Text>
                     <Text style={s.rewardPillLabel}>TOTAL XP</Text>
                   </View>
                   <View style={s.rewardDivider} />
                   <View style={s.rewardPill}>
-                    <Text style={[s.rewardPillNum, { color: '#C8820A' }]}>{state.totalCoins}</Text>
+                    <Text style={[s.rewardPillNum, { color: '#C99A2E' }]}>{state.totalCoins}</Text>
                     <Text style={s.rewardPillLabel}>TOTAL COINS</Text>
                   </View>
                 </View>
@@ -195,7 +196,7 @@ export default function GauntletScreen() {
               borderColor: nextMeta.color + '55',
               backgroundColor: nextMeta.color + '10',
             }]}>
-              <Text style={s.nextRoundEmoji}>{nextMeta.emoji}</Text>
+              <Glyph style={s.nextRoundEmoji} value={nextMeta.emoji} />
               <Text style={[s.nextRoundName, { color: nextMeta.color }]}>{nextMeta.name}</Text>
               <Text style={s.nextRoundSub}>{nextMeta.sub}</Text>
             </View>
@@ -204,10 +205,10 @@ export default function GauntletScreen() {
               style={({ pressed }) => [s.startBtn, pressed && { opacity: 0.85 }]}
             >
               <LinearGradient
-                colors={['#E09620', '#C8820A', '#A86008']}
+                colors={['#C99A2E', '#C99A2E', '#9E7620']}
                 style={s.startBtnGrad}
               >
-                <Text style={s.startBtnText}>⚔️  START ROUND {state.roundNumber}</Text>
+                <Text style={s.startBtnText}> START ROUND {state.roundNumber}</Text>
               </LinearGradient>
             </Pressable>
           </View>
@@ -219,83 +220,83 @@ export default function GauntletScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0A0600' },
+  root: { flex: 1, backgroundColor: '#16171A' },
 
   header: { alignItems: 'center', marginBottom: 20 },
   headerEyebrow: {
-    fontSize: 11, letterSpacing: 3, color: '#C8820A',
-    fontFamily: 'Inter_700Bold', marginBottom: 4,
+    fontSize: 11, letterSpacing: 3, color: '#C99A2E',
+    fontFamily: 'SourceSans3_700Bold', marginBottom: 4,
   },
   headerTitle: {
-    fontSize: 24, fontFamily: 'Inter_700Bold', color: '#FFD700', letterSpacing: 1,
+    fontSize: 24, fontFamily: 'SourceSans3_700Bold', color: '#C99A2E', letterSpacing: 1,
   },
 
   resultBanner: {
-    borderRadius: 18, borderWidth: 1.5,
+    borderRadius: 3, borderWidth: 1.5,
     padding: 20, alignItems: 'center', marginBottom: 24,
   },
   resultEmoji:   { fontSize: 40, marginBottom: 6 },
-  resultLabel:   { fontSize: 20, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
+  resultLabel:   { fontSize: 20, fontFamily: 'SourceSans3_700Bold', letterSpacing: 1.5 },
   resultRewards: { flexDirection: 'row', gap: 24, marginTop: 10 },
-  rewardXP:      { color: '#FFD700', fontFamily: 'Inter_700Bold', fontSize: 14 },
-  rewardCoins:   { color: '#C8820A', fontFamily: 'Inter_700Bold', fontSize: 14 },
-  bonusNote:     { color: '#FFD70077', fontSize: 11, marginTop: 6, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.5 },
+  rewardXP:      { color: '#C99A2E', fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
+  rewardCoins:   { color: '#C99A2E', fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
+  bonusNote:     { color: '#C99A2E77', fontSize: 11, marginTop: 6, fontFamily: 'SourceSans3_600SemiBold', letterSpacing: 0.5 },
 
   sectionLabel: {
-    fontSize: 10, letterSpacing: 3, color: '#FFFFFF44',
-    fontFamily: 'Inter_700Bold', marginBottom: 10,
+    fontSize: 10, letterSpacing: 3, color: '#ECE7DC44',
+    fontFamily: 'SourceSans3_700Bold', marginBottom: 10,
   },
 
   scoreboard: { gap: 8, marginBottom: 24 },
   playerRow: {
     flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderRadius: 14,
+    borderWidth: 1, borderRadius: 3,
     padding: 14, gap: 12,
   },
   playerInfo: { flex: 1 },
-  playerName: { fontFamily: 'Inter_700Bold', fontSize: 14 },
-  playerTag:  { color: '#FFFFFF44', fontSize: 11, marginTop: 2 },
-  winCount:   { fontFamily: 'Inter_700Bold', fontSize: 20, minWidth: 22, textAlign: 'right' },
+  playerName: { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
+  playerTag:  { color: '#ECE7DC44', fontSize: 11, marginTop: 2 },
+  winCount:   { fontFamily: 'SourceSans3_700Bold', fontSize: 20, minWidth: 22, textAlign: 'right' },
 
   endState: { alignItems: 'center', paddingTop: 8 },
   endEmoji: { fontSize: 64, marginBottom: 12 },
-  endTitle: { fontSize: 28, fontFamily: 'Inter_700Bold', letterSpacing: 2, marginBottom: 6 },
+  endTitle: { fontSize: 28, fontFamily: 'SourceSans3_700Bold', letterSpacing: 2, marginBottom: 6 },
   endSub:   { fontSize: 14, marginBottom: 24 },
 
   totalRewards: { flexDirection: 'row', gap: 28, marginBottom: 20 },
   rewardPill:   { alignItems: 'center' },
-  rewardPillNum:   { fontFamily: 'Inter_700Bold', fontSize: 24 },
-  rewardPillLabel: { color: '#FFFFFF55', fontSize: 11, marginTop: 2 },
-  rewardDivider:   { width: 1, backgroundColor: '#FFFFFF22' },
+  rewardPillNum:   { fontFamily: 'SourceSans3_700Bold', fontSize: 24 },
+  rewardPillLabel: { color: '#ECE7DC55', fontSize: 11, marginTop: 2 },
+  rewardDivider:   { width: 1, backgroundColor: '#ECE7DC22' },
 
   championBonus: {
-    backgroundColor: '#FFD70018', borderColor: '#FFD70044',
-    borderWidth: 1, borderRadius: 10,
+    backgroundColor: '#C99A2E18', borderColor: '#C99A2E44',
+    borderWidth: 1, borderRadius: 3,
     paddingHorizontal: 16, paddingVertical: 10, marginBottom: 28,
   },
-  championBonusText: { color: '#FFD700', fontSize: 13, fontFamily: 'Inter_700Bold' },
+  championBonusText: { color: '#C99A2E', fontSize: 13, fontFamily: 'SourceSans3_700Bold' },
 
   homeBtn: {
-    backgroundColor: '#C8820A', borderRadius: 14,
+    backgroundColor: '#C99A2E', borderRadius: 3,
     paddingVertical: 16, paddingHorizontal: 52,
   },
   homeBtnText: {
-    color: '#0A0500', fontFamily: 'Inter_700Bold', fontSize: 16, letterSpacing: 1.5,
+    color: '#16171A', fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 1.5,
   },
 
   nextRoundCard: {
-    borderRadius: 18, borderWidth: 1.5,
+    borderRadius: 3, borderWidth: 1.5,
     padding: 22, alignItems: 'center', marginBottom: 20,
   },
   nextRoundEmoji: { fontSize: 48, marginBottom: 10 },
-  nextRoundName:  { fontSize: 22, fontFamily: 'Inter_700Bold', letterSpacing: 1 },
-  nextRoundSub:   { color: '#FFFFFF66', fontSize: 14, marginTop: 6 },
+  nextRoundName:  { fontSize: 22, fontFamily: 'SourceSans3_700Bold', letterSpacing: 1 },
+  nextRoundSub:   { color: '#ECE7DC66', fontSize: 14, marginTop: 6 },
 
-  startBtn: { borderRadius: 14, overflow: 'hidden' },
+  startBtn: { borderRadius: 3, overflow: 'hidden' },
   startBtnGrad: {
     paddingVertical: 18, alignItems: 'center',
   },
   startBtnText: {
-    color: '#0A0500', fontFamily: 'Inter_700Bold', fontSize: 18, letterSpacing: 1.5,
+    color: '#16171A', fontFamily: 'SourceSans3_700Bold', fontSize: 18, letterSpacing: 1.5,
   },
 });
