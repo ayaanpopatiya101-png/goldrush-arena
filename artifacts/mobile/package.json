@@ -13,12 +13,12 @@
     "test:reliability": "node --test scripts/reliability.test.mjs scripts/lobby-recovery.test.mjs scripts/theme-contrast.test.mjs scripts/completed-match.test.mjs scripts/player-experience.test.mjs scripts/support-contact.test.mjs scripts/onboarding.test.mjs"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2",
+    "@babel/core": "^7.29.13",
     "@expo-google-fonts/barlow-condensed": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.0",
     "@expo-google-fonts/rajdhani": "^0.4.1",
     "@expo-google-fonts/source-sans-3": "^0.4.2",
-    "@expo/cli": "54.0.23",
+    "@expo/cli": "54.0.28",
     "@expo/ngrok": "^4.1.0",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
