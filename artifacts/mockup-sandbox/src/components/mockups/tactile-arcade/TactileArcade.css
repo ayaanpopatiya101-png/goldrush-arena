@@ -1,0 +1,120 @@
+.tactile-arcade {
+  --gr-ink: #213d39;
+  --gr-graphite: #315851;
+  --gr-graphite2: #3d6a60;
+  --gr-line: #66897d;
+  --gr-line-strong: #8eaa98;
+  --gr-paper: #f5e7c4;
+  --gr-paper-dim: #dfd1ad;
+  --gr-muted: #b5c8b5;
+  --gr-ochre: #efbd3c;
+  --gr-ochre-deep: #c88b17;
+  --gr-ochre-ink: #29210f;
+  --gr-clay: #e56846;
+  --gr-moss: #9fc675;
+  position: relative;
+  min-height: 100dvh;
+  background-color: var(--gr-ink);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Cpath d='M0 5.5H6' stroke='%23f5e7c4' stroke-opacity='.022'/%3E%3C/svg%3E");
+  color: var(--gr-paper);
+}
+.tactile-arcade .gr-scroll { padding-top: 26px; padding-bottom: 112px; }
+.tactile-arcade .gr-header { padding: 0 18px; }
+.tactile-arcade .gr-avatar { width: 46px; height: 46px; background: #cc6847; border: 3px solid var(--gr-paper); color: var(--gr-ochre-ink); }
+.tactile-arcade .gr-player b { font-size: 23px; }
+.tactile-arcade .gr-wallet { border: 2px solid var(--gr-ochre); background: #ead6a5; color: var(--gr-ochre-ink); }
+.tactile-arcade .gr-wallet svg { color: #ae7115; }
+.tactile-arcade .gr-rank { border-radius: 2px; background: #e2a93b; color: #493319; border: 2px solid var(--gr-paper); }
+.tactile-arcade .gr-icon-button { border: 2px solid var(--gr-line-strong); color: var(--gr-paper); }
+.tactile-arcade .gr-xp { margin-inline: 18px; }
+.tactile-arcade .gr-xp-track { height: 7px; padding: 1px; border: 1px solid #9bb09a; background: #192f2c; box-shadow: inset 1px 1px 2px #142823, inset -1px -1px 2px #617f70; }
+.tactile-arcade .gr-xp-track i { background: var(--gr-ochre); }
+.tactile-arcade .gr-brand { margin: 28px auto 8px; padding: 0 20px; max-width: 490px; display: flex; align-items: center; gap: 13px; }
+.tactile-arcade .gr-brand-mark { position: relative; flex: 0 0 58px; height: 58px; background: #efbd3c; border: 3px solid #f4e7c5; transform: rotate(-4deg); box-shadow: 4px 4px 0 #172e2a; }
+.tactile-arcade .gr-brand-mark::before { content: ""; position: absolute; inset: 8px; border: 2px solid #775b27; }
+.tactile-arcade .mark-paddle { position: absolute; z-index: 1; width: 14px; height: 4px; background: #294d46; }
+.tactile-arcade .mark-top { top: 10px; left: 19px; }
+.tactile-arcade .mark-bottom { bottom: 10px; left: 19px; }
+.tactile-arcade .mark-left { left: 8px; top: 26px; transform: rotate(90deg); }
+.tactile-arcade .mark-right { right: 8px; top: 26px; transform: rotate(90deg); }
+.tactile-arcade .mark-ball { position: absolute; z-index: 2; width: 8px; height: 8px; left: 23px; top: 23px; background: #d65f43; border: 1px solid #592b20; transform: rotate(45deg); }
+.tactile-arcade .gr-brand-word { min-width: 0; }
+.tactile-arcade .gr-brand-word b { display: block; color: var(--gr-paper); font: 700 clamp(32px, 10vw, 47px)/.85 "Barlow Condensed", sans-serif; letter-spacing: -1px; }
+.tactile-arcade .gr-brand-word b span { color: var(--gr-ochre); }
+.tactile-arcade .gr-brand-word small { display: block; margin-top: 7px; color: #bacbb3; font: 700 10px "Source Sans 3",sans-serif; letter-spacing: 2.8px; }
+.tactile-arcade .gr-season-stamp { margin-left: auto; min-width: 42px; padding: 5px 4px; text-align: center; background: #cc6847; color: #fff0ca; border: 2px solid #f2dfb9; font: 700 12px/1.05 "Barlow Condensed",sans-serif; transform: rotate(4deg); }
+.tactile-arcade .gr-season-stamp b { font-size: 9px; letter-spacing: 1px; }
+.tactile-arcade .gr-arena { margin-top: 10px; background: #223b37; border: 3px solid #e7d6ac; box-shadow: 5px 5px 0 #172e2a; }
+.tactile-arcade .gr-arena-art { width: 100%; height: 100%; padding: 11%; display:flex; flex-direction:column; background-color:#294942; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M-2 2L2-2M0 8L8 0M6 10L10 6' stroke='%232c4e46' stroke-width='2'/%3E%3C/svg%3E"); }
+.tactile-arcade .arena-frame { flex: 1; min-height: 0; padding: 9px; background: #d6b56d; border: 2px solid #edddba; box-shadow: inset 2px 2px 0 #866b39, inset -2px -2px 0 #f2dfa9; }
+.tactile-arcade .arena-inner { position: relative; width: 100%; height: 100%; overflow: hidden; border: 2px solid #8e815b; background-color: #b4c0a0; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M0 17.5H18' stroke='%232e493d' stroke-opacity='.12'/%3E%3C/svg%3E"); }
+.tactile-arcade .arena-inner::before { content: ""; position:absolute; inset: 10%; border: 2px solid rgba(37,67,58,.35); }
+.tactile-arcade .arena-cross { position:absolute; left:50%; top:10%; height:80%; border-left:2px dashed rgba(37,67,58,.34); }
+.tactile-arcade .arena-paddle { position:absolute; z-index:2; background:#355e53; border:2px solid #243f39; box-shadow: 2px 2px 0 rgba(27,49,43,.55); }
+.tactile-arcade .paddle-n,.tactile-arcade .paddle-s { width:25%; height:7px; left:38%; }
+.tactile-arcade .paddle-n { top:4%; }.tactile-arcade .paddle-s { bottom:4%; }
+.tactile-arcade .paddle-w,.tactile-arcade .paddle-e { width:7px; height:25%; top:38%; }
+.tactile-arcade .paddle-w { left:4%; }.tactile-arcade .paddle-e { right:4%; }
+.tactile-arcade .arena-ball { position:absolute; left:62%; top:35%; width:13px; height:13px; background:#d95f43; border:2px solid #82402f; transform:rotate(45deg); box-shadow:2px 2px 0 rgba(27,49,43,.5); }
+.tactile-arcade .arena-axis { position:absolute; z-index:3; color:#40564a; font:700 8px "Source Sans 3",sans-serif; letter-spacing:1px; }
+.tactile-arcade .axis-n { top:13%; left:50%; transform:translateX(-50%); }.tactile-arcade .axis-s { bottom:13%; left:50%; transform:translateX(-50%); }
+.tactile-arcade .axis-w { left:13%; top:50%; transform:translateY(-50%) rotate(-90deg); }.tactile-arcade .axis-e { right:13%; top:50%; transform:translateY(-50%) rotate(90deg); }
+.tactile-arcade .arena-label { padding-top:8px; display:flex; justify-content:space-between; gap:4px; align-items:center; }
+.tactile-arcade .arena-label b { color:var(--gr-ochre); font:700 13px "Barlow Condensed",sans-serif; letter-spacing:1.5px; }
+.tactile-arcade .arena-label small { color:#d6d6b9; font-size:9px; text-align:right; }
+.tactile-arcade .gr-seats { background:#ccad6a; border:2px solid #e7d6ac; color:#213d39; }
+.tactile-arcade .gr-seat { border-color:#9a8355; padding:8px 6px; }
+.tactile-arcade .gr-seat b { font-size:12px; }.tactile-arcade .gr-seat small { color:#47594a; }
+.tactile-arcade .gr-caption { color:#c2cfb4; }
+.tactile-arcade .gr-block { margin-top:23px; padding-inline:18px; }
+.tactile-arcade .gr-panel { background:#365d54; border:2px solid #819b83; border-radius:0; }
+.tactile-arcade .gr-selected { padding:13px; border-color:#edbd43; background:#e8d6a8; color:#273d36; }
+.tactile-arcade .gr-kicker { color:#7b6539; }.tactile-arcade .gr-selected h1 { color:#27433b; font-size:32px; }
+.tactile-arcade .gr-selected p { color:#4b5b4d; }
+.tactile-arcade .gr-button { border:2px solid #90a895; border-radius:0; background:#3d6a60; cursor:pointer; transition:transform 100ms ease, filter 100ms ease; }
+.tactile-arcade .gr-button:active,.tactile-arcade .gr-mode-cell:active,.tactile-arcade .gr-tab:active,.tactile-arcade .gr-icon-button:active,.tactile-arcade .gr-link:active { transform:translateY(2px); filter:brightness(.92); }
+.tactile-arcade .gr-button.primary { background:#efbd3c; color:#34270c; border-color:#f4dda1; box-shadow:0 5px 0 #9e7019, 0 7px 0 #172e2a; }
+.tactile-arcade .gr-button.primary:active { transform:translateY(4px); box-shadow:0 1px 0 #9e7019, 0 3px 0 #172e2a; }
+.tactile-arcade .gr-button:disabled { opacity:.5; }
+.tactile-arcade .gr-demo-note { color:#c5d0b6; }
+.tactile-arcade .gr-section-title { color:#efbd3c; font-size:17px; letter-spacing:1.8px; }
+.tactile-arcade .gr-section-title>i { background:#6f8a7b; }
+.tactile-arcade .gr-mode-grid { gap:8px; margin-top:10px; }
+.tactile-arcade .gr-mode-cell { min-height:57px; border:2px solid #66877a; border-radius:0; background:#31574f; }
+.tactile-arcade .gr-mode-cell.selected { padding:7px 9px; border:2px solid #efbd3c; background:#465e48; }
+.tactile-arcade .gr-mode-cell.selected>span { color:#f5cc5c; }
+.tactile-arcade .gr-mode-cell>span { font-size:18px; }.tactile-arcade .gr-mode-cell>small { color:#c1cfb5; }
+.tactile-arcade .gr-super-cell { border:2px solid #66877a; border-radius:0; background:#31574f; }
+.tactile-arcade .gr-super-cell.active { border-color:#efbd3c; background:#485f48; }
+.tactile-arcade .gr-stats { border-radius:0; background:#34584f; }
+.tactile-arcade .gr-event-card { gap:10px; padding:16px; border-color:#efbd3c; border-radius:0; background:#3d6659; box-shadow:4px 4px 0 #172e2a; }
+.tactile-arcade .gr-event-top span,.tactile-arcade .gr-event-card h2,.tactile-arcade .gr-countdown b { color:#f2c454; }
+.tactile-arcade .gr-event-top b { color:#d1d9ae; }.tactile-arcade .gr-event-card p { color:#e0ddc1; }
+.tactile-arcade .gr-ticker { border-left:0; background:#31534b; color:#f2e7c8; }
+.tactile-arcade .gr-ticker span { color:#f4c85b; background:#263d38; }
+.tactile-arcade .gr-tier { flex-basis:136px; background:#365d54; border:2px solid #819b83; border-radius:0; }
+.tactile-arcade .gr-tier-icon { font:700 19px "Barlow Condensed",sans-serif; }
+.tactile-arcade .gr-link { width:100%; border:2px solid #66877a; border-radius:0; background:#31574f; color:#e4d6b5; text-align:left; cursor:pointer; transition:transform 100ms ease; }
+.tactile-arcade .gr-link>svg:first-child { color:#e5b641; }
+.tactile-arcade .gr-tabbar { height:79px; padding-bottom:env(safe-area-inset-bottom); background:#203c37; border-top:2px solid #82967d; }
+.tactile-arcade .gr-tab { color:#c2cfb5; cursor:pointer; }
+.tactile-arcade .gr-tab.active { color:#f0c24b; }
+.tactile-arcade .gr-tab.active>span { border-radius:0; background:#4a6450; }
+.tactile-arcade .gr-tab>i { border-radius:0; background:#efbd3c; }
+.tactile-arcade .gr-toast { position:fixed; z-index:20; bottom:92px; left:16px; right:16px; max-width:460px; margin:auto; padding:12px 14px; display:flex; align-items:center; gap:10px; justify-content:space-between; color:#2c4239; background:#f0d99f; border:2px solid #fff0c7; box-shadow:3px 3px 0 #172e2a; font-weight:700; }
+.tactile-arcade .gr-toast button { border:0; background:transparent; color:inherit; padding:4px; display:grid; place-items:center; cursor:pointer; }
+.tactile-arcade button:focus-visible { outline:3px solid #f4d16d; outline-offset:3px; }
+@media (min-width:700px) {
+  .tactile-arcade .gr-scroll { max-width:540px; margin:0 auto; }
+  .tactile-arcade .gr-tabbar { left:50%; right:auto; width:min(100%,540px); transform:translateX(-50%); }
+}
+@media (max-width:390px) {
+  .tactile-arcade .gr-brand { gap:10px; padding-inline:16px; }
+  .tactile-arcade .gr-brand-mark { flex-basis:51px; height:51px; }
+  .tactile-arcade .gr-brand-word b { font-size:36px; }
+  .tactile-arcade .gr-season-stamp { min-width:37px; }
+  .tactile-arcade .gr-seat { padding-inline:4px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .tactile-arcade *, .tactile-arcade *::before, .tactile-arcade *::after { scroll-behavior:auto !important; transition:none !important; animation:none !important; }
+}

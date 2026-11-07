@@ -16,3 +16,9 @@ The user subsequently asked for "more color instead of looking bland and boring.
 **Why:** The user found the restrained redesign too bland and asked for stronger color.
 
 **How to apply:** Keep purposeful, richer solid color in this game while preserving the explicit bans, especially gradients, neon, rainbow schemes and basic pastels.
+
+The user requested a blend of neo-brutalism, 3D elements, bold typography, retrofuturism, gamified icons (including the app logo), vibrant colors without the AI-gradient look, neumorphism, and textures. Try all, but omit a style if it does not fit the game.
+
+**Why:** The user explicitly requested this visual direction for GoldRush Arena.
+
+**How to apply:** Combine these treatments coherently while preserving readability and the earlier avoidance list. The user allows unsuitable styles to be left out.

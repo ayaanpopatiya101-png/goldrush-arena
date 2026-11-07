@@ -1,0 +1,634 @@
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap");
+
+.tactile-arcade {
+  --gr-ink: #0e2621;
+  --gr-graphite: #15372f;
+  --gr-graphite2: #1e4a3f;
+  --gr-line: #2f6456;
+  --gr-line-strong: #4a8574;
+  --gr-paper: #f3ead3;
+  --gr-paper-dim: #cfe0d6;
+  --gr-muted: #93b8ab;
+  --gr-ochre: #f0b429;
+  --gr-ochre-deep: #c98e12;
+  --gr-ochre-ink: #1c1402;
+  --gr-clay: #e04a2f;
+  --gr-moss: #9cc93e;
+  min-height: 100vh;
+  background: var(--gr-ink);
+  color: var(--gr-paper);
+  font-family: "Source Sans 3", sans-serif;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.tactile-arcade *,
+.tactile-arcade *::before,
+.tactile-arcade *::after { box-sizing: border-box; }
+.tactile-arcade button { font: inherit; }
+
+/* Shared GoldRush home layout — also the structural baseline for TactileArcade. */
+.tactile-arcade .gr-scroll {
+  padding-top: 75px;
+  padding-bottom: 110px;
+  overflow-x: hidden;
+}
+.tactile-arcade .gr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+}
+.tactile-arcade .gr-identity {
+  min-width: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+.tactile-arcade .gr-avatar {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 2px solid #c99a2e;
+  border-radius: 3px;
+  background: var(--gr-graphite);
+  color: var(--gr-paper);
+}
+.tactile-arcade .gr-player {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.tactile-arcade .gr-player b {
+  font: 700 22px/1.05 "Barlow Condensed", sans-serif;
+  letter-spacing: .5px;
+}
+.tactile-arcade .gr-player small,
+.tactile-arcade .gr-meta {
+  color: var(--gr-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.tactile-arcade .gr-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tactile-arcade .gr-wallet {
+  height: 32px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--gr-line);
+  border-radius: 3px;
+}
+.tactile-arcade .gr-wallet b {
+  font: 700 17px "Barlow Condensed", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.tactile-arcade .gr-rank {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #c99a2e;
+  border-radius: 50%;
+  background: #c99a2e22;
+}
+.tactile-arcade .gr-rank i {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 13px;
+  height: 13px;
+  border: 1px solid #c99a2e66;
+  border-radius: 3px;
+  background: #c99a2e;
+  color: #0e2621cc;
+  font: 700 8px/11px "Source Sans 3", sans-serif;
+  text-align: center;
+}
+.tactile-arcade .gr-icon-button {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--gr-line);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--gr-paper-dim);
+}
+.tactile-arcade .gr-xp {
+  margin: 12px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--gr-muted);
+  font-size: 12px;
+}
+.tactile-arcade .gr-xp-track {
+  height: 4px;
+  background: var(--gr-graphite2);
+}
+.tactile-arcade .gr-xp-track i {
+  display: block;
+  width: 62%;
+  height: 100%;
+  background: var(--gr-ochre);
+}
+.tactile-arcade .gr-arena {
+  margin: 14px auto 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--gr-line-strong);
+  border-radius: 2px;
+  background: var(--gr-ink);
+}
+.tactile-arcade .gr-arena-empty {
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #0d211d;
+  text-align: center;
+}
+.tactile-arcade .gr-arena-empty span {
+  color: var(--gr-muted);
+  font: 700 16px "Barlow Condensed", sans-serif;
+  letter-spacing: 1.5px;
+}
+.tactile-arcade .gr-arena-empty small {
+  max-width: 240px;
+  color: var(--gr-muted);
+  font-size: 12px;
+}
+.tactile-arcade .gr-seats {
+  width: min(calc(100vw - 32px), 340px);
+  margin: 0 auto;
+  display: flex;
+  border: 1px solid var(--gr-line-strong);
+  border-top: 0;
+  background: var(--gr-graphite);
+}
+.tactile-arcade .gr-seat {
+  min-width: 0;
+  flex: 1;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-right: 1px solid var(--gr-line);
+}
+.tactile-arcade .gr-seat:last-child { border-right: 0; }
+.tactile-arcade .gr-seat > i {
+  width: 4px;
+  height: 24px;
+  flex: none;
+}
+.tactile-arcade .gr-seat div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.tactile-arcade .gr-seat b {
+  font: 700 13px "Barlow Condensed", sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.tactile-arcade .gr-seat small {
+  color: var(--gr-muted);
+  font-size: 11px;
+}
+.tactile-arcade .gr-caption {
+  width: min(calc(100vw - 32px), 340px);
+  margin: 6px auto 0;
+  color: var(--gr-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+.tactile-arcade .gr-block {
+  margin: 18px 0 0;
+  padding: 0 16px;
+}
+.tactile-arcade .gr-panel {
+  border: 1px solid var(--gr-line);
+  border-radius: 3px;
+  background: var(--gr-graphite);
+}
+.tactile-arcade .gr-selected {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tactile-arcade .gr-selected > div {
+  min-width: 0;
+  flex: 1;
+}
+.tactile-arcade .gr-kicker {
+  color: var(--gr-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.tactile-arcade .gr-selected h1 {
+  margin: 0;
+  font: 700 28px/1.08 "Barlow Condensed", sans-serif;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+.tactile-arcade .gr-selected p {
+  margin: 2px 0 0;
+  color: var(--gr-paper-dim);
+  font-size: 14px;
+}
+.tactile-arcade .gr-button {
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--gr-line);
+  border-radius: 3px;
+  background: var(--gr-graphite2);
+  color: var(--gr-paper);
+  font: 700 17px "Barlow Condensed", sans-serif;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: default;
+}
+.tactile-arcade .gr-block > .gr-button { width: 100%; }
+.tactile-arcade .gr-button.primary {
+  min-height: 60px;
+  border-color: var(--gr-ochre);
+  background: var(--gr-ochre);
+  color: var(--gr-ochre-ink);
+  font-size: 26px;
+  letter-spacing: 2px;
+}
+.tactile-arcade .gr-button:disabled { opacity: .4; }
+.tactile-arcade .gr-button.small {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 14px;
+}
+.tactile-arcade .gr-chip {
+  align-self: center;
+  padding: 2px 6px;
+  border: 1px solid var(--gr-paper-dim);
+  color: var(--gr-paper-dim);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+.tactile-arcade .gr-chip.clay {
+  border-color: var(--gr-clay);
+  color: var(--gr-clay);
+}
+.tactile-arcade .gr-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--gr-paper-dim);
+  font: 700 15px "Barlow Condensed", sans-serif;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+.tactile-arcade .gr-section-title > i {
+  height: 1px;
+  flex: 1;
+  background: var(--gr-line);
+}
+.tactile-arcade .gr-mode-group { margin-bottom: 12px; }
+.tactile-arcade .gr-mode-grid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.tactile-arcade .gr-mode-cell {
+  min-width: 0;
+  min-height: 52px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  border: 1px solid var(--gr-line);
+  border-radius: 3px;
+  background: var(--gr-graphite);
+  color: var(--gr-paper);
+  text-align: left;
+  cursor: pointer;
+}
+.tactile-arcade .gr-mode-cell.selected {
+  padding: 7px 9px;
+  border: 2px solid var(--gr-ochre);
+}
+.tactile-arcade .gr-mode-cell > span {
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  font: 700 17px "Barlow Condensed", sans-serif;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tactile-arcade .gr-mode-cell.selected > span { color: var(--gr-ochre); }
+.tactile-arcade .gr-mode-cell > small {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--gr-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tactile-arcade .gr-body {
+  margin: 10px 0 8px;
+  color: var(--gr-paper-dim);
+  font-size: 14px;
+  line-height: 19px;
+}
+.tactile-arcade .gr-button-row { display: flex; gap: 8px; }
+.tactile-arcade .gr-button-row .gr-button { flex: 1; }
+.tactile-arcade .gr-demo-note {
+  margin: 5px 0 0;
+  color: var(--gr-muted);
+  font-size: 11px;
+}
+.tactile-arcade .gr-super-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 10px;
+}
+.tactile-arcade .gr-super-cell {
+  min-width: 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--gr-line);
+  border-radius: 3px;
+  background: var(--gr-graphite);
+  color: var(--gr-paper-dim);
+}
+.tactile-arcade .gr-super-cell.active { border-color: var(--gr-ochre); }
+.tactile-arcade .gr-super-cell.disabled { opacity: .5; }
+.tactile-arcade .gr-super-cell > svg,
+.tactile-arcade .gr-super-symbol {
+  height: 20px;
+  color: var(--gr-ochre);
+}
+.tactile-arcade .gr-super-cell b {
+  font: 700 17px "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+}
+.tactile-arcade .gr-super-cell small {
+  color: var(--gr-muted);
+  font-size: 12px;
+  line-height: 1.2;
+}
+.tactile-arcade .gr-stats {
+  margin-top: 10px;
+  display: flex;
+}
+.tactile-arcade .gr-stats > div {
+  flex: 1;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--gr-line);
+}
+.tactile-arcade .gr-stats > div:last-child { border: 0; }
+.tactile-arcade .gr-stats b {
+  font: 700 26px "Barlow Condensed", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.tactile-arcade .gr-stats small {
+  color: var(--gr-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.tactile-arcade .gr-event {
+  margin: 18px 0 0;
+  padding: 0 16px;
+}
+.tactile-arcade .gr-ticker {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 3px;
+  background: #f3ead308;
+  color: #f3ead3cc;
+  font-size: 11px;
+}
+.tactile-arcade .gr-ticker span {
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #e04a2f22;
+  color: var(--gr-clay);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.tactile-arcade .gr-event-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-color: #f0b42955;
+  background: linear-gradient(130deg, #1e4a3f, #173a31 55%, #1e4a3f);
+}
+.tactile-arcade .gr-event-top,
+.tactile-arcade .gr-countdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tactile-arcade .gr-event-top span {
+  color: var(--gr-ochre);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.tactile-arcade .gr-event-top b {
+  color: var(--gr-moss);
+  font-size: 8px;
+  letter-spacing: .8px;
+}
+.tactile-arcade .gr-event-card h2 {
+  margin: 0;
+  color: var(--gr-ochre);
+  font-size: 16px;
+  line-height: 1.2;
+}
+.tactile-arcade .gr-event-card p {
+  margin: 0;
+  color: #f3ead388;
+  font-size: 11px;
+}
+.tactile-arcade .gr-countdown small {
+  color: #f3ead355;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+}
+.tactile-arcade .gr-countdown b {
+  color: var(--gr-ochre);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+}
+.tactile-arcade .gr-tiers {
+  padding-top: 10px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tactile-arcade .gr-tiers::-webkit-scrollbar { display: none; }
+.tactile-arcade .gr-tier {
+  min-height: 164px;
+  flex: 0 0 132px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.tactile-arcade .gr-tier-icon {
+  width: 18px;
+  height: 20px;
+  color: var(--gr-ochre);
+}
+.tactile-arcade .gr-tier b {
+  font: 700 17px "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+}
+.tactile-arcade .gr-tier small {
+  color: var(--gr-muted);
+  font-size: 12px;
+}
+.tactile-arcade .gr-tier p {
+  min-height: 32px;
+  margin: 0;
+  color: var(--gr-paper-dim);
+  font-size: 12px;
+  font-weight: 600;
+}
+.tactile-arcade .gr-tier .gr-chip { margin-top: 3px; }
+.tactile-arcade .gr-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tactile-arcade .gr-link {
+  min-height: 60px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--gr-paper-dim);
+}
+.tactile-arcade .gr-link > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.tactile-arcade .gr-link b {
+  color: var(--gr-paper);
+  font: 700 17px "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+}
+.tactile-arcade .gr-link small {
+  color: var(--gr-muted);
+  font-size: 12px;
+}
+.tactile-arcade .gr-streak {
+  margin-top: 6px;
+  color: var(--gr-ochre);
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.tactile-arcade .gr-bottom-space { height: 10px; }
+.tactile-arcade .gr-tabbar {
+  position: fixed;
+  z-index: 10;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 84px;
+  padding: 0 6px;
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px solid #f3ead314;
+  background: rgba(14, 38, 33, .97);
+}
+.tactile-arcade .gr-tab {
+  position: relative;
+  flex: 1;
+  padding: 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  background: none;
+  color: #b8b5aa;
+}
+.tactile-arcade .gr-tab > span {
+  width: 44px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 3px;
+}
+.tactile-arcade .gr-tab.active { color: var(--gr-ochre); }
+.tactile-arcade .gr-tab.active > span { background: #f0b42922; }
+.tactile-arcade .gr-tab small { font-size: 11px; letter-spacing: .5px; }
+.tactile-arcade .gr-tab > i {
+  width: 18px;
+  height: 2.5px;
+  margin-top: 1px;
+  border-radius: 2px;
+  background: var(--gr-ochre);
+}
+@media (min-width: 700px) {
+  .tactile-arcade .gr-scroll { max-width: 540px; margin: 0 auto; }
+  .tactile-arcade .gr-tabbar {
+    right: auto;
+    left: 50%;
+    width: min(100%, 540px);
+    transform: translateX(-50%);
+  }
+}
+@media (max-width: 350px) {
+  .tactile-arcade .gr-seat { padding: 7px 5px; gap: 4px; }
+  .tactile-arcade .gr-tabbar { padding: 0 1px; }
+}
