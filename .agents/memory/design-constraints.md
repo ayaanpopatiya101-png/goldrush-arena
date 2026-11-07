@@ -40,3 +40,9 @@ The user approved a usability review that prioritizes Play over moving practice 
 **Why:** The user approved the review's recommended changes after selecting the tactile design; the screenshot's content order is not a requirement to keep Home distracting.
 
 **How to apply:** Preserve the approved materials and identity while reducing cognitive load. Cosmetic previews must not promise material or shape properties the actual game does not implement.
+
+Use the user's supplied Atoms iOS onboarding screenshots as the reference for GoldRush's onboarding.
+
+**Why:** The user explicitly requested these images as the onboarding reference.
+
+**How to apply:** Use the reference for the onboarding experience while retaining GoldRush's approved identity and the avoidance list above.

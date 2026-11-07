@@ -114,7 +114,13 @@ export default function RootLayout() {
   if (authState === 'out') {
     return (
       <SafeAreaProvider>
-        <OnboardingScreen onSuccess={handleLogin} />
+        <ErrorBoundary>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <KeyboardProvider>
+              <OnboardingScreen onSuccess={handleLogin} />
+            </KeyboardProvider>
+          </GestureHandlerRootView>
+        </ErrorBoundary>
       </SafeAreaProvider>
     );
   }

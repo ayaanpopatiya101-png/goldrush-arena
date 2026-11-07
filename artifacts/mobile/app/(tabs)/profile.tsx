@@ -278,7 +278,7 @@ export default function ProfileScreen() {
             {/* Color row */}
             <Text style={[styles.pickerLabel, { color: colors.mutedForeground }]}>PICK YOUR COLOR</Text>
             <View style={styles.colorGrid}>
-              {AVATAR_COLORS.map(c => (
+              {(AVATAR_COLORS.includes(tempColor) ? AVATAR_COLORS : [tempColor, ...AVATAR_COLORS]).map(c => (
                 <Pressable key={c} onPress={() => setTempColor(c)} hitSlop={8} accessibilityRole="radio" accessibilityState={{ selected: tempColor === c }} accessibilityLabel={`Frame color ${c}`}
                   style={[styles.colorDot, { backgroundColor: c, borderColor: tempColor === c ? '#F5E7C4' : 'transparent', transform: [{ scale: tempColor === c ? 1.25 : 1 }] }]}>
                   {tempColor === c && <Feather name="check" size={10} color='#213D39' />}

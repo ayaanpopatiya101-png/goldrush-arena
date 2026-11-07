@@ -143,6 +143,7 @@ test('real-input tutorial stages emit only their own event and practice awards z
 async function playerHarness(storage = new Map(), fail = () => false, session) {
   let stateIndex = 0, refIndex = 0;
   const states = [], refs = [];
+  const effects = [];
   const profileKey = '@goldrush_v3_regression';
   let receipt;
   const react = {
@@ -158,10 +159,11 @@ async function playerHarness(storage = new Map(), fail = () => false, session) {
       const i = refIndex++;
       return refs[i] ??= { current: initial };
     },
-    useEffect: noop, useCallback: fn => fn,
+    useEffect: effect => effects.push(effect), useCallback: fn => fn,
   };
   const modules = {
     react,
+    '@/utils/withTimeout': { withTimeout: promise => promise },
     '@react-native-async-storage/async-storage': {
       getItem: async key => storage.get(key) ?? null,
       setItem: async (key, value) => { if (fail(key)) throw new Error('storage full'); storage.set(key, value); },
@@ -179,8 +181,48 @@ async function playerHarness(storage = new Map(), fail = () => false, session) {
     stateIndex = 0; refIndex = 0;
     return exports.PlayerProvider({ username: 'regression', onLogout: noop }).props.value;
   }
-  return { render, storage, profileKey, receipt: () => receipt };
+  return {
+    render, storage, profileKey, receipt: () => receipt,
+    initialize: async () => {
+      effects.shift()();
+      // The real initialization uses only async storage and resolved promises.
+      // Let those microtasks settle before the next simulated React render.
+      await new Promise(resolve => setImmediate(resolve));
+    },
+  };
 }
+
+test('first profile uses the selected look and keeps it through tutorial save and reload', async () => {
+  const storage = new Map([
+    ['@goldrush_accounts', JSON.stringify([{
+      username: 'regression', avatarEmoji: 'chosen-crown', avatarColor: '#B4533A',
+      rank: 'Bronze', lastPlayed: 0,
+    }])],
+  ]);
+  const h = await playerHarness(storage);
+  h.render();
+  await h.initialize();
+  let player = h.render();
+  assert.equal(player.profile.avatarEmoji, 'chosen-crown');
+  assert.equal(player.profile.avatarFrameColor, '#B4533A');
+  await player.completeTutorial();
+  const saved = JSON.parse(storage.get(h.profileKey));
+  assert.equal(saved.avatarEmoji, 'chosen-crown');
+  assert.equal(saved.avatarFrameColor, '#B4533A');
+  assert.equal(saved.tutorialComplete, true);
+
+  // A stale directory must never overwrite an already established profile.
+  storage.set('@goldrush_accounts', JSON.stringify([{
+    username: 'regression', avatarEmoji: 'stale-controller', avatarColor: '#FFD700',
+  }]));
+  const returning = await playerHarness(storage);
+  returning.render();
+  await returning.initialize();
+  player = returning.render();
+  assert.equal(player.profile.avatarEmoji, 'chosen-crown');
+  assert.equal(player.profile.avatarFrameColor, '#B4533A');
+  assert.equal(player.profile.tutorialComplete, true);
+});
 
 const award = { won: true, xpEarned: 100, coinsEarned: 20, position: 1,
   deflections: 9, goalsAgainst: 2, matchType: 'casual', eventBonus: { xp: 30, coins: 10, credits: 1 } };

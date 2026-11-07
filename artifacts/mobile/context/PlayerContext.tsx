@@ -522,7 +522,8 @@ export function getStreakReward(streak: number) {
 
 // ─── Avatar options ────────────────────────────────────────────────────────────
 export const AVATAR_EMOJIS  = ['🎮','⚡','🔥','💀','🦁','👑','🐉','💎'];
-export const AVATAR_COLORS  = ['#FFD700','#FF4757','#00BFFF','#00FF88','#BF5FFF','#FF6B35','#FF69B4','#C0C0C0'];
+// Free frame tints match the cabinet materials. Existing saved tints are retained.
+export const AVATAR_COLORS  = ['#C99A2E','#B4533A','#6F8D99','#7F9065','#A99572','#C27E49','#A7654F','#B7BFBE'];
 
 // ─── Challenge code ────────────────────────────────────────────────────────────
 export function getChallengeCode(username: string): string {
@@ -1115,6 +1116,17 @@ export function PlayerProvider({ username, onLogout, children }: {
           throw new Error('Saved progress could not be read.');
         }
         base = { ...base, ...saved };
+      } else {
+        // Entry saves the chosen look in the player directory before this first
+        // profile exists. Seed it once; an existing full save stays authoritative.
+        const account = (await withTimeout(getSavedAccounts())).find(a => a.username === username);
+        if (account) {
+          base = {
+            ...base,
+            avatarEmoji: account.avatarEmoji ?? base.avatarEmoji,
+            avatarFrameColor: account.avatarColor ?? base.avatarFrameColor,
+          };
+        }
       }
       // Daily streak logic on load
       const today = todayStr();
