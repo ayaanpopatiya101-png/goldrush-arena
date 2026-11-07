@@ -19,9 +19,35 @@
 
 ---
 
+## Open the app from GitHub
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/ayaanpopatiya101-png/goldrush-arena?quickstart=1)
+
+1. Click **Open in GitHub Codespaces** and create a Codespace from `main`.
+2. Wait for the first dependency installation to finish. The preview starts automatically.
+3. Open **GoldRush Arena** in the **Ports** tab on port **8081** if a browser tab does not open.
+
+This launches the actual game in a separate browser URL, not a screenshot or the standalone shop.
+GitHub's repository file page still displays source code. Codespaces uses your GitHub allowance
+and runs only while the Codespace is active; stop it when finished. It is not a permanent public
+website. For startup errors, open the terminal and run
+`cat /tmp/goldrush-arena-preview.log`. To restart a stopped preview, run `pnpm start`.
+
+For a local checkout with Node.js 22 and pnpm installed:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm start
+```
+
+Local bot play, profiles and the redesigned screens work without configuring paid services.
+Online/API and real-money features still require their actual backend and provider configuration.
+The existing Replit preview workflow is unchanged.
+
 ## Table of Contents
 
 - [Overview](#overview)
+- [Open the app from GitHub](#open-the-app-from-github)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)

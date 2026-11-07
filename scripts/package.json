@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start:mobile": "node ./src/start-mobile.mjs",
     "hello": "tsx ./src/hello.ts",
     "seed-products": "tsx ./src/seed-products.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"

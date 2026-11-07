@@ -1,0 +1,14 @@
+{
+  "name": "GoldRush Arena browser preview",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:5.2.5-22-bookworm",
+  "postCreateCommand": "corepack enable && corepack prepare pnpm@10.26.1 --activate && pnpm install --frozen-lockfile",
+  "postStartCommand": "nohup pnpm start > /tmp/goldrush-arena-preview.log 2>&1 < /dev/null &",
+  "waitFor": "postCreateCommand",
+  "forwardPorts": [8081],
+  "portsAttributes": {
+    "8081": {
+      "label": "GoldRush Arena",
+      "onAutoForward": "openBrowser"
+    }
+  }
+}
