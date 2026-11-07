@@ -1,12 +1,13 @@
 import { useState } from "react";
 import {
-  Archive, Award, CalendarDays, ChevronRight, Disc, Film, Gamepad2, Gift,
-  Home, LockKeyhole, LogIn, Play, Settings, Shield, ShoppingBag, UserRound,
+  Archive, Award, CalendarDays, ChevronRight, CircleDot, Disc, Film, Gamepad2, Gift,
+  Home, LockKeyhole, LogIn, Play, Settings, Shield, ShoppingBag, Sparkles, UserRound,
   Users, Zap, X,
 } from "lucide-react";
 import "./_group.css";
 import "./TactileArcade.css";
 
+// Craft reference: https://github.com/heydamir/unslop (CC BY 4.0); adapted to the user's visual constraints.
 type Mode = {
   key: string; kind: "ranked" | "casual" | "variant" | "elite" | "gauntlet" | "challenge" | "arcade";
   name: string; sub: string; desc: string; group: "MATCH" | "SOLO" | "VARIANT" | "ELITE";
@@ -34,9 +35,9 @@ const MODES: Mode[] = [
 const groups: Mode["group"][] = ["MATCH", "SOLO", "VARIANT", "ELITE"];
 const groupLabels: Record<Mode["group"], string> = { MATCH: "Four-seat match", SOLO: "Solo", VARIANT: "Variants", ELITE: "Elite" };
 const supers = [
-  { name: "Rampart", icon: "shield", desc: "Goal blocked 3 seconds" },
-  { name: "Dead Zone", icon: "◉", desc: "Incoming balls move at crawl speed" },
-  { name: "Shatter", icon: "✣", desc: "Ball that scores vanishes from play" },
+  { name: "Rampart", Icon: Shield, desc: "Goal blocked 3 seconds" },
+  { name: "Dead Zone", Icon: CircleDot, desc: "Incoming balls move at crawl speed" },
+  { name: "Shatter", Icon: Sparkles, desc: "Ball that scores vanishes from play" },
 ];
 const tiers = [
   ["Rookie", "50 coins", "01", "0"], ["Contender", "100 coins", "02", "5"],
@@ -56,7 +57,7 @@ function Button({ children, primary = false, small = false, disabled = false, ic
   return <button className={`gr-button${primary ? " primary" : ""}${small ? " small" : ""}`} disabled={disabled} onClick={onClick}>{icon}{children}</button>;
 }
 function SectionTitle({ children, right }: { children: React.ReactNode; right?: React.ReactNode }) {
-  return <div className="gr-section-title"><span>{children}</span><i />{right}</div>;
+  return <h2 className="gr-section-title"><span>{children}</span><i />{right}</h2>;
 }
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`gr-panel ${className}`}>{children}</div>;
@@ -69,7 +70,7 @@ export function TactileArcade() {
   const playerRankIdx = 6;
   const locked = selected.lockIdx !== undefined && playerRankIdx < selected.lockIdx;
   const playLabel = locked ? `Locked · ${selected.lockLabel}` : `Play ${selected.name}`;
-  const arenaSize = Math.min(window.innerWidth - 32, window.innerWidth > 700 ? 340 : Math.max(220, window.innerHeight * 0.28));
+  const arenaSize = Math.min(window.innerWidth - 32, 340);
   const announce = (message: string) => setNotice(message);
 
   return (
@@ -94,11 +95,11 @@ export function TactileArcade() {
             <span className="mark-paddle mark-bottom" /><span className="mark-paddle mark-left" />
             <span className="mark-ball" />
           </div>
-          <div className="gr-brand-word"><b>GOLD<span>RUSH</span></b><small>FOUR SIDES. ONE LEFT.</small></div>
-          <span className="gr-season-stamp">S7<br /><b>LIVE</b></span>
+          <div className="gr-brand-word"><h1>GOLD<span>RUSH</span></h1><small>FOUR SIDES. ONE LEFT.</small></div>
+          <span className="gr-season-stamp" aria-label="Season 7 artwork preview">S7<br /><b>ART</b></span>
         </div>
 
-        <section className="gr-arena" style={{ width: `${arenaSize}px`, height: `${arenaSize}px` }} aria-label="Paused arena artwork">
+        <section className="gr-arena" style={{ width: `${arenaSize}px`, height: `${arenaSize}px` }} aria-label="Static four-sided arena concept art">
           <div className="gr-arena-art">
             <div className="arena-frame"><div className="arena-inner">
               <span className="arena-axis axis-n">NORTH</span><span className="arena-axis axis-s">SOUTH</span>
@@ -107,7 +108,7 @@ export function TactileArcade() {
               <i className="arena-paddle paddle-w" /><i className="arena-paddle paddle-e" />
               <i className="arena-ball" /><span className="arena-cross" />
             </div></div>
-            <div className="arena-label"><b>ENGINE PAUSED</b><small>Illustrative arena art · no live match running</small></div>
+            <div className="arena-label"><b>ARENA STUDY</b><small>Static concept art</small></div>
           </div>
         </section>
         <div className="gr-seats" style={{ width: `${arenaSize}px` }}>
@@ -118,12 +119,12 @@ export function TactileArcade() {
             </div>
           ))}
         </div>
-        <p className="gr-caption" style={{ width: `${arenaSize}px` }}>Local bots are labels only. This preview does not run gameplay or record results.</p>
+        <p className="gr-caption" style={{ width: `${arenaSize}px` }}>Local bot labels are illustrative only; this arena is static and does not run a match.</p>
 
         <section className="gr-block">
-          <Panel className="gr-selected"><div><small className="gr-kicker">Match card / selected mode</small><h1>{selected.name}</h1><p>{selected.sub} · {selected.desc}</p></div>{locked && <span className="gr-chip clay">{selected.lockLabel}</span>}</Panel>
+          <Panel className="gr-selected"><div><small className="gr-kicker">Selected mode</small><h2>{selected.name}</h2><p>{selected.sub} · {selected.desc}</p></div>{locked && <span className="gr-chip clay">{selected.lockLabel}</span>}</Panel>
           <Button primary disabled={locked} icon={locked ? <LockKeyhole size={20} /> : <Play size={20} fill="currentColor" />} onClick={() => announce("Prototype only · no match was launched")}>{playLabel}</Button>
-          <p className="gr-demo-note">Prototype action · no match, rank, or reward is recorded.</p>
+          <p className="gr-demo-note">Preview only: actions do not start matches, connect players, save results, or grant rewards.</p>
         </section>
 
         <section className="gr-block gr-mode-catalog">
@@ -146,13 +147,13 @@ export function TactileArcade() {
           <div className="gr-button-row">
             <Button icon={<Users size={15} />} onClick={() => announce("Prototype only · party creation is unavailable")}>Create party</Button>
             <Button icon={<LogIn size={15} />} onClick={() => announce("Prototype only · joining a party is unavailable")}>Join with code</Button>
-          </div><p className="gr-demo-note">No party, opponent, or multiplayer connection is created.</p>
+          </div>
         </section>
 
         <section className="gr-block">
           <SectionTitle right={<span className="gr-meta">Charges after 10 blocks</span>}>Super ability</SectionTitle>
-          <div className="gr-mode-grid gr-super-grid">{supers.map(({ name, icon, desc }) => <div className={`gr-super-cell${name === "Rampart" ? " active" : ""}`} key={name}>
-            {icon === "shield" ? <Shield size={20} /> : <span className="gr-super-symbol">{icon}</span>}<b>{name}</b><small>{desc}</small>
+          <div className="gr-mode-grid gr-super-grid">{supers.map(({ name, Icon, desc }) => <div className={`gr-super-cell${name === "Rampart" ? " active" : ""}`} key={name}>
+            <Icon size={20} strokeWidth={2} /><b>{name}</b><small>{desc}</small>
           </div>)}</div>
         </section>
 
@@ -164,7 +165,7 @@ export function TactileArcade() {
           <div className="gr-ticker"><span>SEASON 07</span> Gold Rush season board · preview content</div>
           <Panel className="gr-event-card">
             <div className="gr-event-top"><span>FEATURED / SEASON BOARD</span><b>PREVIEW</b></div>
-            <h2>Gold Rush Championship</h2><p>Season event artwork and schedule preview.</p>
+            <h3>Gold Rush Championship</h3><p>Season event artwork and schedule preview.</p>
             <div className="gr-countdown"><small>EVENT STATUS</small><b>CONTENT PREVIEW</b></div>
           </Panel>
         </section>
@@ -175,7 +176,6 @@ export function TactileArcade() {
             <span className="gr-tier-icon">{icon}</span><b>{name}</b><small>{games}+ games</small><p>{reward}</p>
             {i === 0 ? <Button small onClick={() => announce("Preview only · no item was claimed")}>Claim preview</Button> : <span className="gr-chip">Locked</span>}
           </Panel>)}</div>
-          <p className="gr-demo-note">Sample track only · no purchases or rewards are available in this preview.</p>
         </section>
 
         <section className="gr-block gr-shortcuts">
