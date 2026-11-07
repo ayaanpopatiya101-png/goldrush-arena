@@ -8,7 +8,7 @@ import { palette } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 
 export const ui = palette;
-export const R = 3;
+export const R = 0;
 
 export function Panel({ children, style, tone = 'base' }: { children?: React.ReactNode; style?: StyleProp<ViewStyle>; tone?: 'base' | 'raised' | 'outline' }) {
   return (
@@ -108,7 +108,7 @@ export function IconButton({ icon, onPress, label, style }: { icon: React.Compon
 }
 
 const p = StyleSheet.create({
-  panel: { backgroundColor: palette.graphite, borderWidth: 1, borderColor: palette.line, borderRadius: R },
+  panel: { backgroundColor: palette.graphite, borderWidth: 2, borderColor: palette.line, borderRadius: R },
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   sectionTitle: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.6, color: palette.paperDim, textTransform: 'uppercase' },
   sectionRule: { flex: 1, height: 1, backgroundColor: palette.line },

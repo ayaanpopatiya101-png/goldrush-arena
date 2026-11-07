@@ -56,8 +56,8 @@ export default function TabLayout() {
         } : {
           position: 'absolute',
           backgroundColor: palette.ink,
-          borderTopWidth: 1,
-          borderTopColor: palette.line,
+           borderTopWidth: 2,
+           borderTopColor: palette.lineStrong,
           elevation: 0,
           height: isWeb ? 84 : 60 + insets.bottom,
           paddingBottom: isWeb ? 0 : insets.bottom,

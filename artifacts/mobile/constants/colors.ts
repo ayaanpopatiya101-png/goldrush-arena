@@ -7,19 +7,33 @@ const PLAYER_COLORS = ['#F0B429', '#E04A2F', '#EDE3CC', '#9CC93E'] as const;
 const PLAYER_GLOW = PLAYER_COLORS;
 
 export const palette = {
-  ink: '#14231F',        // page background
-  graphite: '#20372F',   // panel
-  graphite2: '#294239',  // raised panel / input
-  line: '#3B5A4E',       // borders
-  lineStrong: '#5C7D70',
-  paper: '#EEE7D7',      // off-white text
-  paperDim: '#C9D2C6',
-  muted: '#B8C3B6',
-  ochre: '#D7A83B',      // action
-  ochreDeep: '#B88B26',
-  ochreInk: '#18221C',   // text on ochre
-  clay: '#CE7863',       // danger / loss
-  moss: '#9BB77A',       // success / owned
+  ink: '#213D39',        // approved tactile arcade background
+  graphite: '#294C44',   // keep body text AAA on raised surfaces
+  graphite2: '#2B4E46',
+  line: '#66897D',
+  lineStrong: '#8EAA98',
+  paper: '#F5E7C4',
+  paperDim: '#DFD1AD',
+  muted: '#D1DAC6',
+  ochre: '#EFBD3C',
+  ochreDeep: '#C88B17',
+  ochreInk: '#29210F',
+  clay: '#F0A38A',       // readable error text; coral stamp is separate
+  moss: '#B8D795',
+} as const;
+
+/** Physical materials from the approved canvas; never use them as seat identities. */
+export const tactile = {
+  paperPanel: '#E8D6A8',
+  paperInk: '#273D36',
+  paperMuted: '#4B5B4D',
+  brass: '#CCAD6A',
+  brassEdge: '#E7D6AC',
+  court: '#B4C0A0',
+  courtLine: '#8E815B',
+  courtInk: '#35483C',
+  frame: '#294942',
+  coral: '#E56846',
 } as const;
 
 const gameTheme = {

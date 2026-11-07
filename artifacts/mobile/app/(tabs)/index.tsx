@@ -12,6 +12,9 @@ import { LiveEventBanner } from '@/components/LiveEventBanner';
 import { Glyph } from '@/components/ui/Glyph';
 import { Button, Chip, IconButton, Panel, SectionLabel, Shell, Stat, ui } from '@/components/ui/Primitives';
 import { PLAYER_COLORS } from '@/constants/colors';
+import { tactile } from '@/constants/colors';
+import { CURRENT_SEASON } from '@/constants/season';
+import { BrandMark } from '@/components/ui/BrandMark';
 import { fonts } from '@/constants/typography';
 import {
   RANKS, getRankIndex, SEASON_TIERS, SKINS, SUPERS, usePlayer, xpForNextRank, xpToLevel,
@@ -78,17 +81,19 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
   const [started, setStarted] = useState(false);
   const [userPaused, setUserPaused] = useState(false);
   const active = !reduced || started;
-  const compact = size < 320;
+  const courtSize = Math.floor(size * 0.78);
 
   const restart = useCallback(() => setRun(r => r + 1), []);
 
   return (
     <View style={{ width: size, alignSelf: 'center' }}>
-      <View style={[a.frame, { width: size, height: size }]}>
+      <View style={[a.frame, { width: size, padding: Math.floor(size * 0.085) }]}>
+        <View style={[a.brassFrame, { width: courtSize + 10, height: courtSize + 10 }]}>
         {active ? (
           <GameArena
             key={run}
-            arenaSize={size - 2}
+            arenaSize={courtSize}
+            courtStyle="tactile"
             playerName="You"
             playerColor={playerColor}
             playerGlowColor={playerColor}
@@ -107,11 +112,16 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
             <Button label="Run preview" size="sm" variant="secondary" icon="play" onPress={() => setStarted(true)} />
           </View>
         )}
+        </View>
+        <View style={a.arenaLabel}>
+          <Text style={a.arenaTitle}>ARENA PRACTICE</Text>
+          <Text style={a.arenaMeta}>Live engine</Text>
+        </View>
       </View>
       {/* Seat scoreboard: truthful identity for each paddle */}
-      <View style={[a.seats, compact && a.seatsWrap]} accessibilityLabel="Preview seats: you at south, three local bots">
+      <View style={a.seats} accessibilityLabel="Preview seats: you at south, three local bots">
         {SEAT_NAMES.map((seat, i) => (
-          <View key={seat} style={[a.seat, compact ? a.seatCompact : i < 3 && a.seatDivider, compact && i < 2 && a.seatRowDivider, compact && i % 2 === 0 && a.seatDivider]}>
+          <View key={seat} style={[a.seat, i < 3 && a.seatDivider]}>
             <View style={[a.seatSwatch, { backgroundColor: i === 0 ? playerColor : PLAYER_COLORS[i] }]} />
             <View style={{ flex: 1 }}>
               <Text style={a.seatPos}>{seat}</Text>
@@ -167,10 +177,10 @@ export default function HomeScreen() {
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
   const wide = width >= 900;
   const contentW = Math.min(width, 1160) - 36;
-  // Phone: play panel first, preview below. Wide: preview beside the panel, sized to the viewport height.
+  // Approved composition: framed arena first on phones, alongside the play panel on desktop.
   const arenaSize = wide
-    ? Math.min(contentW - 460 - 24, height - topPad - 220, 520)
-    : Math.min(contentW, 360, Math.max(240, height * 0.45));
+    ? Math.max(240, Math.min(contentW - 460 - 24, height - topPad - 220, 520))
+    : Math.min(contentW, 390);
   const panelW = wide ? 460 - 2 : contentW;
   const modeCellW = Math.floor((panelW - 6) / 2);
   const [showAllModes, setShowAllModes] = useState(false);
@@ -349,7 +359,7 @@ export default function HomeScreen() {
             style={s.identity}
           >
             <View style={[s.avatar, { borderColor: profile.avatarFrameColor }]}>
-              <Glyph value={profile.avatarEmoji} size={22} color={ui.paper} />
+              <Glyph value={profile.avatarEmoji} size={22} color={ui.ochreInk} />
             </View>
             <View style={{ flexShrink: 1 }}>
               <Text style={s.name} numberOfLines={1}>{profile.name}</Text>
@@ -361,18 +371,29 @@ export default function HomeScreen() {
               <Feather name="disc" size={13} color={ui.ochre} />
               <Text style={s.walletText}>{profile.coins.toLocaleString()}</Text>
             </View>
-            <IconButton icon="award" label="Ranks" onPress={() => router.push('/leaderboard')} />
-            <IconButton icon="gift" label="Season pass" onPress={() => router.push('/trophyroad')} />
-            <IconButton icon="settings" label="Settings" onPress={() => router.push('/settings')} />
+            <IconButton icon="award" label="Ranks" style={s.headerIcon} onPress={() => router.push('/leaderboard')} />
+            <IconButton icon="settings" label="Settings" style={s.headerIcon} onPress={() => router.push('/settings')} />
           </View>
         </View>
 
         {/* XP line */}
         <View style={s.xpWrap}>
           <View style={s.xpTrack}>
-            <View style={[s.xpFill, { width: `${Math.round(rankInfo.progress * 100)}%` as never, backgroundColor: rankData?.color ?? ui.ochre }]} />
+            <View style={[s.xpFill, { width: `${Math.round(rankInfo.progress * 100)}%` as never }]} />
           </View>
           <Text style={s.xpText}>{rankInfo.next ? `${rankInfo.remaining.toLocaleString()} XP to ${rankInfo.next}` : 'Top rank reached'}</Text>
+        </View>
+
+        <View style={s.brandRow}>
+          <View style={s.brandMark}><BrandMark size={52} /></View>
+          <View style={{ flex: 1 }}>
+            <Text accessibilityRole="header" style={s.wordmark}>GOLD<Text style={{ color: ui.ochre }}>RUSH</Text></Text>
+            <Text style={s.brandCaption}>FOUR SIDES. ONE LEFT.</Text>
+          </View>
+          <Pressable accessibilityRole="button" accessibilityLabel={`Open ${CURRENT_SEASON.label} pass`} onPress={() => router.push('/trophyroad')} style={s.seasonStamp}>
+            <Text style={s.stampText}>S{CURRENT_SEASON.number}</Text>
+            <Text style={s.stampLabel}>PASS</Text>
+          </Pressable>
         </View>
 
         {/* Primary play task: mode, rules, opponents and Play together; preview beside on wide screens */}
@@ -384,9 +405,8 @@ export default function HomeScreen() {
                 <Text style={s.selectedName}>{selected.name}</Text>
                 <Text style={s.selectedDesc}>{selected.desc}</Text>
                 <View style={s.ruleRow}>
-                  <Chip label={selected.sub} />
-                  <Chip label={opponentLabel(selected)} />
-                  <Chip label={selected.kind === 'ranked' || selected.kind === 'elite' ? 'Competitive level changes' : 'Competitive level unchanged'} tone={selected.kind === 'ranked' || selected.kind === 'elite' ? 'ochre' : 'neutral'} />
+                  <Text style={s.paperRule}>{selected.sub} · {opponentLabel(selected)}</Text>
+                  <Text style={s.paperRule}>{selected.kind === 'ranked' || selected.kind === 'elite' ? 'Competitive level changes' : 'Competitive level unchanged'}</Text>
                 </View>
               </View>
               {selectedLocked ? <Chip label={`Requires ${selected.lockLabel ?? 'higher rank'}`} tone="clay" /> : null}
@@ -399,7 +419,7 @@ export default function HomeScreen() {
               disabled={selectedLocked || partyBlocks}
               loading={selected.kind === 'challenge' && challengeLoading}
               onPress={handlePlay}
-              style={{ marginTop: 8 }}
+              style={s.playButton}
             />
             {challengeError && selected.kind === 'challenge' ? (
               <View style={s.errorRow}>
@@ -435,7 +455,7 @@ export default function HomeScreen() {
               </View>
             ) : null}
           </View>
-          <View style={wide ? { width: arenaSize } : { marginTop: 16 }}>
+          <View style={{ width: arenaSize, alignSelf: 'center' }}>
             <ArenaPreview size={arenaSize} playerColor={skin.color} />
           </View>
         </View>
@@ -585,18 +605,22 @@ export default function HomeScreen() {
 }
 
 const a = StyleSheet.create({
-  frame: { borderWidth: 1, borderColor: ui.lineStrong, backgroundColor: ui.ink, overflow: 'hidden', borderRadius: 2 },
+  frame: { borderWidth: 3, borderColor: ui.paper, backgroundColor: tactile.frame, alignItems: 'center', borderRadius: 0 },
+  brassFrame: { borderWidth: 2, borderColor: tactile.brassEdge, padding: 3, backgroundColor: tactile.brass },
+  arenaLabel: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6, paddingTop: 10 },
+  arenaTitle: { fontFamily: fonts.display, fontSize: 15, color: ui.ochre, letterSpacing: 1 },
+  arenaMeta: { fontFamily: fonts.body, fontSize: 12, color: ui.paperDim },
   reducedBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 },
   reducedText: { fontFamily: fonts.body, fontSize: 14, color: ui.paperDim, textAlign: 'center' },
-  seats: { flexDirection: 'row', borderWidth: 1, borderTopWidth: 0, borderColor: ui.lineStrong, backgroundColor: ui.graphite },
-  seat: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 8 },
+  seats: { flexDirection: 'row', borderWidth: 2, borderTopWidth: 0, borderColor: tactile.brassEdge, backgroundColor: tactile.brass },
+  seat: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 10, paddingHorizontal: 5 },
   seatsWrap: { flexWrap: 'wrap' },
   seatCompact: { flexBasis: '50%', flexGrow: 0, flexShrink: 0 },
   seatRowDivider: { borderBottomWidth: 1, borderBottomColor: ui.line },
-  seatDivider: { borderRightWidth: 1, borderRightColor: ui.line },
+  seatDivider: { borderRightWidth: 1, borderRightColor: tactile.courtLine },
   seatSwatch: { width: 4, height: 24 },
-  seatPos: { fontFamily: fonts.display, fontSize: 13, letterSpacing: 1, color: ui.paper, textTransform: 'uppercase' },
-  seatWho: { fontFamily: fonts.body, fontSize: 11, color: ui.muted },
+  seatPos: { fontFamily: fonts.display, fontSize: 13, letterSpacing: 0.5, color: tactile.paperInk, textTransform: 'uppercase' },
+  seatWho: { fontFamily: fonts.body, fontSize: 11, color: tactile.paperInk },
   caption: { fontFamily: fonts.body, fontSize: 13, color: ui.muted, lineHeight: 18 },
   captionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
 });
@@ -606,27 +630,37 @@ const s = StyleSheet.create({
   skel: { backgroundColor: ui.graphite, borderRadius: 2 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, gap: 8 },
   identity: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
-  avatar: { width: 44, height: 44, borderWidth: 2, borderRadius: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: ui.graphite },
+  avatar: { width: 44, height: 44, borderWidth: 2, borderRadius: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: tactile.coral },
   name: { fontFamily: fonts.display, fontSize: 22, color: ui.paper, letterSpacing: 0.5 },
   meta: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: ui.muted },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  wallet: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: ui.line, borderRadius: 3, paddingHorizontal: 8, height: 44 },
+  wallet: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: ui.line, borderRadius: 2, paddingHorizontal: 8, height: 38, backgroundColor: ui.graphite2 },
+  headerIcon: { borderWidth: 1, borderColor: ui.lineStrong, borderRadius: 2 },
   walletText: { fontFamily: fonts.display, fontSize: 17, color: ui.paper, fontVariant: ['tabular-nums'] },
   xpWrap: { paddingHorizontal: 18, marginTop: 12, gap: 4 },
-  xpTrack: { height: 4, backgroundColor: ui.graphite2 },
-  xpFill: { height: 4 },
+  xpTrack: { height: 8, padding: 1, borderWidth: 1, borderColor: ui.lineStrong, backgroundColor: ui.ink },
+  xpFill: { height: 4, backgroundColor: ui.ochre },
   xpText: { fontFamily: fonts.body, fontSize: 12, color: ui.muted },
   block: { paddingHorizontal: 18, marginTop: 18 },
-  playArea: { paddingHorizontal: 18, marginTop: 14 },
+  playArea: { paddingHorizontal: 18, marginTop: 14, flexDirection: 'column-reverse', gap: 24 },
   playAreaWide: { flexDirection: 'row', alignItems: 'flex-start', gap: 24 },
   playPanel: {},
   ruleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   expandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, paddingHorizontal: 12, marginTop: 6, borderWidth: 1, borderColor: ui.line, borderRadius: 3 },
   expandText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: ui.paper },
-  selectedPanel: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10 },
-  kicker: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: ui.muted, textTransform: 'uppercase' },
-  selectedName: { fontFamily: fonts.display, fontSize: 30, color: ui.paper, letterSpacing: 0.5, textTransform: 'uppercase' },
-  selectedDesc: { fontFamily: fonts.body, fontSize: 14, color: ui.paperDim },
+  selectedPanel: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10, backgroundColor: tactile.paperPanel, borderWidth: 2, borderColor: ui.lineStrong, borderRadius: 0 },
+  kicker: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: tactile.paperMuted, textTransform: 'uppercase' },
+  selectedName: { fontFamily: fonts.display, fontSize: 30, color: tactile.paperInk, letterSpacing: 0.5, textTransform: 'uppercase' },
+  selectedDesc: { fontFamily: fonts.body, fontSize: 14, color: tactile.paperMuted },
+  paperRule: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: tactile.paperMuted },
+  playButton: { marginTop: 10, borderRadius: 0, borderWidth: 2, borderColor: ui.paperDim, minHeight: 60 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, marginTop: 26, marginBottom: 4 },
+  brandMark: { transform: [{ rotate: '-4deg' }] },
+  wordmark: { fontFamily: fonts.display, fontSize: 36, color: ui.paper, letterSpacing: -1, lineHeight: 40 },
+  brandCaption: { fontFamily: fonts.body, fontSize: 11, color: ui.muted, letterSpacing: 1 },
+  seasonStamp: { minWidth: 40, minHeight: 48, padding: 4, alignItems: 'center', justifyContent: 'center', gap: 2, borderWidth: 2, borderColor: ui.paperDim, backgroundColor: tactile.coral, transform: [{ rotate: '3deg' }] },
+  stampText: { fontFamily: fonts.body, color: ui.ochreInk, fontSize: 13 },
+  stampLabel: { fontFamily: fonts.bodyBold, color: ui.ochreInk, fontSize: 11, letterSpacing: 0.7 },
   note: { fontFamily: fonts.body, fontSize: 13, color: ui.muted, marginTop: 8, lineHeight: 18 },
   errorRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   errorText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 13, color: ui.clay },

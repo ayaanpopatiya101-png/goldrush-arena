@@ -2,7 +2,7 @@ import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Line, Polygon } from 'react-native-svg';
+import Svg, { Line, Polygon, Rect, Text as SvgText } from 'react-native-svg';
 import { getSettings } from '@/hooks/useSettings';
 import { getRankIndex, MAX_RANK_INDEX, type RelicEffect } from '@/context/PlayerContext';
 import {
@@ -13,6 +13,7 @@ import {
 } from '@/components/effects';
 import { Glyph } from '@/components/ui/Glyph';
 import { PLAYER_COLORS as SHARED_SEATS } from '@/constants/colors';
+import { tactile } from '@/constants/colors';
 import { collisionSteps, paddleInput } from '@/utils/arenaGeometry';
 import { useSoundFX } from '@/hooks/useSoundFX';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -87,6 +88,8 @@ interface GameArenaProps {
   /** Gradually shifts arena hue during gameplay */
 
   colorBoard?: boolean;
+  /** Visual-only court finish. Does not alter positions, input or simulation. */
+  courtStyle?: 'classic' | 'tactile';
   /** Enable Web-Audio sound effects */
 
   soundEnabled?: boolean;
@@ -228,7 +231,7 @@ export function GameArena({
   arenaSize, playerName, playerColor, playerGlowColor,
   botNames, botRanks, onGameOver, onGameModeChange,
   onPlayerLivesChange, grantExtraLifeRef, onEliminatedSpectating,
-  colorBoard = false, soundEnabled = true,
+  colorBoard = false, courtStyle = 'classic', soundEnabled = true,
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart, onSeatLivesChange, skipCountdown = false,
   initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.55, rampRate = 0.07,
   rngSeed, soloMode = false,
@@ -1433,9 +1436,11 @@ export function GameArena({
   const spectatorCoins = Math.max(10, Math.floor(spectatorXP / 6));
 
   return (
-    <ScreenShake ref={screenShakeRef} style={{ width: arenaSize, height: arenaSize, overflow: 'hidden', borderRadius: 6 }}>
+    <ScreenShake ref={screenShakeRef} style={{ width: arenaSize, height: arenaSize, overflow: 'hidden', borderRadius: courtStyle === 'tactile' ? 0 : 6 }}>
       {/* Background */}
-      <LinearGradient colors={bgColors} style={StyleSheet.absoluteFill} />
+      {courtStyle === 'tactile'
+        ? <View style={[StyleSheet.absoluteFill, { backgroundColor: tactile.court }]} />
+        : <LinearGradient colors={bgColors} style={StyleSheet.absoluteFill} />}
 
       {/* Ambient floating orbs, behind all gameplay elements */}
       <FloatingOrbs orbs={gameOrbs} opacity={0.4} />
@@ -1462,8 +1467,15 @@ export function GameArena({
       {/* SVG layer */}
       <Svg width={arenaSize} height={arenaSize} style={StyleSheet.absoluteFill}>
         {/* Grid */}
-        <Line x1={0} y1={CY} x2={arenaSize} y2={CY} stroke="#EEE7D718" strokeWidth={1} />
-        <Line x1={CX} y1={0} x2={CX} y2={arenaSize} stroke="#EEE7D718" strokeWidth={1} />
+        {courtStyle === 'tactile' && <Rect x={WALL_MARGIN} y={WALL_MARGIN} width={arenaSize - WALL_MARGIN * 2} height={arenaSize - WALL_MARGIN * 2} stroke={tactile.courtLine} strokeWidth={1.5} fill="none" />}
+        <Line x1={0} y1={CY} x2={arenaSize} y2={CY} stroke={courtStyle === 'tactile' ? tactile.courtInk + '40' : '#EEE7D718'} strokeWidth={1} />
+        <Line x1={CX} y1={0} x2={CX} y2={arenaSize} stroke={courtStyle === 'tactile' ? tactile.courtInk + '66' : '#EEE7D718'} strokeWidth={1} strokeDasharray={courtStyle === 'tactile' ? '5,4' : undefined} />
+        {courtStyle === 'tactile' && <>
+          <SvgText x={CX} y={WALL_MARGIN + 20} fill={tactile.courtInk} fontSize={10} textAnchor="middle">NORTH</SvgText>
+          <SvgText x={CX} y={arenaSize - WALL_MARGIN - 12} fill={tactile.courtInk} fontSize={10} textAnchor="middle">SOUTH · YOU</SvgText>
+          <SvgText x={WALL_MARGIN + 13} y={CY} fill={tactile.courtInk} fontSize={10} textAnchor="middle" transform={`rotate(-90 ${WALL_MARGIN + 13} ${CY})`}>WEST</SvgText>
+          <SvgText x={arenaSize - WALL_MARGIN - 13} y={CY} fill={tactile.courtInk} fontSize={10} textAnchor="middle" transform={`rotate(90 ${arenaSize - WALL_MARGIN - 13} ${CY})`}>EAST</SvgText>
+        </>}
         {/* Triangle overlay */}
         {gameMode === 'triangle' && <Polygon points={triPoints()} fill="none" stroke="#9BB77A66" strokeWidth={1.5} strokeDasharray="10,5" />}
         {/* Duel divider */}
@@ -1577,6 +1589,8 @@ export function GameArena({
           <Animated.View key={i} style={[s.ball, {
             width:bv.radius*2, height:bv.radius*2, borderRadius:bv.radius,
             backgroundColor:bv.color, shadowColor:bv.color,
+            borderWidth: courtStyle === 'tactile' ? 1.5 : 0,
+            borderColor: tactile.paperInk,
             opacity: ballsVisible ? 1 : 0,
             transform:[{ translateX:Animated.subtract(ballAnims[i].x, bv.radius) },{ translateY:Animated.subtract(ballAnims[i].y, bv.radius) }],
           }]} />

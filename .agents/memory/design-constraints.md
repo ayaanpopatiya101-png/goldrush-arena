@@ -28,3 +28,9 @@ The later full-app brief prioritizes a professional physical air-hockey presenta
 **Why:** The user supplied this more specific direction for the production app after the exploratory eight-style request.
 
 **How to apply:** Use it to resolve conflicts with earlier explorations. Do not add decorative effects merely to demonstrate every style, or present coordinated parties as synchronized human PvP.
+
+The user selected the “Tactile Arcade (unslop refined)” Home reference and asked for the actual app to look like it: green surfaces, cream/brass framing and mode panels, a stamped court emblem, coral accents and condensed headings.
+
+**Why:** This is the user's explicit visual choice for the app, not an unapproved alternative.
+
+**How to apply:** Preserve that composition and material palette when changing the mobile UI. Translate its static court into the real engine and use actual profile/season data rather than copying illustrative values.
