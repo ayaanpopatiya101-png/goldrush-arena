@@ -48,7 +48,7 @@ export function DailyStreakModal({ visible: requested, streak, onClaim, onDismis
     <Modal visible={visible} transparent animationType="none" onRequestClose={onDismiss}>
       <View style={s.overlay}>
         <Animated.View style={[s.container, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-          <LinearGradient colors={['#1E4A3F', '#14231F']} style={StyleSheet.absoluteFill} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#294942' }]} />
           <View style={s.border} />
 
           {/* Streak flame */}
@@ -69,13 +69,13 @@ export function DailyStreakModal({ visible: requested, streak, onClaim, onDismis
                 <View key={i} style={s.dayCol}>
                   <View style={[
                     s.dayCircle,
-                    claimed  && { backgroundColor: '#D7A83B33', borderColor: '#D7A83B' },
-                    isToday  && { backgroundColor: '#D7A83B',   borderColor: '#D7A83B' },
-                    upcoming && { backgroundColor: '#EEE7D708', borderColor: '#EEE7D722' },
+                    claimed  && { backgroundColor: '#EFBD3C33', borderColor: '#EFBD3C' },
+                    isToday  && { backgroundColor: '#EFBD3C',   borderColor: '#EFBD3C' },
+                    upcoming && { backgroundColor: '#F5E7C408', borderColor: '#F5E7C422' },
                   ]}>
-                    <Glyph style={[s.dayIcon, { color: isToday ? '#14231F' : claimed ? '#D7A83B' : '#EEE7D744' }]} value={claimed ? '✓' : isToday ? '★' : label} />
+                    <Glyph style={[s.dayIcon, { color: isToday ? '#213D39' : claimed ? '#EFBD3C' : '#F5E7C444' }]} value={claimed ? '✓' : isToday ? '★' : label} />
                   </View>
-                  <Text style={[s.dayReward, { color: isToday ? '#D7A83B' : upcoming ? '#EEE7D733' : '#EEE7D766' }]}>
+                  <Text style={[s.dayReward, { color: isToday ? '#EFBD3C' : upcoming ? '#F5E7C433' : '#F5E7C466' }]}>
                     {WEEK_REWARDS[i]}
                   </Text>
                 </View>
@@ -94,7 +94,7 @@ export function DailyStreakModal({ visible: requested, streak, onClaim, onDismis
 
           {/* Claim button */}
           <Pressable onPress={onClaim} style={({ pressed }) => [s.claimBtn, pressed && { opacity: 0.85 }]}>
-            <LinearGradient colors={['#D7A83B', '#D7A83B']} style={s.claimGrad}>
+            <LinearGradient colors={['#EFBD3C', '#EFBD3C']} style={s.claimGrad}>
               <Text style={s.claimText}>CLAIM REWARD</Text>
             </LinearGradient>
           </Pressable>
@@ -109,25 +109,25 @@ export function DailyStreakModal({ visible: requested, streak, onClaim, onDismis
 }
 
 const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: '#14231FBB', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  container: { width: '100%', maxWidth: 360, borderRadius: 3, overflow: 'hidden', padding: 24, alignItems: 'center', gap: 12 },
-  border: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 3, borderWidth: 1.5, borderColor: '#D7A83B33' },
+  overlay: { flex: 1, backgroundColor: '#172E2AEE', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  container: { width: '100%', maxWidth: 360, borderRadius: 0, overflow: 'hidden', padding: 24, alignItems: 'center', gap: 12 },
+  border: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 0, borderWidth: 3, borderColor: '#CCAD6A' },
   flame: { fontSize: 56, marginBottom: 4 },
-  streakMsg: { color: '#D7A83B', fontFamily: 'SourceSans3_700Bold', fontSize: 22, letterSpacing: 2, textAlign: 'center', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
-  streakSub: { color: '#EEE7D788', fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, marginBottom: 4 },
+  streakMsg: { color: '#EFBD3C', fontFamily: 'SourceSans3_700Bold', fontSize: 22, letterSpacing: 2, textAlign: 'center', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  streakSub: { color: '#F5E7C488', fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, marginBottom: 4 },
   calendar: { flexDirection: 'row', gap: 6, marginVertical: 4 },
   dayCol: { alignItems: 'center', gap: 4, flex: 1 },
   dayCircle: { width: 36, height: 36, borderRadius: 3, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   dayIcon: { fontFamily: 'SourceSans3_700Bold', fontSize: 12 },
   dayReward: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8 },
-  rewardBox: { backgroundColor: '#D7A83B15', borderRadius: 3, borderWidth: 1, borderColor: '#D7A83B33', padding: 16, width: '100%', alignItems: 'center', gap: 6 },
-  rewardLabel: { color: '#D7A83B', fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 2 },
+  rewardBox: { backgroundColor: '#E8D6A8', borderRadius: 0, borderWidth: 2, borderColor: '#E7D6AC', padding: 16, width: '100%', alignItems: 'center', gap: 6 },
+  rewardLabel: { color: '#273D36', fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 2 },
   rewardCoins: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   coinEmoji: { fontSize: 28 },
-  coinAmount: { color: '#D7A83B', fontFamily: 'SourceSans3_700Bold', fontSize: 28 },
-  claimBtn: { width: '100%', borderRadius: 3, overflow: 'hidden', shadowColor: '#D7A83B', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
+  coinAmount: { color: '#EFBD3C', fontFamily: 'SourceSans3_700Bold', fontSize: 28 },
+  claimBtn: { width: '100%', borderRadius: 3, overflow: 'hidden', shadowColor: '#EFBD3C', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
   claimGrad: { paddingVertical: 16, alignItems: 'center' },
-  claimText: { color: '#14231F', fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 1.5 },
+  claimText: { color: '#213D39', fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 1.5 },
   skipBtn: { paddingVertical: 6 },
-  skipText: { color: '#EEE7D744', fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
+  skipText: { color: '#F5E7C444', fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
 });

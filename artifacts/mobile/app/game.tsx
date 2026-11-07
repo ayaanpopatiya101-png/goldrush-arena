@@ -19,7 +19,7 @@ import { saveClipToLibrary } from '@/store/clipLibrary';
 import { trackEvent } from '@/utils/analytics';
 import { clearCompletedMatch } from '@/store/completedMatch';
 import { Button } from '@/components/ui/Primitives';
-import { palette } from '@/constants/colors';
+import { palette, tactile } from '@/constants/colors';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
 const BOT_RANKS  = ['Gold', 'Platinum', 'Diamond', 'Master 1', 'Master 2'];
@@ -519,6 +519,7 @@ export default function GameScreen() {
             <View ref={arenaWrapRef as any} style={{ alignSelf: 'stretch' }}>
             <GameArena
               arenaSize={arenaSize}
+              courtStyle={map?.id === MAPS[0]?.id ? 'tactile' : 'classic'}
               playerName={config.playerName}
               playerColor={config.playerColor}
               playerGlowColor={config.playerGlowColor}
@@ -542,7 +543,7 @@ export default function GameScreen() {
               paused={paused}
               playerRelic={undefined}
               botSkill={isChallenge ? 0 : effectiveBotSkill}
-              arenaBg={['#14231F', '#14231F', '#14231F']}
+              arenaBg={map?.arenaBg}
               playerSuperType={profile.selectedSuper ?? 1}
               practice={config.practice}
               onHighlight={handleHighlight}
@@ -550,6 +551,7 @@ export default function GameScreen() {
             />
             </View>
           )}
+          <View pointerEvents="none" style={styles.courtFrame} />
         </View>
 
         {/* Persistent "you" marker directly under the South goal */}
@@ -568,8 +570,8 @@ export default function GameScreen() {
         {/* Power-up legend: matches the letters on court pickups */}
         <View style={styles.legend} accessibilityLabel="Pickup legend: SHD shield, SPD speed, SHK shrink rivals, plus 1 extra life, MLB multiball">
           {[
-            { c: '#D7A83B', l: 'SHD', d: 'Shield' }, { c: '#9BB77A', l: 'SPD', d: 'Speed' },
-            { c: '#CE7863', l: 'SHK', d: 'Shrink rivals' }, { c: '#D7A83B', l: '+1', d: 'Life' },
+            { c: '#EFBD3C', l: 'SHD', d: 'Shield' }, { c: '#9BB77A', l: 'SPD', d: 'Speed' },
+            { c: '#CE7863', l: 'SHK', d: 'Shrink rivals' }, { c: '#EFBD3C', l: '+1', d: 'Life' },
             { c: '#EDE3CC', l: 'MLB', d: 'Multiball' },
           ].map(pu => (
             <View key={pu.l} style={styles.puLegend}>
@@ -613,7 +615,7 @@ export default function GameScreen() {
             </Text>
             <Pressable onPress={() => { setPaused(false); music.stop(); router.replace('/'); }} style={styles.quitBtn}
               accessibilityRole="button" accessibilityLabel="Exit match to Play">
-              <Feather name="log-out" size={16} color={palette.clay} />
+              <Feather name="log-out" size={16} color={tactile.paperInk} />
               <Text style={styles.quitText}>Exit to Play</Text>
             </Pressable>
           </View>
@@ -637,11 +639,12 @@ const styles = StyleSheet.create({
   stat: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 4 },
   statText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, color: palette.paper },
   ballDot: { width: 8, height: 8, borderRadius: 4 },
-  board: { flexDirection: 'row', borderWidth: 1, borderColor: palette.line, backgroundColor: palette.graphite, marginBottom: 6, height: 44 },
-  boardCell: { flex: 1, alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, borderRightColor: palette.line },
+  board: { flexDirection: 'row', borderWidth: 2, borderColor: tactile.brassEdge, backgroundColor: tactile.brass, marginBottom: 6, height: 44 },
+  boardCell: { flex: 1, alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, borderRightColor: tactile.courtLine },
   boardYou: { backgroundColor: palette.ochre },
-  boardSeat: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: palette.muted },
-  boardLives: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: palette.paper, lineHeight: 20 },
+  boardSeat: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: tactile.paperInk },
+  boardLives: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: tactile.paperInk, lineHeight: 20 },
+  courtFrame: { ...StyleSheet.absoluteFillObject, borderWidth: 3, borderColor: tactile.brass, borderRadius: 0 },
   youRow: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 32, marginTop: 4 },
   labelDot: { width: 8, height: 8, borderRadius: 4 },
   youText: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.paper, flexShrink: 1 },
@@ -654,15 +657,15 @@ const styles = StyleSheet.create({
   puLabel: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.paperDim },
   hint: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.muted, marginTop: 4 },
   pauseOverlay: { flex: 1, backgroundColor: palette.ink, alignItems: 'center', justifyContent: 'center', padding: 18 },
-  pauseCard: { width: '100%', maxWidth: 360, borderRadius: 3, padding: 24, gap: 16, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.graphite },
-  pauseTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 34, color: palette.paper },
-  pauseStats: { flexDirection: 'row', borderWidth: 1, borderColor: palette.line, paddingVertical: 10 },
+  pauseCard: { width: '100%', maxWidth: 360, borderRadius: 0, padding: 24, gap: 16, borderWidth: 2, borderColor: tactile.brassEdge, backgroundColor: tactile.paperPanel },
+  pauseTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 34, color: tactile.paperInk },
+  pauseStats: { flexDirection: 'row', borderWidth: 1, borderColor: tactile.courtLine, backgroundColor: tactile.brass, paddingVertical: 10 },
   pauseStat: { alignItems: 'center', flex: 1 },
-  pauseStatVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: palette.paper },
-  pauseStatLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: palette.muted, letterSpacing: 1 },
-  pauseBody: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.paperDim },
-  resumeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 48, borderRadius: 3, backgroundColor: palette.ochre },
+  pauseStatVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: tactile.paperInk },
+  pauseStatLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: tactile.paperMuted, letterSpacing: 1 },
+  pauseBody: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: tactile.paperMuted },
+  resumeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 48, borderRadius: 0, borderWidth: 2, borderColor: tactile.courtLine, backgroundColor: palette.ochre },
   resumeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 17, color: palette.ochreInk },
-  quitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 44, borderRadius: 3, borderWidth: 1, borderColor: palette.clay },
-  quitText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.clay },
+  quitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 44, borderRadius: 0, borderWidth: 1, borderColor: tactile.paperMuted },
+  quitText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: tactile.paperInk },
 });

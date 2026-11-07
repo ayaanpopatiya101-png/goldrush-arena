@@ -3,8 +3,8 @@ import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { palette } from '@/constants/colors';
-import { Button } from '@/components/ui/Primitives';
+import { palette, tactile } from '@/constants/colors';
+import { Button, ScreenTitle } from '@/components/ui/Primitives';
 import {
   Animated,
   Easing,
@@ -159,7 +159,7 @@ const goFlashStyles = StyleSheet.create({
   overlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#14231F55',
+    backgroundColor: '#213D3955',
   },
   text: {
     fontFamily: 'SourceSans3_700Bold', fontSize: 112, color: '#6F8A5B',
@@ -535,7 +535,7 @@ export default function LobbyScreen() {
 
   return (
     <Reanimated.View entering={SlideInRight.duration(260)} exiting={SlideOutRight.duration(220)} style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#14231F', '#20372F', '#14231F']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#213D39', '#294C44', '#213D39']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.5} />
       <LinearGradient
         colors={['#C99A2E1A', '#C99A2E08', 'transparent']}
@@ -548,8 +548,8 @@ export default function LobbyScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Leave lobby" testID="leave-lobby" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={styles.backBtn}>
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </Pressable>
-        <View style={{ alignItems: 'center', gap: 4 }}>
-          <GlowText intensity="soft" color="#C99A2E" style={[styles.headerTitle, { color: colors.foreground }]}>MATCH SETUP</GlowText>
+        <View style={{ alignItems: 'center', gap: 4, flex: 1, marginHorizontal: 8 }}>
+          <ScreenTitle title="Match setup" style={{ width: '100%' }} />
           <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
             {(() => {
               const isGauntlet = config.matchType === 'gauntlet';
@@ -700,23 +700,21 @@ export default function LobbyScreen() {
 
         {/* Game rules */}
         <View style={[styles.rulesCard, {
-          backgroundColor: colors.card,
-          borderColor: config.variant !== 'classic'
-            ? (VARIANT_META[config.variant]?.color ?? colors.border) + '44'
-            : colors.border,
+          backgroundColor: tactile.paperPanel,
+          borderColor: tactile.brassEdge,
         }]}>
           <Pressable
             onPress={() => setRulesOpen(o => !o)}
             accessibilityRole="button"
             accessibilityState={{ expanded: rulesOpen }}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 }}>
-            <Text style={[styles.rulesTitle, { color: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? colors.foreground) : colors.foreground, marginBottom: 0 }]}>
+            <Text style={[styles.rulesTitle, { color: tactile.paperInk, marginBottom: 0 }]}>
               {config.variant !== 'classic'
                 ? `${VARIANT_META[config.variant]?.name ?? ''} RULES`
                 : 'HOW TO PLAY'}
             </Text>
             <View style={{ flex: 1 }} />
-            <Feather name={rulesOpen ? 'chevron-up' : 'chevron-down'} size={18} color={colors.foreground} />
+            <Feather name={rulesOpen ? 'chevron-up' : 'chevron-down'} size={18} color={tactile.paperInk} />
           </Pressable>
           {rulesOpen ? <View style={styles.rulesList}>
             {(VARIANT_RULES[config.variant] ?? VARIANT_RULES['classic']!).map((rule, i) => (
@@ -726,7 +724,7 @@ export default function LobbyScreen() {
                     ? (VARIANT_META[config.variant]?.color ?? colors.primary)
                     : colors.primary,
                 }]} />
-                <Text style={[styles.ruleText, { color: colors.mutedForeground }]}>{rule}</Text>
+                 <Text style={[styles.ruleText, { color: tactile.paperMuted }]}>{rule}</Text>
               </View>
             ))}
           </View> : null}
@@ -815,7 +813,7 @@ export default function LobbyScreen() {
                   <Text style={[styles.mapDesc, { color: colors.mutedForeground }]} numberOfLines={3}>{map.desc}</Text>
                   {unlocked
                     ? (selected
-                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#14231F" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
+                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#213D39" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
                         : <View style={[styles.mapBadge, { backgroundColor: '#ECE7DC14' }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
                     : <View style={[styles.mapLockBadge, { borderColor: reqRank?.color + '66' }]}><Feather name="lock" size={9} color={reqRank?.color} /><Text style={[styles.mapLockText, { color: reqRank?.color }]}>{reqRank?.name}</Text></View>}
                 </Pressable>
@@ -845,7 +843,7 @@ const styles = StyleSheet.create({
   modeBadge:   { borderRadius: 3, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 4 },
   modeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 1.5 },
   content: { paddingHorizontal: 18, paddingBottom: 40, gap: 20, width: '100%', maxWidth: 760, alignSelf: 'center' },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderWidth: 2, borderColor: tactile.brassEdge, backgroundColor: palette.graphite },
   dot: { width: 8, height: 8, borderRadius: 4 },
   statusText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
   section: { gap: 10 },
@@ -854,20 +852,20 @@ const styles = StyleSheet.create({
   playersList: { gap: 8 },
   emptySlot: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 3, borderWidth: 1, borderStyle: 'dashed' },
   emptyText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
-  mapCard: { width: 128, padding: 12, borderRadius: 3, borderWidth: 1.5, gap: 5, overflow: 'hidden' },
+  mapCard: { width: 144, padding: 12, borderRadius: 0, borderWidth: 2, gap: 5, overflow: 'hidden' },
   mapIcon: { fontSize: 24 },
   mapName: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   mapDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, lineHeight: 14, minHeight: 42 },
   mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
-  mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#14231F', letterSpacing: 0.5 },
+  mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#213D39', letterSpacing: 0.5 },
   mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
   mapLockText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
-  rulesCard: { borderRadius: 3, borderWidth: 1, padding: 16, gap: 10 },
-  rulesTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5 },
+  rulesCard: { borderRadius: 0, borderWidth: 2, padding: 16, gap: 10 },
+  rulesTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 23, letterSpacing: 1 },
   rulesList: { gap: 8 },
   ruleItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   ruleDot: { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
   ruleText: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, flex: 1, lineHeight: 19 },
-  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#14231F99', alignItems: 'center', justifyContent: 'center' },
+  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#213D3999', alignItems: 'center', justifyContent: 'center' },
   countdownText: { color: '#C99A2E', fontSize: 96, fontFamily: 'SourceSans3_700Bold', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
 });

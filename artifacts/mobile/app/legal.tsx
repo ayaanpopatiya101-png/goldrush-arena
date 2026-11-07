@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Shell } from '@/components/ui/Primitives';
-import { palette } from '@/constants/colors';
+import { Panel, ScreenTitle, Shell, paperText } from '@/components/ui/Primitives';
+import { palette, tactile } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { PRIVACY_POLICY, TERMS_OF_SERVICE } from '@/lib/legalContent';
 
@@ -47,8 +47,10 @@ export function LegalDocument({ doc, onDocChange, onBack, backLabel = 'Back' }: 
       </Shell>
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
         <Shell variant="prose" style={{ gap: 14, paddingTop: 16 }}>
-          <Text style={s.title} accessibilityRole="header">{doc === 'terms' ? 'Terms of Service' : 'Privacy Policy'}</Text>
-          {paragraphs.map((p, i) => <Text key={i} style={s.body}>{p}</Text>)}
+          <ScreenTitle kicker="Legal" title={doc === 'terms' ? 'Terms' : 'Privacy'} />
+          <Panel tone="paper" style={{ padding: 16, gap: 14 }}>
+            {paragraphs.map((p, i) => <Text key={i} style={[s.body, { color: paperText.ink }]}>{p}</Text>)}
+          </Panel>
           <Text style={s.footer}>Pre-release documents. Publisher identity and support contact are not configured yet.</Text>
         </Shell>
       </ScrollView>
@@ -75,9 +77,9 @@ const s = StyleSheet.create({
   backText: { fontFamily: fonts.bodySemiBold, fontSize: 16, color: palette.paper },
   tabRow: { flexDirection: 'row', gap: 8 },
   tab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: palette.line, borderRadius: 3 },
-  tabOn: { borderColor: palette.ochre, backgroundColor: palette.graphite },
+  tabOn: { borderColor: tactile.brassEdge, backgroundColor: palette.ochre },
   tabText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.paperDim },
-  tabTextOn: { color: palette.ochre },
+  tabTextOn: { color: tactile.paperInk },
   title: { fontFamily: fonts.display, fontSize: 32, color: palette.paper },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 25, color: palette.paper },
   footer: { fontFamily: fonts.body, fontSize: 14, color: palette.muted, marginTop: 12 },

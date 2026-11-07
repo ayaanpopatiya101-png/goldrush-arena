@@ -4,18 +4,21 @@ import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 
-import { palette } from '@/constants/colors';
+import { palette, tactile } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { BrandMark } from '@/components/ui/BrandMark';
 
 export const ui = palette;
 export const R = 0;
 
-export function Panel({ children, style, tone = 'base' }: { children?: React.ReactNode; style?: StyleProp<ViewStyle>; tone?: 'base' | 'raised' | 'outline' }) {
+export function Panel({ children, style, tone = 'base' }: { children?: React.ReactNode; style?: StyleProp<ViewStyle>; tone?: 'base' | 'raised' | 'outline' | 'paper' | 'brass' }) {
   return (
     <View style={[
       p.panel,
       tone === 'raised' && { backgroundColor: palette.graphite2 },
       tone === 'outline' && { backgroundColor: 'transparent' },
+      tone === 'paper' && { backgroundColor: tactile.paperPanel, borderColor: tactile.brassEdge },
+      tone === 'brass' && { backgroundColor: tactile.brass, borderColor: tactile.brassEdge },
       style,
     ]}>
       {children}
@@ -61,7 +64,7 @@ export function Button({ label, onPress, variant = 'primary', icon, disabled, lo
         p.btn,
         size === 'lg' && p.btnLg,
         size === 'sm' && p.btnSm,
-        variant === 'primary' && { backgroundColor: pressed ? palette.ochreDeep : palette.ochre, borderColor: palette.ochre },
+        variant === 'primary' && { backgroundColor: pressed ? palette.ochreDeep : palette.ochre, borderColor: tactile.brassEdge, borderWidth: 2 },
         variant === 'secondary' && { backgroundColor: pressed ? palette.line : palette.graphite2, borderColor: palette.line },
         variant === 'ghost' && { backgroundColor: pressed ? palette.graphite2 : 'transparent', borderColor: palette.line },
         variant === 'danger' && { backgroundColor: pressed ? palette.graphite2 : 'transparent', borderColor: palette.clay },
@@ -140,3 +143,22 @@ export function gridItemWidth(available: number, minCard = 150, gap = 10): numbe
   const cols = Math.max(2, Math.floor((available + gap) / (minCard + gap)));
   return Math.floor((available - gap * (cols - 1)) / cols);
 }
+
+/** Stamped condensed screen title used on every non-Home destination. */
+export function ScreenTitle({ title, kicker, right, style }: { title: string; kicker?: string; right?: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  return (
+    <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 10 }, style]}>
+      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ transform: [{ rotate: '-4deg' }] }}>
+        <BrandMark size={36} />
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        {kicker ? <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, letterSpacing: 1, color: palette.muted, textTransform: 'uppercase' }}>{kicker}</Text> : null}
+        <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 34, letterSpacing: -0.5, color: palette.paper, textTransform: 'uppercase' }}>{title}</Text>
+      </View>
+      {right}
+    </View>
+  );
+}
+
+/** Paper-panel text colors for dark readable copy on cream panels. */
+export const paperText = { ink: tactile.paperInk, muted: tactile.paperMuted } as const;

@@ -10,6 +10,8 @@
  * Rewards are claimed per-clip (daily cap applies).
  */
 
+import { Panel, ScreenTitle, paperText } from '@/components/ui/Primitives';
+import { tactile } from '@/constants/colors';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Haptics    from 'expo-haptics';
 import * as Sharing    from 'expo-sharing';
@@ -166,7 +168,7 @@ function ClipCard({
   return (
     <Reanimated.View entering={FadeInDown.delay(index * 120).springify()} style={mh.card}>
       <LinearGradient
-        colors={[`${tier.color}22`, '#14231F', '#14231F']}
+        colors={[`${tier.color}22`, '#213D39', '#213D39']}
         style={StyleSheet.absoluteFill}
       />
       {/* Accent top bar */}
@@ -305,29 +307,28 @@ export default function MatchHighlightsScreen() {
   if (events.length === 0) {
     return (
       <View style={[mh.root, { paddingTop: insets.top }]}>
-        <LinearGradient colors={['#14231F', '#20372F']} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={['#213D39', '#294C44']} style={StyleSheet.absoluteFill} />
         <View style={mh.header}>
           <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={mh.backBtn}>
             <Text style={mh.backText}>‹ BACK</Text>
           </Pressable>
-          <Text style={mh.headerTitle}>MATCH HIGHLIGHTS</Text>
-          <View style={{ width: 64 }} />
+          <ScreenTitle title="Highlights" style={{ flex: 1 }} />
         </View>
-        <View style={mh.emptyState}>
+        <Panel tone="paper" style={[mh.emptyState, { margin: 16 }]}>
           <Glyph style={{ fontSize: 48, marginBottom: 12 }} value="🎬" />
           <Text style={mh.emptyTitle}>No moments detected</Text>
           <Text style={mh.emptySub}>Highlights from the last match are kept in memory only, so they are gone after a refresh or a new match. Saved clips are in My Clips.</Text>
           <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={mh.emptyBtn}>
             <Text style={mh.emptyBtnText}>Leave highlights</Text>
           </Pressable>
-        </View>
+        </Panel>
       </View>
     );
   }
 
   return (
     <View style={[mh.root, { paddingTop: insets.top }]}>
-      <LinearGradient colors={['#14231F', '#20372F']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#213D39', '#294C44']} style={StyleSheet.absoluteFill} />
 
       {/* ── Header ── */}
       <View style={mh.header}>
@@ -335,9 +336,9 @@ export default function MatchHighlightsScreen() {
           <Text style={mh.backText}>‹ BACK</Text>
         </Pressable>
         <View style={mh.headerCenter}>
-          <Text style={mh.headerTitle}>MATCH HIGHLIGHTS</Text>
+          <ScreenTitle title="Highlights" />
           <View style={mh.headerBadgeRow}>
-            <View style={[mh.headerBadge, { backgroundColor: bestGrade?.color ?? '#D7A83B' }]}>
+            <View style={[mh.headerBadge, { backgroundColor: bestGrade?.color ?? '#EFBD3C' }]}>
               <Text style={mh.headerBadgeText}>{bestGrade?.letter ?? 'C'}</Text>
             </View>
             <Text style={mh.headerSub}>{events.length} MOMENT{events.length > 1 ? 'S' : ''} DETECTED</Text>
@@ -365,8 +366,8 @@ export default function MatchHighlightsScreen() {
 
         {/* ── Total reward summary ── */}
         <Reanimated.View entering={FadeInDown.delay(events.length * 120 + 100).springify()} style={mh.totalCard}>
-          <LinearGradient colors={['#14231F', '#14231F']} style={StyleSheet.absoluteFill} />
-          <View style={[mh.cardAccent, { backgroundColor: '#D7A83B' }]} />
+          <LinearGradient colors={['#213D39', '#213D39']} style={StyleSheet.absoluteFill} />
+          <View style={[mh.cardAccent, { backgroundColor: '#EFBD3C' }]} />
           <Text style={mh.totalTitle}>TOTAL MATCH REWARDS</Text>
           <View style={mh.totalRow}>
             <View style={mh.totalPill}>
@@ -394,25 +395,25 @@ export default function MatchHighlightsScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const mh = StyleSheet.create({
-  root:       { flex: 1, backgroundColor: '#14231F' },
+  root:       { flex: 1, backgroundColor: '#213D39' },
 
   // Header
-  header:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EEE7D70A' },
+  header:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F5E7C40A' },
   backBtn:      { width: 64, justifyContent: 'center' },
-  backText:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: '#EEE7D788', letterSpacing: 0.5 },
+  backText:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: '#D1DAC6', letterSpacing: 0.5 },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: '#D7A83B', letterSpacing: 2 },
+  headerTitle:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: '#EFBD3C', letterSpacing: 2 },
   headerBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
-  headerBadge:    { width: 22, height: 22, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
-  headerBadgeText:{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 11, color: '#EEE7D7' },
-  headerSub:      { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#EEE7D755', letterSpacing: 1 },
+  headerBadge:    { width: 22, height: 22, borderRadius: 0, alignItems: 'center', justifyContent: 'center' },
+  headerBadgeText:{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 11, color: '#F5E7C4' },
+  headerSub:      { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#D1DAC6', letterSpacing: 1 },
   libBtn:         { width: 64, alignItems: 'flex-end', justifyContent: 'center' },
   libBtnText:     { fontSize: 22 },
 
   scroll: { padding: 16, gap: 14 },
 
   // Clip card
-  card:       { borderRadius: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#EEE7D70A' },
+  card:       { borderRadius: 0, overflow: 'hidden', borderWidth: 2, borderColor: '#F5E7C40A' },
   cardAccent: { height: 3, width: '100%' },
   cardBody:   { flexDirection: 'row', padding: 14, gap: 14 },
 
@@ -420,47 +421,47 @@ const mh = StyleSheet.create({
   thumbWrap:       { position: 'relative', width: 90, height: 90 },
   thumb:           { width: 90, height: 90, borderRadius: 3 },
   thumbPlaceholder:{ backgroundColor: '#1E4A3F', alignItems: 'center', justifyContent: 'center' },
-  gradeBadge:      { position: 'absolute', top: -6, right: -6, width: 28, height: 28, borderRadius: 3, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#14231F' },
-  gradeText:       { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, color: '#EEE7D7' },
+  gradeBadge:      { position: 'absolute', top: -6, right: -6, width: 28, height: 28, borderRadius: 0, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#213D39' },
+  gradeText:       { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, color: '#F5E7C4' },
 
   // Card info
   cardInfo:   { flex: 1, justifyContent: 'space-between' },
   labelRow:   { flexDirection: 'row', alignItems: 'center', gap: 6 },
   eventEmoji: { fontSize: 18 },
-  eventLabel: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, color: '#EEE7D7', letterSpacing: 1 },
+  eventLabel: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, color: '#F5E7C4', letterSpacing: 1 },
   gradeName:  { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 0.5, marginTop: 2 },
   starsRow:   { flexDirection: 'row', gap: 2, marginTop: 4 },
-  star:       { fontSize: 12, color: '#D7A83B', opacity: 0.2 },
+  star:       { fontSize: 12, color: '#EFBD3C', opacity: 0.2 },
   rewardRow:  { flexDirection: 'row', gap: 10, marginTop: 6 },
-  rewardCoin: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#D7A83B' },
+  rewardCoin: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#EFBD3C' },
   rewardXp:   { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#EDE3CC' },
 
   // Action row
   actions:       { flexDirection: 'row', paddingHorizontal: 14, paddingBottom: 14, gap: 8 },
-  actionBtn:     { flex: 1, paddingVertical: 9, borderRadius: 3, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  actionBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, letterSpacing: 0.5, color: '#EEE7D7' },
-  editBtn:       { borderColor: '#EEE7D720', backgroundColor: '#EEE7D708' },
+  actionBtn:     { flex: 1, paddingVertical: 9, borderRadius: 0, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
+  actionBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, letterSpacing: 0.5, color: '#F5E7C4' },
+  editBtn:       { borderColor: '#F5E7C420', backgroundColor: '#294C44' },
   shareBtn:      { borderColor: 'transparent' },
-  shareBtnText:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, letterSpacing: 0.5, color: '#EEE7D7' },
-  saveBtn:       { borderColor: '#EEE7D720', backgroundColor: '#EEE7D708' },
+  shareBtnText:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, letterSpacing: 0.5, color: '#F5E7C4' },
+  saveBtn:       { borderColor: '#F5E7C420', backgroundColor: '#294C44' },
   saveBtnDone:   { borderColor: '#9BB77A40', backgroundColor: '#9BB77A15' },
 
   // Total card
-  totalCard:  { borderRadius: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#D7A83B22', padding: 18, alignItems: 'center', gap: 12 },
-  totalTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 14, color: '#D7A83B', letterSpacing: 2 },
+  totalCard:  { borderRadius: 0, overflow: 'hidden', borderWidth: 2, borderColor: '#EFBD3C22', padding: 18, alignItems: 'center', gap: 12 },
+  totalTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 14, color: '#EFBD3C', letterSpacing: 2 },
   totalRow:   { flexDirection: 'row', gap: 12 },
-  totalPill:  { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 3, backgroundColor: '#D7A83B15', borderWidth: 1, borderColor: '#D7A83B30' },
-  totalPillText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, color: '#D7A83B', letterSpacing: 1 },
-  totalNote:  { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#EEE7D744', textAlign: 'center' },
+  totalPill:  { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 0, backgroundColor: '#EFBD3C15', borderWidth: 2, borderColor: '#EFBD3C30' },
+  totalPillText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, color: '#EFBD3C', letterSpacing: 1 },
+  totalNote:  { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#D1DAC6', textAlign: 'center' },
 
   // Library button
-  libraryBtn:     { borderRadius: 3, borderWidth: 1, borderColor: '#EEE7D715', paddingVertical: 14, alignItems: 'center', backgroundColor: '#EEE7D705' },
-  libraryBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 13, color: '#EEE7D766', letterSpacing: 1 },
+  libraryBtn:     { borderRadius: 0, borderWidth: 2, borderColor: '#F5E7C415', paddingVertical: 14, alignItems: 'center', backgroundColor: '#294C44' },
+  libraryBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 13, color: '#D1DAC6', letterSpacing: 1 },
 
   // Empty state
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  emptyTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: '#EEE7D7', marginBottom: 8 },
-  emptySub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#EEE7D766', textAlign: 'center', lineHeight: 20 },
-  emptyBtn:   { marginTop: 24, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 3, borderWidth: 1, borderColor: '#D7A83B40', backgroundColor: '#D7A83B10' },
-  emptyBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 14, color: '#D7A83B', letterSpacing: 1 },
+  emptyTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: paperText.ink, marginBottom: 8 },
+  emptySub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: paperText.ink, textAlign: 'center', lineHeight: 20 },
+  emptyBtn:   { marginTop: 24, paddingHorizontal: 24, paddingVertical: 12, minHeight: 44, borderRadius: 0, borderWidth: 2, borderColor: tactile.brassEdge, backgroundColor: '#EFBD3C' },
+  emptyBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 14, color: paperText.ink, letterSpacing: 1 },
 });

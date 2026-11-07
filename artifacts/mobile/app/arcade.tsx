@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
 import { GameArena, type GameResult } from '@/components/GameArena';
 import { Button, IconButton } from '@/components/ui/Primitives';
-import { palette } from '@/constants/colors';
+import { palette, tactile } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { SKINS, usePlayer } from '@/context/PlayerContext';
 import { useSettings } from '@/hooks/useSettings';
@@ -103,7 +103,7 @@ export default function ArcadeScreen() {
           </View>
           <View style={[s.cell, s.cellMid]}>
             <Text style={s.cellLabel}>Best</Text>
-            <Text style={[s.cellValue, { color: palette.paperDim }]}>{best}</Text>
+            <Text style={s.cellValue}>{best}</Text>
           </View>
           <View style={s.cell}>
             <Text style={s.cellLabel}>Rule</Text>
@@ -115,6 +115,7 @@ export default function ArcadeScreen() {
           {!gameOver && (
             <GameArena
               arenaSize={arenaSize - 2}
+              courtStyle="tactile"
               playerName={profile.name}
               playerColor={skin.color}
               playerGlowColor={skin.glowColor}
@@ -164,19 +165,19 @@ const s = StyleSheet.create({
   column: { flex: 1, gap: 8 },
   hud: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 52 },
   mode: { fontFamily: fonts.display, fontSize: 22, color: palette.paper, letterSpacing: 0.5 },
-  board: { flexDirection: 'row', borderWidth: 1, borderColor: palette.line, borderRadius: 3, backgroundColor: palette.graphite },
+  board: { flexDirection: 'row', borderWidth: 2, borderColor: tactile.brassEdge, borderRadius: 0, backgroundColor: tactile.brass },
   cell: { flex: 1, paddingVertical: 8, paddingHorizontal: 12 },
-  cellMid: { borderLeftWidth: 1, borderRightWidth: 1, borderColor: palette.line },
-  cellLabel: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.muted },
-  cellValue: { fontFamily: fonts.display, fontSize: 30, color: palette.ochre, fontVariant: ['tabular-nums'] },
-  rule: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.paper, marginTop: 6 },
-  frame: { borderWidth: 1, borderColor: palette.lineStrong, borderRadius: 2, overflow: 'hidden', backgroundColor: palette.ink },
+  cellMid: { borderLeftWidth: 1, borderRightWidth: 1, borderColor: tactile.courtLine },
+  cellLabel: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: tactile.paperInk },
+  cellValue: { fontFamily: fonts.display, fontSize: 30, color: tactile.paperInk, fontVariant: ['tabular-nums'] },
+  rule: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: tactile.paperInk, marginTop: 6 },
+  frame: { borderWidth: 1, borderColor: tactile.brassEdge, borderRadius: 0, overflow: 'hidden', backgroundColor: palette.ink },
   footer: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   youMark: { borderWidth: 2, borderRadius: 2, paddingHorizontal: 8, paddingVertical: 2 },
   youText: { fontFamily: fonts.bodyBold, fontSize: 13, color: palette.paper },
   tip: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: palette.paperDim, lineHeight: 19 },
   scrim: { flex: 1, backgroundColor: palette.ink + 'E6', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  dialog: { width: '100%', maxWidth: 360, backgroundColor: palette.graphite, borderWidth: 1, borderColor: palette.lineStrong, borderRadius: 3, padding: 20, gap: 12 },
+  dialog: { width: '100%', maxWidth: 360, backgroundColor: palette.graphite, borderWidth: 2, borderColor: tactile.brassEdge, borderRadius: 0, padding: 20, gap: 12 },
   dialogTitle: { fontFamily: fonts.display, fontSize: 28, color: palette.paper },
   dialogBody: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22, color: palette.paperDim },
 });

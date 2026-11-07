@@ -3,7 +3,8 @@ import { Platform, ScrollView, Text, View, useWindowDimensions } from 'react-nat
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GameArena, type GameResult } from '@/components/GameArena';
-import { Button, Panel, Shell, ui } from '@/components/ui/Primitives';
+import { Button, Panel, Shell, ScreenTitle, paperText, ui } from '@/components/ui/Primitives';
+import { tactile } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { useSettings } from '@/hooks/useSettings';
 
@@ -22,17 +23,19 @@ export default function PracticeScreen() {
       paddingBottom: Math.max(34, insets.bottom), paddingHorizontal: 20,
     }}>
       <Shell style={{ gap: 16 }}>
-        <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: 32, color: ui.paper }}>Practice court</Text>
+        <ScreenTitle title="Practice" kicker="Free court · no rewards" />
         <Text style={{ fontFamily: fonts.body, fontSize: 16, color: ui.paperDim }}>You defend the bottom edge against three local bots. Drag to move. On desktop, click and drag. No XP, coins, quests or competitive changes. Bank lives are never used.</Text>
-        {result ? <Panel style={{ gap: 12 }}>
-          <Text style={{ fontFamily: fonts.display, fontSize: 24, color: ui.paper }}>Practice complete · {result.deflections} blocks</Text>
+        {result ? <Panel tone="paper" style={{ gap: 12 }}>
+          <Text style={{ fontFamily: fonts.display, fontSize: 24, color: paperText.ink }}>Practice complete · {result.deflections} blocks</Text>
           <Button label="Practice again" onPress={() => { setResult(null); setPaused(false); setRun(value => value + 1); }} />
         </Panel> : <>
           <View style={{ width: size, height: size, alignSelf: 'center' }}>
             <GameArena key={run} arenaSize={size} playerName="You" playerColor={ui.ochre} playerGlowColor={ui.ochre}
+              courtStyle="tactile"
               botNames={['North bot', 'West bot', 'East bot']} botRanks={['Bronze 1', 'Bronze 1', 'Bronze 1']}
               practice botDifficulty="easy" botSkill={0} sensitivity={settings.sensitivity} soundEnabled={settings.soundEnabled}
               paused={paused} onGameOver={setResult} />
+            <View pointerEvents="none" style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderWidth: 3, borderColor: tactile.brass }} />
           </View>
           <Button label={paused ? 'Resume practice' : 'Pause practice'} variant="secondary" onPress={() => setPaused(value => !value)} />
         </>}

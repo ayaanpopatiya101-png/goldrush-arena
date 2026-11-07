@@ -62,7 +62,7 @@ export function RankBadge({ rank, size = 'md', showLabel = true }: RankBadgeProp
           <Glyph style={{ fontSize: iconSize, lineHeight: iconSize + 4 }} value={icon} />
           {num ? (
             <View style={[styles.numPip, { backgroundColor: color, borderColor: color + '66' }]}>
-              <Text style={[styles.numTxt, { fontSize: numSize, color: '#14231FCC' }]}>{num}</Text>
+              <Text style={[styles.numTxt, { fontSize: numSize, color: '#213D39CC' }]}>{num}</Text>
             </View>
           ) : null}
         </View>

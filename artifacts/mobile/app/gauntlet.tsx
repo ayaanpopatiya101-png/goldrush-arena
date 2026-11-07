@@ -12,7 +12,8 @@ import {
   GAUNTLET_VARIANT_META, GAUNTLET_TARGET_WINS,
 } from '@/store/gauntletSession';
 import { updateGameConfig } from '@/store/gameSession';
-import { palette } from '@/constants/colors';
+import { palette, tactile } from '@/constants/colors';
+import { ScreenTitle } from '@/components/ui/Primitives';
 
 // ─── Win-dot row for a player ─────────────────────────────────────────────────
 function WinDots({ wins, isPlayer }: { wins: number; isPlayer: boolean }) {
@@ -102,7 +103,7 @@ export default function GauntletScreen() {
         <View style={s.column}>
           {/* ── Round result ── */}
           <Animated.View style={[s.card, { transform: [{ scale: bannerScale }] }, roundWon && { borderColor: palette.ochre }]}>
-            <Text style={s.kicker}>Champion's Gauntlet · round {completedRound}</Text>
+            <ScreenTitle title="Gauntlet" kicker={`Round ${completedRound}`} />
             <Text accessibilityRole="header" style={[s.title, { color: roundWon ? palette.ochre : palette.paper }]}>
               {gauntletOver ? (gauntletWon ? 'Gauntlet won' : 'Gauntlet over') : roundWon ? 'Round won' : 'Round lost'}
             </Text>
@@ -128,11 +129,11 @@ export default function GauntletScreen() {
           ) : (
             <View style={{ gap: 8 }}>
               <View style={s.nextRow}>
-                <Feather name={VARIANT_ICON[nextVariant] ?? 'circle'} size={22} color={palette.ochre} />
+                <Feather name={VARIANT_ICON[nextVariant] ?? 'circle'} size={22} color={tactile.paperInk} />
                 <View style={{ flex: 1 }}>
                   <Text style={s.nextLabel}>Next: round {state.roundNumber}</Text>
                   <Text style={s.nextName}>{nextMeta.name}</Text>
-                  <Text style={s.body}>{nextMeta.sub}</Text>
+                  <Text style={[s.body, { color: tactile.paperMuted }]}>{nextMeta.sub}</Text>
                 </View>
               </View>
               <Pressable onPress={handleStartNextRound} accessibilityRole="button" style={({ pressed }) => [s.primaryBtn, pressed && { opacity: 0.85 }]}>
@@ -185,18 +186,18 @@ const VARIANT_ICON: Record<string, React.ComponentProps<typeof Feather>['name']>
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.ink },
   column: { width: '100%', maxWidth: 640, gap: 12 },
-  card: { borderWidth: 1, borderColor: palette.line, backgroundColor: palette.graphite, borderRadius: 3, padding: 16, gap: 8 },
+  card: { borderWidth: 2, borderColor: palette.lineStrong, backgroundColor: palette.graphite, borderRadius: 0, padding: 16, gap: 8 },
   kicker: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted, letterSpacing: 0.5 },
   title: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 40, lineHeight: 44 },
   body: { fontFamily: 'SourceSans3_400Regular', fontSize: 15, lineHeight: 21, color: palette.paperDim },
   note: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, lineHeight: 18, color: palette.muted },
-  statsRow: { flexDirection: 'row', gap: 16, borderTopWidth: 1, borderTopColor: palette.line, paddingTop: 8 },
+  statsRow: { flexDirection: 'row', gap: 16, borderWidth: 2, borderColor: tactile.brassEdge, backgroundColor: tactile.brass, padding: 12 },
   stat: { flex: 1 },
-  statVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: palette.paper },
-  statLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.muted },
-  nextRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', borderWidth: 1, borderColor: palette.line, borderRadius: 3, padding: 14, backgroundColor: palette.graphite },
-  nextLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted },
-  nextName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.paper },
+  statVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: tactile.paperInk },
+  statLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: tactile.paperMuted },
+  nextRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', borderWidth: 2, borderColor: tactile.brassEdge, borderRadius: 0, padding: 14, backgroundColor: tactile.paperPanel },
+  nextLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: tactile.paperMuted },
+  nextName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: tactile.paperInk },
   primaryBtn: { flexDirection: 'row', gap: 8, minHeight: 52, alignItems: 'center', justifyContent: 'center', borderRadius: 3, backgroundColor: palette.ochre },
   primaryText: { fontFamily: 'SourceSans3_700Bold', fontSize: 17, color: palette.ochreInk },
   secondaryBtn: { minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 3, borderWidth: 1, borderColor: palette.line },

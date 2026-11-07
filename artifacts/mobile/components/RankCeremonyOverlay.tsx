@@ -104,7 +104,7 @@ function CeremonyParticle({ p, triggered, rankColor }: { p: ParticleData; trigge
         width: p.size,
         height: p.size,
         borderRadius: p.size / 2,
-        backgroundColor: p.id % 4 === 0 ? '#EEE7D7' : rankColor,
+        backgroundColor: p.id % 4 === 0 ? '#F5E7C4' : rankColor,
         shadowColor: rankColor,
         shadowOpacity: 0,
         shadowRadius: 0,
@@ -267,7 +267,7 @@ export function RankCeremonyOverlay({ newRank, visible: requested, onDismiss }: 
       <Pressable style={{ flex: 1 }} onPress={handleSkip}>
         <Animated.View style={[s.overlay, { opacity: overlayOp }]}>
           {/* Dark bg */}
-          <LinearGradient colors={['#14231F', '#14231F', '#14231F']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['#213D39', '#213D39', '#213D39']} style={StyleSheet.absoluteFill} />
 
 
 
@@ -317,6 +317,7 @@ export function RankCeremonyOverlay({ newRank, visible: requested, onDismiss }: 
 const s = StyleSheet.create({
   overlay: {
     flex: 1,
+    backgroundColor: '#172E2AF2',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -341,7 +342,7 @@ const s = StyleSheet.create({
   star: {
     position: 'absolute',
     borderRadius: 3,
-    backgroundColor: '#EEE7D7',
+    backgroundColor: '#F5E7C4',
   },
   stage: {
     alignItems: 'center',
@@ -351,7 +352,7 @@ const s = StyleSheet.create({
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 11,
     letterSpacing: 5,
-    color: '#EEE7D755',
+    color: '#D1DAC6',
     marginBottom: 24,
     textTransform: 'uppercase',
   },
@@ -372,14 +373,14 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    borderRadius: 3,
+    borderRadius: 0,
   },
   shimmer: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     width: 60,
-    backgroundColor: '#EEE7D7',
+    backgroundColor: '#F5E7C4',
     opacity: 0.22,
     transform: [{ skewX: '-15deg' }],
   },
@@ -399,19 +400,19 @@ const s = StyleSheet.create({
   flavorText: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 15,
-    color: '#EEE7D788',
+    color: '#D1DAC6',
     letterSpacing: 0.5,
     textAlign: 'center',
   },
   claimBtn: {
     paddingHorizontal: 52,
     paddingVertical: 16,
-    borderRadius: 3,
+    borderRadius: 0,
   },
   claimBtnText: {
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 16,
     letterSpacing: 3,
-    color: '#14231F',
+    color: '#213D39',
   },
 });

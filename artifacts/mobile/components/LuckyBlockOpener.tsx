@@ -195,7 +195,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
   return (
     <Modal visible={visible} animationType="none" transparent presentationStyle="overFullScreen">
       <Animated.View style={[s.overlay, { opacity: overlayOp }]}>
-        <LinearGradient colors={['#14231F', '#14231F']} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={['#213D39', '#213D39']} style={StyleSheet.absoluteFill} />
 
 
 
@@ -221,8 +221,8 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
             <View style={s.pips}>
               {[0, 1, 2, 3].map(i => (
                 <View key={i} style={[s.pip, {
-                  backgroundColor: i < 4 - tapsLeft ? meta.color : '#EEE7D715',
-                  borderColor:     i < 4 - tapsLeft ? meta.color : '#EEE7D725',
+                  backgroundColor: i < 4 - tapsLeft ? meta.color : '#F5E7C415',
+                  borderColor:     i < 4 - tapsLeft ? meta.color : '#F5E7C425',
                   shadowColor:     meta.color,
                   shadowOpacity:   i < 4 - tapsLeft ? 0.8 : 0,
                   shadowRadius: 0,
@@ -253,7 +253,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
               }]}>
                 <View style={[s.block, { borderColor: meta.color + 'BB', shadowColor: meta.color }]}>
                   <LinearGradient
-                    colors={[meta.color + '66', meta.color + '28', '#14231F55']}
+                    colors={[meta.color + '66', meta.color + '28', '#213D3955']}
                     start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }}
                     style={StyleSheet.absoluteFill}
                   />
@@ -280,7 +280,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
             borderColor: meta.color + '66',
           }]}>
             <LinearGradient
-              colors={[meta.color + '30', meta.color + '10', '#14231F00']}
+              colors={[meta.color + '30', meta.color + '10', '#213D3900']}
               style={StyleSheet.absoluteFill}
             />
             <Glyph style={s.rewardEmoji} value={meta.emoji} />
@@ -290,10 +290,10 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
 
             {reward && (
               <View style={s.rewardItems}>
-                <View style={[s.rewardRow, { borderColor: '#D7A83B33' }]}>
+                <View style={[s.rewardRow, { borderColor: '#EFBD3C33' }]}>
                   <Glyph style={s.rIcon} value="🪙" />
                   <Text style={s.rLabel}>Coins</Text>
-                  <Text style={[s.rValue, { color: '#D7A83B' }]}>
+                  <Text style={[s.rValue, { color: '#EFBD3C' }]}>
                     +{reward.coins.toLocaleString()}
                   </Text>
                 </View>
@@ -323,10 +323,10 @@ const BLOCK_SIZE = 148;
 
 const s = StyleSheet.create({
   overlay: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
+    flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#172E2AF2',
   },
   star: {
-    position: 'absolute', borderRadius: 3, backgroundColor: '#EEE7D7',
+    position: 'absolute', borderRadius: 3, backgroundColor: '#F5E7C4',
   },
   flashBurst: {
     position: 'absolute', width: 200, height: 200, borderRadius: 3,
@@ -337,7 +337,7 @@ const s = StyleSheet.create({
   },
   categoryLabel: {
     fontSize: 10, fontFamily: 'SourceSans3_600SemiBold', letterSpacing: 3.5,
-    color: '#EEE7D744', marginBottom: 6,
+    color: '#D1DAC6', marginBottom: 6,
   },
   tierLabel: {
     fontSize: 22, fontFamily: 'SourceSans3_700Bold', letterSpacing: 2,
@@ -377,7 +377,7 @@ const s = StyleSheet.create({
   blockHighlight: {
     position: 'absolute', top: 10, left: 10,
     width: 40, height: 40, borderRadius: 3,
-    backgroundColor: '#EEE7D718',
+    backgroundColor: '#F5E7C418',
   },
   blockEmoji: {
     fontSize: 72,
@@ -386,13 +386,13 @@ const s = StyleSheet.create({
     marginTop: 32, alignItems: 'center', gap: 6,
   },
   hintText: {
-    fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 3, color: '#EEE7D744',
+    fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 3, color: '#D1DAC6',
   },
   tapsLeft: {
     fontSize: 13, fontFamily: 'SourceSans3_600SemiBold', letterSpacing: 1,
   },
   rewardCard: {
-    marginHorizontal: 32, padding: 32, borderRadius: 3, borderWidth: 1.5,
+    marginHorizontal: 32, padding: 32, borderRadius: 0, borderWidth: 2,
     alignItems: 'center', gap: 4, overflow: 'hidden',
   },
   rewardEmoji: {
@@ -406,16 +406,16 @@ const s = StyleSheet.create({
   },
   rewardRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#EEE7D708', borderRadius: 3, padding: 14, borderWidth: 1,
+    backgroundColor: '#294C44', borderRadius: 0, padding: 14, borderWidth: 2,
   },
   rIcon: { fontSize: 20 },
-  rLabel: { flex: 1, color: '#EEE7D788', fontSize: 14, fontFamily: 'SourceSans3_600SemiBold' },
+  rLabel: { flex: 1, color: '#D1DAC6', fontSize: 14, fontFamily: 'SourceSans3_600SemiBold' },
   rValue: { fontSize: 18, fontFamily: 'SourceSans3_700Bold' },
   collectBtn: {
-    paddingHorizontal: 40, paddingVertical: 16, borderRadius: 3,
+    paddingHorizontal: 40, paddingVertical: 16, borderRadius: 0,
     marginTop: 4,
   },
   collectBtnTxt: {
-    color: '#EEE7D7', fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 2,
+    color: '#F5E7C4', fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 2,
   },
 });

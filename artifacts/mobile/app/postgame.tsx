@@ -17,7 +17,8 @@ import { ShareCard } from '@/components/ShareCard';
 import { getPendingClip, clearPendingClip } from '@/store/highlightClip';
 import { submitChallengeScore } from '@/utils/dailyChallenge';
 import { getDeviceId } from '@/utils/deviceId';
-import { palette } from '@/constants/colors';
+import { palette, tactile } from '@/constants/colors';
+import { ScreenTitle } from '@/components/ui/Primitives';
 import { CURRENT_SEASON } from '@/constants/season';
 import { Glyph } from '@/components/ui/Glyph';
 
@@ -128,7 +129,7 @@ function PostGameContent() {
   const evCredits = parseInt(params.evCredits ?? '0', 10);
   const evName    = params.evName ?? '';
   const evEmoji   = params.evEmoji ?? '';
-  const evColor   = params.evColor ?? '#D7A83B';
+  const evColor   = params.evColor ?? '#EFBD3C';
   const hasEvent  = evXP > 0 || evCoins > 0 || evCredits > 0;
 
   // Qualifier params
@@ -145,7 +146,7 @@ function PostGameContent() {
   ];
   const qEventName  = params.qEventName  ?? '';
   const qEventEmoji = params.qEventEmoji ?? '';
-  const qEventColor = params.qEventColor ?? '#D7A83B';
+  const qEventColor = params.qEventColor ?? '#EFBD3C';
   const isQualifier  = qPeriodKey.length > 0 && qRoundIdx >= 0;
   const qpEarnedThisMatch = isQualifier ? (qpPerPlace[Math.min(Math.max(position - 1, 0), 3)] ?? 0) : 0;
 
@@ -304,10 +305,11 @@ function PostGameContent() {
           contentContainerStyle={[styles.content, { paddingTop: topPad + 12, paddingBottom: insets.bottom + 32 }]}
         >
         <View style={styles.column}>
+        <ScreenTitle title="Match receipt" kicker="GoldRush Arena" />
         {/* ── Result header: outcome, stats, next actions (above the fold) ── */}
         <Animated.View style={[styles.resultCard, { transform: [{ scale: scaleAnim }] }, won && !isArcade && { borderColor: palette.ochre }]}>
-          <Text style={styles.kicker}>{modeLabel}</Text>
-          <Text accessibilityRole="header" style={[styles.resultText, { color: won || newBest ? palette.ochre : palette.paper }]}>{outcome}</Text>
+          <Text style={[styles.kicker, { color: tactile.paperMuted }]}>{modeLabel}</Text>
+          <Text accessibilityRole="header" style={[styles.resultText, { color: tactile.paperInk }]}>{outcome}</Text>
           {newBest && <Text style={styles.resultSub}>New personal best</Text>}
           {isArcade && !newBest && arcadeBest > 0 && <Text style={styles.resultSub}>{arcadeBest - deflections} more hits to beat your best</Text>}
           <View style={styles.statsGrid}>
@@ -564,14 +566,14 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { paddingHorizontal: 18, alignItems: 'center' },
   column: { width: '100%', maxWidth: 720, gap: 12 },
-  resultCard: { borderWidth: 1, borderColor: palette.line, backgroundColor: palette.graphite, borderRadius: 3, padding: 16, gap: 4 },
+  resultCard: { borderWidth: 2, borderColor: tactile.brassEdge, backgroundColor: tactile.paperPanel, borderRadius: 0, padding: 16, gap: 4 },
   kicker: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted, letterSpacing: 1 },
   resultText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 44, lineHeight: 48 },
-  resultSub: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 15, color: palette.paperDim },
+  resultSub: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 15, color: tactile.paperMuted },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10, borderTopWidth: 1, borderTopColor: palette.line, paddingTop: 10, rowGap: 8 },
   statItem: { minWidth: 96, flexGrow: 1, flexBasis: '18%' },
-  statValue: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: palette.paper },
-  statLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.muted },
+  statValue: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: tactile.paperInk },
+  statLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: tactile.paperMuted },
   playAgainBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 52, borderRadius: 3, backgroundColor: palette.ochre },
   playAgainText: { color: palette.ochreInk, fontFamily: 'SourceSans3_700Bold', fontSize: 17 },
   buttons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -580,7 +582,7 @@ const styles = StyleSheet.create({
   clipRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingHorizontal: 14, borderRadius: 3, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.graphite },
   clipTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.paper },
   clipSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: palette.paperDim },
-  card: { borderRadius: 3, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.graphite, padding: 14, gap: 8 },
+  card: { borderRadius: 0, borderWidth: 2, borderColor: palette.lineStrong, backgroundColor: palette.graphite, padding: 14, gap: 8 },
   rowCard: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   cardTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.muted, letterSpacing: 0.5 },
   progRow: { gap: 6, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: palette.line },

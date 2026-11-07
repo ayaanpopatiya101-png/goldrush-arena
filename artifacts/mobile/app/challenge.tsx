@@ -10,8 +10,8 @@ import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandMark } from '@/components/ui/BrandMark';
-import { Button, Panel, Shell } from '@/components/ui/Primitives';
-import { palette } from '@/constants/colors';
+import { Button, Panel, Shell, ScreenTitle } from '@/components/ui/Primitives';
+import { palette, tactile } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { SKINS, usePlayer } from '@/context/PlayerContext';
 import { setGameConfig } from '@/store/gameSession';
@@ -77,7 +77,7 @@ export default function ChallengeScreen() {
     <View style={s.root}>
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}>
         <Shell variant="prose" style={{ gap: 16, maxWidth: 520 }}>
-          <BrandMark size={44} />
+          <ScreenTitle title="Challenge" kicker="GoldRush Arena" />
           {!valid ? (
             <>
               <Text style={s.title} accessibilityRole="header">This challenge link is not valid</Text>
@@ -88,7 +88,7 @@ export default function ChallengeScreen() {
             <>
               <Text style={s.kicker}>Challenge from {challenger}</Text>
               <Text style={s.title} accessibilityRole="header">Beat {targetScore} hits</Text>
-              <Panel style={s.rules}>
+              <Panel tone="paper" style={s.rules}>
                 <Row k="Mode" v="Daily Challenge, solo survival" />
                 <Row k="Date" v={formatSeed(seed)} />
                 <Row k="Rules" v="Same speed pattern for every player that day. One miss ends the run." />
@@ -140,7 +140,7 @@ const s = StyleSheet.create({
   rules: { paddingHorizontal: 14 },
   row: { paddingVertical: 10, gap: 2 },
   rowLine: { borderBottomWidth: 1, borderBottomColor: palette.line },
-  k: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.muted },
-  v: { fontFamily: fonts.body, fontSize: 16, color: palette.paper, lineHeight: 22 },
+  k: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: tactile.paperMuted },
+  v: { fontFamily: fonts.body, fontSize: 16, color: tactile.paperInk, lineHeight: 22 },
   error: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.clay, lineHeight: 21 },
 });

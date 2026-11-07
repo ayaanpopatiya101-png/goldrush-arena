@@ -33,4 +33,4 @@ The user selected the “Tactile Arcade (unslop refined)” Home reference and a
 
 **Why:** This is the user's explicit visual choice for the app, not an unapproved alternative.
 
-**How to apply:** Preserve that composition and material palette when changing the mobile UI. Translate its static court into the real engine and use actual profile/season data rather than copying illustrative values.
+**How to apply:** Preserve that composition and material palette when changing the mobile UI. The user explicitly wants the same design across the rest of the app, not only Home. Translate its static court into the real engine and use actual profile/season data rather than copying illustrative values.

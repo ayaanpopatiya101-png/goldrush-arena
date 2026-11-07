@@ -82,7 +82,7 @@ export function LiveEventBanner() {
     colorAnim.setValue(0);
   }, [mode?.id]);
 
-  const color       = mode?.color       ?? '#D7A83B';
+  const color       = mode?.color       ?? '#EFBD3C';
   const gradient    = mode?.gradient    ?? (['#1E4A3F', '#EDE3CC'] as [string, string]);
   const name        = mode?.name        ?? 'Gold Rush Championship';
   const descriptor  = mode?.descriptor  ?? 'Exclusive summer event, earn bonus rewards';
@@ -146,16 +146,16 @@ export function LiveEventBanner() {
 const cd = StyleSheet.create({
   unit:  { alignItems: 'center', minWidth: 26 },
   value: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, lineHeight: 20 },
-  label: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8, color: '#EEE7D755', letterSpacing: 0.5 },
+  label: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8, color: '#F5E7C455', letterSpacing: 0.5 },
   sep:   { fontFamily: 'SourceSans3_700Bold', fontSize: 16, lineHeight: 20, marginBottom: 10 },
 });
 
 const tk = StyleSheet.create({
-  wrap:     { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#EEE7D708', borderRadius: 3, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10 },
+  wrap:     { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F5E7C408', borderRadius: 3, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10 },
   liveBadge:{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#CE786322', borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
   liveDot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: '#CE7863' },
   liveText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#CE7863', letterSpacing: 1 },
-  news:     { flex: 1, fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#EEE7D7CC' },
+  news:     { flex: 1, fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#F5E7C4CC' },
 });
 
 const styles = StyleSheet.create({
@@ -172,9 +172,9 @@ const styles = StyleSheet.create({
 
   midRow:       { flexDirection: 'row', alignItems: 'center', gap: 10 },
   eventTitle:   { fontFamily: 'SourceSans3_700Bold', fontSize: 16 },
-  eventSub:     { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#EEE7D788', lineHeight: 16 },
+  eventSub:     { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#F5E7C488', lineHeight: 16 },
 
   countdownRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  endsIn:       { fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#EEE7D755', letterSpacing: 1.5 },
+  endsIn:       { fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#F5E7C455', letterSpacing: 1.5 },
   countdown:    { flexDirection: 'row', alignItems: 'center', gap: 4 },
 });

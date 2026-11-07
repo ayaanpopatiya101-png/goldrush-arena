@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     paddingHorizontal: 24,
     minWidth: 200,
-    shadowColor: '#14231F',
+    shadowColor: '#213D39',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -230,14 +230,16 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "#172E2AEE",
     justifyContent: "flex-end",
   },
   modalContainer: {
     width: "100%",
     height: "90%",
-    borderTopLeftRadius: 3,
-    borderTopRightRadius: 3,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderWidth: 3,
+    borderColor: '#CCAD6A',
   },
   modalHeader: {
     flexDirection: "row",
@@ -266,7 +268,7 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     width: "100%",
-    borderRadius: 3,
+    borderRadius: 0,
     overflow: "hidden",
     padding: 16,
   },

@@ -6,7 +6,8 @@ import React, { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, IconButton, Shell, gridItemWidth } from '@/components/ui/Primitives';
+import { Button, IconButton, ScreenTitle, Shell, gridItemWidth, paperText } from '@/components/ui/Primitives';
+import { tactile } from '@/constants/colors';
 import { palette } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { deleteClipFromLibrary, getClipLibrary, type SavedClip } from '@/store/clipLibrary';
@@ -86,7 +87,7 @@ export default function MyClipsScreen() {
           <View style={mc.header}>
             <IconButton icon="arrow-left" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
             <View style={{ flex: 1 }}>
-              <Text style={mc.title} accessibilityRole="header">My clips</Text>
+              <ScreenTitle kicker="Saved highlights" title="My clips" />
               <Text style={mc.meta}>{state === 'ready' ? `${clips.length} of 10 saved on this device` : 'Saved on this device only'}</Text>
             </View>
           </View>
@@ -98,14 +99,14 @@ export default function MyClipsScreen() {
           ) : state === 'error' ? (
             <View style={mc.empty}>
               <Text style={mc.emptyTitle}>Clips could not be read</Text>
-              <Text style={mc.body}>Local storage returned an error. Your clips have not been changed.</Text>
+              <Text style={[mc.body, mc.emptyBody]}>Local storage returned an error. Your clips have not been changed.</Text>
               <Button label="Try again" onPress={() => void load()} />
             </View>
           ) : clips.length === 0 ? (
             <View style={mc.empty}>
-              <Feather name="film" size={24} color={palette.muted} />
+              <Feather name="film" size={24} color={paperText.muted} />
               <Text style={mc.emptyTitle}>No clips yet</Text>
-              <Text style={mc.body}>During a match, use the capture button to keep a highlight. Save it from the results screen to see it here. Clips stay on this device and are not uploaded.</Text>
+              <Text style={[mc.body, mc.emptyBody]}>During a match, use the capture button to keep a highlight. Save it from the results screen to see it here. Clips stay on this device and are not uploaded.</Text>
               <Button label="Go to Play" onPress={() => router.replace('/')} />
             </View>
           ) : (
@@ -135,15 +136,16 @@ const mc = StyleSheet.create({
   body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 22, color: palette.paperDim, textAlign: 'center' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   skel: { backgroundColor: palette.graphite, borderRadius: 3 },
-  cell: { backgroundColor: palette.graphite, borderWidth: 1, borderColor: palette.line, borderRadius: 3, overflow: 'hidden' },
+  cell: { backgroundColor: palette.graphite, borderWidth: 2, borderColor: palette.line, borderRadius: 0, overflow: 'hidden' },
   thumb: { width: '100%', aspectRatio: 4 / 3, backgroundColor: palette.ink },
   noThumb: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
-  tier: { position: 'absolute', top: 8, left: 8, backgroundColor: palette.ink, borderWidth: 1, borderColor: palette.line, borderRadius: 2, paddingHorizontal: 6, paddingVertical: 2 },
+  tier: { position: 'absolute', top: 8, left: 8, backgroundColor: palette.ink, borderWidth: 2, borderColor: palette.line, borderRadius: 0, paddingHorizontal: 6, paddingVertical: 2 },
   tierText: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.paper },
   info: { padding: 10, gap: 2 },
   name: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.paper },
   confirm: { padding: 8, gap: 6, borderTopWidth: 1, borderTopColor: palette.line },
   confirmText: { fontFamily: fonts.body, fontSize: 14, color: palette.paper },
-  empty: { alignItems: 'center', gap: 12, padding: 24, borderWidth: 1, borderColor: palette.line, borderRadius: 3, backgroundColor: palette.graphite },
-  emptyTitle: { fontFamily: fonts.display, fontSize: 24, color: palette.paper },
+  empty: { alignItems: 'center', gap: 12, padding: 24, borderWidth: 2, borderColor: tactile.brassEdge, borderRadius: 0, backgroundColor: tactile.paperPanel },
+  emptyTitle: { fontFamily: fonts.display, fontSize: 24, color: paperText.ink },
+  emptyBody: { color: paperText.ink },
 });

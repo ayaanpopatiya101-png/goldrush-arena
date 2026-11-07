@@ -8,3 +8,10 @@ test('text contrast AA', () => {
   assert.ok(cr(hex('ochreInk'),hex('ochre'))>=7);
   assert.ok(!/#(FFFFFF|000000)/i.test(src));
 });
+
+test('tactile parchment and brass use readable dark labels', () => {
+  assert.ok(cr(hex('paperInk'), hex('paperPanel')) >= 7, 'parchment title');
+  assert.ok(cr(hex('paperMuted'), hex('paperPanel')) >= 4.5, 'parchment body');
+  assert.ok(cr(hex('paperInk'), hex('brass')) >= 4.5, 'brass scoreboard labels');
+  assert.ok(cr(hex('ochreInk'), hex('coral')) >= 4.5, 'coral stamp labels');
+});

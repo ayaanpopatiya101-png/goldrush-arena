@@ -5,7 +5,7 @@
 <h1 align="center">GoldRush Arena</h1>
 
 <p align="center">
-  <b>A fast-paced 4-player air-hockey battle royale for iOS & Android.</b><br/>
+  <b>A four-sided paddle-survival arcade game for iOS, Android and web.</b><br/>
   Deflect the ball. Eliminate opponents. Earn XP. Climb 23 ranks. Be the last one standing.
 </p>
 
@@ -42,7 +42,7 @@
 
 Every match feeds into a deep progression system with **23 ranks**, **14 paddle skins**, **10 upgradeable relics**, **3 super abilities**, a **25-milestone Trophy Road**, and competitive time-limited **events**.
 
-The game is built with **Expo SDK 54** and runs on **iOS**, **Android**, and **Web**. It is **100% offline** -- no account or internet required to play. All progress is saved locally on the device.
+The game is built with **Expo SDK 54** and runs on **iOS**, **Android**, and **Web**. Core matches run locally against bots, and profiles/progress are saved on the device. Parties, online challenges, referrals and web checkout use server services. Coordinated party entry is not synchronized four-human PvP.
 
 ---
 
@@ -96,18 +96,18 @@ The game is built with **Expo SDK 54** and runs on **iOS**, **Android**, and **W
 | Navigation | Expo Router 6 (file-based routing) |
 | State Management | React Context API |
 | Persistence | AsyncStorage (device-local) |
-| Fonts | Inter via `@expo-google-fonts/inter` |
+| Fonts | Barlow Condensed headings and Source Sans 3 body |
 | Animations | React Native Animated API |
 | Audio | Web Audio API (web) / expo-av (native v1.1) |
 | Haptics | expo-haptics |
-| Build | EAS Build |
+| Build | Expo bundles; native release through the project's managed publishing flow |
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 22 LTS recommended
 - pnpm (enforced via preinstall hook)
 - Expo Go app on your phone (optional, for mobile testing)
 
@@ -121,11 +121,29 @@ cd goldrush-arena
 # Install dependencies (pnpm is required)
 pnpm install
 
-# Start the mobile development server
-pnpm --filter @workspace/mobile run dev
+# Start the browser preview on your own computer
+pnpm --filter @workspace/mobile run dev:web
 ```
 
-Then scan the QR code with **Expo Go** (iOS/Android) or press **W** to open in your browser.
+Expo opens a browser or prints a local URL in the terminal. Open that exact URL in another tab. It works while the development server is running; it is not a public website hosted by GitHub.
+
+For phone preview instead:
+
+```bash
+pnpm --filter @workspace/mobile run dev:local
+```
+
+Scan the QR code with **Expo Go** on a phone connected to the same network. Core local-bot play and local profiles do not require the online API; server-dependent features need a configured backend and may be unavailable in a fresh checkout. A browser profile and a native phone profile have separate storage.
+
+### Running in Replit
+
+Use the existing **artifacts/mobile: expo** workflow and open its Preview in another tab. That workflow injects the Replit routing and server-address configuration; the two local commands above are for a checkout on your computer, not replacements for the managed workflow.
+
+Replit's development URL is for testing while the app is running. A stable public URL requires publishing. The mobile production landing page can offer phone preview rather than a browser version of the game; do not assume it is the same browser target as development.
+
+The separate browser-local collectible shop is registered at `/goldrush-shop/` and has its own workflow. It does not automatically share your native game save or fulfill real-money purchases.
+
+Only changes committed and pushed to your GitHub repository appear in a new clone. Editing a Replit preview does not itself update GitHub or publish a new release.
 
 ### Type Checking
 
@@ -279,7 +297,7 @@ See [ALGORITHMS.md](./ALGORITHMS.md) for full mathematical documentation.
 2. Add real Privacy Policy link in App Store Connect
 3. Capture screenshots from a physical device via TestFlight
 4. Confirm bundle IDs match your Apple/Google developer accounts
-5. Run: `eas build --platform all --profile production`
+5. Complete the managed native publishing flow and the device, purchase and privacy gates in `docs/arena/release-checklist.md`.
 
 See [APP_STORE_ROADMAP.md](./APP_STORE_ROADMAP.md) for the complete submission checklist.
 
@@ -287,7 +305,7 @@ See [APP_STORE_ROADMAP.md](./APP_STORE_ROADMAP.md) for the complete submission c
 
 ## Roadmap
 
-### v1.0 (Current) -- App Store Ready
+### Current implementation -- release verification incomplete
 - [x] Core 4-player battle royale gameplay
 - [x] 6 game modes
 - [x] 23-rank progression system
