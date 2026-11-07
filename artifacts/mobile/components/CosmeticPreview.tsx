@@ -53,7 +53,7 @@ const c = StyleSheet.create({
   botN: { position: 'absolute', top: 4, alignSelf: 'center', height: 4, opacity: 0.7 },
   botW: { position: 'absolute', left: 4, top: '38%', width: 4, opacity: 0.7 },
   botE: { position: 'absolute', right: 4, top: '38%', width: 4, opacity: 0.7 },
-  ball: { position: 'absolute', width: 7, height: 7, borderRadius: 4, backgroundColor: tactile.paperInk },
+  ball: { position: 'absolute', width: 7, height: 7, borderRadius: 4, backgroundColor: tactile.courtInk },
   south: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  material: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: '#DFD1AD', letterSpacing: 0.4 },
+  material: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: '#575D5C', letterSpacing: 0.4 },
 });

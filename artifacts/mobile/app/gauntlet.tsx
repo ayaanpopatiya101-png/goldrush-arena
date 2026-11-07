@@ -104,7 +104,7 @@ export default function GauntletScreen() {
           {/* ── Round result ── */}
           <Animated.View style={[s.card, { transform: [{ scale: bannerScale }] }, roundWon && { borderColor: palette.ochre }]}>
             <ScreenTitle title="Gauntlet" kicker={`Round ${completedRound}`} />
-            <Text accessibilityRole="header" style={[s.title, { color: roundWon ? palette.ochre : palette.paper }]}>
+            <Text accessibilityRole="header" style={[s.title, { color: roundWon ? palette.charcoal : palette.paper }]}>
               {gauntletOver ? (gauntletWon ? 'Gauntlet won' : 'Gauntlet over') : roundWon ? 'Round won' : 'Round lost'}
             </Text>
             <Text style={s.body}>
@@ -169,7 +169,7 @@ export default function GauntletScreen() {
               <View style={s.stat}><Text style={s.statVal}>{state.totalXP}</Text><Text style={s.statLbl}>Account XP</Text></View>
               <View style={s.stat}><Text style={s.statVal}>{state.totalCoins}</Text><Text style={s.statLbl}>Coins</Text></View>
             </View>
-            {gauntletWon && <Text style={[s.body, { color: palette.ochre }]}>Champion bonus included: +1500 account XP and +300 coins.</Text>}
+            {gauntletWon && <Text style={[s.body, { color: palette.charcoal }]}>Champion bonus included: +1500 account XP and +300 coins.</Text>}
           </View>
         </View>
       </ScrollView>

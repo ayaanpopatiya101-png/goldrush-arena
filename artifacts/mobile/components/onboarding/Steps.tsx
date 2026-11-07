@@ -71,7 +71,7 @@ function Demo({ size }: { size: number }) {
   return (
     <View style={{ gap: 8, alignItems: 'center' }}>
       <View style={[w.demoFrame, { width: size, height: size }]}>
-        <GameArena key={run} arenaSize={size - 4} playerName="You" playerColor={palette.ochre} playerGlowColor={palette.ochre}
+        <GameArena key={run} arenaSize={size - 4} playerName="You" playerColor={palette.orange} playerGlowColor={palette.orange}
           botNames={['Bot North', 'Bot West', 'Bot East']} botRanks={['Gold', 'Gold', 'Gold']}
           onGameOver={() => setRun(r => r + 1)} practice soundEnabled={false} colorBoard={false} botDifficulty="easy" paused={paused} />
       </View>
@@ -214,7 +214,7 @@ const w = StyleSheet.create({
   legalText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.paperDim, textDecorationLine: 'underline' },
   rules: { borderTopWidth: 2, borderTopColor: tactile.brass },
   rule: { flexDirection: 'row', gap: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: palette.line, alignItems: 'baseline' },
-  ruleNum: { fontFamily: fonts.display, fontSize: 22, color: palette.ochre, width: 30 },
+  ruleNum: { fontFamily: fonts.display, fontSize: 22, color: palette.charcoal, width: 30 },
   ruleText: { fontFamily: fonts.body, fontSize: 17, lineHeight: 24, color: palette.paper, flex: 1 },
   demoFrame: { borderWidth: 2, borderColor: tactile.brass, backgroundColor: palette.ink, overflow: 'hidden' },
   input: { minHeight: 60, borderWidth: 2, borderColor: tactile.brass, backgroundColor: tactile.paperPanel, color: tactile.paperInk, fontFamily: fonts.display, fontSize: 28, paddingHorizontal: 16, borderRadius: 2 },

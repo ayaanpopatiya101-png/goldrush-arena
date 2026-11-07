@@ -1,17 +1,71 @@
-import { test } from 'node:test'; import assert from 'node:assert'; import { readFileSync } from 'node:fs';
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import vm from 'node:vm';
+
+// Evaluate the real exports so aliases and semantic tokens are tested too.
 const src = readFileSync(new URL('../constants/colors.ts', import.meta.url), 'utf8');
-const hex = k => src.match(new RegExp(k + ":\\s*'(#[0-9A-Fa-f]{6})'"))[1];
-const L = h => { const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(v=>v<=0.03928?v/12.92:((v+0.055)/1.055)**2.4); return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2]; };
-const cr = (a,b) => { const [x,y]=[L(a),L(b)].sort((p,q)=>q-p); return (x+0.05)/(y+0.05); };
-test('text contrast AA', () => {
-  for (const bg of ['ink','graphite','graphite2']) { assert.ok(cr(hex('paper'),hex(bg))>=7); assert.ok(cr(hex('muted'),hex(bg))>=4.5, bg); }
-  assert.ok(cr(hex('ochreInk'),hex('ochre'))>=7);
-  assert.ok(!/#(FFFFFF|000000)/i.test(src));
+const ts = createRequire(import.meta.url)('typescript');
+const exported = {};
+vm.runInNewContext(ts.transpileModule(src, {
+  compilerOptions: { module: ts.ModuleKind.CommonJS },
+}).outputText, { exports: exported });
+const { palette, tactile, PLAYER_COLORS, default: colors } = exported;
+const theme = colors.light;
+
+const luminance = h => {
+  const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255)
+    .map(v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+};
+const contrast = (a, b) => {
+  const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (light + 0.05) / (dark + 0.05);
+};
+
+test('the requested seven colours are assigned to their actual semantic roles', () => {
+  assert.equal(theme.background, '#EEE9DE');
+  assert.equal(theme.card, '#E3DFD3');
+  assert.equal(theme.foreground, '#252A2B');
+  assert.equal(theme.mutedForeground, '#575D5C');
+  assert.equal(theme.primary, '#F36B3F');
+  assert.equal(theme.primaryForeground, '#252A2B');
+  assert.equal(palette.ochre, '#EDBA3C');
+  assert.equal(tactile.court, '#23344B');
+  assert.equal(PLAYER_COLORS[0], '#F36B3F');
 });
 
-test('tactile parchment and brass use readable dark labels', () => {
-  assert.ok(cr(hex('paperInk'), hex('paperPanel')) >= 7, 'parchment title');
-  assert.ok(cr(hex('paperMuted'), hex('paperPanel')) >= 4.5, 'parchment body');
-  assert.ok(cr(hex('paperInk'), hex('brass')) >= 4.5, 'brass scoreboard labels');
-  assert.ok(cr(hex('ochreInk'), hex('coral')) >= 4.5, 'coral stamp labels');
+test('light surfaces retain accessible heading, body and supporting text', () => {
+  for (const bg of [theme.background, theme.card, theme.input]) {
+    assert.ok(contrast(theme.foreground, bg) >= 7, `primary text on ${bg}`);
+    assert.ok(contrast(theme.mutedForeground, bg) >= 4.5, `supporting text on ${bg}`);
+  }
+});
+
+test('orange actions, gold rewards and navy court have readable foregrounds', () => {
+  for (const [fg, bg, label] of [
+    [theme.primaryForeground, theme.primary, 'Play'],
+    [palette.ochreInk, palette.ochre, 'gold reward'],
+    [tactile.paperInk, tactile.paperPanel, 'panel'],
+    [tactile.paperMuted, tactile.paperPanel, 'panel description'],
+    [tactile.courtInk, tactile.court, 'court label'],
+    ['#EEE9DE', '#23344B', 'navy section'],
+  ]) assert.ok(contrast(fg, bg) >= 4.5, `${label}: ${contrast(fg, bg).toFixed(2)}`);
+});
+
+test('every default seat paddle is visible against the navy court', () => {
+  for (const color of PLAYER_COLORS) {
+    assert.ok(contrast(color, tactile.court) >= 3, `paddle ${color} on navy`);
+  }
+});
+
+test('secondary screens cannot keep the old pale supporting-text override', () => {
+  for (const page of ['leaderboard', 'shop', 'inventory', 'trophyroad', 'events', 'profile']) {
+    const source = readFileSync(new URL(`../app/(tabs)/${page}.tsx`, import.meta.url), 'utf8');
+    assert.doesNotMatch(source, /#D1DAC6/i, `${page} still overrides supporting text with the dark-theme colour`);
+    if (page === 'leaderboard') {
+      assert.doesNotMatch(source, /FadeInRight\.delay/, 'rank data must not remain translucent during staggered entry');
+    }
+  }
 });

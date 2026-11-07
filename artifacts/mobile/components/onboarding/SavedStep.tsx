@@ -138,7 +138,7 @@ const s = StyleSheet.create({
   main: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, minHeight: 64 },
   avatar: { width: 44, height: 44, borderWidth: 3, borderRadius: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.ink },
   name: { fontFamily: fonts.display, fontSize: 22, color: palette.paper, textTransform: 'uppercase' },
-  cont: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.ochre },
+  cont: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.charcoal },
   del: { width: 52, alignItems: 'center', justifyContent: 'center', borderLeftWidth: 2, borderLeftColor: tactile.brass },
   confirm: { flex: 1, padding: 12, gap: 10 },
   confirmText: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.paper },

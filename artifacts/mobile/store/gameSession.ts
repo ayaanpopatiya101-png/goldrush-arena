@@ -62,8 +62,8 @@ let _configured = false;
 let _config: GameSessionConfig = {
   playerName:      'Player',
   playerSkinId:    'default',
-  playerColor:     '#FFD700',
-  playerGlowColor: '#FFD70055',
+  playerColor:     '#F36B3F',
+  playerGlowColor: '#F36B3F55',
   matchType:       'ranked',
   variant:         'classic',
   playerRelicId:   'none',

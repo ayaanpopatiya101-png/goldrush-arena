@@ -55,14 +55,14 @@ function genPlayerId(): string {
 }
 
 const VARIANT_META: Record<string, { emoji: string; name: string; color: string }> = {
-  duos:         { emoji: '👥', name: 'DUOS',         color: '#8C8F7A' },
-  blitz:        { emoji: '⚡', name: 'BLITZ',        color: '#C99A2E' },
-  chaos:        { emoji: '🌪️', name: 'CHAOS',        color: '#B4533A' },
-  survival:     { emoji: '🛡️', name: 'SURVIVAL',     color: '#6F8A5B' },
-  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', color: '#B4533A' },
-  turbo:        { emoji: '🚀', name: 'TURBO',        color: '#8C8F7A' },
-  pinball:      { emoji: '🎰', name: 'PINBALL',      color: '#C99A2E' },
-  six_player:   { emoji: '6️⃣', name: '6-PLAYER',     color: '#C99A2E' },
+  duos:         { emoji: '👥', name: 'DUOS',         color: '#575D5C' },
+  blitz:        { emoji: '⚡', name: 'BLITZ',        color: '#EDBA3C' },
+  chaos:        { emoji: '🌪️', name: 'CHAOS',        color: '#F36B3F' },
+  survival:     { emoji: '🛡️', name: 'SURVIVAL',     color: '#EDBA3C' },
+  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', color: '#F36B3F' },
+  turbo:        { emoji: '🚀', name: 'TURBO',        color: '#575D5C' },
+  pinball:      { emoji: '🎰', name: 'PINBALL',      color: '#EDBA3C' },
+  six_player:   { emoji: '6️⃣', name: '6-PLAYER',     color: '#EDBA3C' },
 };
 
 const VARIANT_RULES: Record<string, string[]> = {
@@ -517,7 +517,7 @@ export default function LobbyScreen() {
     : opponents.length === 0
     ? 'Preparing local bot seats...'
     : `${opponents.length}/3 bot seats prepared...`;
-  const statusColor = status === 'searching' ? '#C99A2E' : '#6F8A5B';
+  const statusColor = status === 'searching' ? '#252A2B' : '#575D5C';
 
   if (!hasGameConfig()) {
     return (
@@ -535,7 +535,7 @@ export default function LobbyScreen() {
 
   return (
     <Reanimated.View entering={SlideInRight.duration(260)} exiting={SlideOutRight.duration(220)} style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#213D39', '#294C44', '#213D39']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#EEE9DE', '#E3DFD3', '#EEE9DE']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.5} />
       <LinearGradient
         colors={['#C99A2E1A', '#C99A2E08', 'transparent']}
@@ -554,22 +554,22 @@ export default function LobbyScreen() {
             {(() => {
               const isGauntlet = config.matchType === 'gauntlet';
               const isRanked   = config.matchType === 'ranked';
-              const c = isGauntlet ? '#C99A2E' : isRanked ? '#C99A2E' : '#8C8F7A';
+              const c = isGauntlet || isRanked ? '#EDBA3C' : '#575D5C';
               const label = isGauntlet
                 ? `GAUNTLET · Round ${getGauntletState().roundNumber}`
                 : isRanked ? 'RANKED' : 'CASUAL';
               return (
-                <View style={[styles.modeBadge, { backgroundColor: c + '22', borderColor: c + '66' }]}>
-                  <Text style={[styles.modeBadgeText, { color: c }]}>{label}</Text>
+                <View style={[styles.modeBadge, { backgroundColor: c === '#EDBA3C' ? c : 'transparent', borderColor: c }]}>
+                  <Text style={[styles.modeBadgeText, { color: c === '#EDBA3C' ? '#252A2B' : c }]}>{label}</Text>
                 </View>
               );
             })()}
             {config.variant !== 'classic' && (() => {
               const vm = VARIANT_META[config.variant];
-              const c  = vm?.color ?? '#ECE7DC';
+              const c  = vm?.color ?? '#252A2B';
               return (
-                <View style={[styles.modeBadge, { backgroundColor: c + '22', borderColor: c + '55' }]}>
-                  <Text style={[styles.modeBadgeText, { color: c }]}>
+                <View style={[styles.modeBadge, { backgroundColor: c === '#EDBA3C' || c === '#F36B3F' ? c : 'transparent', borderColor: c }]}>
+                  <Text style={[styles.modeBadgeText, { color: c === '#EDBA3C' || c === '#F36B3F' ? '#252A2B' : c }]}>
                     {vm?.name}
                   </Text>
                 </View>
@@ -585,8 +585,8 @@ export default function LobbyScreen() {
               );
             })()}
             {profile.totalGames < 5 && (
-              <View style={[styles.modeBadge, { backgroundColor: '#6F8A5B20', borderColor: '#6F8A5B55' }]}>
-                <Text style={[styles.modeBadgeText, { color: '#6F8A5B' }]}>
+              <View style={[styles.modeBadge, { backgroundColor: '#EDBA3C', borderColor: '#252A2B' }]}>
+                <Text style={[styles.modeBadgeText, { color: '#252A2B' }]}>
                    TRAINING · {5 - profile.totalGames} left
                 </Text>
               </View>
@@ -813,7 +813,7 @@ export default function LobbyScreen() {
                   <Text style={[styles.mapDesc, { color: colors.mutedForeground }]} numberOfLines={3}>{map.desc}</Text>
                   {unlocked
                     ? (selected
-                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#213D39" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
+                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#252A2B" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
                         : <View style={[styles.mapBadge, { backgroundColor: '#ECE7DC14' }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
                     : <View style={[styles.mapLockBadge, { borderColor: reqRank?.color + '66' }]}><Feather name="lock" size={9} color={reqRank?.color} /><Text style={[styles.mapLockText, { color: reqRank?.color }]}>{reqRank?.name}</Text></View>}
                 </Pressable>
@@ -857,7 +857,7 @@ const styles = StyleSheet.create({
   mapName: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   mapDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, lineHeight: 14, minHeight: 42 },
   mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
-  mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#213D39', letterSpacing: 0.5 },
+  mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#252A2B', letterSpacing: 0.5 },
   mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
   mapLockText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
   rulesCard: { borderRadius: 0, borderWidth: 2, padding: 16, gap: 10 },
@@ -866,6 +866,6 @@ const styles = StyleSheet.create({
   ruleItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   ruleDot: { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
   ruleText: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, flex: 1, lineHeight: 19 },
-  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#213D3999', alignItems: 'center', justifyContent: 'center' },
-  countdownText: { color: '#C99A2E', fontSize: 96, fontFamily: 'SourceSans3_700Bold', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#23344BEE', alignItems: 'center', justifyContent: 'center' },
+  countdownText: { color: '#EDBA3C', fontSize: 96, fontFamily: 'SourceSans3_700Bold', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
 });

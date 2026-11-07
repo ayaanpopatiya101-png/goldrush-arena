@@ -24,5 +24,5 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: '700', color: colors.dark.foreground, letterSpacing: 2 },
   body: { color: colors.dark.foreground, textAlign: 'center', fontSize: 16, maxWidth: 380 },
   retry: { backgroundColor: colors.dark.primary, minHeight: 48, paddingHorizontal: 28, justifyContent: 'center', borderRadius: 2 },
-  retryText: { color: colors.dark.background, fontWeight: '700' },
+  retryText: { color: colors.dark.primaryForeground, fontWeight: '700' },
 });

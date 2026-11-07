@@ -38,7 +38,7 @@ export const RANKS = [
 ];
 
 export const SKINS = [
-  { id: 'default',        name: 'Classic',       color: '#C99A2E', glowColor: '#C99A2E55', price: 0   },
+  { id: 'default',        name: 'Classic',       color: '#F36B3F', glowColor: '#F36B3F55', price: 0   },
   { id: 'plasma',         name: 'Plasma',        color: '#B4533A', glowColor: '#B4533A55', price: 150 },
   { id: 'frost',          name: 'Frost',         color: '#B7BFBE', glowColor: '#B7BFBE55', price: 150 },
   { id: 'toxic',          name: 'Toxic',         color: '#7F9065', glowColor: '#7F906555', price: 200 },

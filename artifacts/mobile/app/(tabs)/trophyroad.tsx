@@ -47,12 +47,12 @@ function bpRewardLabel(r: BPReward): string {
   return 'Reward';
 }
 function bpRewardColor(r: BPReward): string {
-  if (r.type === 'coins')     return '#EFBD3C';
-  if (r.type === 'credits')   return '#EDE3CC';
-  if (r.type === 'skin')      return '#EDE3CC';
-  if (r.type === 'ultradrop') return '#EFBD3C';
+  if (r.type === 'coins')     return '#EDBA3C';
+  if (r.type === 'credits')   return '#F36B3F';
+  if (r.type === 'skin')      return '#575D5C';
+  if (r.type === 'ultradrop') return '#EDBA3C';
   if (r.type === 'luckyblock' && r.tier) return LUCKY_BLOCK_META[r.tier].color;
-  return '#F5E7C4';
+  return '#252A2B';
 }
 function questEmoji(q: QuestDefinition) {
   if (q.period === 'daily')    return '☀️';
@@ -73,7 +73,7 @@ function isQuestClaimed(q: QuestDefinition, profile: ReturnType<typeof usePlayer
 }
 
 // ─── 3D Title ─────────────────────────────────────────────────────────────────
-function Title3D({ text, size = 22, color = '#EFBD3C', shadow = '#C98E12' }: {
+function Title3D({ text, size = 22, color = '#EDBA3C', shadow = '#C98E12' }: {
   text: string; size?: number; color?: string; shadow?: string;
 }) {
   return (
@@ -93,9 +93,9 @@ function BPPBadge({ bpp }: { bpp: number }) {
     ])).start();
   }, []);
   return (
-    <GlowBorder color='#EDE3CC' borderRadius={3} spread={12} pulse>
+    <GlowBorder color='#EDBA3C' borderRadius={3} spread={12} pulse>
       <Animated.View style={[s.bppBadge, { transform: [{ scale: pulse }] }]}>
-        <LinearGradient colors={['#EDE3CC', '#EDE3CC']} style={s.bppGrad}>
+        <LinearGradient colors={['#EDBA3C', '#EDBA3C']} style={s.bppGrad}>
           <Text style={s.bppVal}>{bpp.toLocaleString()}</Text>
           <Text style={s.bppLabel}>BP PTS</Text>
         </LinearGradient>
@@ -161,14 +161,14 @@ function SlotCard({ tier, bpp, hasPremium, onClaim }: {
           style={[s.rewardBlock, s.freeBlock, isUnlocked && { borderColor: freeColor + '44' }]}
         >
           <LinearGradient
-            colors={isUnlocked ? [freeColor + '22', freeColor + '08'] : ['#F5E7C405', '#0005']}
+            colors={isUnlocked ? [freeColor + '18', freeColor + '08'] : ['#E3DFD3', '#E3DFD3']}
             style={StyleSheet.absoluteFill}
           />
           <Glyph style={[s.rewardEmoji, !isUnlocked && { opacity: 0.2 }]} value={bpRewardEmoji(tier.free)} />
-          <Text style={[s.rewardLbl, { color: isUnlocked ? freeColor : '#D1DAC6' }]} numberOfLines={2}>
+          <Text style={[s.rewardLbl, { color: '#252A2B' }]} numberOfLines={2}>
             {bpRewardLabel(tier.free)}
           </Text>
-          {isUnlocked && <Text style={[s.trackLabel, { color: freeColor + 'BB' }]}>FREE</Text>}
+          {isUnlocked && <Text style={[s.trackLabel, { color: '#575D5C' }]}>FREE</Text>}
         </Pressable>
 
         {/* Premium reward (bottom) */}
@@ -178,15 +178,15 @@ function SlotCard({ tier, bpp, hasPremium, onClaim }: {
           style={[s.rewardBlock, s.premBlock, isUnlocked && hasPremium && { borderColor: premColor + '55' }]}
         >
           <LinearGradient
-            colors={isUnlocked && hasPremium ? [premColor + '22', premColor + '08'] : ['#F5E7C403', '#0003']}
+            colors={isUnlocked && hasPremium ? [premColor + '18', premColor + '08'] : ['#EEE9DE', '#EEE9DE']}
             style={StyleSheet.absoluteFill}
           />
           <Glyph style={[s.rewardEmoji, !(isUnlocked && hasPremium) && { opacity: 0.2 }]} value={bpRewardEmoji(tier.premium)} />
-          <Text style={[s.rewardLbl, { color: isUnlocked && hasPremium ? premColor : '#D1DAC6' }]} numberOfLines={2}>
+          <Text style={[s.rewardLbl, { color: '#252A2B' }]} numberOfLines={2}>
             {bpRewardLabel(tier.premium)}
           </Text>
           {!hasPremium && <Text style={s.lockLabel}>PREMIUM</Text>}
-          {isUnlocked && hasPremium && <Text style={[s.trackLabel, { color: premColor + 'BB' }]}>PREMIUM</Text>}
+          {isUnlocked && hasPremium && <Text style={[s.trackLabel, { color: '#575D5C' }]}>PREMIUM</Text>}
         </Pressable>
       </Animated.View>
     </ShimmerCard>
@@ -209,19 +209,19 @@ function QuestRow({ quest, progress, claimed, premiumOwned, onClaim }: {
   const barPct = barW.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const isReady = pct >= 1 && !claimed;
   const isLocked = quest.premiumOnly && !premiumOwned;
-  const periodColor = quest.period === 'daily' ? '#EFBD3C' : quest.period === 'weekly' ? '#EDE3CC' : '#CE7863';
+  const periodColor = quest.period === 'daily' ? '#EDBA3C' : quest.period === 'weekly' ? '#575D5C' : '#F36B3F';
 
   return (
-    <ShimmerCard active={claimed} borderRadius={3} shimmerColor="rgba(100,255,100,0.1)">
-      <View style={[s.questRow, { borderColor: claimed ? '#9BB77A22' : isReady ? periodColor + '44' : '#F5E7C40D' }]}>
+    <ShimmerCard active={claimed} borderRadius={3} shimmerColor="rgba(237,186,60,0.12)">
+      <View style={[s.questRow, { borderColor: claimed ? '#575D5C' : isReady ? periodColor : '#575D5C66' }]}>
         <LinearGradient
-          colors={claimed ? ['#9BB77A08', '#0005'] : isReady ? [periodColor + '18', '#0005'] : ['#F5E7C404', '#0003']}
+          colors={claimed ? ['#E3DFD3', '#E3DFD3'] : isReady ? [periodColor + '12', '#E3DFD3'] : ['#E3DFD3', '#E3DFD3']}
           style={StyleSheet.absoluteFill}
         />
         <Glyph style={s.questEmoji} value={questEmoji(quest)} />
         <View style={{ flex: 1, gap: 4 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={[s.questTitle, { color: isLocked ? '#D1DAC6' : claimed ? '#9BB77A' : '#F5E7C4CC' }]}>
+            <Text style={[s.questTitle, { color: '#252A2B' }]}>
               {quest.title}
             </Text>
             {quest.premiumOnly && (
@@ -230,11 +230,11 @@ function QuestRow({ quest, progress, claimed, premiumOwned, onClaim }: {
               </View>
             )}
           </View>
-          <Text style={[s.questDesc, { color: isLocked ? '#D1DAC6' : '#D1DAC6' }]}>{quest.description}</Text>
+          <Text style={[s.questDesc, { color: '#575D5C' }]}>{quest.description}</Text>
           {/* Progress bar */}
           <View style={{ gap: 3 }}>
             <View style={s.questBarBg}>
-              <Animated.View style={[s.questBarFill, { width: barPct as never, backgroundColor: claimed ? '#9BB77A' : periodColor }]}>
+              <Animated.View style={[s.questBarFill, { width: barPct as never, backgroundColor: claimed ? '#575D5C' : periodColor }]}>
                 <View style={s.questBarShine} />
               </Animated.View>
             </View>
@@ -245,13 +245,13 @@ function QuestRow({ quest, progress, claimed, premiumOwned, onClaim }: {
         </View>
         {/* BPP badge */}
         <View style={{ alignItems: 'flex-end', gap: 5, minWidth: 54 }}>
-          <View style={[s.bppChip, { borderColor: periodColor + '55', backgroundColor: periodColor + '18' }]}>
-            <Text style={[s.bppChipTxt, { color: periodColor }]}>+{quest.reward}</Text>
-            <Text style={[s.bppChipLabel, { color: periodColor + 'AA' }]}>BP</Text>
+          <View style={[s.bppChip, { borderColor: '#252A2B', backgroundColor: '#EDBA3C' }]}>
+            <Text style={[s.bppChipTxt, { color: '#252A2B' }]}>+{quest.reward}</Text>
+            <Text style={[s.bppChipLabel, { color: '#252A2B' }]}>BP</Text>
           </View>
           {isReady && !isLocked && (
-            <Pressable onPress={() => onClaim(quest.id)} style={[s.claimBtn, { borderColor: periodColor, backgroundColor: periodColor + '22' }]}>
-              <Text style={[s.claimBtnTxt, { color: periodColor }]}>CLAIM</Text>
+            <Pressable onPress={() => onClaim(quest.id)} style={[s.claimBtn, { borderColor: '#252A2B', backgroundColor: '#F36B3F' }]}>
+              <Text style={[s.claimBtnTxt, { color: '#252A2B' }]}>CLAIM</Text>
             </Pressable>
           )}
           {claimed && <Glyph style={{ fontSize: 16 }} value="✅" />}
@@ -263,13 +263,12 @@ function QuestRow({ quest, progress, claimed, premiumOwned, onClaim }: {
 }
 
 // ─── Quest Section ────────────────────────────────────────────────────────────
-function QuestSection({ title, quests, profile, premiumOwned, onClaim, periodColor, defaultOpen }: {
+function QuestSection({ title, quests, profile, premiumOwned, onClaim, defaultOpen }: {
   title: string;
   quests: QuestDefinition[];
   profile: ReturnType<typeof usePlayer>['profile'];
   premiumOwned: boolean;
   onClaim: (id: string) => void;
-  periodColor: string;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen ?? true);
@@ -277,16 +276,16 @@ function QuestSection({ title, quests, profile, premiumOwned, onClaim, periodCol
   const totalEligible = quests.filter(q => !q.premiumOnly || premiumOwned).length;
   return (
     <View style={{ marginBottom: 10 }}>
-      <Pressable onPress={() => setOpen(o => !o)} style={[s.sectionHeader, { borderColor: periodColor + '44' }]}>
-        <LinearGradient colors={[periodColor + '18', periodColor + '06']} style={StyleSheet.absoluteFill} />
+      <Pressable onPress={() => setOpen(o => !o)} style={[s.sectionHeader, { borderColor: '#575D5C' }]}>
+        <LinearGradient colors={['#E3DFD3', '#E3DFD3']} style={StyleSheet.absoluteFill} />
         <Glyph style={{ fontSize: 14 }} value={title === 'Daily' ? '☀️' : title === 'Weekly' ? '📅' : '🏆'} />
-        <GlowText intensity="soft" color='#EFBD3C' style={[s.sectionTitle, { color: periodColor }]}>
+        <GlowText intensity="soft" color='#252A2B' style={[s.sectionTitle, { color: '#252A2B' }]}>
           {title.toUpperCase()} QUESTS
         </GlowText>
         <View style={s.sectionCount}>
-          <Text style={[s.sectionCountTxt, { color: periodColor }]}>{claimedCount}/{totalEligible}</Text>
+          <Text style={[s.sectionCountTxt, { color: '#252A2B' }]}>{claimedCount}/{totalEligible}</Text>
         </View>
-        <Text style={{ color: '#D1DAC6', fontSize: 12 }}>{open ? '▲' : '▼'}</Text>
+        <Text style={{ color: '#575D5C', fontSize: 12 }}>{open ? '▲' : '▼'}</Text>
       </Pressable>
       {open && quests.map(q => (
         <QuestRow
@@ -318,7 +317,7 @@ function Toast({ label, color, onDone }: { label: string; color: string; onDone:
   }, []);
   return (
     <Animated.View pointerEvents="none" style={[tr.toast, { borderColor: color, opacity: op, transform: [{ translateY: ty }] }]}>
-      <Text style={[tr.toastTxt, { color }]}>{label}</Text>
+      <Text style={[tr.toastTxt, { color: '#EEE9DE' }]}>{label}</Text>
     </Animated.View>
   );
 }
@@ -338,40 +337,40 @@ const ROAD_ZONES: RoadZone[] = [
   {
     name: 'Dusty Trail',
     subtitle: 'Where legends begin…',
-    gradColors: ['#213D39', '#213D39'],
-    accent: '#EFBD3C',
+    gradColors: ['#E3DFD3', '#E3DFD3'],
+    accent: '#EDBA3C',
     decor: ['🌵', '⛺', '🏜️', '🌅', '🌵'],
     milestones: TROPHY_ROAD.slice(0, 5),
   },
   {
     name: 'Gold Rush Gulch',
     subtitle: 'Strike it rich',
-    gradColors: ['#213D39', '#213D39'],
-    accent: '#EFBD3C',
+    gradColors: ['#E3DFD3', '#E3DFD3'],
+    accent: '#EDBA3C',
     decor: ['⛏️', '🪨', '💰', '🔦', '💎'],
     milestones: TROPHY_ROAD.slice(5, 10),
   },
   {
     name: 'Crimson Canyon',
     subtitle: 'Heat rises, do you?',
-    gradColors: ['#213D39', '#213D39'],
-    accent: '#CE7863',
+    gradColors: ['#E3DFD3', '#E3DFD3'],
+    accent: '#F36B3F',
     decor: ['🌋', '🔥', '💥', '🏔️', '🌋'],
     milestones: TROPHY_ROAD.slice(10, 15),
   },
   {
     name: 'Crystal Caverns',
     subtitle: 'Beneath the surface',
-    gradColors: ['#213D39', '#213D39'],
-    accent: '#EDE3CC',
+    gradColors: ['#E3DFD3', '#E3DFD3'],
+    accent: '#575D5C',
     decor: ['💎', '🔮', '✨', '🫧', '💎'],
     milestones: TROPHY_ROAD.slice(15, 20),
   },
   {
     name: 'Summit of Champions',
     subtitle: 'Only the elite reach here',
-    gradColors: ['#213D39', '#213D39'],
-    accent: '#EDE3CC',
+    gradColors: ['#E3DFD3', '#E3DFD3'],
+    accent: '#575D5C',
     decor: ['👑', '⚡', '🏆', '🌟', '⚡'],
     milestones: TROPHY_ROAD.slice(20, 25),
   },
@@ -392,11 +391,11 @@ function trLabel(r: TrophyReward): string {
   return 'Reward';
 }
 function trColor(r: TrophyReward): string {
-  if (r.type === 'coins')     return '#EFBD3C';
-  if (r.type === 'skin')      return '#EDE3CC';
-  if (r.type === 'relic')     return '#CE7863';
+  if (r.type === 'coins')     return '#EDBA3C';
+  if (r.type === 'skin')      return '#575D5C';
+  if (r.type === 'relic')     return '#F36B3F';
   if (r.type === 'luckyblock') return LUCKY_BLOCK_META[r.tier].color;
-  return '#F5E7C4';
+  return '#252A2B';
 }
 function fmtXP(n: number): string {
   if (n >= 1000) return (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'K';
@@ -467,13 +466,13 @@ function ZoneBanner({ zone, zoneIdx }: { zone: RoadZone; zoneIdx: number }) {
         }}
       >
 
-        <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 8, color: zone.accent, letterSpacing: 3, marginBottom: 3 }}>
+        <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 8, color: '#575D5C', letterSpacing: 3, marginBottom: 3 }}>
           ZONE {zoneIdx + 1} · 5 MILESTONES
         </Text>
-        <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: '#F5E7C4', letterSpacing: 1.5, lineHeight: 28 }}>
+        <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: '#252A2B', letterSpacing: 1.5, lineHeight: 28 }}>
           {zone.name.toUpperCase()}
         </Text>
-        <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: zone.accent + 'CC', marginTop: 2 }}>
+        <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#575D5C', marginTop: 2 }}>
           {zone.subtitle}
         </Text>
         {/* XP range pill */}
@@ -483,7 +482,7 @@ function ZoneBanner({ zone, zoneIdx }: { zone: RoadZone; zoneIdx: number }) {
           paddingHorizontal: 8, paddingVertical: 3,
           borderWidth: 1, borderColor: zone.accent + '44',
         }}>
-          <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: zone.accent, letterSpacing: 0.5 }}>
+          <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#252A2B', letterSpacing: 0.5 }}>
             {fmtXP(zone.milestones[0].xp)} – {fmtXP(zone.milestones[4].xp)} XP
           </Text>
         </View>
@@ -508,9 +507,8 @@ function MilestoneNode({ ms, globalIdx, zone, claimed, canClaim, isLeft, onClaim
     return () => a.stop();
   }, [canClaim]);
 
-  const borderColor = claimed ? zone.accent + '60' : canClaim ? zone.accent : '#F5E7C41A';
-  const bg1 = claimed ? zone.accent + '20' : canClaim ? zone.accent + '38' : zone.accent + '08';
-  const rc = trColor(ms.reward);
+  const borderColor = claimed ? '#575D5C' : canClaim ? zone.accent : '#575D5C66';
+  const bg1 = claimed ? '#E3DFD3' : canClaim ? zone.accent + '12' : '#E3DFD3';
 
   return (
     <View style={[tr.nodeRow, { justifyContent: isLeft ? 'flex-start' : 'flex-end' }]}>
@@ -534,23 +532,23 @@ function MilestoneNode({ ms, globalIdx, zone, claimed, canClaim, isLeft, onClaim
           <Glyph style={{ fontSize: 32, marginVertical: 6 }} value={trEmoji(ms.reward)} />
 
           {/* Reward name */}
-          <Text style={[tr.rewardTxt, { color: rc }]} numberOfLines={2}>{trLabel(ms.reward)}</Text>
+          <Text style={[tr.rewardTxt, { color: '#252A2B' }]} numberOfLines={2}>{trLabel(ms.reward)}</Text>
 
           {/* XP threshold */}
           <Text style={tr.xpTxt}>{fmtXP(ms.xp)} XP</Text>
 
           {/* State chip */}
           {claimed ? (
-            <View style={[tr.chip, { backgroundColor: '#9BB77A20', borderColor: '#9BB77A40' }]}>
-              <Text style={[tr.chipTxt, { color: '#9BB77A' }]}>CLAIMED</Text>
+            <View style={[tr.chip, { backgroundColor: '#EDBA3C', borderColor: '#252A2B' }]}>
+              <Text style={[tr.chipTxt, { color: '#252A2B' }]}>CLAIMED</Text>
             </View>
           ) : canClaim ? (
-            <View style={[tr.chip, { backgroundColor: zone.accent + '28', borderColor: zone.accent + '88' }]}>
-              <Text style={[tr.chipTxt, { color: zone.accent }]}>TAP TO CLAIM</Text>
+            <View style={[tr.chip, { backgroundColor: '#F36B3F', borderColor: '#252A2B' }]}>
+              <Text style={[tr.chipTxt, { color: '#252A2B' }]}>TAP TO CLAIM</Text>
             </View>
           ) : (
-            <View style={[tr.chip, { backgroundColor: '#F5E7C408', borderColor: '#F5E7C418' }]}>
-              <Text style={[tr.chipTxt, { color: '#D1DAC6' }]}> {fmtXP(ms.xp)} XP</Text>
+            <View style={[tr.chip, { backgroundColor: '#EEE9DE', borderColor: '#575D5C66' }]}>
+              <Text style={[tr.chipTxt, { color: '#575D5C' }]}> {fmtXP(ms.xp)} XP</Text>
             </View>
           )}
         </Pressable>
@@ -567,7 +565,7 @@ function ZoneEndArrow({ accentA, accentB }: { accentA: string; accentB: string }
         style={{ height: 2, width: 80, marginBottom: 6 }}
       />
       <Glyph style={{ fontSize: 14, opacity: 0.45 }} value="⬇" />
-      <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 7, color: '#D1DAC6', letterSpacing: 2.5, marginTop: 3 }}>
+      <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 7, color: '#575D5C', letterSpacing: 2.5, marginTop: 3 }}>
         NEXT ZONE
       </Text>
     </View>
@@ -595,16 +593,16 @@ function TrophyRoadTab({
       {/* Overall progress bar */}
       <View style={{ marginHorizontal: 16, marginTop: 8, marginBottom: 4 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
-          <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#EFBD3C', letterSpacing: 1 }}>
+          <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#252A2B', letterSpacing: 1 }}>
             TROPHY ROAD
           </Text>
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: '#D1DAC6' }}>
+          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: '#575D5C' }}>
             {done} / {total} claimed
           </Text>
         </View>
-        <View style={{ height: 5, backgroundColor: '#F5E7C40D', borderRadius: 3, overflow: 'hidden' }}>
+        <View style={{ height: 5, backgroundColor: '#575D5C66', borderRadius: 3, overflow: 'hidden' }}>
           <LinearGradient
-            colors={['#EFBD3C', '#EFBD3C']}
+            colors={['#EDBA3C', '#EDBA3C']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={{ height: 5, width: `${(done / total) * 100}%` as any, borderRadius: 3 }}
           />
@@ -641,13 +639,13 @@ function TrophyRoadTab({
 
       {/* Completion banner */}
       {done === total && (
-        <View style={{ margin: 20, borderRadius: 3, overflow: 'hidden', borderWidth: 1.5, borderColor: '#EFBD3C66' }}>
-          <LinearGradient colors={['#213D3960', '#213D39']} style={{ padding: 20, alignItems: 'center', gap: 4 }}>
+        <View style={{ margin: 20, borderRadius: 3, overflow: 'hidden', borderWidth: 1.5, borderColor: '#575D5C' }}>
+          <LinearGradient colors={['#E3DFD3', '#E3DFD3']} style={{ padding: 20, alignItems: 'center', gap: 4 }}>
             <Glyph style={{ fontSize: 40 }} value="🏆" />
-            <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 20, color: '#EFBD3C', letterSpacing: 2 }}>
+            <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 20, color: '#252A2B', letterSpacing: 2 }}>
               ROAD COMPLETE!
             </Text>
-            <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#D1DAC6', textAlign: 'center' }}>
+            <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#575D5C', textAlign: 'center' }}>
               You've conquered every zone. True GoldRush Champion.
             </Text>
           </LinearGradient>
@@ -740,12 +738,12 @@ export default function BattlePassScreen() {
   const focusStyle = useFocusAnimation();
 
   return (
-    <Reanimated.View style={[{ flex: 1, backgroundColor: '#213D39' }, focusStyle]}>
+    <Reanimated.View style={[{ flex: 1, backgroundColor: '#EEE9DE' }, focusStyle]}>
       <FloatingOrbs orbs={ORBS_ARCANE} opacity={0.8} />
       <ParticleField count={35} mode="stars" />
-      <LinearGradient colors={['#213D39', '#213D39', '#213D39']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#EEE9DE', '#EEE9DE', '#EEE9DE']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#EDE3CC26', '#EDE3CC10', 'transparent']}
+        colors={['#EDBA3C18', '#EDBA3C08', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 380 }}
         pointerEvents="none"
       />
@@ -784,7 +782,7 @@ export default function BattlePassScreen() {
             onPress={() => router.push('/(tabs)/shop')}
             style={({ pressed }) => [s.buyPremBtn, { opacity: pressed ? 0.8 : 1 }]}
           >
-            <LinearGradient colors={['#EDE3CC', '#EDE3CC']} style={StyleSheet.absoluteFill} />
+            <LinearGradient colors={['#EDBA3C', '#EDBA3C']} style={StyleSheet.absoluteFill} />
             <Glyph style={{ fontSize: 18 }} value="👑" />
             <View style={{ flex: 1 }}>
               <Text style={s.buyPremTitle}>Upgrade to Premium Pass</Text>
@@ -794,7 +792,7 @@ export default function BattlePassScreen() {
           </Pressable>
         ) : (
           <View style={s.premOwnedBadge}>
-            <LinearGradient colors={['#EDE3CC22', '#EDE3CC10']} style={StyleSheet.absoluteFill} />
+            <LinearGradient colors={['#E3DFD3', '#E3DFD3']} style={StyleSheet.absoluteFill} />
             <Glyph style={{ fontSize: 14 }} value="👑" />
             <Text style={s.premOwnedTxt}>PREMIUM PASS ACTIVE, Season {BATTLE_PASS_SEASON}</Text>
           </View>
@@ -812,7 +810,7 @@ export default function BattlePassScreen() {
               style={[s.tabBtn, innerTab === tab.id && s.tabBtnActive]}
             >
               <Glyph style={{ fontSize: 13 }} value={tab.emoji} />
-              <Text style={[s.tabBtnTxt, innerTab === tab.id && { color: '#EDE3CC' }]}>
+                <Text style={[s.tabBtnTxt, innerTab === tab.id && { color: '#252A2B' }]}>
                 {tab.label}
               </Text>
             </Pressable>
@@ -830,11 +828,11 @@ export default function BattlePassScreen() {
         {innerTab === 'quests' && (
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 90, paddingTop: 8 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 140, paddingTop: 8 }}
           >
-            <QuestSection title="Daily"    quests={DAILY_QUESTS}   profile={profile} premiumOwned={hasPremium} onClaim={handleClaimQuest} periodColor="#EFBD3C" defaultOpen />
-            <QuestSection title="Weekly"   quests={WEEKLY_QUESTS}  profile={profile} premiumOwned={hasPremium} onClaim={handleClaimQuest} periodColor="#EDE3CC" />
-            <QuestSection title="Seasonal" quests={SEASONAL_QUESTS} profile={profile} premiumOwned={hasPremium} onClaim={handleClaimQuest} periodColor="#CE7863" />
+            <QuestSection title="Daily"    quests={DAILY_QUESTS}   profile={profile} premiumOwned={hasPremium} onClaim={handleClaimQuest} defaultOpen />
+            <QuestSection title="Weekly"   quests={WEEKLY_QUESTS}  profile={profile} premiumOwned={hasPremium} onClaim={handleClaimQuest} />
+            <QuestSection title="Seasonal" quests={SEASONAL_QUESTS} profile={profile} premiumOwned={hasPremium} onClaim={handleClaimQuest} />
           </ScrollView>
         )}
 
@@ -843,11 +841,11 @@ export default function BattlePassScreen() {
           <View style={{ flex: 1 }}>
             {/* Track labels */}
             <View style={s.trackLabelRow}>
-              <View style={[s.trackTag, { borderColor: '#F5E7C422' }]}>
-                <Text style={[s.trackTagTxt, { color: '#D1DAC6' }]}>FREE</Text>
+              <View style={[s.trackTag, { borderColor: '#575D5C' }]}>
+                <Text style={[s.trackTagTxt, { color: '#575D5C' }]}>FREE</Text>
               </View>
-              <View style={[s.trackTag, { borderColor: '#EDE3CC66', backgroundColor: '#EDE3CC22' }]}>
-                <Text style={[s.trackTagTxt, { color: '#EDE3CC' }]}>PREMIUM</Text>
+              <View style={[s.trackTag, { borderColor: '#252A2B', backgroundColor: '#EDBA3C' }]}>
+                <Text style={[s.trackTagTxt, { color: '#252A2B' }]}>PREMIUM</Text>
               </View>
             </View>
 
@@ -870,7 +868,7 @@ export default function BattlePassScreen() {
             </ScrollView>
 
             {/* Legend */}
-            <View style={[s.legend, { paddingBottom: insets.bottom + 78 }]}>
+            <View style={[s.legend, { paddingBottom: insets.bottom + 104 }]}>
               {[
                 { emoji: '🪙', label: 'Coins' },
                 { emoji: '⚡', label: 'Credits' },
@@ -919,36 +917,36 @@ const s = StyleSheet.create({
 
   // Header
   header: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 18, marginBottom: 10, gap: 12 },
-  seasonLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, letterSpacing: 2.5, color: '#EDE3CC99', marginBottom: 2 },
-  headerSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#D1DAC6', letterSpacing: 0.3, marginTop: 4 },
+  seasonLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, letterSpacing: 2.5, color: '#575D5C', marginBottom: 2 },
+  headerSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#575D5C', letterSpacing: 0.3, marginTop: 4 },
 
   // BPP badge
   bppBadge: { borderRadius: 0, overflow: 'hidden', shadowColor: '#EDE3CC', shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 } },
   bppGrad:  { paddingHorizontal: 12, paddingVertical: 6, alignItems: 'center', borderRadius: 3 },
-  bppVal:   { color: '#F5E7C4', fontFamily: 'SourceSans3_700Bold', fontSize: 18, lineHeight: 22 },
-  bppLabel: { color: '#EDE3CC', fontFamily: 'SourceSans3_700Bold', fontSize: 7, letterSpacing: 2 },
+  bppVal:   { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 18, lineHeight: 22 },
+  bppLabel: { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 7, letterSpacing: 2 },
 
   // Progress
-  progressCard: { marginHorizontal: 18, marginBottom: 10, backgroundColor: '#294C44', borderRadius: 0, padding: 10, borderWidth: 2, borderColor: '#EDE3CC22' },
+  progressCard: { marginHorizontal: 18, marginBottom: 10, backgroundColor: '#EDBA3C', borderRadius: 0, padding: 10, borderWidth: 2, borderColor: '#252A2B' },
   progressRow:  { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 7 },
-  progressLbl:  { color: '#D1DAC6', fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 0.3 },
-  barBg:   { height: 8, borderRadius: 4, backgroundColor: '#F5E7C40D', overflow: 'hidden' },
-  barFill: { height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: '#EDE3CC' },
-  barShine:{ position: 'absolute', top: 1, left: '5%', width: '60%', height: 3, borderRadius: 2, backgroundColor: '#F5E7C455' },
+  progressLbl:  { color: '#252A2B', fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 0.3 },
+  barBg:   { height: 8, borderRadius: 4, backgroundColor: '#575D5C66', overflow: 'hidden' },
+  barFill: { height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: '#F36B3F' },
+  barShine:{ position: 'absolute', top: 1, left: '5%', width: '60%', height: 3, borderRadius: 2, backgroundColor: '#EEE9DE77' },
 
   // Buy Premium button
   buyPremBtn: { marginHorizontal: 18, marginBottom: 10, borderRadius: 0, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 10 },
-  buyPremTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: '#F5E7C4', letterSpacing: 0.3 },
-  buyPremSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#EDE3CCbb', marginTop: 2 },
-  buyPremPrice: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#F5E7C4', backgroundColor: '#F5E7C422', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 3 },
-  premOwnedBadge: { marginHorizontal: 18, marginBottom: 10, borderRadius: 0, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, gap: 8, borderWidth: 2, borderColor: '#EDE3CC44' },
-  premOwnedTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#EDE3CC', letterSpacing: 1 },
+  buyPremTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: '#252A2B', letterSpacing: 0.3 },
+  buyPremSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#575D5C', marginTop: 2 },
+  buyPremPrice: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#252A2B', backgroundColor: '#EEE9DE', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 3 },
+  premOwnedBadge: { marginHorizontal: 18, marginBottom: 10, borderRadius: 0, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, gap: 8, borderWidth: 2, borderColor: '#575D5C' },
+  premOwnedTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#252A2B', letterSpacing: 1 },
 
   // Inner tabs
-  tabBar: { flexDirection: 'row', marginHorizontal: 18, marginBottom: 10, backgroundColor: '#F5E7C408', borderRadius: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#F5E7C40D' },
+  tabBar: { flexDirection: 'row', marginHorizontal: 18, marginBottom: 10, backgroundColor: '#E3DFD3', borderRadius: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#575D5C' },
   tabBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9 },
-  tabBtnActive: { backgroundColor: '#294C44', borderBottomWidth: 2, borderBottomColor: '#EDE3CC' },
-  tabBtnTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 1.5, color: '#D1DAC6' },
+  tabBtnActive: { backgroundColor: '#F36B3F', borderBottomWidth: 2, borderBottomColor: '#252A2B' },
+  tabBtnTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 1.5, color: '#575D5C' },
 
   // Track labels above the pass
   trackLabelRow: { flexDirection: 'row', justifyContent: 'flex-start', gap: 10, paddingHorizontal: 18, marginBottom: 6 },
@@ -958,26 +956,26 @@ const s = StyleSheet.create({
   // Slot card
   slotWrap: {
     width: 112, borderRadius: 3, overflow: 'hidden',
-    backgroundColor: '#294C44', borderWidth: 1, borderColor: '#F5E7C40D',
+    backgroundColor: '#E3DFD3', borderWidth: 1, borderColor: '#575D5C66',
   },
-  slotMilestone: { borderColor: '#EFBD3C44' },
+  slotMilestone: { borderColor: '#EDBA3C' },
   milestoneGlow: { borderWidth: 1.5, borderRadius: 3 },
-  slotNum: { alignItems: 'center', paddingVertical: 6, backgroundColor: '#F5E7C408', borderBottomWidth: 1, borderColor: '#F5E7C40A' },
-  slotNumUnlocked: { backgroundColor: '#EDE3CC22' },
-  slotNumMilestone: { backgroundColor: '#EFBD3C22' },
-  slotNumTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#D1DAC6', letterSpacing: 0.5 },
+  slotNum: { alignItems: 'center', paddingVertical: 6, backgroundColor: '#EEE9DE', borderBottomWidth: 1, borderColor: '#575D5C66' },
+  slotNumUnlocked: { backgroundColor: '#EDBA3C' },
+  slotNumMilestone: { backgroundColor: '#F36B3F' },
+  slotNumTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#252A2B', letterSpacing: 0.5 },
   rewardBlock: { padding: 8, alignItems: 'center', borderWidth: 0, minHeight: 82, justifyContent: 'center' },
-  freeBlock: { borderBottomWidth: 1, borderBottomColor: '#F5E7C40A' },
+  freeBlock: { borderBottomWidth: 1, borderBottomColor: '#575D5C66' },
   premBlock: {},
   rewardEmoji: { fontSize: 20, marginBottom: 3 },
   rewardLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8, letterSpacing: 0.3, textAlign: 'center', lineHeight: 11 },
   trackLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 7, letterSpacing: 1.5, marginTop: 3 },
-  lockLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 7, color: '#D1DAC6', letterSpacing: 1, marginTop: 3 },
+  lockLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 7, color: '#575D5C', letterSpacing: 1, marginTop: 3 },
 
   // Quest section
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, overflow: 'hidden', borderRadius: 0, borderWidth: 2, paddingHorizontal: 12, paddingVertical: 9, marginBottom: 6 },
   sectionTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, flex: 1 },
-  sectionCount: { borderRadius: 0, paddingHorizontal: 7, paddingVertical: 2, backgroundColor: '#294C44' },
+  sectionCount: { borderRadius: 0, paddingHorizontal: 7, paddingVertical: 2, backgroundColor: '#EDBA3C' },
   sectionCountTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 0.5 },
 
   // Quest row
@@ -985,12 +983,12 @@ const s = StyleSheet.create({
   questEmoji: { fontSize: 18, marginTop: 2 },
   questTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.3 },
   questDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 10, lineHeight: 14 },
-  questBarBg:   { height: 5, borderRadius: 0, backgroundColor: '#294C44', overflow: 'hidden' },
+  questBarBg:   { height: 5, borderRadius: 0, backgroundColor: '#575D5C66', overflow: 'hidden' },
   questBarFill: { height: 5, borderRadius: 0, overflow: 'hidden' },
-  questBarShine:{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#294C44', borderRadius: 0 },
-  questProg: { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#D1DAC6', letterSpacing: 0.3 },
-  premBadge:    { borderRadius: 0, borderWidth: 2, borderColor: '#EDE3CC55', backgroundColor: '#294C44', paddingHorizontal: 5, paddingVertical: 1 },
-  premBadgeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 7, color: '#EDE3CC', letterSpacing: 1 },
+  questBarShine:{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#EEE9DE77', borderRadius: 0 },
+  questProg: { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#575D5C', letterSpacing: 0.3 },
+  premBadge:    { borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', backgroundColor: '#EDBA3C', paddingHorizontal: 5, paddingVertical: 1 },
+  premBadgeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 7, color: '#252A2B', letterSpacing: 1 },
   bppChip:    { flexDirection: 'row', alignItems: 'center', gap: 2, borderRadius: 3, borderWidth: 1, paddingHorizontal: 7, paddingVertical: 3 },
   bppChipTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11 },
   bppChipLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 8, letterSpacing: 1 },
@@ -1000,7 +998,7 @@ const s = StyleSheet.create({
   // Legend
   legend:     { flexDirection: 'row', justifyContent: 'center', gap: 16, paddingHorizontal: 20, paddingTop: 8 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  legendTxt:  { color: '#D1DAC6', fontFamily: 'SourceSans3_400Regular', fontSize: 9 },
+  legendTxt:  { color: '#575D5C', fontFamily: 'SourceSans3_400Regular', fontSize: 9 },
 });
 
 // ─── Trophy Road Styles ───────────────────────────────────────────────────────
@@ -1008,6 +1006,7 @@ const tr = StyleSheet.create({
   nodeRow:    { paddingHorizontal: 28, marginVertical: 0 },
   nodeCard:   {
     width: 128, borderRadius: 0, borderWidth: 2,
+    backgroundColor: '#E3DFD3',
     overflow: 'hidden', alignItems: 'center',
     paddingVertical: 12, paddingHorizontal: 10,
     shadowOffset: { width: 0, height: 0 },
@@ -1021,7 +1020,7 @@ const tr = StyleSheet.create({
     fontFamily: 'SourceSans3_700Bold', fontSize: 11,
     textAlign: 'center', letterSpacing: 0.3, lineHeight: 14,
   },
-  xpTxt:      { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8, color: '#D1DAC6', letterSpacing: 0.3, marginTop: 3 },
+  xpTxt:      { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8, color: '#575D5C', letterSpacing: 0.3, marginTop: 3 },
   chip:       {
     borderRadius: 3, borderWidth: 1,
     paddingHorizontal: 7, paddingVertical: 3, marginTop: 7,
@@ -1032,9 +1031,9 @@ const tr = StyleSheet.create({
   toast: {
     position: 'absolute', bottom: 120, alignSelf: 'center',
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#294C44', borderWidth: 1.5, borderRadius: 3,
+     backgroundColor: '#23344B', borderWidth: 1.5, borderRadius: 3,
     paddingHorizontal: 18, paddingVertical: 10,
     shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 },
   },
-  toastTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#F5E7C4' },
+  toastTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#EEE9DE' },
 });

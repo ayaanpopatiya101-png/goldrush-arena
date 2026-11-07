@@ -519,7 +519,7 @@ export default function ClipViewer() {
             <View style={cv.rewardRow}>
               <View style={cv.rewardPill}>
                 <Feather name="disc" size={15} color={palette.ochre} />
-                <Text style={[cv.rewardVal, { color: palette.ochre }]}>+{tier.coins}</Text>
+                <Text style={[cv.rewardVal, { color: palette.charcoal }]}>+{tier.coins}</Text>
               </View>
               <View style={cv.rewardPill}>
                 <Feather name="star" size={15} color={palette.paper} />
@@ -534,7 +534,7 @@ export default function ClipViewer() {
         )}
         {rewardClaimed && (
           <Reanimated.View entering={ZoomIn.duration(400).springify()} style={[cv.rewardCard, { borderColor: palette.moss }]}>
-            <Text style={[cv.rewardTitle, { color: palette.moss }]}>Share reward claimed</Text>
+            <Text style={[cv.rewardTitle, { color: palette.charcoal }]}>Share reward claimed</Text>
             <Text style={cv.rewardSub}>+{tier.coins} coins · +{tier.xp} XP added to your account</Text>
           </Reanimated.View>
         )}
@@ -551,7 +551,7 @@ export default function ClipViewer() {
             >
               <View style={cv.saveBtnGrad}>
                 <Feather name={saved ? 'check-circle' : 'bookmark'} size={18} color={saved ? palette.moss : palette.paper} />
-                <Text style={[cv.saveBtnTxt, saved && { color: palette.moss }]}>
+                <Text style={[cv.saveBtnTxt, saved && { color: palette.charcoal }]}>
                   {saved ? 'Saved on this device' : 'Save to this device'}
                 </Text>
               </View>
@@ -642,7 +642,7 @@ const cv = StyleSheet.create({
   stickerCell:  { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', borderRadius: 0, borderWidth: 2, borderColor: palette.line },
 
   rewardCard: { borderRadius: 0, borderWidth: 2, borderColor: palette.ochre, backgroundColor: palette.graphite, padding: 14, gap: 10 },
-  rewardTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.ochre },
+  rewardTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.charcoal },
   rewardSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: palette.paperDim },
   rewardRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   rewardPill:  { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 0, borderWidth: 2, borderColor: palette.line, paddingHorizontal: 12, paddingVertical: 6 },

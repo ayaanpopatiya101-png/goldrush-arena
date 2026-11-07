@@ -8,3 +8,4 @@
 - [Arena verification boundaries](arena-verification.md) — isolate platform exports from browser testing; native and human evidence must be recorded separately.
 - [Reward lifecycle verification](reward-lifecycle-tests.md) — deduplication tests must also complete two games through Play Again, not merely retry one award.
 - [Expo accessibility](expo-accessibility.md) — native state props need explicit ARIA equivalents in the browser build; verify actual state changes, not only roles.
+- [Theme migration checks](theme-migration-checks.md) — semantic-token contrast tests do not catch per-page legacy colours or translucent text.

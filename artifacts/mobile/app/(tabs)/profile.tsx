@@ -185,14 +185,14 @@ export default function ProfileScreen() {
   return (
     <Reanimated.View style={[styles.root, { backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs opacity={0.75} />
-      <LinearGradient colors={['#213D39', '#213D39', '#213D39']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#EEE9DE', '#EEE9DE', '#EEE9DE']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#EFBD3C26', '#EFBD3C10', 'transparent']}
+        colors={['#EDBA3C20', '#EDBA3C08', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 440 }}
         pointerEvents="none"
       />
       <LinearGradient
-        colors={['transparent', '#213D3988']}
+        colors={['transparent', '#EEE9DE88']}
         style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 300 }}
         pointerEvents="none"
       />
@@ -227,7 +227,7 @@ export default function ProfileScreen() {
             }]}>
               <Glyph style={styles.bigAvatarEmoji} value={profile.avatarEmoji} />
               <View style={styles.editBadge}>
-                <Feather name="edit-2" size={9} color="#213D39" />
+                <Feather name="edit-2" size={9} color="#252A2B" />
               </View>
             </Animated.View>
           </Pressable>
@@ -237,7 +237,7 @@ export default function ProfileScreen() {
             <GlowText intensity="medium" color={rankData.color} style={[styles.profileName, { color: colors.foreground }]}>{profile.name}</GlowText>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <RankBadge rank={profile.rank} size="sm" showLabel={false} />
-              <GlowText intensity="soft" color={rankData.color} style={[styles.levelBadge, { color: rankData.color }]}>Lv.{xpToLevel(profile.xp)} · {profile.rank}</GlowText>
+              <GlowText intensity="soft" color="#252A2B" style={[styles.levelBadge, { color: '#252A2B' }]}>Lv.{xpToLevel(profile.xp)} · {profile.rank}</GlowText>
             </View>
             {/* Skill tier badge */}
             {profile.skillTier && (() => {
@@ -246,13 +246,13 @@ export default function ProfileScreen() {
               return (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: tierColor + '1E', borderRadius: 3, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: tierColor + '44' }}>
                   <Glyph style={{ fontSize: 12 }} value={tierIcon} />
-                  <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: tierColor, letterSpacing: 0.8 }}>{profile.skillTier.toUpperCase()}</Text>
+                  <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#252A2B', letterSpacing: 0.8 }}>{profile.skillTier.toUpperCase()}</Text>
                 </View>
               );
             })()}
             <View style={styles.loginStreakRow}>
               <Glyph style={styles.streakIcon} value="🔥" />
-              <Text style={[styles.streakText, { color: '#CE7863' }]}>{profile.loginStreak} day streak</Text>
+              <Text style={[styles.streakText, { color: '#575D5C' }]}>{profile.loginStreak} day streak</Text>
             </View>
           </View>
         </View>
@@ -280,8 +280,8 @@ export default function ProfileScreen() {
             <View style={styles.colorGrid}>
               {(AVATAR_COLORS.includes(tempColor) ? AVATAR_COLORS : [tempColor, ...AVATAR_COLORS]).map(c => (
                 <Pressable key={c} onPress={() => setTempColor(c)} hitSlop={8} accessibilityRole="radio" accessibilityState={{ selected: tempColor === c }} accessibilityLabel={`Frame color ${c}`}
-                  style={[styles.colorDot, { backgroundColor: c, borderColor: tempColor === c ? '#F5E7C4' : 'transparent', transform: [{ scale: tempColor === c ? 1.25 : 1 }] }]}>
-                  {tempColor === c && <Feather name="check" size={10} color='#213D39' />}
+                  style={[styles.colorDot, { backgroundColor: c, borderColor: tempColor === c ? '#EEE9DE' : 'transparent', transform: [{ scale: tempColor === c ? 1.25 : 1 }] }]}>
+                  {tempColor === c && <Feather name="check" size={10} color='#252A2B' />}
                 </Pressable>
               ))}
             </View>
@@ -291,12 +291,12 @@ export default function ProfileScreen() {
               <View style={[styles.previewCircle, { borderColor: tempColor, backgroundColor: tempColor + '33' }]}>
                 <Glyph style={styles.previewEmoji} value={tempEmoji} />
               </View>
-              <Text style={[styles.previewName, { color: tempColor }]}>{profile.name}</Text>
+              <Text style={[styles.previewName, { color: '#252A2B' }]}>{profile.name}</Text>
             </View>
 
             <View style={styles.row}>
               <Pressable onPress={handleSaveAvatar} accessibilityRole="button" accessibilityLabel="Save avatar" style={[styles.saveBtn, { backgroundColor: colors.primary, flex: 1 }]}>
-                <Text style={[styles.saveBtnText, { color: colors.background }]}>SAVE</Text>
+                <Text style={[styles.saveBtnText, { color: '#252A2B' }]}>SAVE</Text>
               </Pressable>
               <Pressable onPress={() => setAvatarEditing(false)} accessibilityRole="button" accessibilityLabel="Cancel avatar edit" style={[styles.cancelBtn, { borderColor: colors.border, flex: 1 }]}>
                 <Text style={[styles.cancelBtnText, { color: colors.mutedForeground }]}>CANCEL</Text>
@@ -322,26 +322,26 @@ export default function ProfileScreen() {
         </Panel>
 
         <View style={{ gap: 2, marginTop: 8 }} accessibilityRole="header">
-          <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, letterSpacing: 1, color: '#F5E7C4' }}>YOUR RECORD</Text>
-          <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: '#D1DAC6' }}>Stats, recent matches and achievements</Text>
+          <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, letterSpacing: 1, color: '#252A2B' }}>YOUR RECORD</Text>
+          <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: '#575D5C' }}>Stats, recent matches and achievements</Text>
         </View>
         {/* ── Stats grid ── */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#EFBD3C' }}>STATISTICS</Text>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
+          <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#252A2B' }}>STATISTICS</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
         </View>
         <View style={styles.statsGrid}>
           {[
-            { label: 'WINS',        value: String(profile.wins),             color: '#EFBD3C' },
-            { label: 'LOSSES',      value: String(profile.losses),           color: '#CE7863' },
-            { label: 'WIN RATE',    value: `${winRate}%`,                    color: '#9BB77A' },
-            { label: 'BEST STREAK', value: String(profile.bestStreak),       color: '#CE7863' },
-            { label: 'DEFLECTIONS', value: String(profile.totalDeflections), color: '#EDE3CC' },
-            { label: 'GAMES',       value: String(profile.totalGames),       color: '#EDE3CC' },
+            { label: 'WINS',        value: String(profile.wins) },
+            { label: 'LOSSES',      value: String(profile.losses) },
+            { label: 'WIN RATE',    value: `${winRate}%` },
+            { label: 'BEST STREAK', value: String(profile.bestStreak) },
+            { label: 'DEFLECTIONS', value: String(profile.totalDeflections) },
+            { label: 'GAMES',       value: String(profile.totalGames) },
           ].map(stat => (
-            <View key={stat.label} style={[styles.statCard, { backgroundColor: stat.color + '0A', borderColor: stat.color + '28', overflow: 'hidden' }]}>
-              <Text style={[styles.statValue, { color: '#F5E7C4' }]}>{stat.value}</Text>
-              <Text style={[styles.statLabel, { color: stat.color + 'AA' }]}>{stat.label}</Text>
+            <View key={stat.label} style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border, overflow: 'hidden' }]}>
+              <Text style={[styles.statValue, { color: '#252A2B' }]}>{stat.value}</Text>
+              <Text style={[styles.statLabel, { color: '#575D5C' }]}>{stat.label}</Text>
             </View>
           ))}
         </View>
@@ -350,7 +350,7 @@ export default function ProfileScreen() {
         <View style={styles.sectionWrap}>
           <View style={[styles.sectionHeader, { alignItems: 'center' }]}>
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>ACHIEVEMENTS</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
             <Text style={[styles.sectionCount, { color: colors.mutedForeground }]}>
               {profile.achievements.length}/{ACHIEVEMENTS.length}
             </Text>
@@ -360,9 +360,9 @@ export default function ProfileScreen() {
               const unlocked = profile.achievements.includes(ach.id);
               return (
                 <ShimmerCard key={ach.id} active={unlocked} borderRadius={3} shimmerColor="rgba(200,130,10,0.1)" style={[styles.achCard, {
-                  backgroundColor: unlocked ? '#EFBD3C12' : colors.card,
-                  borderColor:     unlocked ? '#EFBD3C66' : colors.border,
-                  opacity:         unlocked ? 1 : 0.42,
+                  backgroundColor: unlocked ? '#EDBA3C' : colors.card,
+                  borderColor:     unlocked ? '#252A2B' : colors.border,
+                  opacity:         1,
                   overflow:        'hidden',
                 }]}>
                   {ACH_IMAGE[ach.id] != null
@@ -373,7 +373,7 @@ export default function ProfileScreen() {
                       />
                     : <Glyph style={{ fontSize: unlocked ? 26 : 20, opacity: unlocked ? 1 : 0.3, marginTop: unlocked ? 4 : 2 }} value="🏅" />
                   }
-                  <Text style={[styles.achName, { color: unlocked ? '#F5E7C4' : colors.mutedForeground }]} numberOfLines={1}>{ach.name}</Text>
+                  <Text style={[styles.achName, { color: unlocked ? '#252A2B' : colors.mutedForeground }]} numberOfLines={1}>{ach.name}</Text>
                   <Text style={[styles.achDesc, { color: colors.mutedForeground }]} numberOfLines={2}>{ach.desc}</Text>
                 </ShimmerCard>
               );
@@ -386,13 +386,13 @@ export default function ProfileScreen() {
           <View style={styles.sectionWrap}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>RECENT MATCHES</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
             </View>
             <View style={styles.historyList}>
               {profile.matchHistory.slice(0, 8).map(match => (
-                <View key={match.id} style={[styles.historyRow, { backgroundColor: colors.card, borderColor: match.won ? '#9BB77A22' : colors.border }]}>
-                  <View style={[styles.histResult, { backgroundColor: match.won ? '#9BB77A33' : '#CE786333' }]}>
-                    <Text style={[styles.histResultText, { color: match.won ? '#9BB77A' : '#CE7863' }]}>
+                <View key={match.id} style={[styles.historyRow, { backgroundColor: colors.card, borderColor: match.won ? '#EDBA3C' : colors.border }]}>
+                  <View style={[styles.histResult, { backgroundColor: match.won ? '#EDBA3C' : '#F36B3F' }]}>
+                    <Text style={[styles.histResultText, { color: '#252A2B' }]}>
                       {match.won ? 'W' : 'L'}
                     </Text>
                   </View>
@@ -417,55 +417,55 @@ export default function ProfileScreen() {
         )}
 
         {/* ── Lives Bank summary ── */}
-        <View style={{ backgroundColor: '#CE786310', borderRadius: 3, borderWidth: 1, borderColor: '#CE786333', padding: 14, gap: 8 }}>
+        <View style={{ backgroundColor: '#E3DFD3', borderRadius: 3, borderWidth: 1, borderColor: '#575D5C', padding: 14, gap: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-            <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#CE7863' }}>LIVES BANK</Text>
+            <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#252A2B' }}>LIVES BANK</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <View style={{ flexDirection: 'row', gap: 4 }}>
               {Array.from({ length: Math.min(profile.extraLivesInventory ?? 0, 8) }).map((_, i) => (
-                <Feather key={i} name="heart" size={18} color="#CE7863" />
+                <Feather key={i} name="heart" size={18} color="#F36B3F" />
               ))}
               {(profile.extraLivesInventory ?? 0) > 8 && (
-                <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: '#CE7863' }}>+{(profile.extraLivesInventory ?? 0) - 8}</Text>
+                <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: '#252A2B' }}>+{(profile.extraLivesInventory ?? 0) - 8}</Text>
               )}
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 22, color: '#CE7863' }}>
+              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 22, color: '#252A2B' }}>
                 {profile.extraLivesInventory ?? 0}
               </Text>
-              <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#D1DAC6' }}>
+              <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#575D5C' }}>
                 {getRankIndex(profile.rank) >= 15 ? 'Champion+ · max 2/match' : 'Up to 3 lives per match'}
               </Text>
             </View>
           </View>
-          <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#D1DAC6', lineHeight: 17 }}>
+          <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#575D5C', lineHeight: 17 }}>
             Bank lives are spare lives you can add at the start of a match, so one mistake does not end your run. Earn them from Gold Strikes, Premium Pass milestones, the Shop, or friend referrals.
           </Text>
         </View>
 
         <View style={{ gap: 2, marginTop: 8 }} accessibilityRole="header">
-          <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, letterSpacing: 1, color: '#F5E7C4' }}>FRIENDS AND CHALLENGES</Text>
-          <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: '#D1DAC6' }}>Share your rank, challenge friends, and refer new players</Text>
+          <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, letterSpacing: 1, color: '#252A2B' }}>FRIENDS AND CHALLENGES</Text>
+          <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: '#575D5C' }}>Share your rank, challenge friends, and refer new players</Text>
         </View>
         {/* ── Share stats card ── */}
-        <Pressable onPress={handleShare} accessibilityRole="button" accessibilityLabel="Share your rank card" style={[styles.shareCard, { borderColor: '#EDE3CC44', backgroundColor: '#EDE3CC08' }]}>
+        <Pressable onPress={handleShare} accessibilityRole="button" accessibilityLabel="Share your rank card" style={[styles.shareCard, { borderColor: '#575D5C66', backgroundColor: '#E3DFD3' }]}>
           <View style={styles.shareLeft}>
-            <Feather name="share-2" size={22} color="#EDE3CC" />
+            <Feather name="share-2" size={22} color="#252A2B" />
             <View>
               <Text style={styles.shareTitle}>SHARE YOUR RANK</Text>
               <Text style={[styles.shareSub, { color: colors.mutedForeground }]}>Show off your stats to friends</Text>
             </View>
           </View>
           <View style={styles.shareMiniCard}>
-            <Text style={[styles.shareMiniRank, { color: rankData.color }]}>{profile.rank}</Text>
+            <Text style={[styles.shareMiniRank, { color: '#252A2B' }]}>{profile.rank}</Text>
             <Text style={[styles.shareMiniWins, { color: colors.mutedForeground }]}>{profile.wins}W</Text>
           </View>
         </Pressable>
 
         {/* ── Challenge code ── */}
-        <View style={[styles.codeSection, { backgroundColor: '#EDE3CC11', borderColor: '#EDE3CC33' }]}>
-          <Feather name="zap" size={14} color="#EDE3CC" />
+        <View style={[styles.codeSection, { backgroundColor: '#E3DFD3', borderColor: '#575D5C66' }]}>
+          <Feather name="zap" size={14} color="#252A2B" />
           <View style={{ flex: 1 }}>
             <Text style={styles.codeLabel}>YOUR CHALLENGE CODE</Text>
             <Text style={styles.codeSub}>Share with friends so they can find and challenge you!</Text>
@@ -477,14 +477,14 @@ export default function ProfileScreen() {
             style={[styles.codeBox, { minHeight: 44, justifyContent: 'center' }]}
           >
             <Text style={styles.codeText}>{code}</Text>
-            <Feather name="share" size={12} color="#EDE3CC" />
+            <Feather name="share" size={12} color="#252A2B" />
           </Pressable>
         </View>
 
         {/* ── Referral ── */}
-        <View style={{ backgroundColor: '#EDE3CC0A', borderRadius: 3, borderWidth: 1, borderColor: '#EDE3CC33', padding: 14, gap: 10 }}>
+        <View style={{ backgroundColor: '#E3DFD3', borderRadius: 3, borderWidth: 1, borderColor: '#575D5C66', padding: 14, gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-            <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#EDE3CC' }}>REFER A FRIEND</Text>
+            <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#252A2B' }}>REFER A FRIEND</Text>
           </View>
 
           {/* Pending reward claim */}
@@ -493,25 +493,25 @@ export default function ProfileScreen() {
               onPress={handleClaimReferralReward}
               accessibilityRole="button"
               accessibilityLabel="Claim referral reward"
-              style={{ backgroundColor: '#9BB77A18', borderRadius: 3, borderWidth: 1, borderColor: '#9BB77A44', paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}
+              style={{ backgroundColor: '#EDBA3C', borderRadius: 3, borderWidth: 1, borderColor: '#252A2B', paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}
             >
-              <Feather name="gift" size={18} color="#9BB77A" />
+              <Feather name="gift" size={18} color="#252A2B" />
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#9BB77A' }}>
+                <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#252A2B' }}>
                   {pendingReferrals} Friend{pendingReferrals > 1 ? 's' : ''} Joined!
                 </Text>
-                <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#9BB77A88' }}>Tap to claim your reward</Text>
+                <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#575D5C' }}>Tap to claim your reward</Text>
               </View>
-              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#9BB77A' }}>CLAIM →</Text>
+              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#252A2B' }}>CLAIM →</Text>
             </Pressable>
           )}
 
           {/* Your referral code */}
           <View style={{ gap: 4 }}>
-            <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1.5 }}>YOUR CODE</Text>
+            <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#575D5C', letterSpacing: 1.5 }}>YOUR CODE</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <View style={{ flex: 1, backgroundColor: '#EDE3CC14', borderRadius: 3, borderWidth: 1, borderColor: '#EDE3CC44', paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}>
-                <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 20, color: '#EDE3CC', letterSpacing: 4 }}>
+              <View style={{ flex: 1, backgroundColor: '#EEE9DE', borderRadius: 3, borderWidth: 1, borderColor: '#575D5C66', paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}>
+                <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 20, color: '#252A2B', letterSpacing: 4 }}>
                   {myReferralCode ?? '···'}
                 </Text>
               </View>
@@ -523,28 +523,28 @@ export default function ProfileScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Share referral code"
                 accessibilityState={{ disabled: !myReferralCode }}
-                style={{ backgroundColor: '#EDE3CC22', borderRadius: 3, borderWidth: 1, borderColor: '#EDE3CC55', minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+                style={{ backgroundColor: '#EDBA3C', borderRadius: 3, borderWidth: 1, borderColor: '#252A2B', minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
               >
-                <Feather name="share" size={18} color="#EDE3CC" />
+                <Feather name="share" size={18} color="#252A2B" />
               </Pressable>
             </View>
-            <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#D1DAC6', lineHeight: 17 }}>
+            <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#575D5C', lineHeight: 17 }}>
               Share this code with friends. When they enter it after signing up, you'll earn your choice of 10,000 Coins or 1 Bank Life.
             </Text>
           </View>
 
           {/* Enter a friend's referral code */}
           <View style={{ gap: 6 }}>
-            <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1.5 }}>ENTER A FRIEND'S CODE</Text>
+            <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#575D5C', letterSpacing: 1.5 }}>ENTER A FRIEND'S CODE</Text>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <TextInput
                 value={referralInput}
                 onChangeText={v => setReferralInput(v.toUpperCase().slice(0, 8))}
                 placeholder="FRIEND'S CODE"
-                placeholderTextColor="#F5E7C422"
+                placeholderTextColor="#575D5C"
                 autoCapitalize="characters"
                 accessibilityLabel="Friend's referral code"
-                style={{ flex: 1, minHeight: 44, backgroundColor: '#F5E7C408', borderRadius: 3, borderWidth: 1, borderColor: '#EDE3CC33', color: '#F5E7C4', fontFamily: 'SourceSans3_700Bold', fontSize: 15, letterSpacing: 3, textAlign: 'center', paddingVertical: 10 }}
+                style={{ flex: 1, minHeight: 44, backgroundColor: '#EEE9DE', borderRadius: 3, borderWidth: 1, borderColor: '#575D5C66', color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 15, letterSpacing: 3, textAlign: 'center', paddingVertical: 10 }}
               />
               <Pressable
                 onPress={handleRedeemReferral}
@@ -552,13 +552,13 @@ export default function ProfileScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Apply friend's code"
                 accessibilityState={{ disabled: loadingReferral || referralInput.length < 4, busy: loadingReferral }}
-                style={{ backgroundColor: '#EDE3CC', borderRadius: 3, paddingHorizontal: 16, justifyContent: 'center', opacity: referralInput.length < 4 ? 0.4 : 1 }}
+                style={{ backgroundColor: '#F36B3F', borderRadius: 3, paddingHorizontal: 16, justifyContent: 'center', opacity: referralInput.length < 4 ? 0.8 : 1 }}
               >
-                <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#213D39' }}>{loadingReferral ? '...' : 'APPLY'}</Text>
+                <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#252A2B' }}>{loadingReferral ? '...' : 'APPLY'}</Text>
               </Pressable>
             </View>
             {referralStatus && (
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: referralStatus.startsWith('Code applied') ? '#9BB77A' : '#CE7863', textAlign: 'center' }}>
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: referralStatus.startsWith('Code applied') ? '#252A2B' : '#575D5C', textAlign: 'center' }}>
                 {referralStatus}
               </Text>
             )}
@@ -567,7 +567,7 @@ export default function ProfileScreen() {
 
         {/* ── Sign out ── */}
         <Pressable onPress={handleLogout} accessibilityRole="button" style={[styles.logoutBtn, { minHeight: 44 }]}>
-          <Feather name="log-out" size={16} color="#CE786388" />
+          <Feather name="log-out" size={16} color="#252A2B" />
           <Text style={styles.logoutText}>Sign Out</Text>
         </Pressable>
 
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
   profileCard:    { borderRadius: 0, borderWidth: 2, paddingTop: 28, paddingBottom: 22, paddingHorizontal: 20, alignItems: 'center', gap: 14, overflow: 'hidden' },
   bigAvatar:      { width: 76, height: 76, borderRadius: 3, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
   bigAvatarEmoji: { fontSize: 36 },
-  editBadge:      { position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, borderRadius: 0, backgroundColor: '#EFBD3C', alignItems: 'center', justifyContent: 'center' },
+  editBadge:      { position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, borderRadius: 0, backgroundColor: '#EDBA3C', alignItems: 'center', justifyContent: 'center' },
   profileInfo:    { gap: 5 },
   profileName:    { fontFamily: 'SourceSans3_700Bold', fontSize: 22 },
   levelBadge:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, letterSpacing: 0.5 },
@@ -601,11 +601,11 @@ const styles = StyleSheet.create({
   sectionCount:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
   pickerLabel:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 1.5 },
   emojiGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  emojiBtn:      { width: 44, height: 44, borderRadius: 0, borderWidth: 2, borderColor: '#F5E7C418', backgroundColor: '#294C44', alignItems: 'center', justifyContent: 'center' },
+  emojiBtn:      { width: 44, height: 44, borderRadius: 0, borderWidth: 2, borderColor: '#575D5C', backgroundColor: '#E3DFD3', alignItems: 'center', justifyContent: 'center' },
   emojiBtnText:  { fontSize: 22 },
   colorGrid:     { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
   colorDot:      { width: 32, height: 32, borderRadius: 3, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
-  avatarPreview: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#F5E7C408', borderRadius: 3, padding: 12 },
+  avatarPreview: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#E3DFD3', borderRadius: 3, padding: 12 },
   previewCircle: { width: 52, height: 52, borderRadius: 3, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   previewEmoji:  { fontSize: 26 },
   previewName:   { fontFamily: 'SourceSans3_700Bold', fontSize: 17 },
@@ -627,18 +627,18 @@ const styles = StyleSheet.create({
   // Share card
   shareCard:  { borderRadius: 0, borderWidth: 2, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   shareLeft:  { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  shareTitle: { color: '#EDE3CC', fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
+  shareTitle: { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
   shareSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 2 },
-  shareMiniCard: { backgroundColor: '#294C44', borderRadius: 0, padding: 10, alignItems: 'center', gap: 2 },
+  shareMiniCard: { backgroundColor: '#E3DFD3', borderRadius: 0, padding: 10, alignItems: 'center', gap: 2 },
   shareMiniRank: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   shareMiniWins: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
 
   // Challenge code
   codeSection: { borderRadius: 0, borderWidth: 2, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  codeLabel:   { color: '#EDE3CC', fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5 },
-  codeSub:     { color: '#D1DAC6', fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 2 },
-  codeBox:     { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#294C44', borderRadius: 0, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 2, borderColor: '#EDE3CC44' },
-  codeText:    { color: '#EDE3CC', fontFamily: 'SourceSans3_700Bold', fontSize: 14, letterSpacing: 3 },
+  codeLabel:   { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5 },
+  codeSub:     { color: '#575D5C', fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 2 },
+  codeBox:     { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#E3DFD3', borderRadius: 0, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 2, borderColor: '#575D5C' },
+  codeText:    { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 14, letterSpacing: 3 },
 
   // Stats
   statsGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
   histTime:    { fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
 
   // Logout
-  logoutBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 0, borderWidth: 2, borderColor: '#CE786322', backgroundColor: '#CE786308' },
-  logoutText: { color: '#CE786388', fontFamily: 'SourceSans3_600SemiBold', fontSize: 14 },
+  logoutBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 0, borderWidth: 2, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
+  logoutText: { color: '#252A2B', fontFamily: 'SourceSans3_600SemiBold', fontSize: 14 },
   footer:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, textAlign: 'center' },
 });

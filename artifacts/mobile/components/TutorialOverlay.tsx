@@ -66,7 +66,7 @@ export function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
   const showCourt = step !== 'progress';
   const isMatch = step === 'match';
   const shared = {
-    arenaSize, playerName: 'You', playerColor: palette.ochre, playerGlowColor: palette.ochre,
+    arenaSize, playerName: 'You', playerColor: palette.orange, playerGlowColor: palette.orange,
     botNames: ['North bot', 'West bot', 'East bot'], botRanks: ['Bronze 1', 'Bronze 1', 'Bronze 1'],
     practice: true, botDifficulty: 'easy' as const, soundEnabled: false,
   };
@@ -125,7 +125,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.ink },
   content: { width: '100%', maxWidth: 720, alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 8, gap: 12 },
   heading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  kicker: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.4, color: palette.ochre, textTransform: 'uppercase', flexShrink: 1 },
+  kicker: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.4, color: palette.charcoal, textTransform: 'uppercase', flexShrink: 1 },
   title: { fontFamily: fonts.display, fontSize: 30, color: palette.paper },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22, color: palette.paperDim },
   court: { alignSelf: 'center' },

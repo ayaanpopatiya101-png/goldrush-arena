@@ -338,7 +338,7 @@ export default function HomeScreen() {
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           {locked ? <Feather name="lock" size={12} color={ui.paperDim} /> : null}
-          <Text style={[s.modeName, on && { color: ui.ochre }]} numberOfLines={1}>{m.name}</Text>
+          <Text style={[s.modeName, on && { color: ui.charcoal }]} numberOfLines={1}>{m.name}</Text>
         </View>
         <Text style={s.modeSub} numberOfLines={1}>{locked ? `Requires ${m.lockLabel}` : m.sub}</Text>
       </Pressable>
@@ -396,7 +396,7 @@ export default function HomeScreen() {
         <View style={s.brandRow}>
           <View style={s.brandMark}><BrandMark size={52} /></View>
           <View style={{ flex: 1 }}>
-            <Text accessibilityRole="header" style={s.wordmark}>GOLD<Text style={{ color: ui.ochre }}>RUSH</Text></Text>
+             <Text accessibilityRole="header" style={s.wordmark}>GOLD<Text style={{ color: ui.charcoal }}>RUSH</Text></Text>
             <Text style={s.brandCaption}>FOUR SIDES. ONE LEFT.</Text>
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel={`Open ${CURRENT_SEASON.label} pass`} onPress={() => router.push('/trophyroad')} style={s.seasonStamp}>
@@ -564,7 +564,7 @@ export default function HomeScreen() {
                   style={({ pressed }) => [s.superCell, active && unlocked && s.modeCellOn, pressed && { backgroundColor: ui.graphite2 }, !unlocked && { opacity: 0.5 }]}
                 >
                   <Glyph value={sup.icon} size={20} color={active && unlocked ? ui.ochre : ui.paperDim} />
-                  <Text style={[s.modeName, active && unlocked && { color: ui.ochre }]}>{sup.name}</Text>
+                <Text style={[s.modeName, active && unlocked && { color: ui.charcoal }]}>{sup.name}</Text>
                   <Text style={s.modeSub}>{unlocked ? sup.desc.replace('\n', ' ') : `Unlocks at LV ${sup.unlockLevel}`}</Text>
                 </Pressable>
               );
@@ -639,7 +639,7 @@ const a = StyleSheet.create({
   frame: { borderWidth: 3, borderColor: ui.paper, backgroundColor: tactile.frame, alignItems: 'center', borderRadius: 0 },
   brassFrame: { borderWidth: 2, borderColor: tactile.brassEdge, padding: 3, backgroundColor: tactile.brass },
   arenaLabel: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6, paddingTop: 10 },
-  arenaTitle: { fontFamily: fonts.display, fontSize: 15, color: ui.ochre, letterSpacing: 1 },
+  arenaTitle: { fontFamily: fonts.display, fontSize: 15, color: ui.charcoal, letterSpacing: 1 },
   arenaMeta: { fontFamily: fonts.body, fontSize: 12, color: ui.paperDim },
   reducedBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 },
   reducedText: { fontFamily: fonts.body, fontSize: 14, color: ui.paperDim, textAlign: 'center' },
@@ -697,14 +697,14 @@ const s = StyleSheet.create({
   errorText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 13, color: ui.clay },
   modeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   modeCell: { borderWidth: 1, borderColor: ui.line, borderRadius: 3, paddingHorizontal: 10, paddingVertical: 9, backgroundColor: ui.graphite, minHeight: 52 },
-  modeCellOn: { borderColor: ui.ochre, borderWidth: 2, paddingHorizontal: 9, paddingVertical: 8 },
+  modeCellOn: { borderColor: ui.orange, borderWidth: 2, paddingHorizontal: 9, paddingVertical: 8 },
   modeName: { fontFamily: fonts.display, fontSize: 17, color: ui.paper, letterSpacing: 0.5, textTransform: 'uppercase' },
   modeSub: { fontFamily: fonts.body, fontSize: 12, color: ui.muted },
   superCell: { minHeight: 44, flexBasis: '31%', flexGrow: 1, borderWidth: 1, borderColor: ui.line, borderRadius: 3, padding: 10, gap: 2, backgroundColor: ui.graphite },
   body: { fontFamily: fonts.body, fontSize: 14, color: ui.paperDim, lineHeight: 19 },
   codeInput: { flex: 1, height: 44, borderWidth: 1, borderColor: ui.line, borderRadius: 3, backgroundColor: ui.graphite2, color: ui.paper, fontFamily: fonts.display, fontSize: 20, letterSpacing: 4, paddingHorizontal: 12 },
   codeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderBottomWidth: 1, borderBottomColor: ui.line },
-  partyCode: { fontFamily: fonts.display, fontSize: 30, letterSpacing: 6, color: ui.ochre },
+  partyCode: { fontFamily: fonts.display, fontSize: 30, letterSpacing: 6, color: ui.charcoal },
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 10 },
   memberAvatar: { width: 32, height: 32, borderRadius: 3, borderWidth: 1, borderColor: ui.line, alignItems: 'center', justifyContent: 'center' },
   memberName: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: ui.paper },

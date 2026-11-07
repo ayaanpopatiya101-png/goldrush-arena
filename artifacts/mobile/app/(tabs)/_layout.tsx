@@ -13,14 +13,14 @@ import { fonts } from '@/constants/typography';
 type IconName = React.ComponentProps<typeof Feather>['name'];
 
 function TabIcon({ name, label, focused, wide }: { name: IconName; label: string; focused: boolean; wide?: boolean }) {
-  const c = focused ? palette.ochre : palette.paperDim;
+  const c = focused ? palette.charcoal : palette.slate;
   return (
     <View style={wide ? styles.tabItemWide : styles.tabItem}>
       <Feather name={name} size={wide ? 18 : 20} color={c} />
       <Text style={[wide ? styles.tabLabelWide : styles.tabLabel, { color: c, fontFamily: focused ? fonts.bodyBold : fonts.body }]} numberOfLines={2}>
         {label}
       </Text>
-      {wide ? null : <View style={[styles.pip, { backgroundColor: focused ? palette.ochre : 'transparent' }]} />}
+      {wide ? null : <View style={[styles.pip, { backgroundColor: focused ? palette.orange : 'transparent' }]} />}
     </View>
   );
 }

@@ -5,7 +5,7 @@ import { tactile } from '@/constants/colors';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Reanimated, { FadeInRight } from 'react-native-reanimated';
+import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { RankBadge } from '@/components/RankBadge';
@@ -96,14 +96,14 @@ export default function LeaderboardScreen() {
   return (
     <Reanimated.View style={[styles.root, { backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs opacity={0.7} />
-      <LinearGradient colors={['#213D39', '#213D39', '#213D39']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#EEE9DE', '#EEE9DE', '#EEE9DE']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#EFBD3C22', '#EFBD3C0E', 'transparent']}
+        colors={['#EDBA3C18', '#EDBA3C08', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 400 }}
         pointerEvents="none"
       />
       <LinearGradient
-        colors={['transparent', '#213D3988']}
+        colors={['transparent', '#EEE9DE88']}
         style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 }}
         pointerEvents="none"
       />
@@ -120,8 +120,8 @@ export default function LeaderboardScreen() {
       <View style={[styles.seasonBanner, { backgroundColor: tactile.paperPanel, borderColor: tactile.brassEdge, borderWidth: 2, borderRadius: 0 }]}>
         <Feather name="calendar" size={13} color={tactile.coral} />
         <Text style={[styles.seasonText, { color: paperText.ink }]}>{CURRENT_SEASON.label} · Demo data, not live player rankings</Text>
-        <View style={[styles.rewardBadge, { backgroundColor: '#CE786322' }]}>
-          <Text style={[styles.rewardText, { color: '#CE7863' }]}>DEMO</Text>
+          <View style={[styles.rewardBadge, { backgroundColor: '#F36B3F' }]}>
+          <Text style={[styles.rewardText, { color: '#252A2B' }]}>DEMO</Text>
         </View>
       </View>
 
@@ -130,8 +130,8 @@ export default function LeaderboardScreen() {
         {TABS.map(t => (
           <Pressable key={t} onPress={() => setTab(t)} style={[styles.tab, tab === t && { borderBottomColor: colors.primary }]}>
             {tab === t
-              ? <GlowText intensity="soft" color={colors.primary} style={styles.tabText}>{TAB_LABEL[t]}</GlowText>
-              : <Text style={[styles.tabText, { color: colors.mutedForeground }]}>{TAB_LABEL[t]}</Text>
+              ? <GlowText intensity="soft" color={colors.foreground} style={styles.tabText} numberOfLines={2}>{TAB_LABEL[t]}</GlowText>
+              : <Text style={[styles.tabText, { color: colors.mutedForeground }]} numberOfLines={2}>{TAB_LABEL[t]}</Text>
             }
           </Pressable>
         ))}
@@ -148,32 +148,32 @@ export default function LeaderboardScreen() {
                 return (
                   <View key={p.name} style={[styles.podiumSpot, { height: heights[i] + 50 }]}>
                     <View style={[styles.podiumAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                      <Text style={[styles.podiumAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
+                       <Text style={[styles.podiumAvatarText, { color: '#252A2B' }]}>{p.name.charAt(0)}</Text>
                     </View>
                     <GlowText intensity="soft" color={p.color} style={[styles.podiumName, { color: colors.foreground }]} numberOfLines={1}>{p.name}</GlowText>
-                    <Text style={[styles.podiumLevel, { color: p.color }]}>LVL {p.level}</Text>
+                    <Text style={[styles.podiumLevel, { color: '#252A2B' }]}>LVL {p.level}</Text>
                     <LinearGradient colors={[p.color + '55', p.color + '18']} style={[styles.podiumBlock, { height: heights[i], borderWidth: 1, borderColor: p.color + '44', borderRadius: 3 }]}>
                       <Glyph style={{ fontSize: pos === 1 ? 18 : 14 }} value={pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉'} />
-                      <GlowText intensity="strong" color={p.color} style={[styles.podiumPos, { color: p.color, fontSize: pos === 1 ? 22 : 18 }]}>{String(pos)}</GlowText>
-                      <Text style={[styles.podiumWins, { color: colors.mutedForeground }]}>{p.wins}W</Text>
+                      <GlowText intensity="strong" color="#252A2B" style={[styles.podiumPos, { color: '#252A2B', fontSize: pos === 1 ? 22 : 18 }]}>{String(pos)}</GlowText>
+                      <Text style={[styles.podiumWins, { color: '#252A2B' }]}>{p.wins}W</Text>
                     </LinearGradient>
                   </View>
                 );
               })}
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#EFBD3C' }}>NEARBY PLAYERS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#D1DAC6', letterSpacing: 1 }}>RANKED</Text>
+              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#252A2B' }}>NEARBY PLAYERS</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#575D5C', letterSpacing: 1 }}>RANKED</Text>
             </View>
             <View style={styles.list}>
               {GLOBAL_LEADERS.slice(3).map((p, i) => {
                 const isMe = p.name === profile.name;
                 const rowContent = (
-                  <View style={[styles.row, { backgroundColor: colors.card, borderColor: isMe ? '#EFBD3C' : colors.border }]}>
+                  <View style={[styles.row, { backgroundColor: colors.card, borderColor: isMe ? '#EDBA3C' : colors.border }]}>
                     <Text style={[styles.rowPos, { color: colors.mutedForeground }]}>{i + 4}</Text>
                     <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                      <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
+                       <Text style={[styles.rowAvatarText, { color: '#252A2B' }]}>{p.name.charAt(0)}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.rowName, { color: colors.foreground }]}>{p.name}</Text>
@@ -184,8 +184,8 @@ export default function LeaderboardScreen() {
                   </View>
                 );
                 return (
-                  <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
-                    {isMe ? <GlowBorder color="#EFBD3C" borderRadius={3} spread={8}>{rowContent}</GlowBorder> : rowContent}
+                  <Reanimated.View key={p.name}>
+                    {isMe ? <GlowBorder color="#EDBA3C" borderRadius={3} spread={8}>{rowContent}</GlowBorder> : rowContent}
                   </Reanimated.View>
                 );
               })}
@@ -200,14 +200,14 @@ export default function LeaderboardScreen() {
               {REGIONS.map(r => (
                 <Pressable key={r} onPress={() => setRegion(r)}
                   style={[styles.regionBtn, region === r && styles.regionBtnActive]}>
-                  <Text style={[styles.regionBtnText, region === r && { color: '#EFBD3C' }]}>{r}</Text>
+                  <Text style={[styles.regionBtnText, region === r && { color: '#252A2B' }]}>{r}</Text>
                 </Pressable>
               ))}
             </View>
             {(REGIONAL_LEADERS[region] ?? []).map((p, i) => (
-              <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
+              <Reanimated.View key={p.name}>
                 <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <Text style={[styles.rowPos, { color: i < 3 ? '#EFBD3C' : colors.mutedForeground }]}>{i + 1}</Text>
+                  <Text style={[styles.rowPos, { color: i < 3 ? '#252A2B' : colors.mutedForeground }]}>{i + 1}</Text>
                   <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
                     <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
                   </View>
@@ -234,9 +234,9 @@ export default function LeaderboardScreen() {
               <Text style={[styles.th, { color: colors.mutedForeground }]}>WINS</Text>
             </View>
             {SEASON_LEADERS.map((p, i) => (
-              <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
+              <Reanimated.View key={p.name}>
                 <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <Text style={[styles.rowPos, { color: i < 3 ? '#EFBD3C' : colors.mutedForeground }]}>{i + 1}</Text>
+                  <Text style={[styles.rowPos, { color: i < 3 ? '#252A2B' : colors.mutedForeground }]}>{i + 1}</Text>
                   <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
                     <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
                   </View>
@@ -244,7 +244,7 @@ export default function LeaderboardScreen() {
                     <Text style={[styles.rowName, { color: colors.foreground }]}>{p.name}</Text>
                     <Text style={[styles.rowSub, { color: colors.mutedForeground }]}>{p.rank}</Text>
                   </View>
-                  <Text style={[styles.rowWins, { color: '#9BB77A', width: 36, textAlign: 'right' }]}>{p.level}</Text>
+                  <Text style={[styles.rowWins, { color: '#252A2B', width: 36, textAlign: 'right' }]}>{p.level}</Text>
                   <Text style={[styles.rowWins, { color: colors.foreground }]}>{p.wins}W</Text>
                 </View>
               </Reanimated.View>
@@ -284,7 +284,7 @@ export default function LeaderboardScreen() {
             <View style={[styles.lvlCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={styles.lvlHeader}>
                 <Text style={[styles.lvlTitle, { color: colors.foreground }]}>Competitive Level</Text>
-                <Text style={[styles.lvlNum, { color: '#EFBD3C' }]}>{profile.competitiveLevel ?? 1} / 50</Text>
+                <Text style={[styles.lvlNum, { color: '#252A2B' }]}>{profile.competitiveLevel ?? 1} / 50</Text>
               </View>
               <View style={[styles.lvlTrack, { backgroundColor: colors.muted }]}>
                 <View style={[styles.lvlFill, { width: `${((profile.competitiveLevel ?? 1) / 50) * 100}%` }]} />
@@ -295,29 +295,29 @@ export default function LeaderboardScreen() {
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 }}>
-              <View style={{ height: 1, backgroundColor: '#F5E7C410', flex: 1 }} />
+              <View style={{ height: 1, backgroundColor: '#575D5C44', flex: 1 }} />
               <Text style={[styles.nearbyTitle, { color: colors.mutedForeground }]}>NEARBY PLAYERS</Text>
-              <View style={{ height: 1, backgroundColor: '#F5E7C410', flex: 1 }} />
+              <View style={{ height: 1, backgroundColor: '#575D5C44', flex: 1 }} />
             </View>
             {[...GLOBAL_LEADERS].sort((a, b) => b.xp - a.xp).slice(Math.max(0, playerPosition - 3), playerPosition + 2).map((p, i) => {
               const isMe = p.name === profile.name;
               const nearbyRow = (
                 <View style={[styles.row, {
                   backgroundColor: isMe ? rankData.color + '22' : colors.card,
-                  borderColor: isMe ? '#EFBD3C' : colors.border,
+                  borderColor: isMe ? '#EDBA3C' : colors.border,
                 }]}>
                   <Text style={[styles.rowPos, { color: colors.mutedForeground }]}>{i + Math.max(1, playerPosition - 2)}</Text>
                   <View style={[styles.rowAvatar, { borderColor: p.color, backgroundColor: p.color + '22' }]}>
-                    <Text style={[styles.rowAvatarText, { color: p.color }]}>{p.name.charAt(0)}</Text>
+                    <Text style={[styles.rowAvatarText, { color: '#252A2B' }]}>{p.name.charAt(0)}</Text>
                   </View>
                   <Text style={[styles.rowName, { color: colors.foreground, flex: 1 }]}>{p.name}</Text>
-                  <Text style={[styles.rowSub, { color: '#EFBD3C', marginRight: 4 }]}>LVL {p.level}</Text>
+                  <Text style={[styles.rowSub, { color: '#252A2B', marginRight: 4 }]}>LVL {p.level}</Text>
                   <Text style={[styles.rowWins, { color: colors.mutedForeground }]}>{p.xp} XP</Text>
                 </View>
               );
               return (
-                <Reanimated.View key={p.name} entering={FadeInRight.delay(i * 60).duration(300)}>
-                  {isMe ? <GlowBorder color="#EFBD3C" borderRadius={3} spread={8}>{nearbyRow}</GlowBorder> : nearbyRow}
+                <Reanimated.View key={p.name}>
+                  {isMe ? <GlowBorder color="#EDBA3C" borderRadius={3} spread={8}>{nearbyRow}</GlowBorder> : nearbyRow}
                 </Reanimated.View>
               );
             })}
@@ -333,20 +333,20 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 10 },
   headerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 19, letterSpacing: 2 },
-  levelPill: { backgroundColor: '#EFBD3C22', borderRadius: 0, borderWidth: 2, borderColor: '#EFBD3C55', paddingHorizontal: 10, paddingVertical: 4 },
-  levelPillText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#EFBD3C', letterSpacing: 1 },
+  levelPill: { backgroundColor: '#EDBA3C', borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', paddingHorizontal: 10, paddingVertical: 4 },
+  levelPillText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#252A2B', letterSpacing: 1 },
   seasonBanner: { marginHorizontal: 16, borderRadius: 3, borderWidth: 1, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
   seasonText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, flex: 1 },
   rewardBadge: { borderRadius: 0, paddingHorizontal: 8, paddingVertical: 3 },
   rewardText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 1 },
-  tabScrollWrap: { maxHeight: 44 },
-  tabRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 4, borderBottomWidth: 1, borderBottomColor: '#F5E7C414' },
-  tab: { paddingVertical: 10, paddingHorizontal: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, letterSpacing: 1 },
+  tabScrollWrap: { width: '100%', flexGrow: 0, flexShrink: 0, maxHeight: 52, minHeight: 48 },
+  tabRow: { width: '100%', flexGrow: 1, flexDirection: 'row', paddingHorizontal: 8, marginBottom: 4, borderBottomWidth: 1, borderBottomColor: '#575D5C66' },
+  tab: { flex: 1, minWidth: 0, paddingVertical: 8, paddingHorizontal: 3, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' },
+  tabText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, letterSpacing: 0.15, textAlign: 'center', lineHeight: 12 },
   regionRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  regionBtn: { flex: 1, borderRadius: 0, borderWidth: 2, borderColor: '#F5E7C422', backgroundColor: '#294C44', paddingVertical: 8, alignItems: 'center' },
-  regionBtnActive: { borderColor: '#EFBD3C', backgroundColor: '#EFBD3C15' },
-  regionBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#D1DAC6' },
+  regionBtn: { flex: 1, minWidth: 0, borderRadius: 0, borderWidth: 2, borderColor: '#575D5C', backgroundColor: '#E3DFD3', paddingVertical: 8, alignItems: 'center' },
+  regionBtnActive: { borderColor: '#252A2B', backgroundColor: '#EDBA3C' },
+  regionBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#575D5C' },
   podium: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4, gap: 4 },
   podiumSpot: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', gap: 2 },
   podiumAvatar: { width: 40, height: 40, borderRadius: 3, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   rowSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, marginTop: 1 },
   rowWins: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, width: 48, textAlign: 'right' },
   levelBadge: { borderRadius: 0, borderWidth: 2, borderColor: '#EFBD3C44', backgroundColor: '#EFBD3C11', paddingHorizontal: 6, paddingVertical: 2 },
-  levelBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#EFBD3C' },
+  levelBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#252A2B' },
   yourRank: { paddingHorizontal: 16, paddingTop: 12, gap: 10 },
   playerRankCard: { borderRadius: 0, borderWidth: 2, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 16, overflow: 'hidden' },
   rankStats: { flex: 1, gap: 4 },

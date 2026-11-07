@@ -33,7 +33,7 @@ The user selected the “Tactile Arcade (unslop refined)” Home reference and a
 
 **Why:** This is the user's explicit visual choice for the app, not an unapproved alternative.
 
-**How to apply:** Preserve that composition and material palette when changing the mobile UI. The user explicitly wants the same design across the rest of the app, not only Home. Translate its static court into the real engine and use actual profile/season data rather than copying illustrative values.
+**How to apply:** Preserve that composition when changing the mobile UI, but use the later explicit colour palette below instead of the green material palette. The user wants the same design across the rest of the app, not only Home. Translate its static court into the real engine and use actual profile/season data rather than copying illustrative values.
 
 The user approved a usability review that prioritizes Play over moving practice content: practice is opt-in, playable activities precede advanced locks, and secondary systems should appear when relevant. Keep progression balance unchanged.
 
@@ -46,3 +46,9 @@ Use the user's supplied Atoms iOS onboarding screenshots as the reference for Go
 **Why:** The user explicitly requested these images as the onboarding reference.
 
 **How to apply:** Use the reference for the onboarding experience while retaining GoldRush's approved identity and the avoidance list above.
+
+The user replaced the app palette with Warm Stone `#EEE9DE` for main backgrounds and light text on navy; Sandstone `#E3DFD3` for panels; Charcoal Ink `#252A2B` for headings/body/button labels; Slate `#575D5C` for supporting text; Vermilion Orange `#F36B3F` for Play and the player paddle; Arcade Gold `#EDBA3C` for branding/rewards/progression; Court Navy `#23344B` for the arena and selected dark sections.
+
+**Why:** The user supplied these exact colours and roles as the new app design direction.
+
+**How to apply:** This replaces earlier pine/green background preferences. Keep the other visual constraints and preserve existing saved or owned cosmetic identities. Use readable charcoal labels on orange/gold fills, rather than low-contrast gold/orange body text on stone.

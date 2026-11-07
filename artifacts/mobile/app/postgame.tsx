@@ -391,7 +391,7 @@ function PostGameContent() {
               {promoted && (
                 <Reanimated.View entering={ZoomIn.duration(300).delay(600)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <RankBadge rank={newRank.name} size="sm" showLabel={false} />
-                  <Text style={[styles.progName, { color: palette.moss }]}>Promoted to {newRank.name}</Text>
+                  <Text style={[styles.progName, { color: palette.charcoal }]}>Promoted to {newRank.name}</Text>
                 </Reanimated.View>
               )}
             </View>
@@ -399,7 +399,7 @@ function PostGameContent() {
             <View style={styles.progRow}>
               <View style={styles.progHead}>
                 <Text style={styles.progName}>Competitive level</Text>
-                <Text style={[styles.progVal, levelDelta > 0 && { color: palette.moss }, levelDelta < 0 && { color: palette.clay }]}>
+                <Text style={[styles.progVal, levelDelta > 0 && { color: palette.charcoal }, levelDelta < 0 && { color: palette.slate }]}>
                   {matchType === 'ranked' ? `${levelBefore} to ${levelAfter} / 50` : `${levelBefore} / 50`}
                 </Text>
               </View>
@@ -588,12 +588,12 @@ const styles = StyleSheet.create({
   progRow: { gap: 6, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: palette.line },
   progHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 },
   progName: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.paper },
-  progVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: palette.ochre },
+  progVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: palette.charcoal },
   progSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.paperDim },
   xpTrack: { height: 8, borderRadius: 2, overflow: 'hidden', backgroundColor: palette.ink },
   xpFill: { height: '100%', backgroundColor: palette.ochre },
   linkBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, alignSelf: 'flex-start' },
-  linkText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.ochre },
+  linkText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.charcoal },
   bonusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 28 },
   bonusLabel: { flex: 1, fontFamily: 'SourceSans3_400Regular', fontSize: 15, color: palette.paper },
   bonusMult: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.paper },

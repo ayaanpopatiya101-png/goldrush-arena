@@ -1,5 +1,4 @@
-// Shared flat primitives for GoldRush Arena: scoreboard panels, labels, buttons.
-// Rules: graphite surfaces, off-white text, ochre action, 0-4 radius, no shadows.
+// Shared flat primitives for GoldRush Arena: sandstone plates, charcoal type, orange action.
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
@@ -50,7 +49,7 @@ type BtnProps = {
 };
 
 export function Button({ label, onPress, variant = 'primary', icon, disabled, loading, size = 'md', style, testID, accessibilityHint }: BtnProps) {
-  const fg = disabled && !loading ? palette.muted : variant === 'primary' ? palette.ochreInk : variant === 'danger' ? palette.clay : palette.paper;
+  const fg = disabled && !loading ? palette.muted : variant === 'primary' ? palette.charcoal : variant === 'danger' ? palette.slate : palette.charcoal;
   return (
     <Pressable
       testID={testID}
@@ -66,8 +65,9 @@ export function Button({ label, onPress, variant = 'primary', icon, disabled, lo
         p.btn,
         size === 'lg' && p.btnLg,
         size === 'sm' && p.btnSm,
-        variant === 'primary' && { backgroundColor: pressed ? palette.ochreDeep : palette.ochre, borderColor: tactile.brassEdge, borderWidth: 2 },
-        variant === 'secondary' && { backgroundColor: pressed ? palette.line : palette.graphite2, borderColor: palette.line },
+        variant === 'primary' && { backgroundColor: palette.orange, borderColor: palette.orange, borderWidth: 2 },
+        pressed && variant === 'primary' && { borderColor: palette.charcoal },
+        variant === 'secondary' && { backgroundColor: pressed ? palette.stone : palette.graphite2, borderColor: palette.line },
         variant === 'ghost' && { backgroundColor: pressed ? palette.graphite2 : 'transparent', borderColor: palette.line },
         variant === 'danger' && { backgroundColor: pressed ? palette.graphite2 : 'transparent', borderColor: palette.clay },
         (disabled && !loading) && { backgroundColor: palette.graphite, borderColor: palette.line },
@@ -81,10 +81,10 @@ export function Button({ label, onPress, variant = 'primary', icon, disabled, lo
 }
 
 export function Chip({ label, tone = 'neutral', style }: { label: string; tone?: 'neutral' | 'ochre' | 'moss' | 'clay'; style?: StyleProp<ViewStyle> }) {
-  const c = tone === 'ochre' ? palette.ochre : tone === 'moss' ? palette.moss : tone === 'clay' ? palette.clay : palette.paperDim;
+  const c = tone === 'ochre' ? palette.ochre : tone === 'moss' ? palette.moss : tone === 'clay' ? palette.clay : palette.slate;
   return (
-    <View style={[p.chip, { borderColor: c }, style]}>
-      <Text style={[p.chipText, { color: c }]}>{label}</Text>
+    <View style={[p.chip, { borderColor: c }, (tone === 'ochre' || tone === 'moss') && { backgroundColor: c }, style]}>
+      <Text style={[p.chipText, { color: tone === 'ochre' || tone === 'moss' ? palette.charcoal : c }]}>{label}</Text>
     </View>
   );
 }
@@ -113,7 +113,7 @@ export function IconButton({ icon, onPress, label, style }: { icon: React.Compon
 }
 
 const p = StyleSheet.create({
-  panel: { backgroundColor: palette.graphite, borderWidth: 2, borderColor: palette.line, borderRadius: R },
+  panel: { backgroundColor: palette.sandstone, borderWidth: 2, borderColor: palette.slate, borderRadius: R },
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   sectionTitle: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.6, color: palette.paperDim, textTransform: 'uppercase' },
   sectionRule: { flex: 1, height: 1, backgroundColor: palette.line },

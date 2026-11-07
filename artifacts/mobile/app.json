@@ -6,12 +6,12 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "goldrush",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0E2621"
+      "backgroundColor": "#EEE9DE"
     },
     "ios": {
       "bundleIdentifier": "com.goldrush.arena",
@@ -27,7 +27,7 @@
       "package": "com.goldrush.arena",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#0E2621"
+        "backgroundColor": "#EEE9DE"
       },
       "permissions": []
     },

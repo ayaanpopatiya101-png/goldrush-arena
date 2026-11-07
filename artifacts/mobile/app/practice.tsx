@@ -30,7 +30,7 @@ export default function PracticeScreen() {
           <Button label="Practice again" onPress={() => { setResult(null); setPaused(false); setRun(value => value + 1); }} />
         </Panel> : <>
           <View style={{ width: size, height: size, alignSelf: 'center' }}>
-            <GameArena key={run} arenaSize={size} playerName="You" playerColor={ui.ochre} playerGlowColor={ui.ochre}
+            <GameArena key={run} arenaSize={size} playerName="You" playerColor={ui.orange} playerGlowColor={ui.orange}
               courtStyle="tactile"
               botNames={['North bot', 'West bot', 'East bot']} botRanks={['Bronze 1', 'Bronze 1', 'Bronze 1']}
               practice botDifficulty="easy" botSkill={0} sensitivity={settings.sensitivity} soundEnabled={settings.soundEnabled}
