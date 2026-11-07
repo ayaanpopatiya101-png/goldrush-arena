@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/goldrush-shop/"
+title = "GoldRush Collectible Shop"
+description = "A standalone GoldRush collectible catalog and browser-local collection with guarded coin purchases, comparison and equipping. Native saves remain separate and real-money checkout is unavailable without linked identity and safe fulfillment."
+version = "1.0.0"
+id = "artifacts/goldrush-shop"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/goldrush-shop/" ]
+localPort = 24874
+
+[services.development]
+run = "pnpm --filter @workspace/goldrush-shop run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/goldrush-shop", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/goldrush-shop/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24874"
+BASE_PATH = "/goldrush-shop/"

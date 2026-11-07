@@ -4,3 +4,4 @@
 - [Stripe fulfillment](stripe-fulfillment.md) — use paid Checkout sessions as the fulfillment authority; do not depend solely on stripe-replit-sync or webhook delivery.
 - [Cross-platform payments](cross-platform-payments.md) — Stripe serves web checkout; RevenueCat serves native iOS/Android digital purchases.
 - [Visual constraints](design-constraints.md) — explicit user avoidance list supersedes older Inter and glow-heavy styling preferences.
+- [Standalone shop boundary](standalone-shop-boundary.md) — local save copies are not player linking; keep charges and redeem-code consumption unavailable without safe delivery.

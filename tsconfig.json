@@ -4,6 +4,9 @@
   "files": [],
   "references": [
     {
+      "path": "./lib/goldrush-catalog"
+    },
+    {
       "path": "./lib/db"
     },
     {
