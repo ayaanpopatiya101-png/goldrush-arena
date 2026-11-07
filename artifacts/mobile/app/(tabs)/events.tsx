@@ -99,8 +99,8 @@ export default function EventsScreen() {
     setGameConfig({
       playerName:      profile.name,
       playerSkinId:    profile.currentSkin ?? 'default',
-      playerColor:     profile.avatarFrameColor ?? '#C99A2E',
-      playerGlowColor: (profile.avatarFrameColor ?? '#C99A2E') + '55',
+      playerColor:     profile.avatarFrameColor ?? '#F0B429',
+      playerGlowColor: (profile.avatarFrameColor ?? '#F0B429') + '55',
       matchType:       'ranked',
       variant:         ev.mode as GameVariant,
       playerRelicId:   'none',
@@ -129,8 +129,8 @@ export default function EventsScreen() {
     setGameConfig({
       playerName:      profile.name,
       playerSkinId:    profile.currentSkin ?? 'default',
-      playerColor:     profile.avatarFrameColor ?? '#C99A2E',
-      playerGlowColor: (profile.avatarFrameColor ?? '#C99A2E') + '55',
+      playerColor:     profile.avatarFrameColor ?? '#F0B429',
+      playerGlowColor: (profile.avatarFrameColor ?? '#F0B429') + '55',
       matchType:       'ranked',
       variant:         ev.mode as GameVariant,
       playerRelicId:   'none',
@@ -142,14 +142,14 @@ export default function EventsScreen() {
   return (
     <Reanimated.View style={[s.root, { backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs opacity={0.8} />
-      <LinearGradient colors={['#16171A', '#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0E2621', '#0E2621', '#0E2621']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#C99A2E22', '#C99A2E0E', 'transparent']}
+        colors={['#F0B42922', '#F0B4290E', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 400 }}
         pointerEvents="none"
       />
       <LinearGradient
-        colors={['transparent', '#16171A88']}
+        colors={['transparent', '#0E262188']}
         style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 }}
         pointerEvents="none"
       />
@@ -157,8 +157,8 @@ export default function EventsScreen() {
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 6 }]}>
         <View>
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#ECE7DC44', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
-          <GlowText intensity="medium" color='#C99A2E' style={s.title}>EVENTS</GlowText>
+          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#F3EAD344', marginBottom: 2 }}>GOLDRUSH ARENA</Text>
+          <GlowText intensity="medium" color='#F0B429' style={s.title}>EVENTS</GlowText>
           <Text style={[s.subtitle, { color: colors.mutedForeground }]}>
             Exclusive · General 1+ · Qualifier system
           </Text>
@@ -177,20 +177,20 @@ export default function EventsScreen() {
       >
         {/* Rank gate, shown below General 1 */}
         {!hasRank && (
-          <View style={[s.rankGate, { borderColor: '#B4533AAA', backgroundColor: '#B4533A10' }]}>
-            <LinearGradient colors={['#B4533A20', 'transparent']} style={StyleSheet.absoluteFill} />
+          <View style={[s.rankGate, { borderColor: '#E04A2FAA', backgroundColor: '#E04A2F10' }]}>
+            <LinearGradient colors={['#E04A2F20', 'transparent']} style={StyleSheet.absoluteFill} />
             <Glyph style={s.rankGateIcon} value="🔒" />
             <View style={{ flex: 1 }}>
-              <Text style={[s.rankGateTitle, { color: '#B4533A' }]}>EVENTS LOCKED</Text>
-              <Text style={[s.rankGateBody, { color: '#ECE7DC88' }]}>
+              <Text style={[s.rankGateTitle, { color: '#E04A2F' }]}>EVENTS LOCKED</Text>
+              <Text style={[s.rankGateBody, { color: '#F3EAD388' }]}>
                 Events require{' '}
-                <Text style={{ color: GENERAL1?.color ?? '#B4533A', fontFamily: 'SourceSans3_700Bold' }}>General 1</Text>
+                <Text style={{ color: GENERAL1?.color ?? '#E04A2F', fontFamily: 'SourceSans3_700Bold' }}>General 1</Text>
                 {' '}rank. Earn matches, climb ranks, and return to compete in the qualifier ladder.
               </Text>
-              <Text style={[s.rankGateReq, { color: '#ECE7DC44' }]}>
-                Your rank: <Text style={{ color: RANKS.find(r => r.name === profile.rank)?.color ?? '#ECE7DC' }}>{profile.rank}</Text>
+              <Text style={[s.rankGateReq, { color: '#F3EAD344' }]}>
+                Your rank: <Text style={{ color: RANKS.find(r => r.name === profile.rank)?.color ?? '#F3EAD3' }}>{profile.rank}</Text>
                 {'  ·  '}
-                <Text style={{ color: GENERAL1?.color ?? '#B4533A' }}>General 1</Text>{' '}requires {(340_000 - Math.min(profile.xp, 340_000)).toLocaleString()} more XP
+                <Text style={{ color: GENERAL1?.color ?? '#E04A2F' }}>General 1</Text>{' '}requires {(340_000 - Math.min(profile.xp, 340_000)).toLocaleString()} more XP
               </Text>
             </View>
           </View>
@@ -201,9 +201,9 @@ export default function EventsScreen() {
 
         {/* Weekly, direct entry, no qualifier */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <GlowText intensity="medium" color='#C99A2E' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>WEEKLY EVENT</GlowText>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#ECE7DC33', letterSpacing: 1 }}>DIRECT ENTRY</Text>
+          <GlowText intensity="medium" color='#F0B429' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>WEEKLY EVENT</GlowText>
+          <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
+          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#F3EAD333', letterSpacing: 1 }}>DIRECT ENTRY</Text>
         </View>
         <EventCard
           ev={events.weekly}
@@ -216,9 +216,9 @@ export default function EventsScreen() {
 
         {/* Monthly Cup, 2-round qualifier */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4, marginTop: 4 }}>
-          <GlowText intensity="medium" color='#C99A2E' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>MONTHLY CUP</GlowText>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#ECE7DC33', letterSpacing: 1 }}>2-ROUND QUALIFIER</Text>
+          <GlowText intensity="medium" color='#F0B429' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>MONTHLY CUP</GlowText>
+          <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
+          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#F3EAD333', letterSpacing: 1 }}>2-ROUND QUALIFIER</Text>
         </View>
         <EventCard
           ev={events.monthly}
@@ -231,9 +231,9 @@ export default function EventsScreen() {
 
         {/* Annual Grand Prix, 3-round qualifier */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4, marginTop: 4 }}>
-          <GlowText intensity="medium" color='#C99A2E' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>ANNUAL GRAND PRIX</GlowText>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#ECE7DC33', letterSpacing: 1 }}>3-ROUND QUALIFIER</Text>
+          <GlowText intensity="medium" color='#F0B429' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>ANNUAL GRAND PRIX</GlowText>
+          <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
+          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#F3EAD333', letterSpacing: 1 }}>3-ROUND QUALIFIER</Text>
         </View>
         <EventCard
           ev={events.annual}
@@ -244,10 +244,10 @@ export default function EventsScreen() {
           onPlayMainDraw={() => handlePlayMainDraw(events.annual)}
         />
 
-        <View style={[s.infoBox, { borderColor: '#ECE7DC0C', backgroundColor: '#ECE7DC06' }]}>
+        <View style={[s.infoBox, { borderColor: '#F3EAD30C', backgroundColor: '#F3EAD306' }]}>
           <Glyph style={s.infoIcon} value="⚡" />
-          <Text style={[s.infoText, { color: '#ECE7DC55' }]}>
-            All participants earn <Text style={{ color: '#8C8F7A' }}>Credits</Text> (used in the Forge) plus bonus XP and coins in the <Text style={{ color: '#C99A2E' }}>Main Draw</Text>. Qualifier rounds award <Text style={{ color: '#8C8F7A' }}>Qualifier Points (QP)</Text>, earn enough QP to advance to the next stage.
+          <Text style={[s.infoText, { color: '#F3EAD355' }]}>
+            All participants earn <Text style={{ color: '#EDE3CC' }}>Credits</Text> (used in the Forge) plus bonus XP and coins in the <Text style={{ color: '#F0B429' }}>Main Draw</Text>. Qualifier rounds award <Text style={{ color: '#EDE3CC' }}>Qualifier Points (QP)</Text>, earn enough QP to advance to the next stage.
           </Text>
         </View>
       </ScrollView>
@@ -269,8 +269,8 @@ function FeaturedModeSection({ onPlay }: { onPlay: (mode: FeaturedMode) => void 
       {/* Section header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 0 }}>
         <GlowText intensity="medium" color={color} style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color }}>FEATURED THIS WEEK</GlowText>
-        <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
-        <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#ECE7DC33', letterSpacing: 1 }}>OPT-IN · CASUAL</Text>
+        <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
+        <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#F3EAD333', letterSpacing: 1 }}>OPT-IN · CASUAL</Text>
       </View>
 
       {/* Card */}
@@ -283,7 +283,7 @@ function FeaturedModeSection({ onPlay }: { onPlay: (mode: FeaturedMode) => void 
             <Glyph style={{ fontSize: 11, marginRight: 3 }} value={mode.emoji} />
             <Text style={[s.badgeText, { color }]}>FEATURED</Text>
           </View>
-          <View style={[s.timePill, { borderColor: '#ECE7DC14' }]}>
+          <View style={[s.timePill, { borderColor: '#F3EAD314' }]}>
             <Feather name="clock" size={9} color={color + 'AA'} />
             <Text style={[s.timeText, { color: color + 'AA' }]}>{timeStr} left</Text>
           </View>
@@ -294,7 +294,7 @@ function FeaturedModeSection({ onPlay }: { onPlay: (mode: FeaturedMode) => void 
           <Glyph style={s.eventEmoji} value={mode.emoji} />
           <View style={{ flex: 1 }}>
             <GlowText intensity="medium" color={color} style={s.eventName}>{mode.name}</GlowText>
-            <Text style={[s.eventDesc, { color: '#ECE7DC66' }]}>{mode.descriptor}</Text>
+            <Text style={[s.eventDesc, { color: '#F3EAD366' }]}>{mode.descriptor}</Text>
           </View>
         </View>
 
@@ -303,7 +303,7 @@ function FeaturedModeSection({ onPlay }: { onPlay: (mode: FeaturedMode) => void 
           {mode.ruleSummary.map((rule, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color + '99' }} />
-              <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#ECE7DCAA', lineHeight: 18 }}>{rule}</Text>
+              <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#F3EAD3AA', lineHeight: 18 }}>{rule}</Text>
             </View>
           ))}
         </View>
@@ -312,19 +312,19 @@ function FeaturedModeSection({ onPlay }: { onPlay: (mode: FeaturedMode) => void 
         <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
           {mode.overrides.coinMultiplier != null && (
             <View style={[s.rewardPill]}>
-              <Text style={[s.rewardValue, { color: '#C99A2E' }]}>{mode.overrides.coinMultiplier}× </Text>
+              <Text style={[s.rewardValue, { color: '#F0B429' }]}>{mode.overrides.coinMultiplier}× </Text>
               <Text style={s.rewardLabel}>COINS</Text>
             </View>
           )}
           {mode.overrides.xpMultiplier != null && (
             <View style={[s.rewardPill]}>
-              <Text style={[s.rewardValue, { color: '#6F8A5B' }]}>{mode.overrides.xpMultiplier}× </Text>
+              <Text style={[s.rewardValue, { color: '#9CC93E' }]}>{mode.overrides.xpMultiplier}× </Text>
               <Text style={s.rewardLabel}>XP</Text>
             </View>
           )}
           {mode.overrides.ballSpeedFactor != null && (
             <View style={[s.rewardPill]}>
-              <Text style={[s.rewardValue, { color: '#B4533A' }]}>{mode.overrides.ballSpeedFactor}× </Text>
+              <Text style={[s.rewardValue, { color: '#E04A2F' }]}>{mode.overrides.ballSpeedFactor}× </Text>
               <Text style={s.rewardLabel}>BALL SPEED</Text>
             </View>
           )}
@@ -368,34 +368,34 @@ function EventCard({
   // ── DATE-LOCKED ──────────────────────────────────────────────────────────────
   if (ev.isLocked) {
     return (
-      <View style={[s.card, { backgroundColor: '#ECE7DC04', borderColor: '#ECE7DC0C' }]}>
+      <View style={[s.card, { backgroundColor: '#F3EAD304', borderColor: '#F3EAD30C' }]}>
         <View style={s.cardTop}>
-          <View style={[s.lockBadge, { borderColor: '#ECE7DC15' }]}>
-            <Feather name="lock" size={10} color="#ECE7DC33" />
-            <Text style={[s.badgeText, { color: '#ECE7DC33' }]}>LOCKED</Text>
+          <View style={[s.lockBadge, { borderColor: '#F3EAD315' }]}>
+            <Feather name="lock" size={10} color="#F3EAD333" />
+            <Text style={[s.badgeText, { color: '#F3EAD333' }]}>LOCKED</Text>
           </View>
-          <View style={[s.timePill, { borderColor: '#ECE7DC0C' }]}>
-            <Feather name="clock" size={9} color="#ECE7DC22" />
-            <Text style={[s.timeText, { color: '#ECE7DC22' }]}>Opens {ev.opensOnLabel}</Text>
+          <View style={[s.timePill, { borderColor: '#F3EAD30C' }]}>
+            <Feather name="clock" size={9} color="#F3EAD322" />
+            <Text style={[s.timeText, { color: '#F3EAD322' }]}>Opens {ev.opensOnLabel}</Text>
           </View>
         </View>
         <View style={s.nameRow}>
           <Glyph style={[s.eventEmoji, { opacity: 0.25 }]} value={ev.emoji} />
           <View style={{ flex: 1 }}>
             <Text style={[s.eventName, { color: ev.color + '44' }]}>{ev.name}</Text>
-            <Text style={[s.eventDesc, { color: '#ECE7DC22' }]}>Opens {ev.opensOnLabel}. Check back then!</Text>
+            <Text style={[s.eventDesc, { color: '#F3EAD322' }]}>Opens {ev.opensOnLabel}. Check back then!</Text>
           </View>
         </View>
-        <View style={[s.countdownBox, { borderColor: '#ECE7DC0C', backgroundColor: '#ECE7DC06' }]}>
-          <Feather name="lock" size={14} color="#ECE7DC33" />
+        <View style={[s.countdownBox, { borderColor: '#F3EAD30C', backgroundColor: '#F3EAD306' }]}>
+          <Feather name="lock" size={14} color="#F3EAD333" />
           <View>
-            <Text style={[s.countdownLabel, { color: '#ECE7DC44' }]}>OPENS IN</Text>
-            <Text style={[s.countdownTime, { color: '#ECE7DC77' }]}>{fmt(ev.endsIn)}</Text>
+            <Text style={[s.countdownLabel, { color: '#F3EAD344' }]}>OPENS IN</Text>
+            <Text style={[s.countdownTime, { color: '#F3EAD377' }]}>{fmt(ev.endsIn)}</Text>
           </View>
-          <Text style={[s.countdownDate, { color: '#ECE7DC33' }]}>{ev.opensOnLabel}</Text>
+          <Text style={[s.countdownDate, { color: '#F3EAD333' }]}>{ev.opensOnLabel}</Text>
         </View>
-        <View style={[s.playBtn, { backgroundColor: '#ECE7DC04', borderColor: '#ECE7DC0C', opacity: 0.5 }]}>
-          <Text style={[s.playBtnText, { color: '#ECE7DC22' }]}> OPENS {ev.opensOnLabel.toUpperCase()}</Text>
+        <View style={[s.playBtn, { backgroundColor: '#F3EAD304', borderColor: '#F3EAD30C', opacity: 0.5 }]}>
+          <Text style={[s.playBtnText, { color: '#F3EAD322' }]}> OPENS {ev.opensOnLabel.toUpperCase()}</Text>
         </View>
       </View>
     );
@@ -406,7 +406,7 @@ function EventCard({
     const noPlays  = mainDrawPlaysLeft === 0;
     const disabled = noPlays || rankGated;
     return (
-      <GlowBorder color={ev.color ?? '#B4533A'} borderRadius={3} spread={8}>
+      <GlowBorder color={ev.color ?? '#E04A2F'} borderRadius={3} spread={8}>
         <View style={[s.card, { backgroundColor: ev.color + (disabled ? '06' : '10'), borderColor: ev.color + (disabled ? '18' : '40') }]}>
           <LinearGradient colors={[ev.color + (disabled ? '06' : '14'), 'transparent']} style={StyleSheet.absoluteFill} />
           <View style={s.cardTop}>
@@ -418,7 +418,7 @@ function EventCard({
           </View>
           <NameRow ev={ev} dim={disabled} />
           <PlaysRow plays={mainDrawPlaysLeft} max={ev.maxPlays} color={ev.color} dim={disabled} />
-          <View style={[s.divider, { backgroundColor: '#ECE7DC0C' }]} />
+          <View style={[s.divider, { backgroundColor: '#F3EAD30C' }]} />
           <RewardRow ev={ev} dim={disabled} />
           <PlayButton
             label={rankGated ? 'REQUIRES GENERAL 1' : noPlays ? 'NO PLAYS REMAINING' : `▶  PLAY ${ev.name.toUpperCase()}`}
@@ -437,28 +437,28 @@ function EventCard({
   // ELIMINATED, used all qualifier plays without reaching threshold
   if (qs.isEliminated) {
     return (
-      <View style={[s.card, { backgroundColor: '#B4533A06', borderColor: '#B4533A22' }]}>
+      <View style={[s.card, { backgroundColor: '#E04A2F06', borderColor: '#E04A2F22' }]}>
         <View style={s.cardTop}>
-          <View style={[s.lockBadge, { borderColor: '#B4533A33', backgroundColor: '#B4533A0A' }]}>
-            <Text style={[s.badgeText, { color: '#B4533A' }]}>ELIMINATED</Text>
+          <View style={[s.lockBadge, { borderColor: '#E04A2F33', backgroundColor: '#E04A2F0A' }]}>
+            <Text style={[s.badgeText, { color: '#E04A2F' }]}>ELIMINATED</Text>
           </View>
           <TimePill ms={ev.endsIn} label="resets" dim />
         </View>
         <NameRow ev={ev} dim />
-        <View style={[s.countdownBox, { borderColor: '#B4533A22', backgroundColor: '#B4533A0A' }]}>
+        <View style={[s.countdownBox, { borderColor: '#E04A2F22', backgroundColor: '#E04A2F0A' }]}>
           <Glyph style={{ fontSize: 20 }} value="❌" />
           <View style={{ flex: 1 }}>
-            <Text style={[s.countdownLabel, { color: '#B4533ABB' }]}>
+            <Text style={[s.countdownLabel, { color: '#E04A2FBB' }]}>
               {qs.roundDef.name.toUpperCase()}, ELIMINATED
             </Text>
-            <Text style={[s.countdownTime, { color: '#B4533A99', fontSize: 13, fontFamily: 'SourceSans3_400Regular' }]}>
-              You earned <Text style={{ color: '#B4533A', fontFamily: 'SourceSans3_700Bold' }}>{qs.qp} QP</Text> but needed <Text style={{ fontFamily: 'SourceSans3_700Bold' }}>{qs.roundDef.threshold} QP</Text> to advance.
+            <Text style={[s.countdownTime, { color: '#E04A2F99', fontSize: 13, fontFamily: 'SourceSans3_400Regular' }]}>
+              You earned <Text style={{ color: '#E04A2F', fontFamily: 'SourceSans3_700Bold' }}>{qs.qp} QP</Text> but needed <Text style={{ fontFamily: 'SourceSans3_700Bold' }}>{qs.roundDef.threshold} QP</Text> to advance.
               {'\n'}Try again next period when the event resets.
             </Text>
           </View>
         </View>
-        <View style={[s.playBtn, { backgroundColor: '#ECE7DC04', borderColor: '#ECE7DC0C', opacity: 0.4 }]}>
-          <Text style={[s.playBtnText, { color: '#ECE7DC22' }]}>ELIMINATED THIS PERIOD</Text>
+        <View style={[s.playBtn, { backgroundColor: '#F3EAD304', borderColor: '#F3EAD30C', opacity: 0.4 }]}>
+          <Text style={[s.playBtnText, { color: '#F3EAD322' }]}>ELIMINATED THIS PERIOD</Text>
         </View>
       </View>
     );
@@ -470,12 +470,12 @@ function EventCard({
     const disabled = noPlays || rankGated;
     const roundLabel = ev.rounds.length > 2 ? 'GRAND FINAL' : 'MAIN DRAW';
     return (
-      <GlowBorder color={ev.color ?? '#B4533A'} borderRadius={3} spread={8}>
+      <GlowBorder color={ev.color ?? '#E04A2F'} borderRadius={3} spread={8}>
         <View style={[s.card, { backgroundColor: ev.color + (disabled ? '08' : '14'), borderColor: ev.color + (disabled ? '22' : '55') }]}>
-          <LinearGradient colors={['#C99A2E18', 'transparent']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['#F0B42918', 'transparent']} style={StyleSheet.absoluteFill} />
           <View style={s.cardTop}>
-            <View style={[s.qualifiedBadge, { borderColor: '#C99A2E55', backgroundColor: '#C99A2E12' }]}>
-              <Text style={[s.badgeText, { color: '#C99A2E' }]}> {roundLabel}, QUALIFIED</Text>
+            <View style={[s.qualifiedBadge, { borderColor: '#F0B42955', backgroundColor: '#F0B42912' }]}>
+              <Text style={[s.badgeText, { color: '#F0B429' }]}> {roundLabel}, QUALIFIED</Text>
             </View>
             <View style={s.cardTopRight}>
               <ModePill mode={modeName[ev.mode] ?? ev.mode} dim={disabled} />
@@ -485,11 +485,11 @@ function EventCard({
           <NameRow ev={ev} dim={disabled} />
           {/* Main draw plays */}
           <PlaysRow plays={mainDrawPlaysLeft} max={ev.maxPlays} color={ev.color} dim={disabled} />
-          <View style={[s.divider, { backgroundColor: '#ECE7DC0C' }]} />
+          <View style={[s.divider, { backgroundColor: '#F3EAD30C' }]} />
           <RewardRow ev={ev} dim={disabled} />
           <PlayButton
             label={rankGated ? 'REQUIRES GENERAL 1' : noPlays ? 'NO PLAYS REMAINING' : `▶  PLAY ${roundLabel}`}
-            color={disabled ? ev.color : '#C99A2E'}
+            color={disabled ? ev.color : '#F0B429'}
             disabled={disabled}
             onPress={onPlayMainDraw}
           />
@@ -505,16 +505,16 @@ function EventCard({
   const roundNum    = qs.roundIdx + 1;
 
   return (
-    <GlowBorder color={ev.color ?? '#B4533A'} borderRadius={3} spread={8}>
-      <View style={[s.card, { backgroundColor: '#8C8F7A08', borderColor: '#8C8F7A22' }]}>
-        <LinearGradient colors={['#8C8F7A0C', 'transparent']} style={StyleSheet.absoluteFill} />
+    <GlowBorder color={ev.color ?? '#E04A2F'} borderRadius={3} spread={8}>
+      <View style={[s.card, { backgroundColor: '#EDE3CC08', borderColor: '#EDE3CC22' }]}>
+        <LinearGradient colors={['#EDE3CC0C', 'transparent']} style={StyleSheet.absoluteFill} />
 
         {/* Top row: round badge + mode + time */}
         <View style={s.cardTop}>
-          <View style={[s.roundBadge, { borderColor: '#8C8F7A44', backgroundColor: '#8C8F7A12' }]}>
+          <View style={[s.roundBadge, { borderColor: '#EDE3CC44', backgroundColor: '#EDE3CC12' }]}>
             <Text style={s.roundBadgeEmoji}>{qs.roundDef.badge}</Text>
-            <Text style={[s.badgeText, { color: '#8C8F7A' }]}>{qs.roundDef.name.toUpperCase()}</Text>
-            <Text style={[s.roundCounter, { color: '#8C8F7A88' }]}>  {roundNum}/{totalRounds}</Text>
+            <Text style={[s.badgeText, { color: '#EDE3CC' }]}>{qs.roundDef.name.toUpperCase()}</Text>
+            <Text style={[s.roundCounter, { color: '#EDE3CC88' }]}>  {roundNum}/{totalRounds}</Text>
           </View>
           <View style={s.cardTopRight}>
             <ModePill mode={modeName[ev.mode] ?? ev.mode} dim={disabled} />
@@ -527,44 +527,44 @@ function EventCard({
         {/* QP Progress bar */}
         <View style={s.qpSection}>
           <View style={s.qpHeader}>
-            <Text style={[s.qpLabel, { color: '#8C8F7A88' }]}>QUALIFIER POINTS</Text>
-            <Text style={[s.qpValue, { color: '#8C8F7A' }]}>
+            <Text style={[s.qpLabel, { color: '#EDE3CC88' }]}>QUALIFIER POINTS</Text>
+            <Text style={[s.qpValue, { color: '#EDE3CC' }]}>
               {qs.qp} / {qs.roundDef.threshold} QP
             </Text>
           </View>
-          <View style={[s.qpTrack, { backgroundColor: '#8C8F7A14' }]}>
-            <View style={[s.qpFill, { width: `${qpFraction * 100}%` as never, backgroundColor: '#8C8F7A' }]} />
+          <View style={[s.qpTrack, { backgroundColor: '#EDE3CC14' }]}>
+            <View style={[s.qpFill, { width: `${qpFraction * 100}%` as never, backgroundColor: '#EDE3CC' }]} />
           </View>
           {qs.qp >= qs.roundDef.threshold - (qs.roundDef.qpPerPlace[0]) && qs.qp < qs.roundDef.threshold && (
-            <Text style={[s.qpNearNote, { color: '#8C8F7A88' }]}>
+            <Text style={[s.qpNearNote, { color: '#EDE3CC88' }]}>
               One good finish can qualify you!
             </Text>
           )}
         </View>
 
         {/* Plays remaining */}
-        <PlaysRow plays={qs.playsLeft} max={qs.roundDef.maxPlays} color="#8C8F7A" dim={disabled} />
+        <PlaysRow plays={qs.playsLeft} max={qs.roundDef.maxPlays} color="#EDE3CC" dim={disabled} />
 
         {/* QP per placement table */}
-        <View style={[s.qpTable, { borderColor: '#ECE7DC0C', backgroundColor: '#ECE7DC04' }]}>
-          <Text style={[s.qpTableTitle, { color: '#ECE7DC33' }]}>QP PER PLACEMENT</Text>
+        <View style={[s.qpTable, { borderColor: '#F3EAD30C', backgroundColor: '#F3EAD304' }]}>
+          <Text style={[s.qpTableTitle, { color: '#F3EAD333' }]}>QP PER PLACEMENT</Text>
           <View style={s.qpTableRows}>
             {qs.roundDef.qpPerPlace.map((qp, i) => (
               <View key={i} style={s.qpTableRow}>
                 <Glyph style={s.qpTableIcon} value={PLACEMENT_ICONS[i]} />
-                <Text style={[s.qpTablePlace, { color: i === 0 ? '#C99A2E' : i === 1 ? '#B7B2A6' : i === 2 ? '#C99A2E' : '#ECE7DC55' }]}>
+                <Text style={[s.qpTablePlace, { color: i === 0 ? '#F0B429' : i === 1 ? '#CFE0D6' : i === 2 ? '#F0B429' : '#F3EAD355' }]}>
                   {['1st', '2nd', '3rd', '4th'][i]}
                 </Text>
-                <Text style={[s.qpTablePoints, { color: '#8C8F7A' }]}>+{qp} QP</Text>
+                <Text style={[s.qpTablePoints, { color: '#EDE3CC' }]}>+{qp} QP</Text>
               </View>
             ))}
           </View>
         </View>
 
         {/* Advance info */}
-        <View style={[s.advanceNote, { borderColor: '#C99A2E22', backgroundColor: '#C99A2E08' }]}>
-          <Text style={[s.advanceText, { color: '#C99A2E88' }]}>
-             Reach <Text style={{ color: '#C99A2E', fontFamily: 'SourceSans3_700Bold' }}>{qs.roundDef.threshold} QP</Text> to advance to <Text style={{ color: '#C99A2E', fontFamily: 'SourceSans3_700Bold' }}>{ev.rounds[qs.roundIdx + 1]?.name ?? 'the Final'}</Text>
+        <View style={[s.advanceNote, { borderColor: '#F0B42922', backgroundColor: '#F0B42908' }]}>
+          <Text style={[s.advanceText, { color: '#F0B42988' }]}>
+             Reach <Text style={{ color: '#F0B429', fontFamily: 'SourceSans3_700Bold' }}>{qs.roundDef.threshold} QP</Text> to advance to <Text style={{ color: '#F0B429', fontFamily: 'SourceSans3_700Bold' }}>{ev.rounds[qs.roundIdx + 1]?.name ?? 'the Final'}</Text>
           </Text>
         </View>
 
@@ -574,7 +574,7 @@ function EventCard({
             qs.playsLeft === 0 ? 'NO PLAYS REMAINING' :
             `▶  PLAY ${qs.roundDef.name.toUpperCase()}`
           }
-          color="#8C8F7A"
+          color="#EDE3CC"
           disabled={disabled}
           onPress={() => !disabled && onPlayQualifier(qs!.roundIdx, qs!.roundDef)}
         />
@@ -594,17 +594,17 @@ function TypeBadge({ label, color, dim }: { label: string; color: string; dim: b
 
 function ModePill({ mode, dim }: { mode: string; dim: boolean }) {
   return (
-    <View style={[s.modePill, { borderColor: '#ECE7DC14' }]}>
-      <Text style={[s.modeText, { color: dim ? '#ECE7DC22' : '#ECE7DC66' }]}>{mode}</Text>
+    <View style={[s.modePill, { borderColor: '#F3EAD314' }]}>
+      <Text style={[s.modeText, { color: dim ? '#F3EAD322' : '#F3EAD366' }]}>{mode}</Text>
     </View>
   );
 }
 
 function TimePill({ ms, label, dim }: { ms: number; label: string; dim: boolean }) {
   return (
-    <View style={[s.timePill, { borderColor: '#ECE7DC14' }]}>
-      <Feather name="clock" size={9} color={dim ? '#ECE7DC22' : '#ECE7DC55'} />
-      <Text style={[s.timeText, { color: dim ? '#ECE7DC22' : '#ECE7DC66' }]}>{fmt(ms)} {label}</Text>
+    <View style={[s.timePill, { borderColor: '#F3EAD314' }]}>
+      <Feather name="clock" size={9} color={dim ? '#F3EAD322' : '#F3EAD355'} />
+      <Text style={[s.timeText, { color: dim ? '#F3EAD322' : '#F3EAD366' }]}>{fmt(ms)} {label}</Text>
     </View>
   );
 }
@@ -615,7 +615,7 @@ function NameRow({ ev, dim }: { ev: EventDefinition; dim: boolean }) {
       <Glyph style={[s.eventEmoji, { opacity: dim ? 0.25 : 1 }]} value={ev.emoji} />
       <View style={{ flex: 1 }}>
         <GlowText intensity="medium" color={dim ? ev.color + '44' : ev.color} style={s.eventName}>{ev.name}</GlowText>
-        <Text style={[s.eventDesc, { color: dim ? '#ECE7DC18' : '#ECE7DC66' }]}>{ev.description}</Text>
+        <Text style={[s.eventDesc, { color: dim ? '#F3EAD318' : '#F3EAD366' }]}>{ev.description}</Text>
       </View>
     </View>
   );
@@ -624,13 +624,13 @@ function NameRow({ ev, dim }: { ev: EventDefinition; dim: boolean }) {
 function PlaysRow({ plays, max, color, dim }: { plays: number; max: number; color: string; dim: boolean }) {
   return (
     <View style={s.playsRow}>
-      <Text style={[s.playsLabel, { color: '#ECE7DC33' }]}>PLAYS</Text>
+      <Text style={[s.playsLabel, { color: '#F3EAD333' }]}>PLAYS</Text>
       <View style={s.dots}>
         {Array.from({ length: max }).map((_, i) => (
-          <View key={i} style={[s.dot, { backgroundColor: i < plays ? color : '#ECE7DC14' }]} />
+          <View key={i} style={[s.dot, { backgroundColor: i < plays ? color : '#F3EAD314' }]} />
         ))}
       </View>
-      <Text style={[s.playsRemaining, { color: plays === 0 ? '#ECE7DC22' : color }]}>
+      <Text style={[s.playsRemaining, { color: plays === 0 ? '#F3EAD322' : color }]}>
         {plays === 0 ? 'DONE' : `${plays}/${max}`}
       </Text>
     </View>
@@ -641,11 +641,11 @@ function RewardRow({ ev, dim }: { ev: EventDefinition; dim: boolean }) {
   return (
     <>
       <View style={s.rewardRow}>
-        <RewardPill label="WIN XP"    value={`+${ev.winRewards.xp}`}    color="#C99A2E"  dim={dim} />
-        <RewardPill label="WIN COINS" value={`+${ev.winRewards.coins}`} color="#C99A2E"  dim={dim} />
-        <RewardPill label="CREDITS"   value={`+${ev.creditsOnWin}`}     color="#8C8F7A"  dim={dim} prefix="⚡" />
+        <RewardPill label="WIN XP"    value={`+${ev.winRewards.xp}`}    color="#F0B429"  dim={dim} />
+        <RewardPill label="WIN COINS" value={`+${ev.winRewards.coins}`} color="#F0B429"  dim={dim} />
+        <RewardPill label="CREDITS"   value={`+${ev.creditsOnWin}`}     color="#EDE3CC"  dim={dim} prefix="⚡" />
       </View>
-      <Text style={[s.lossNote, { color: dim ? '#ECE7DC14' : '#ECE7DC33' }]}>
+      <Text style={[s.lossNote, { color: dim ? '#F3EAD314' : '#F3EAD333' }]}>
         Loss: +{ev.loseRewards.xp} XP · +{ev.loseRewards.coins} coins · +{ev.creditsOnLose}
       </Text>
     </>
@@ -657,8 +657,8 @@ function RewardPill({ label, value, color, dim, prefix = '' }: {
 }) {
   return (
     <View style={s.rewardPill}>
-      <Text style={[s.rewardValue, { color: dim ? '#ECE7DC18' : color }]}>{prefix}{value}</Text>
-      <Text style={[s.rewardLabel, { color: dim ? '#ECE7DC0E' : '#ECE7DC44' }]}>{label}</Text>
+      <Text style={[s.rewardValue, { color: dim ? '#F3EAD318' : color }]}>{prefix}{value}</Text>
+      <Text style={[s.rewardLabel, { color: dim ? '#F3EAD30E' : '#F3EAD344' }]}>{label}</Text>
     </View>
   );
 }
@@ -672,14 +672,14 @@ function PlayButton({ label, color, disabled, onPress }: {
       style={({ pressed }) => [
         s.playBtn,
         {
-          backgroundColor: disabled ? '#ECE7DC06' : color + '20',
-          borderColor:     disabled ? '#ECE7DC10' : color + '66',
+          backgroundColor: disabled ? '#F3EAD306' : color + '20',
+          borderColor:     disabled ? '#F3EAD310' : color + '66',
           opacity: disabled ? 0.5 : pressed ? 0.75 : 1,
           transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
         },
       ]}
     >
-      <Text style={[s.playBtnText, { color: disabled ? '#ECE7DC22' : color }]}>{label}</Text>
+      <Text style={[s.playBtnText, { color: disabled ? '#F3EAD322' : color }]}>{label}</Text>
     </Pressable>
   );
 }

@@ -46,7 +46,7 @@ export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props)
     <Modal visible={visible} transparent animationType="none" onRequestClose={onDismiss}>
       <View style={s.overlay}>
         <Animated.View style={[s.container, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-          <LinearGradient colors={['#2A2C31', '#16171A']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['#1E4A3F', '#0E2621']} style={StyleSheet.absoluteFill} />
           <View style={s.border} />
 
           {/* Streak flame */}
@@ -67,13 +67,13 @@ export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props)
                 <View key={i} style={s.dayCol}>
                   <View style={[
                     s.dayCircle,
-                    claimed  && { backgroundColor: '#C99A2E33', borderColor: '#C99A2E' },
-                    isToday  && { backgroundColor: '#C99A2E',   borderColor: '#C99A2E' },
-                    upcoming && { backgroundColor: '#ECE7DC08', borderColor: '#ECE7DC22' },
+                    claimed  && { backgroundColor: '#F0B42933', borderColor: '#F0B429' },
+                    isToday  && { backgroundColor: '#F0B429',   borderColor: '#F0B429' },
+                    upcoming && { backgroundColor: '#F3EAD308', borderColor: '#F3EAD322' },
                   ]}>
-                    <Glyph style={[s.dayIcon, { color: isToday ? '#16171A' : claimed ? '#C99A2E' : '#ECE7DC44' }]} value={claimed ? '✓' : isToday ? '★' : label} />
+                    <Glyph style={[s.dayIcon, { color: isToday ? '#0E2621' : claimed ? '#F0B429' : '#F3EAD344' }]} value={claimed ? '✓' : isToday ? '★' : label} />
                   </View>
-                  <Text style={[s.dayReward, { color: isToday ? '#C99A2E' : upcoming ? '#ECE7DC33' : '#ECE7DC66' }]}>
+                  <Text style={[s.dayReward, { color: isToday ? '#F0B429' : upcoming ? '#F3EAD333' : '#F3EAD366' }]}>
                     {WEEK_REWARDS[i]}
                   </Text>
                 </View>
@@ -92,7 +92,7 @@ export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props)
 
           {/* Claim button */}
           <Pressable onPress={onClaim} style={({ pressed }) => [s.claimBtn, pressed && { opacity: 0.85 }]}>
-            <LinearGradient colors={['#C99A2E', '#C99A2E']} style={s.claimGrad}>
+            <LinearGradient colors={['#F0B429', '#F0B429']} style={s.claimGrad}>
               <Text style={s.claimText}>CLAIM REWARD</Text>
             </LinearGradient>
           </Pressable>
@@ -107,25 +107,25 @@ export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props)
 }
 
 const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: '#16171ABB', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  overlay: { flex: 1, backgroundColor: '#0E2621BB', alignItems: 'center', justifyContent: 'center', padding: 24 },
   container: { width: '100%', maxWidth: 360, borderRadius: 3, overflow: 'hidden', padding: 24, alignItems: 'center', gap: 12 },
-  border: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 3, borderWidth: 1.5, borderColor: '#C99A2E33' },
+  border: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 3, borderWidth: 1.5, borderColor: '#F0B42933' },
   flame: { fontSize: 56, marginBottom: 4 },
-  streakMsg: { color: '#C99A2E', fontFamily: 'SourceSans3_700Bold', fontSize: 22, letterSpacing: 2, textAlign: 'center', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
-  streakSub: { color: '#ECE7DC88', fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, marginBottom: 4 },
+  streakMsg: { color: '#F0B429', fontFamily: 'SourceSans3_700Bold', fontSize: 22, letterSpacing: 2, textAlign: 'center', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  streakSub: { color: '#F3EAD388', fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, marginBottom: 4 },
   calendar: { flexDirection: 'row', gap: 6, marginVertical: 4 },
   dayCol: { alignItems: 'center', gap: 4, flex: 1 },
   dayCircle: { width: 36, height: 36, borderRadius: 3, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   dayIcon: { fontFamily: 'SourceSans3_700Bold', fontSize: 12 },
   dayReward: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8 },
-  rewardBox: { backgroundColor: '#C99A2E15', borderRadius: 3, borderWidth: 1, borderColor: '#C99A2E33', padding: 16, width: '100%', alignItems: 'center', gap: 6 },
-  rewardLabel: { color: '#C99A2E', fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 2 },
+  rewardBox: { backgroundColor: '#F0B42915', borderRadius: 3, borderWidth: 1, borderColor: '#F0B42933', padding: 16, width: '100%', alignItems: 'center', gap: 6 },
+  rewardLabel: { color: '#F0B429', fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 2 },
   rewardCoins: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   coinEmoji: { fontSize: 28 },
-  coinAmount: { color: '#C99A2E', fontFamily: 'SourceSans3_700Bold', fontSize: 28 },
-  claimBtn: { width: '100%', borderRadius: 3, overflow: 'hidden', shadowColor: '#C99A2E', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
+  coinAmount: { color: '#F0B429', fontFamily: 'SourceSans3_700Bold', fontSize: 28 },
+  claimBtn: { width: '100%', borderRadius: 3, overflow: 'hidden', shadowColor: '#F0B429', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
   claimGrad: { paddingVertical: 16, alignItems: 'center' },
-  claimText: { color: '#16171A', fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 1.5 },
+  claimText: { color: '#0E2621', fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 1.5 },
   skipBtn: { paddingVertical: 6 },
-  skipText: { color: '#ECE7DC44', fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
+  skipText: { color: '#F3EAD344', fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
 });

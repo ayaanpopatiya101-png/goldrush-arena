@@ -107,7 +107,7 @@ export function CinematicSplash({ onDone }: Props) {
 
   return (
     <Animated.View style={[styles.root, { opacity: masterFade }]} pointerEvents="none">
-      <LinearGradient colors={['#16171A', '#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0E2621', '#0E2621', '#0E2621']} style={StyleSheet.absoluteFill} />
 
 
       {/* Centre content */}
@@ -156,14 +156,14 @@ export function CinematicSplash({ onDone }: Props) {
 const styles = StyleSheet.create({
   root:         { ...StyleSheet.absoluteFillObject, zIndex: 9999, alignItems: 'center', justifyContent: 'center' },
   center:       { alignItems: 'center', gap: 16 },
-  particle:     { position: 'absolute', backgroundColor: '#C99A2E' },
+  particle:     { position: 'absolute', backgroundColor: '#F0B429' },
   logoWrap:     { width: 96, height: 96, alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  logoGlow:     { position: 'absolute', width: 96, height: 96, borderRadius: 3, backgroundColor: '#C99A2E', shadowColor: '#C99A2E', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
-  logoText:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 46, color: '#C99A2E', letterSpacing: 4, zIndex: 1, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
-  divider:      { height: 1.5, backgroundColor: '#C99A2E88', borderRadius: 1 },
+  logoGlow:     { position: 'absolute', width: 96, height: 96, borderRadius: 3, backgroundColor: '#F0B429', shadowColor: '#F0B429', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
+  logoText:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 46, color: '#F0B429', letterSpacing: 4, zIndex: 1, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  divider:      { height: 1.5, backgroundColor: '#F0B42988', borderRadius: 1 },
   titleRow:     { flexDirection: 'row', flexWrap: 'nowrap' },
-  titleLetter:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: Platform.OS === 'web' ? 25 : 27, color: '#ECE7DC', letterSpacing: 3, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
-  subtitle:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: '#ECE7DC66', letterSpacing: 2 },
-  seasonBadge:  { marginTop: 4, backgroundColor: '#C99A2E22', borderRadius: 3, borderWidth: 1, borderColor: '#C99A2E55', paddingHorizontal: 14, paddingVertical: 5 },
-  seasonText:   { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, color: '#C99A2E', letterSpacing: 1.5 },
+  titleLetter:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: Platform.OS === 'web' ? 25 : 27, color: '#F3EAD3', letterSpacing: 3, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  subtitle:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: '#F3EAD366', letterSpacing: 2 },
+  seasonBadge:  { marginTop: 4, backgroundColor: '#F0B42922', borderRadius: 3, borderWidth: 1, borderColor: '#F0B42955', paddingHorizontal: 14, paddingVertical: 5 },
+  seasonText:   { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, color: '#F0B429', letterSpacing: 1.5 },
 });

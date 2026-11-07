@@ -15,12 +15,12 @@ export default function LegalScreen() {
   const content = activeTab === 'privacy' ? PRIVACY_POLICY : TERMS_OF_SERVICE;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#16171A' }}>
+    <View style={{ flex: 1, backgroundColor: '#0E2621' }}>
 
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
         <Pressable onPress={() => router.back()} style={s.back} accessibilityRole="button" accessibilityLabel="Back">
-          <Feather name="arrow-left" size={22} color="#ECE7DC" />
+          <Feather name="arrow-left" size={22} color="#F3EAD3" />
         </Pressable>
         <Text style={s.title}>LEGAL</Text>
         <View style={{ width: 40 }} />
@@ -66,28 +66,28 @@ const s = StyleSheet.create({
     paddingHorizontal: 20, paddingBottom: 16,
   },
   back:  { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  title: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 2, color: '#ECE7DC' },
+  title: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 2, color: '#F3EAD3' },
 
   tabRow: {
     flexDirection: 'row', marginHorizontal: 20, marginBottom: 16,
-    backgroundColor: '#ECE7DC0C', borderRadius: 3, padding: 4,
+    backgroundColor: '#F3EAD30C', borderRadius: 3, padding: 4,
   },
   tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 3 },
-  tabBtnActive: { backgroundColor: '#C99A2E22', borderWidth: 1, borderColor: '#C99A2E55' },
-  tabText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 0.5, color: '#ECE7DC44' },
-  tabTextActive: { color: '#C99A2E' },
+  tabBtnActive: { backgroundColor: '#F0B42922', borderWidth: 1, borderColor: '#F0B42955' },
+  tabText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 0.5, color: '#F3EAD344' },
+  tabTextActive: { color: '#F0B429' },
 
   scrollContent: { paddingHorizontal: 20, gap: 16 },
   card: {
-    backgroundColor: '#ECE7DC07', borderRadius: 3, borderWidth: 1,
-    borderColor: '#ECE7DC11', padding: 18,
+    backgroundColor: '#F3EAD307', borderRadius: 3, borderWidth: 1,
+    borderColor: '#F3EAD311', padding: 18,
   },
   body: {
-    fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#ECE7DC99',
+    fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#F3EAD399',
     lineHeight: 22,
   },
   footer: {
-    fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#ECE7DC22',
+    fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#F3EAD322',
     textAlign: 'center',
   },
 });

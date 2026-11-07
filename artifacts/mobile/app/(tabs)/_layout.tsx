@@ -1,3 +1,4 @@
+import { palette } from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BlurView } from '@/components/ui/Flat';
 import { router, Tabs } from 'expo-router';
@@ -66,7 +67,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: '#8C8F7A',
+        tabBarInactiveTintColor: '#EDE3CC',
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
@@ -150,7 +151,7 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBg: {
-    backgroundColor: '#16171AF2',
+    backgroundColor: palette.ink,
   },
   tabBorder: {
     position: 'absolute',
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: '#ECE7DC14',
+    backgroundColor: '#F3EAD314',
   },
   tabItem: {
     alignItems: 'center',

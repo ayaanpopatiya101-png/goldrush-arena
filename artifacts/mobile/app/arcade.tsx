@@ -118,15 +118,15 @@ export default function ArcadeScreen() {
       style={[styles.root, { paddingTop: topPad }]}
       onTouchStart={ensureMusic}
     >
-      <LinearGradient colors={['#16171A', '#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0E2621', '#0E2621', '#0E2621']} style={StyleSheet.absoluteFill} />
 
       {/* ── HUD Top ─────────────────────────────────────────────────────────── */}
       <View style={styles.hud}>
         <Pressable onPress={() => setPaused(true)} style={styles.iconBtn}>
-          <Feather name="pause" size={20} color="#ECE7DC88" />
+          <Feather name="pause" size={20} color="#F3EAD388" />
         </Pressable>
         <View style={{ flex: 1, alignItems: 'center' }}>
-          <GlowText intensity="soft" color="#6F8A5B" style={styles.modeLabel}>
+          <GlowText intensity="soft" color="#9CC93E" style={styles.modeLabel}>
              SURVIVAL
           </GlowText>
         </View>
@@ -140,7 +140,7 @@ export default function ArcadeScreen() {
         {/* HITS counter */}
         <View style={styles.hitsWrap}>
           <Text style={styles.hitsLabel}>HITS</Text>
-          <Animated.Text style={[styles.hitsValue, { transform: [{ scale: hitsPulse }], color: isNewBest ? '#6F8A5B' : '#C99A2E' }]}>
+          <Animated.Text style={[styles.hitsValue, { transform: [{ scale: hitsPulse }], color: isNewBest ? '#9CC93E' : '#F0B429' }]}>
             {hitsUI}
           </Animated.Text>
           {isNewBest && hitsUI > 0 && (
@@ -203,7 +203,7 @@ export default function ArcadeScreen() {
       <Modal visible={paused} transparent animationType="fade">
         <View style={styles.pauseOverlay}>
           <Reanimated.View entering={SlideInUp.springify().damping(16).stiffness(120)} style={styles.pauseCard}>
-            <LinearGradient colors={['#1F2125','#1F2125','#1F2125']} style={StyleSheet.absoluteFill} />
+            <LinearGradient colors={['#15372F','#15372F','#15372F']} style={StyleSheet.absoluteFill} />
             <Text style={styles.pauseTitle}>PAUSED</Text>
             <View style={styles.pauseStats}>
               <View style={styles.pauseStat}>
@@ -212,13 +212,13 @@ export default function ArcadeScreen() {
               </View>
               <View style={styles.pauseDivider} />
               <View style={styles.pauseStat}>
-                <Text style={[styles.pauseStatVal, { color: '#6F8A5B' }]}>{Math.max(bestScore, hitsUI)}</Text>
+                <Text style={[styles.pauseStatVal, { color: '#9CC93E' }]}>{Math.max(bestScore, hitsUI)}</Text>
                 <Text style={styles.pauseStatLbl}>BEST</Text>
               </View>
             </View>
             <Pressable onPress={() => setPaused(false)} style={styles.resumeBtn}>
-              <LinearGradient colors={['#6F8A5B', '#6F8A5B']} style={styles.resumeGrad}>
-                <Feather name="play" size={18} color="#16171A" />
+              <LinearGradient colors={['#9CC93E', '#9CC93E']} style={styles.resumeGrad}>
+                <Feather name="play" size={18} color="#0E2621" />
                 <Text style={styles.resumeText}>RESUME</Text>
               </LinearGradient>
             </Pressable>
@@ -226,7 +226,7 @@ export default function ArcadeScreen() {
               onPress={() => { setPaused(false); music.stop(); router.replace('/'); }}
               style={styles.quitBtn}
             >
-              <Feather name="home" size={14} color="#B4533A88" />
+              <Feather name="home" size={14} color="#E04A2F88" />
               <Text style={styles.quitText}>Quit to Menu</Text>
             </Pressable>
           </Reanimated.View>
@@ -245,35 +245,35 @@ const styles = StyleSheet.create({
 
   scoreRow:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, height: 56, marginBottom: 4 },
   hitsWrap:       { alignItems: 'flex-start', gap: 2 },
-  hitsLabel:      { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#ECE7DC55', letterSpacing: 2 },
-  hitsValue:      { fontFamily: 'SourceSans3_700Bold', fontSize: 36, color: '#C99A2E', lineHeight: 40 },
-  newBestBadge:   { backgroundColor: '#6F8A5B22', borderRadius: 3, borderWidth: 1, borderColor: '#6F8A5B55', paddingHorizontal: 6, paddingVertical: 2 },
-  newBestText:    { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#6F8A5B', letterSpacing: 1 },
+  hitsLabel:      { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#F3EAD355', letterSpacing: 2 },
+  hitsValue:      { fontFamily: 'SourceSans3_700Bold', fontSize: 36, color: '#F0B429', lineHeight: 40 },
+  newBestBadge:   { backgroundColor: '#9CC93E22', borderRadius: 3, borderWidth: 1, borderColor: '#9CC93E55', paddingHorizontal: 6, paddingVertical: 2 },
+  newBestText:    { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#9CC93E', letterSpacing: 1 },
   bestWrap:       { alignItems: 'flex-end', gap: 2 },
-  bestLabel:      { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#ECE7DC44', letterSpacing: 2 },
-  bestValue:      { fontFamily: 'SourceSans3_700Bold', fontSize: 24, color: '#6F8A5B88' },
+  bestLabel:      { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#F3EAD344', letterSpacing: 2 },
+  bestValue:      { fontFamily: 'SourceSans3_700Bold', fontSize: 24, color: '#9CC93E88' },
 
   arenaWrap:      { alignItems: 'center', gap: 4 },
   arenaLabel:     { flexDirection: 'row', alignItems: 'center' },
-  soloBadge:      { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 2, color: '#6F8A5B66' },
+  soloBadge:      { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 2, color: '#9CC93E66' },
   playerLabel:    { flexDirection: 'row', alignItems: 'center', gap: 6 },
   labelDot:       { width: 8, height: 8, borderRadius: 4 },
   labelTxt:       { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, letterSpacing: 0.5 },
 
   hudBottom:      { paddingTop: 8, paddingHorizontal: 20, width: '100%', alignItems: 'center' },
-  tipText:        { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#ECE7DC33', textAlign: 'center' },
+  tipText:        { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#F3EAD333', textAlign: 'center' },
 
-  pauseOverlay:   { flex: 1, backgroundColor: '#16171ABB', alignItems: 'center', justifyContent: 'center' },
-  pauseCard:      { width: 280, borderRadius: 3, overflow: 'hidden', padding: 28, alignItems: 'center', gap: 18, borderWidth: 1, borderColor: '#6F8A5B22' },
-  pauseTitle:     { fontFamily: 'SourceSans3_700Bold', fontSize: 28, color: '#ECE7DC', letterSpacing: 3 },
-  pauseStats:     { flexDirection: 'row', alignItems: 'center', gap: 0, backgroundColor: '#ECE7DC08', borderRadius: 3, paddingVertical: 10, paddingHorizontal: 8, width: '100%', justifyContent: 'space-around' },
+  pauseOverlay:   { flex: 1, backgroundColor: '#0E2621BB', alignItems: 'center', justifyContent: 'center' },
+  pauseCard:      { width: 280, borderRadius: 3, overflow: 'hidden', padding: 28, alignItems: 'center', gap: 18, borderWidth: 1, borderColor: '#9CC93E22' },
+  pauseTitle:     { fontFamily: 'SourceSans3_700Bold', fontSize: 28, color: '#F3EAD3', letterSpacing: 3 },
+  pauseStats:     { flexDirection: 'row', alignItems: 'center', gap: 0, backgroundColor: '#F3EAD308', borderRadius: 3, paddingVertical: 10, paddingHorizontal: 8, width: '100%', justifyContent: 'space-around' },
   pauseStat:      { alignItems: 'center', flex: 1 },
-  pauseStatVal:   { fontFamily: 'SourceSans3_700Bold', fontSize: 24, color: '#C99A2E' },
-  pauseStatLbl:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: '#ECE7DC55', letterSpacing: 1 },
-  pauseDivider:   { width: 1, height: 36, backgroundColor: '#ECE7DC22' },
+  pauseStatVal:   { fontFamily: 'SourceSans3_700Bold', fontSize: 24, color: '#F0B429' },
+  pauseStatLbl:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: '#F3EAD355', letterSpacing: 1 },
+  pauseDivider:   { width: 1, height: 36, backgroundColor: '#F3EAD322' },
   resumeBtn:      { width: '100%', borderRadius: 3, overflow: 'hidden' },
   resumeGrad:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, gap: 8 },
-  resumeText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#16171A', letterSpacing: 1 },
+  resumeText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#0E2621', letterSpacing: 1 },
   quitBtn:        { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },
-  quitText:       { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: '#B4533A77' },
+  quitText:       { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: '#E04A2F77' },
 });

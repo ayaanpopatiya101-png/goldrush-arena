@@ -192,7 +192,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
   return (
     <Modal animationType="none" transparent presentationStyle="overFullScreen">
       <Animated.View style={[s.overlay, { opacity: overlayOp }]}>
-        <LinearGradient colors={['#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={['#0E2621', '#0E2621']} style={StyleSheet.absoluteFill} />
 
 
 
@@ -218,8 +218,8 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
             <View style={s.pips}>
               {[0, 1, 2, 3].map(i => (
                 <View key={i} style={[s.pip, {
-                  backgroundColor: i < 4 - tapsLeft ? meta.color : '#ECE7DC15',
-                  borderColor:     i < 4 - tapsLeft ? meta.color : '#ECE7DC25',
+                  backgroundColor: i < 4 - tapsLeft ? meta.color : '#F3EAD315',
+                  borderColor:     i < 4 - tapsLeft ? meta.color : '#F3EAD325',
                   shadowColor:     meta.color,
                   shadowOpacity:   i < 4 - tapsLeft ? 0.8 : 0,
                   shadowRadius: 0,
@@ -250,7 +250,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
               }]}>
                 <View style={[s.block, { borderColor: meta.color + 'BB', shadowColor: meta.color }]}>
                   <LinearGradient
-                    colors={[meta.color + '66', meta.color + '28', '#16171A55']}
+                    colors={[meta.color + '66', meta.color + '28', '#0E262155']}
                     start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }}
                     style={StyleSheet.absoluteFill}
                   />
@@ -277,7 +277,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
             borderColor: meta.color + '66',
           }]}>
             <LinearGradient
-              colors={[meta.color + '30', meta.color + '10', '#16171A00']}
+              colors={[meta.color + '30', meta.color + '10', '#0E262100']}
               style={StyleSheet.absoluteFill}
             />
             <Glyph style={s.rewardEmoji} value={meta.emoji} />
@@ -287,10 +287,10 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
 
             {reward && (
               <View style={s.rewardItems}>
-                <View style={[s.rewardRow, { borderColor: '#C99A2E33' }]}>
+                <View style={[s.rewardRow, { borderColor: '#F0B42933' }]}>
                   <Glyph style={s.rIcon} value="🪙" />
                   <Text style={s.rLabel}>Coins</Text>
-                  <Text style={[s.rValue, { color: '#C99A2E' }]}>
+                  <Text style={[s.rValue, { color: '#F0B429' }]}>
                     +{reward.coins.toLocaleString()}
                   </Text>
                 </View>
@@ -323,7 +323,7 @@ const s = StyleSheet.create({
     flex: 1, alignItems: 'center', justifyContent: 'center',
   },
   star: {
-    position: 'absolute', borderRadius: 3, backgroundColor: '#ECE7DC',
+    position: 'absolute', borderRadius: 3, backgroundColor: '#F3EAD3',
   },
   flashBurst: {
     position: 'absolute', width: 200, height: 200, borderRadius: 3,
@@ -334,7 +334,7 @@ const s = StyleSheet.create({
   },
   categoryLabel: {
     fontSize: 10, fontFamily: 'SourceSans3_600SemiBold', letterSpacing: 3.5,
-    color: '#ECE7DC44', marginBottom: 6,
+    color: '#F3EAD344', marginBottom: 6,
   },
   tierLabel: {
     fontSize: 22, fontFamily: 'SourceSans3_700Bold', letterSpacing: 2,
@@ -374,7 +374,7 @@ const s = StyleSheet.create({
   blockHighlight: {
     position: 'absolute', top: 10, left: 10,
     width: 40, height: 40, borderRadius: 3,
-    backgroundColor: '#ECE7DC18',
+    backgroundColor: '#F3EAD318',
   },
   blockEmoji: {
     fontSize: 72,
@@ -383,7 +383,7 @@ const s = StyleSheet.create({
     marginTop: 32, alignItems: 'center', gap: 6,
   },
   hintText: {
-    fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 3, color: '#ECE7DC44',
+    fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 3, color: '#F3EAD344',
   },
   tapsLeft: {
     fontSize: 13, fontFamily: 'SourceSans3_600SemiBold', letterSpacing: 1,
@@ -403,16 +403,16 @@ const s = StyleSheet.create({
   },
   rewardRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#ECE7DC08', borderRadius: 3, padding: 14, borderWidth: 1,
+    backgroundColor: '#F3EAD308', borderRadius: 3, padding: 14, borderWidth: 1,
   },
   rIcon: { fontSize: 20 },
-  rLabel: { flex: 1, color: '#ECE7DC88', fontSize: 14, fontFamily: 'SourceSans3_600SemiBold' },
+  rLabel: { flex: 1, color: '#F3EAD388', fontSize: 14, fontFamily: 'SourceSans3_600SemiBold' },
   rValue: { fontSize: 18, fontFamily: 'SourceSans3_700Bold' },
   collectBtn: {
     paddingHorizontal: 40, paddingVertical: 16, borderRadius: 3,
     marginTop: 4,
   },
   collectBtnTxt: {
-    color: '#ECE7DC', fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 2,
+    color: '#F3EAD3', fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 2,
   },
 });

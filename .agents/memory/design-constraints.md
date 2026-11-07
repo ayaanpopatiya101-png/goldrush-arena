@@ -10,3 +10,9 @@ The same avoidance list includes "no real product demos", "no skeleton loaders",
 **Why:** The user explicitly requested these constraints for the GoldRush Arena upgrade. They supersede older Inter and glow-heavy aesthetic preferences in project guidance.
 
 **How to apply:** Apply when planning or changing this game's visual UI and copy. External reference apps are inspiration for usability, not permission to reproduce styles on the avoidance list.
+
+The user subsequently asked for "more color instead of looking bland and boring." The avoidance list is not a request for a gray or nearly colorless app.
+
+**Why:** The user found the restrained redesign too bland and asked for stronger color.
+
+**How to apply:** Keep purposeful, richer solid color in this game while preserving the explicit bans, especially gradients, neon, rainbow schemes and basic pastels.

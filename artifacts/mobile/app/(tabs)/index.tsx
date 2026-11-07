@@ -71,6 +71,7 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
   const [run, setRun] = useState(0);
   const [started, setStarted] = useState(false);
   const active = !reduced || started;
+  const compact = size < 320;
 
   const restart = useCallback(() => setRun(r => r + 1), []);
 
@@ -101,9 +102,9 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
         )}
       </View>
       {/* Seat scoreboard: truthful identity for each paddle */}
-      <View style={a.seats} accessibilityLabel="Preview seats: you at south, three local bots">
+      <View style={[a.seats, compact && a.seatsWrap]} accessibilityLabel="Preview seats: you at south, three local bots">
         {SEAT_NAMES.map((seat, i) => (
-          <View key={seat} style={[a.seat, i < 3 && a.seatDivider]}>
+          <View key={seat} style={[a.seat, compact ? a.seatCompact : i < 3 && a.seatDivider, compact && i < 2 && a.seatRowDivider, compact && i % 2 === 0 && a.seatDivider]}>
             <View style={[a.seatSwatch, { backgroundColor: i === 0 ? playerColor : PLAYER_COLORS[i] }]} />
             <View style={{ flex: 1 }}>
               <Text style={a.seatPos}>{seat}</Text>
@@ -539,6 +540,9 @@ const a = StyleSheet.create({
   reducedText: { fontFamily: fonts.body, fontSize: 14, color: ui.paperDim, textAlign: 'center' },
   seats: { flexDirection: 'row', borderWidth: 1, borderTopWidth: 0, borderColor: ui.lineStrong, backgroundColor: ui.graphite },
   seat: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 8 },
+  seatsWrap: { flexWrap: 'wrap' },
+  seatCompact: { flexBasis: '50%', flexGrow: 0, flexShrink: 0 },
+  seatRowDivider: { borderBottomWidth: 1, borderBottomColor: ui.line },
   seatDivider: { borderRightWidth: 1, borderRightColor: ui.line },
   seatSwatch: { width: 4, height: 24 },
   seatPos: { fontFamily: fonts.display, fontSize: 13, letterSpacing: 1, color: ui.paper, textTransform: 'uppercase' },

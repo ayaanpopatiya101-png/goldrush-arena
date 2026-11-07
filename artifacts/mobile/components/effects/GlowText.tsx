@@ -10,6 +10,6 @@ export interface GlowTextProps extends TextProps {
   glitch?: boolean;
 }
 
-export function GlowText({ color = '#ECE7DC', style, children, glowColor: _g, intensity: _i, pulse: _p, glitch: _gl, ...rest }: GlowTextProps) {
+export function GlowText({ color = '#F3EAD3', style, children, glowColor: _g, intensity: _i, pulse: _p, glitch: _gl, ...rest }: GlowTextProps) {
   return <Text {...rest} style={[{ color }, style]}>{children}</Text>;
 }

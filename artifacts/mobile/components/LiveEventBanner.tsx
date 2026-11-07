@@ -81,8 +81,8 @@ export function LiveEventBanner() {
     colorAnim.setValue(0);
   }, [mode?.id]);
 
-  const color       = mode?.color       ?? '#C99A2E';
-  const gradient    = mode?.gradient    ?? (['#2A2C31', '#8C8F7A'] as [string, string]);
+  const color       = mode?.color       ?? '#F0B429';
+  const gradient    = mode?.gradient    ?? (['#1E4A3F', '#EDE3CC'] as [string, string]);
   const name        = mode?.name        ?? 'Gold Rush Championship';
   const descriptor  = mode?.descriptor  ?? 'Exclusive summer event, earn bonus rewards';
   const emoji       = mode?.emoji       ?? '⚡';
@@ -145,16 +145,16 @@ export function LiveEventBanner() {
 const cd = StyleSheet.create({
   unit:  { alignItems: 'center', minWidth: 26 },
   value: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, lineHeight: 20 },
-  label: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8, color: '#ECE7DC55', letterSpacing: 0.5 },
+  label: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8, color: '#F3EAD355', letterSpacing: 0.5 },
   sep:   { fontFamily: 'SourceSans3_700Bold', fontSize: 16, lineHeight: 20, marginBottom: 10 },
 });
 
 const tk = StyleSheet.create({
-  wrap:     { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#ECE7DC08', borderRadius: 3, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10 },
-  liveBadge:{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#B4533A22', borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
-  liveDot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: '#B4533A' },
-  liveText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#B4533A', letterSpacing: 1 },
-  news:     { flex: 1, fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#ECE7DCCC' },
+  wrap:     { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F3EAD308', borderRadius: 3, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10 },
+  liveBadge:{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#E04A2F22', borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
+  liveDot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: '#E04A2F' },
+  liveText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#E04A2F', letterSpacing: 1 },
+  news:     { flex: 1, fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#F3EAD3CC' },
 });
 
 const styles = StyleSheet.create({
@@ -165,15 +165,15 @@ const styles = StyleSheet.create({
   topRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   modeBadge:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1 },
   modeBadgeText:{ fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 1 },
-  liveChip:     { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#6F8A5B18', borderRadius: 3, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: '#6F8A5B33' },
-  liveDot:      { width: 5, height: 5, borderRadius: 3, backgroundColor: '#6F8A5B' },
-  liveText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 8, color: '#6F8A5B', letterSpacing: 0.8 },
+  liveChip:     { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#9CC93E18', borderRadius: 3, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: '#9CC93E33' },
+  liveDot:      { width: 5, height: 5, borderRadius: 3, backgroundColor: '#9CC93E' },
+  liveText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 8, color: '#9CC93E', letterSpacing: 0.8 },
 
   midRow:       { flexDirection: 'row', alignItems: 'center', gap: 10 },
   eventTitle:   { fontFamily: 'SourceSans3_700Bold', fontSize: 16 },
-  eventSub:     { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#ECE7DC88', lineHeight: 16 },
+  eventSub:     { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#F3EAD388', lineHeight: 16 },
 
   countdownRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  endsIn:       { fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#ECE7DC55', letterSpacing: 1.5 },
+  endsIn:       { fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#F3EAD355', letterSpacing: 1.5 },
   countdown:    { flexDirection: 'row', alignItems: 'center', gap: 4 },
 });

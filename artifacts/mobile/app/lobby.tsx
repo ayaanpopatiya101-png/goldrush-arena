@@ -157,7 +157,7 @@ const goFlashStyles = StyleSheet.create({
   overlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#16171A55',
+    backgroundColor: '#0E262155',
   },
   text: {
     fontFamily: 'SourceSans3_700Bold', fontSize: 112, color: '#6F8A5B',
@@ -294,6 +294,10 @@ export default function LobbyScreen() {
     let cancelled = false;
     let readyScheduled = false;
     let navigated = false;
+    let fallbackStarted = false;
+    let polling = false;
+    let pollFailures = 0;
+    const requests = new AbortController();
     let pollTimer: ReturnType<typeof setInterval> | null = null;
     let countdownTimer: ReturnType<typeof setInterval> | null = null;
     const delayed = new Set<ReturnType<typeof setTimeout>>();
@@ -339,7 +343,7 @@ export default function LobbyScreen() {
     }
 
     function handlePollResult(players: MatchPlayer[], isReady: boolean) {
-      if (cancelled || readyScheduled) return;
+      if (cancelled || fallbackStarted || readyScheduled) return;
       // Filter out the human player
       const others = players.filter(p => p.id !== playerIdRef.current);
       // Animate new arrivals one by one
@@ -381,6 +385,7 @@ export default function LobbyScreen() {
       try {
         const res = await fetch(apiUrl('/matchmaking/join'), {
           method: 'POST',
+          signal: requests.signal,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             playerId:    playerIdRef.current,
@@ -393,7 +398,7 @@ export default function LobbyScreen() {
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json() as { roomId: string; players: MatchPlayer[]; isReady: boolean };
-        if (cancelled) {
+        if (cancelled || fallbackStarted) {
           fetch(apiUrl(`/matchmaking/room/${data.roomId}/leave`), {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
@@ -407,22 +412,41 @@ export default function LobbyScreen() {
 
         // Start polling every 2s
         if (!readyScheduled) pollTimer = setInterval(async () => {
-          if (cancelled || !roomIdRef.current) return;
+          if (cancelled || fallbackStarted || polling || !roomIdRef.current) return;
+          polling = true;
           try {
             const pollRes = await fetch(
-              apiUrl(`/matchmaking/room/${roomIdRef.current}?playerId=${playerIdRef.current}&rankIndex=${playerRankIdx}${partyCode ? `&partyCode=${partyCode}&partySize=${partyMembers.length}` : ''}`)
+              apiUrl(`/matchmaking/room/${roomIdRef.current}?playerId=${playerIdRef.current}&rankIndex=${playerRankIdx}${partyCode ? `&partyCode=${partyCode}&partySize=${partyMembers.length}` : ''}`),
+              { signal: requests.signal },
             );
-            if (!pollRes.ok) return;
+            if (pollRes.status === 404) { beginFallback(); return; }
+            if (!pollRes.ok) throw new Error(`HTTP ${pollRes.status}`);
             const pollData = await pollRes.json() as { players: MatchPlayer[]; isReady: boolean };
+            pollFailures = 0;
             handlePollResult(pollData.players, pollData.isReady);
-          } catch { /* network hiccup, keep polling */ }
+          } catch {
+            pollFailures += 1;
+            if (pollFailures >= 3) beginFallback();
+          } finally {
+            polling = false;
+          }
         }, 2000);
       } catch {
-        // API unavailable, fall back to simulated matchmaking
-        if (cancelled) return;
-        setApiAvailable(false);
-        simulateFallback();
+        beginFallback();
       }
+    }
+
+    function beginFallback() {
+      if (cancelled || fallbackStarted || readyScheduled) return;
+      fallbackStarted = true;
+      readyScheduled = true;
+      requests.abort();
+      if (pollTimer) clearInterval(pollTimer);
+      delayed.forEach(clearTimeout);
+      delayed.clear();
+      setOpponents([]);
+      setApiAvailable(false);
+      simulateFallback();
     }
 
     // Fallback: simulated matchmaking (when API is unreachable)
@@ -453,10 +477,13 @@ export default function LobbyScreen() {
       }, 3600);
     }
 
+    // Bound the whole queue, including a fetch or response body that never resolves.
+    later(beginFallback, 15000);
     joinMatchmaking();
 
     return () => {
       cancelled = true;
+      requests.abort();
       delayed.forEach(clearTimeout);
       if (pollTimer) clearInterval(pollTimer);
       if (countdownTimer) clearInterval(countdownTimer);
@@ -475,15 +502,15 @@ export default function LobbyScreen() {
   const searchingLabel = status === 'countdown' && countdown !== null
     ? `Match found! Starting in ${countdown}...`
     : status === 'found'
-    ? 'All players ready!'
+    ? 'Local bot seats ready!'
     : opponents.length === 0
-    ? 'Scanning for players...'
-    : `${opponents.length}/3 players found, waiting...`;
+    ? 'Preparing local bot seats...'
+    : `${opponents.length}/3 bot seats prepared...`;
   const statusColor = status === 'searching' ? '#C99A2E' : '#6F8A5B';
 
   return (
     <Reanimated.View entering={SlideInRight.duration(260)} exiting={SlideOutRight.duration(220)} style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#16171A', '#1F2125', '#16171A']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0E2621', '#15372F', '#0E2621']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.5} />
       <LinearGradient
         colors={['#C99A2E1A', '#C99A2E08', 'transparent']}
@@ -562,6 +589,11 @@ export default function LobbyScreen() {
           )}
           <Text style={[styles.statusText, { color: statusColor }]}>{searchingLabel}</Text>
         </View>
+        {apiAvailable === false && (
+          <Text accessibilityRole="alert" style={{ color: colors.foreground, fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, marginBottom: 12 }}>
+            Matchmaking is unavailable. Preparing a local bot match instead. You can leave before the countdown finishes.
+          </Text>
+        )}
 
         {/* ── Lives Bank ── */}
         <View style={{ marginBottom: 8, backgroundColor: '#B4533A10', borderRadius: 3, borderWidth: 1, borderColor: '#B4533A33', padding: 14, gap: 10 }}>
@@ -661,14 +693,14 @@ export default function LobbyScreen() {
               isBot={false}
               isReady={true}
             />
-            {/* Opponents (real or bot, no distinction shown) */}
+            {/* All opponent paddles are locally controlled in this build. */}
             {opponents.map((opp) => (
               <Reanimated.View key={opp.id} entering={ZoomIn.springify().damping(13).stiffness(160)}>
                 <PlayerCard
                   name={opp.name}
                   rank={opp.rank}
                   color={opp.color}
-                  isBot={false}
+                  isBot={true}
                   isReady={status !== 'searching'}
                 />
               </Reanimated.View>
@@ -724,7 +756,7 @@ export default function LobbyScreen() {
                   <Text style={[styles.mapDesc, { color: colors.mutedForeground }]} numberOfLines={3}>{map.desc}</Text>
                   {unlocked
                     ? (selected
-                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#16171A" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
+                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#0E2621" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
                         : <View style={[styles.mapBadge, { backgroundColor: '#ECE7DC14' }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
                     : <View style={[styles.mapLockBadge, { borderColor: reqRank?.color + '66' }]}><Feather name="lock" size={9} color={reqRank?.color} /><Text style={[styles.mapLockText, { color: reqRank?.color }]}>{reqRank?.name}</Text></View>}
                 </Pressable>
@@ -796,7 +828,7 @@ const styles = StyleSheet.create({
   mapName: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   mapDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, lineHeight: 14, minHeight: 42 },
   mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
-  mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#16171A', letterSpacing: 0.5 },
+  mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#0E2621', letterSpacing: 0.5 },
   mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
   mapLockText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
   rulesCard: { borderRadius: 3, borderWidth: 1, padding: 16, gap: 10 },
@@ -805,6 +837,6 @@ const styles = StyleSheet.create({
   ruleItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   ruleDot: { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
   ruleText: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, flex: 1, lineHeight: 19 },
-  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#16171A99', alignItems: 'center', justifyContent: 'center' },
+  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#0E262199', alignItems: 'center', justifyContent: 'center' },
   countdownText: { color: '#C99A2E', fontSize: 96, fontFamily: 'SourceSans3_700Bold', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
 });

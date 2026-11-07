@@ -166,7 +166,7 @@ function ClipCard({
   return (
     <Reanimated.View entering={FadeInDown.delay(index * 120).springify()} style={mh.card}>
       <LinearGradient
-        colors={[`${tier.color}22`, '#16171A', '#16171A']}
+        colors={[`${tier.color}22`, '#0E2621', '#0E2621']}
         style={StyleSheet.absoluteFill}
       />
       {/* Accent top bar */}
@@ -238,7 +238,7 @@ function ClipCard({
           disabled={cardState === 'saved'}
           style={({ pressed }) => [mh.actionBtn, mh.saveBtn, cardState === 'saved' && mh.saveBtnDone, pressed && { opacity: 0.75 }]}
         >
-          <Reanimated.Text style={[mh.actionBtnText, saveStyle, cardState === 'saved' && { color: '#6F8A5B' }]}>
+          <Reanimated.Text style={[mh.actionBtnText, saveStyle, cardState === 'saved' && { color: '#9CC93E' }]}>
             {cardState === 'saved' ? 'SAVED' : 'SAVE'}
           </Reanimated.Text>
         </Pressable>
@@ -305,7 +305,7 @@ export default function MatchHighlightsScreen() {
   if (events.length === 0) {
     return (
       <View style={[mh.root, { paddingTop: insets.top }]}>
-        <LinearGradient colors={['#16171A', '#1F2125']} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={['#0E2621', '#15372F']} style={StyleSheet.absoluteFill} />
         <View style={mh.header}>
           <Pressable onPress={() => router.back()} style={mh.backBtn}>
             <Text style={mh.backText}>‹ BACK</Text>
@@ -327,7 +327,7 @@ export default function MatchHighlightsScreen() {
 
   return (
     <View style={[mh.root, { paddingTop: insets.top }]}>
-      <LinearGradient colors={['#16171A', '#1F2125']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0E2621', '#15372F']} style={StyleSheet.absoluteFill} />
 
       {/* ── Header ── */}
       <View style={mh.header}>
@@ -337,7 +337,7 @@ export default function MatchHighlightsScreen() {
         <View style={mh.headerCenter}>
           <Text style={mh.headerTitle}>MATCH HIGHLIGHTS</Text>
           <View style={mh.headerBadgeRow}>
-            <View style={[mh.headerBadge, { backgroundColor: bestGrade?.color ?? '#C99A2E' }]}>
+            <View style={[mh.headerBadge, { backgroundColor: bestGrade?.color ?? '#F0B429' }]}>
               <Text style={mh.headerBadgeText}>{bestGrade?.letter ?? 'C'}</Text>
             </View>
             <Text style={mh.headerSub}>{events.length} MOMENT{events.length > 1 ? 'S' : ''} DETECTED</Text>
@@ -365,8 +365,8 @@ export default function MatchHighlightsScreen() {
 
         {/* ── Total reward summary ── */}
         <Reanimated.View entering={FadeInDown.delay(events.length * 120 + 100).springify()} style={mh.totalCard}>
-          <LinearGradient colors={['#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
-          <View style={[mh.cardAccent, { backgroundColor: '#C99A2E' }]} />
+          <LinearGradient colors={['#0E2621', '#0E2621']} style={StyleSheet.absoluteFill} />
+          <View style={[mh.cardAccent, { backgroundColor: '#F0B429' }]} />
           <Text style={mh.totalTitle}>TOTAL MATCH REWARDS</Text>
           <View style={mh.totalRow}>
             <View style={mh.totalPill}>
@@ -394,73 +394,73 @@ export default function MatchHighlightsScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const mh = StyleSheet.create({
-  root:       { flex: 1, backgroundColor: '#16171A' },
+  root:       { flex: 1, backgroundColor: '#0E2621' },
 
   // Header
-  header:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#ECE7DC0A' },
+  header:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F3EAD30A' },
   backBtn:      { width: 64, justifyContent: 'center' },
-  backText:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: '#ECE7DC88', letterSpacing: 0.5 },
+  backText:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: '#F3EAD388', letterSpacing: 0.5 },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: '#C99A2E', letterSpacing: 2 },
+  headerTitle:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: '#F0B429', letterSpacing: 2 },
   headerBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   headerBadge:    { width: 22, height: 22, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
-  headerBadgeText:{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 11, color: '#ECE7DC' },
-  headerSub:      { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#ECE7DC55', letterSpacing: 1 },
+  headerBadgeText:{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 11, color: '#F3EAD3' },
+  headerSub:      { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#F3EAD355', letterSpacing: 1 },
   libBtn:         { width: 64, alignItems: 'flex-end', justifyContent: 'center' },
   libBtnText:     { fontSize: 22 },
 
   scroll: { padding: 16, gap: 14 },
 
   // Clip card
-  card:       { borderRadius: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#ECE7DC0A' },
+  card:       { borderRadius: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#F3EAD30A' },
   cardAccent: { height: 3, width: '100%' },
   cardBody:   { flexDirection: 'row', padding: 14, gap: 14 },
 
   // Thumbnail
   thumbWrap:       { position: 'relative', width: 90, height: 90 },
   thumb:           { width: 90, height: 90, borderRadius: 3 },
-  thumbPlaceholder:{ backgroundColor: '#2A2C31', alignItems: 'center', justifyContent: 'center' },
-  gradeBadge:      { position: 'absolute', top: -6, right: -6, width: 28, height: 28, borderRadius: 3, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#16171A' },
-  gradeText:       { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, color: '#ECE7DC' },
+  thumbPlaceholder:{ backgroundColor: '#1E4A3F', alignItems: 'center', justifyContent: 'center' },
+  gradeBadge:      { position: 'absolute', top: -6, right: -6, width: 28, height: 28, borderRadius: 3, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#0E2621' },
+  gradeText:       { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, color: '#F3EAD3' },
 
   // Card info
   cardInfo:   { flex: 1, justifyContent: 'space-between' },
   labelRow:   { flexDirection: 'row', alignItems: 'center', gap: 6 },
   eventEmoji: { fontSize: 18 },
-  eventLabel: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, color: '#ECE7DC', letterSpacing: 1 },
+  eventLabel: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, color: '#F3EAD3', letterSpacing: 1 },
   gradeName:  { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 0.5, marginTop: 2 },
   starsRow:   { flexDirection: 'row', gap: 2, marginTop: 4 },
-  star:       { fontSize: 12, color: '#C99A2E', opacity: 0.2 },
+  star:       { fontSize: 12, color: '#F0B429', opacity: 0.2 },
   rewardRow:  { flexDirection: 'row', gap: 10, marginTop: 6 },
-  rewardCoin: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#C99A2E' },
-  rewardXp:   { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#8C8F7A' },
+  rewardCoin: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#F0B429' },
+  rewardXp:   { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#EDE3CC' },
 
   // Action row
   actions:       { flexDirection: 'row', paddingHorizontal: 14, paddingBottom: 14, gap: 8 },
   actionBtn:     { flex: 1, paddingVertical: 9, borderRadius: 3, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  actionBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, letterSpacing: 0.5, color: '#ECE7DC' },
-  editBtn:       { borderColor: '#ECE7DC20', backgroundColor: '#ECE7DC08' },
+  actionBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, letterSpacing: 0.5, color: '#F3EAD3' },
+  editBtn:       { borderColor: '#F3EAD320', backgroundColor: '#F3EAD308' },
   shareBtn:      { borderColor: 'transparent' },
-  shareBtnText:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, letterSpacing: 0.5, color: '#ECE7DC' },
-  saveBtn:       { borderColor: '#ECE7DC20', backgroundColor: '#ECE7DC08' },
-  saveBtnDone:   { borderColor: '#6F8A5B40', backgroundColor: '#6F8A5B15' },
+  shareBtnText:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, letterSpacing: 0.5, color: '#F3EAD3' },
+  saveBtn:       { borderColor: '#F3EAD320', backgroundColor: '#F3EAD308' },
+  saveBtnDone:   { borderColor: '#9CC93E40', backgroundColor: '#9CC93E15' },
 
   // Total card
-  totalCard:  { borderRadius: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#C99A2E22', padding: 18, alignItems: 'center', gap: 12 },
-  totalTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 14, color: '#C99A2E', letterSpacing: 2 },
+  totalCard:  { borderRadius: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#F0B42922', padding: 18, alignItems: 'center', gap: 12 },
+  totalTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 14, color: '#F0B429', letterSpacing: 2 },
   totalRow:   { flexDirection: 'row', gap: 12 },
-  totalPill:  { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 3, backgroundColor: '#C99A2E15', borderWidth: 1, borderColor: '#C99A2E30' },
-  totalPillText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, color: '#C99A2E', letterSpacing: 1 },
-  totalNote:  { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#ECE7DC44', textAlign: 'center' },
+  totalPill:  { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 3, backgroundColor: '#F0B42915', borderWidth: 1, borderColor: '#F0B42930' },
+  totalPillText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, color: '#F0B429', letterSpacing: 1 },
+  totalNote:  { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#F3EAD344', textAlign: 'center' },
 
   // Library button
-  libraryBtn:     { borderRadius: 3, borderWidth: 1, borderColor: '#ECE7DC15', paddingVertical: 14, alignItems: 'center', backgroundColor: '#ECE7DC05' },
-  libraryBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 13, color: '#ECE7DC66', letterSpacing: 1 },
+  libraryBtn:     { borderRadius: 3, borderWidth: 1, borderColor: '#F3EAD315', paddingVertical: 14, alignItems: 'center', backgroundColor: '#F3EAD305' },
+  libraryBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 13, color: '#F3EAD366', letterSpacing: 1 },
 
   // Empty state
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  emptyTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: '#ECE7DC', marginBottom: 8 },
-  emptySub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#ECE7DC66', textAlign: 'center', lineHeight: 20 },
-  emptyBtn:   { marginTop: 24, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 3, borderWidth: 1, borderColor: '#C99A2E40', backgroundColor: '#C99A2E10' },
-  emptyBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 14, color: '#C99A2E', letterSpacing: 1 },
+  emptyTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: '#F3EAD3', marginBottom: 8 },
+  emptySub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#F3EAD366', textAlign: 'center', lineHeight: 20 },
+  emptyBtn:   { marginTop: 24, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 3, borderWidth: 1, borderColor: '#F0B42940', backgroundColor: '#F0B42910' },
+  emptyBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 14, color: '#F0B429', letterSpacing: 1 },
 });

@@ -103,7 +103,7 @@ function CeremonyParticle({ p, triggered, rankColor }: { p: ParticleData; trigge
         width: p.size,
         height: p.size,
         borderRadius: p.size / 2,
-        backgroundColor: p.id % 4 === 0 ? '#ECE7DC' : rankColor,
+        backgroundColor: p.id % 4 === 0 ? '#F3EAD3' : rankColor,
         shadowColor: rankColor,
         shadowOpacity: 0,
         shadowRadius: 0,
@@ -265,7 +265,7 @@ export function RankCeremonyOverlay({ newRank, visible, onDismiss }: RankCeremon
       <Pressable style={{ flex: 1 }} onPress={handleSkip}>
         <Animated.View style={[s.overlay, { opacity: overlayOp }]}>
           {/* Dark bg */}
-          <LinearGradient colors={['#16171A', '#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['#0E2621', '#0E2621', '#0E2621']} style={StyleSheet.absoluteFill} />
 
 
 
@@ -339,7 +339,7 @@ const s = StyleSheet.create({
   star: {
     position: 'absolute',
     borderRadius: 3,
-    backgroundColor: '#ECE7DC',
+    backgroundColor: '#F3EAD3',
   },
   stage: {
     alignItems: 'center',
@@ -349,7 +349,7 @@ const s = StyleSheet.create({
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 11,
     letterSpacing: 5,
-    color: '#ECE7DC55',
+    color: '#F3EAD355',
     marginBottom: 24,
     textTransform: 'uppercase',
   },
@@ -377,7 +377,7 @@ const s = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 60,
-    backgroundColor: '#ECE7DC',
+    backgroundColor: '#F3EAD3',
     opacity: 0.22,
     transform: [{ skewX: '-15deg' }],
   },
@@ -397,7 +397,7 @@ const s = StyleSheet.create({
   flavorText: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 15,
-    color: '#ECE7DC88',
+    color: '#F3EAD388',
     letterSpacing: 0.5,
     textAlign: 'center',
   },
@@ -410,6 +410,6 @@ const s = StyleSheet.create({
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 16,
     letterSpacing: 3,
-    color: '#16171A',
+    color: '#0E2621',
   },
 });

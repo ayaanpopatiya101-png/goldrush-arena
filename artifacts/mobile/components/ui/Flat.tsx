@@ -32,5 +32,5 @@ type BlurProps = ViewProps & { intensity?: number; tint?: string; children?: Rea
 
 /** Flat graphite panel in place of a blur/glass surface. */
 export function BlurView({ intensity: _i, tint: _t, experimentalBlurMethod: _m, style, children, ...rest }: BlurProps) {
-  return <View {...rest} style={[style, { backgroundColor: '#1F2125' }]}>{children}</View>;
+  return <View {...rest} style={[style, { backgroundColor: '#15372F' }]}>{children}</View>;
 }

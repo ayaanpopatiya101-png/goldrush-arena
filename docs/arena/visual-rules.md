@@ -1,10 +1,10 @@
 # Visual rules
 
 ## Enforceable direction
-- Flat graphite surfaces; off-white body text; ochre marks the primary action.
+- Flat solid deep pitch-green surfaces (#0E2621 / #15372F / #1E4A3F); ivory scoreboard text; trophy gold (#F0B429) marks the primary action. Signal red = danger/loss, lime = success/owned.
 - Barlow Condensed 600/700 for scoreboard/display; Source Sans 3 for body. Native font loading must resolve, fail to a usable system font, or provide retry rather than hang.
 - Panel/control radius 0 to 4. Circular balls, life indicators and necessary game geometry are not panels.
-- Preserve real cosmetic identity with restrained colors, not decorative multicolor UI.
+- Preserve real cosmetic identity with rich solid fills tied to meaning (seat colors gold, signal red, ivory, lime), never decorative multicolor UI, gradients or neon.
 - Human seat and local bot roles must be readable without color alone.
 - Use native vector icons or bespoke existing artwork. Persist legacy avatar strings but map their presentation to icons.
 - Keep touch controls labeled and tappable; use 44-point targets for primary controls, allow text wrapping and respect safe areas.

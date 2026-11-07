@@ -21,7 +21,7 @@ test('lobby owns cancellation and all delayed transitions', async () => {
   const lobby = await source('app/lobby.tsx');
   assert.match(lobby, /useFocusEffect\(useCallback/);
   assert.match(lobby, /delayed\.forEach\(clearTimeout\)/);
-  assert.match(lobby, /cancelled \|\| readyScheduled/);
+  assert.match(lobby, /cancelled \|\| fallbackStarted \|\| readyScheduled/);
   assert.match(lobby, /!cancelled && !navigated/);
   assert.match(lobby, /countdownComplete: true/);
   assert.match(lobby, /if \(!readyScheduled\) pollTimer/);
@@ -35,6 +35,17 @@ test('game uses one start and result guard, forwards completed countdown', async
   const arena = await source('components/GameArena.tsx');
   assert.match(arena, /if \(started \|\| pausedRef\.current\) return/);
   assert.match(arena, /if \(skipCountdown\) begin\(\)/);
+});
+
+test('a match cannot grant unpurchased lives through a fake checkout', async () => {
+  const game = await source('app/game.tsx');
+  assert.doesNotMatch(game, /handleBuyExtraLife|Buy \+3 Lives|grantExtraLifeRef/);
+});
+
+test('all local opponent cards retain an explicit bot badge', async () => {
+  const lobby = await source('app/lobby.tsx');
+  const opponentCards = lobby.slice(lobby.indexOf('{opponents.map((opp)'));
+  assert.match(opponentCards, /isBot=\{true\}/);
 });
 
 test('exclusive pass cosmetics cannot be bought for zero coins', async () => {

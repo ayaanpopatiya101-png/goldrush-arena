@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     paddingHorizontal: 24,
     minWidth: 200,
-    shadowColor: '#16171A',
+    shadowColor: '#0E2621',
     shadowOffset: {
       width: 0,
       height: 2,

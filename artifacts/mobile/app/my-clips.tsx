@@ -86,7 +86,7 @@ function ClipCell({ clip, onOpen, onDelete }: {
               <Text style={mc.dateLabel}>{dateStr} · {clip.score} hits</Text>
             )}
           </View>
-          <Feather name="chevron-right" size={14} color="#ECE7DC22" />
+          <Feather name="chevron-right" size={14} color="#F3EAD322" />
         </View>
       </Pressable>
     </Reanimated.View>
@@ -116,12 +116,12 @@ export default function MyClipsScreen() {
 
   return (
     <View style={mc.root}>
-      <LinearGradient colors={['#16171A', '#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0E2621', '#0E2621', '#0E2621']} style={StyleSheet.absoluteFill} />
 
       {/* Header */}
       <View style={[mc.header, { paddingTop: insets.top + 6 }]}>
         <Pressable onPress={() => router.back()} style={mc.backBtn} hitSlop={12}>
-          <Feather name="chevron-left" size={22} color="#ECE7DC88" />
+          <Feather name="chevron-left" size={22} color="#F3EAD388" />
         </Pressable>
         <View style={{ flex: 1 }}>
           <Text style={mc.title}>MY CLIPS</Text>
@@ -141,7 +141,7 @@ export default function MyClipsScreen() {
           </Text>
           <Pressable onPress={() => router.replace('/lobby')}
             style={mc.playBtn}>
-            <LinearGradient colors={['#C99A2E', '#C99A2E']} style={mc.playBtnGrad}>
+            <LinearGradient colors={['#F0B429', '#F0B429']} style={mc.playBtnGrad}>
               <Text style={mc.playBtnTxt}>PLAY NOW</Text>
             </LinearGradient>
           </Pressable>
@@ -152,7 +152,7 @@ export default function MyClipsScreen() {
       {clips.length > 0 && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor="#C99A2E" />}
+          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor="#F0B429" />}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 80, gap: 12 }}
         >
           {/* Stats row */}
@@ -189,47 +189,47 @@ export default function MyClipsScreen() {
 }
 
 const mc = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#16171A' },
+  root: { flex: 1, backgroundColor: '#0E2621' },
 
   // Header
-  header:   { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 12, gap: 10, borderBottomWidth: 1, borderBottomColor: '#ECE7DC0A' },
+  header:   { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 12, gap: 10, borderBottomWidth: 1, borderBottomColor: '#F3EAD30A' },
   backBtn:  { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  title:    { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: '#ECE7DC', letterSpacing: 2 },
-  subtitle: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#ECE7DC44', letterSpacing: 0.5 },
-  sortHint: { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#ECE7DC33', letterSpacing: 0.5 },
+  title:    { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: '#F3EAD3', letterSpacing: 2 },
+  subtitle: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#F3EAD344', letterSpacing: 0.5 },
+  sortHint: { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#F3EAD333', letterSpacing: 0.5 },
 
   // Empty
   emptyWrap:  { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 },
-  emptyTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: '#ECE7DC88', letterSpacing: 1 },
-  emptySub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#ECE7DC44', textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: '#F3EAD388', letterSpacing: 1 },
+  emptySub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#F3EAD344', textAlign: 'center', lineHeight: 20 },
   playBtn:    { borderRadius: 3, overflow: 'hidden', marginTop: 8 },
   playBtnGrad:{ paddingHorizontal: 32, paddingVertical: 14 },
-  playBtnTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#16171A', letterSpacing: 1 },
+  playBtnTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#0E2621', letterSpacing: 1 },
 
   // Stats
-  statsRow: { flexDirection: 'row', backgroundColor: '#ECE7DC06', borderRadius: 3, borderWidth: 1, borderColor: '#ECE7DC0D', padding: 14, justifyContent: 'space-around' },
+  statsRow: { flexDirection: 'row', backgroundColor: '#F3EAD306', borderRadius: 3, borderWidth: 1, borderColor: '#F3EAD30D', padding: 14, justifyContent: 'space-around' },
   statCell: { alignItems: 'center', gap: 2 },
-  statVal:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 20, color: '#C99A2E', letterSpacing: 1 },
-  statLbl:  { fontFamily: 'SourceSans3_700Bold', fontSize: 8, color: '#ECE7DC44', letterSpacing: 2 },
+  statVal:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 20, color: '#F0B429', letterSpacing: 1 },
+  statLbl:  { fontFamily: 'SourceSans3_700Bold', fontSize: 8, color: '#F3EAD344', letterSpacing: 2 },
 
   // Grid
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'space-between' },
   cell: { width: CELL_W },
-  cellInner: { borderRadius: 3, overflow: 'hidden', backgroundColor: '#16171A', borderWidth: 1, borderColor: '#ECE7DC0D' },
+  cellInner: { borderRadius: 3, overflow: 'hidden', backgroundColor: '#0E2621', borderWidth: 1, borderColor: '#F3EAD30D' },
 
   // GIF thumbnail
-  gifWrap:      { width: CELL_W, height: CELL_W * 0.75, backgroundColor: '#16171A', position: 'relative' },
+  gifWrap:      { width: CELL_W, height: CELL_W * 0.75, backgroundColor: '#0E2621', position: 'relative' },
   gif:          { width: '100%', height: '100%' },
   stickerOverlay: { position: 'absolute', bottom: 6, right: 6, fontSize: 26 },
   tierBadge:    { position: 'absolute', top: 6, left: 6, borderRadius: 3, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 2 },
   tierTxt:      { fontFamily: 'SourceSans3_700Bold', fontSize: 7, letterSpacing: 1 },
-  playDot:      { position: 'absolute', top: 6, right: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: '#B4533A', borderWidth: 1, borderColor: '#ECE7DC55' },
+  playDot:      { position: 'absolute', top: 6, right: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: '#E04A2F', borderWidth: 1, borderColor: '#F3EAD355' },
 
   // Info row
   infoRow:  { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 6 },
-  typeLabel:{ fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#ECE7DC88', letterSpacing: 1.5 },
-  caption:  { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#ECE7DC55', letterSpacing: 0.2 },
-  dateLabel:{ fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#ECE7DC33' },
+  typeLabel:{ fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#F3EAD388', letterSpacing: 1.5 },
+  caption:  { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#F3EAD355', letterSpacing: 0.2 },
+  dateLabel:{ fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#F3EAD333' },
 
-  hintTxt: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#ECE7DC22', textAlign: 'center', paddingVertical: 8 },
+  hintTxt: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#F3EAD322', textAlign: 'center', paddingVertical: 8 },
 });

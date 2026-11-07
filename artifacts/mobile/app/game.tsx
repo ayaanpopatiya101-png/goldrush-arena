@@ -154,10 +154,8 @@ export default function GameScreen() {
   const [timerSecs,    setTimerSecs]    = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
 
-  const grantExtraLifeRef = useRef<(() => void) | null>(null);
   const modePulse         = useRef(new Animated.Value(1)).current;
   const musicStarted      = useRef(false);
-  const extraLifeUsed     = useRef(false);
   const timerRef          = useRef<ReturnType<typeof setInterval> | null>(null);
   const arenaWrapRef      = useRef<View>(null);
   const clipScoreRef      = useRef(0);
@@ -405,24 +403,12 @@ export default function GameScreen() {
     });
   }
 
-  function handleBuyExtraLife() {
-    // Challenge runs enforce a strict 1-life rule, no extra lives allowed.
-    if (isChallenge) return;
-    if (extraLifeUsed.current) {
-      return;
-    }
-    extraLifeUsed.current = true;
-    grantExtraLifeRef.current?.();
-    grantExtraLifeRef.current?.();
-    grantExtraLifeRef.current?.();
-  }
-
   const modeColor = MODE_COLORS[gameMode];
 
   return (
     <Reanimated.View entering={SlideInRight.duration(260)} exiting={SlideOutRight.duration(220)} style={[styles.root, { paddingTop: topPad }]} onTouchStart={ensureMusic}>
       <LinearGradient
-        colors={['#16171A', '#16171A']}
+        colors={['#0E2621', '#0E2621']}
         style={StyleSheet.absoluteFill}
       />
 
@@ -490,7 +476,6 @@ export default function GameScreen() {
             onGameModeChange={handleGameModeChange}
             onPlayerLivesChange={handleLivesChange}
             onSeatLivesChange={setSeatLives}
-            grantExtraLifeRef={grantExtraLifeRef}
             onEliminatedSpectating={() => {}}
             colorBoard={false}
             soundEnabled={settings.soundEnabled}
@@ -502,7 +487,7 @@ export default function GameScreen() {
             paused={paused}
             playerRelic={undefined}
             botSkill={isChallenge ? 0 : effectiveBotSkill}
-            arenaBg={['#16171A', '#16171A', '#16171A']}
+            arenaBg={['#0E2621', '#0E2621', '#0E2621']}
             playerSuperType={profile.selectedSuper ?? 1}
             practice={config.practice}
             onHighlight={handleHighlight}
@@ -527,13 +512,6 @@ export default function GameScreen() {
           {playerLives <= 0 && <Text style={styles.elimText}>ELIMINATED</Text>}
         </View>
 
-        {!isChallenge && playerLives > 0 && playerLives <= 4 && !extraLifeUsed.current && (
-          <Pressable onPress={handleBuyExtraLife} style={styles.extraLifeBtn}>
-            <Feather name="heart" size={12} color="#B4533A" />
-            <Text style={styles.extraLifeText}>+3 Lives</Text>
-          </Pressable>
-        )}
-
         <View style={{ flex: 1 }} />
 
         <View style={styles.puRow}>
@@ -553,7 +531,7 @@ export default function GameScreen() {
       <Modal visible={paused} transparent animationType="fade">
         <View style={styles.pauseOverlay}>
           <View style={styles.pauseCard}>
-            <LinearGradient colors={['#1F2125','#2A2C31','#1F2125']} style={StyleSheet.absoluteFill} />
+            <LinearGradient colors={['#15372F','#1E4A3F','#15372F']} style={StyleSheet.absoluteFill} />
             <Text style={styles.pauseTitle}>PAUSED</Text>
             <View style={styles.pauseStats}>
               <View style={styles.pauseStat}>
@@ -573,7 +551,7 @@ export default function GameScreen() {
             </View>
             <Pressable onPress={() => setPaused(false)} style={styles.resumeBtn}>
               <LinearGradient colors={['#C99A2E','#C99A2E']} style={styles.resumeGrad}>
-                <Feather name="play" size={18} color="#16171A" />
+                <Feather name="play" size={18} color="#0E2621" />
                 <Text style={styles.resumeText}>RESUME</Text>
               </LinearGradient>
             </Pressable>
@@ -581,12 +559,6 @@ export default function GameScreen() {
               <Feather name="home" size={14} color="#B4533A88" />
               <Text style={styles.quitText}>Quit to Menu</Text>
             </Pressable>
-            {!isChallenge && playerLives > 0 && playerLives <= 4 && !extraLifeUsed.current && (
-              <Pressable onPress={() => { handleBuyExtraLife(); setPaused(false); }} style={styles.lifeBtn}>
-                <Feather name="heart" size={13} color="#B4533A" />
-                <Text style={styles.lifeBtnText}>Buy +3 Lives · $0.99</Text>
-              </Pressable>
-            )}
           </View>
         </View>
       </Modal>
@@ -624,7 +596,7 @@ const styles = StyleSheet.create({
   puLegend: { flexDirection:'row', alignItems:'center', gap:3 },
   puDot:    { width:6, height:6, borderRadius:3 },
   puLabel:  { fontFamily:'SourceSans3_600SemiBold', fontSize:9, letterSpacing:0.3 },
-  pauseOverlay: { flex:1, backgroundColor:'#16171ABB', alignItems:'center', justifyContent:'center' },
+  pauseOverlay: { flex:1, backgroundColor:'#0E2621BB', alignItems:'center', justifyContent:'center' },
   pauseCard: { width:280, borderRadius:3, overflow:'hidden', padding:28, alignItems:'center', gap:18, borderWidth:1, borderColor:'#ECE7DC11' },
   pauseTitle: { fontFamily:'SourceSans3_700Bold', fontSize:28, color:'#ECE7DC', letterSpacing:3 },
   pauseStats: { flexDirection:'row', alignItems:'center', gap:0, backgroundColor:'#ECE7DC08', borderRadius:3, paddingVertical:10, paddingHorizontal:8, width:'100%', justifyContent:'space-around' },
@@ -634,7 +606,7 @@ const styles = StyleSheet.create({
   pauseDivider: { width:1, height:36, backgroundColor:'#ECE7DC22' },
   resumeBtn: { width:'100%', borderRadius:3, overflow:'hidden' },
   resumeGrad: { flexDirection:'row', alignItems:'center', justifyContent:'center', paddingVertical:14, gap:8 },
-  resumeText: { fontFamily:'SourceSans3_700Bold', fontSize:16, color:'#16171A', letterSpacing:1 },
+  resumeText: { fontFamily:'SourceSans3_700Bold', fontSize:16, color:'#0E2621', letterSpacing:1 },
   quitBtn: { flexDirection:'row', alignItems:'center', gap:8, paddingVertical:6 },
   quitText: { fontFamily:'SourceSans3_600SemiBold', fontSize:13, color:'#B4533A77' },
   lifeBtn: { flexDirection:'row', alignItems:'center', gap:6, backgroundColor:'#B4533A22', borderRadius:3, borderWidth:1, borderColor:'#B4533A44', paddingHorizontal:14, paddingVertical:8 },

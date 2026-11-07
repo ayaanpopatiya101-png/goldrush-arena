@@ -24,7 +24,7 @@ function SettingRow({ icon, title, subtitle, right }: {
   return (
     <View style={s.row}>
       <View style={s.rowIcon}>
-        <Feather name={icon as never} size={18} color="#C99A2E" />
+        <Feather name={icon as never} size={18} color="#F0B429" />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={s.rowTitle}>{title}</Text>
@@ -54,10 +54,10 @@ export default function SettingsScreen() {
 
   return (
     <Reanimated.View entering={FadeIn.duration(350)} style={{ flex: 1 }}>
-      <LinearGradient colors={['#16171A', '#1F2125', '#16171A']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#0E2621', '#15372F', '#0E2621']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs opacity={0.4} />
       <LinearGradient
-        colors={['#C99A2E14', '#C99A2E06', 'transparent']}
+        colors={['#F0B42914', '#F0B42906', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 180 }}
         pointerEvents="none"
       />
@@ -65,7 +65,7 @@ export default function SettingsScreen() {
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
         <Pressable onPress={() => router.back()} style={s.back}>
-          <Feather name="arrow-left" size={22} color="#ECE7DC" />
+          <Feather name="arrow-left" size={22} color="#F3EAD3" />
         </Pressable>
         <Text style={s.title}>SETTINGS</Text>
         <View style={{ width: 40 }} />
@@ -79,7 +79,7 @@ export default function SettingsScreen() {
         <View style={s.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={s.sectionTitle}>ACCOUNT</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
           </View>
           <View style={s.card}>
             <View style={s.accountCard}>
@@ -103,14 +103,14 @@ export default function SettingsScreen() {
             </View>
             <View style={s.divider} />
             <Pressable onPress={handleLogout} style={s.row}>
-              <View style={[s.rowIcon, { backgroundColor: '#B4533A15' }]}>
-                <Feather name="log-out" size={18} color="#B4533A" />
+              <View style={[s.rowIcon, { backgroundColor: '#E04A2F15' }]}>
+                <Feather name="log-out" size={18} color="#E04A2F" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[s.rowTitle, { color: '#B4533A' }]}>Sign Out</Text>
+                <Text style={[s.rowTitle, { color: '#E04A2F' }]}>Sign Out</Text>
                 <Text style={s.rowSub}>Return to login screen</Text>
               </View>
-              <Feather name="chevron-right" size={16} color="#B4533A55" />
+              <Feather name="chevron-right" size={16} color="#E04A2F55" />
             </Pressable>
           </View>
         </View>
@@ -119,7 +119,7 @@ export default function SettingsScreen() {
         <View style={s.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={s.sectionTitle}>AUDIO</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
           </View>
           <View style={s.card}>
             <SettingRow
@@ -130,8 +130,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={settings.musicEnabled}
                   onValueChange={v => updateSetting('musicEnabled', v)}
-                  trackColor={{ false: '#ECE7DC22', true: '#C99A2E55' }}
-                  thumbColor={settings.musicEnabled ? '#C99A2E' : '#888'}
+                  trackColor={{ false: '#F3EAD322', true: '#F0B42955' }}
+                  thumbColor={settings.musicEnabled ? '#F0B429' : '#888'}
                 />
               }
             />
@@ -144,8 +144,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={settings.soundEnabled}
                   onValueChange={v => updateSetting('soundEnabled', v)}
-                  trackColor={{ false: '#ECE7DC22', true: '#C99A2E55' }}
-                  thumbColor={settings.soundEnabled ? '#C99A2E' : '#888'}
+                  trackColor={{ false: '#F3EAD322', true: '#F0B42955' }}
+                  thumbColor={settings.soundEnabled ? '#F0B429' : '#888'}
                 />
               }
             />
@@ -156,7 +156,7 @@ export default function SettingsScreen() {
         <View style={s.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={s.sectionTitle}>VISUAL</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
           </View>
           <View style={s.card}>
             {/* Color-shifting board and goal emoji toggles hidden by the visual rules; stored values are kept. */}
@@ -168,8 +168,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={settings.screenShake}
                   onValueChange={v => updateSetting('screenShake', v)}
-                  trackColor={{ false: '#ECE7DC22', true: '#C99A2E55' }}
-                  thumbColor={settings.screenShake ? '#C99A2E' : '#888'}
+                  trackColor={{ false: '#F3EAD322', true: '#F0B42955' }}
+                  thumbColor={settings.screenShake ? '#F0B429' : '#888'}
                 />
               }
             />
@@ -180,7 +180,7 @@ export default function SettingsScreen() {
         <View style={s.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={s.sectionTitle}>CONTROLS</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
           </View>
           <View style={s.card}>
             <Text style={[s.rowTitle, { paddingHorizontal: 14, paddingTop: 14 }]}>Paddle Sensitivity</Text>
@@ -192,10 +192,10 @@ export default function SettingsScreen() {
                   onPress={() => updateSetting('sensitivity', opt.value)}
                   style={[s.sensBtn, settings.sensitivity === opt.value && s.sensBtnActive]}
                 >
-                  <Text style={[s.sensBtnLabel, settings.sensitivity === opt.value && { color: '#C99A2E' }]}>
+                  <Text style={[s.sensBtnLabel, settings.sensitivity === opt.value && { color: '#F0B429' }]}>
                     {opt.label}
                   </Text>
-                  <Text style={[s.sensBtnDesc, settings.sensitivity === opt.value && { color: '#C99A2E99' }]}>
+                  <Text style={[s.sensBtnDesc, settings.sensitivity === opt.value && { color: '#F0B42999' }]}>
                     {opt.desc}
                   </Text>
                 </Pressable>
@@ -208,7 +208,7 @@ export default function SettingsScreen() {
         <View style={s.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={s.sectionTitle}>GAMEPLAY</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
           </View>
           <View style={s.card}>
             <SettingRow
@@ -219,8 +219,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={settings.hapticsEnabled ?? true}
                   onValueChange={v => updateSetting('hapticsEnabled', v)}
-                  trackColor={{ false: '#ECE7DC22', true: '#B4533A55' }}
-                  thumbColor={(settings.hapticsEnabled ?? true) ? '#B4533A' : '#888'}
+                  trackColor={{ false: '#F3EAD322', true: '#E04A2F55' }}
+                  thumbColor={(settings.hapticsEnabled ?? true) ? '#E04A2F' : '#888'}
                 />
               }
             />
@@ -233,8 +233,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={settings.showLobbyRules ?? true}
                   onValueChange={v => updateSetting('showLobbyRules', v)}
-                  trackColor={{ false: '#ECE7DC22', true: '#B4533A55' }}
-                  thumbColor={(settings.showLobbyRules ?? true) ? '#B4533A' : '#888'}
+                  trackColor={{ false: '#F3EAD322', true: '#E04A2F55' }}
+                  thumbColor={(settings.showLobbyRules ?? true) ? '#E04A2F' : '#888'}
                 />
               }
             />
@@ -245,7 +245,7 @@ export default function SettingsScreen() {
         <View style={s.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={s.sectionTitle}>ABOUT</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
           </View>
           <View style={s.card}>
             {[
@@ -269,34 +269,34 @@ export default function SettingsScreen() {
         <View style={s.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={s.sectionTitle}>LEGAL & SUPPORT</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
           </View>
           <View style={s.card}>
             <Pressable onPress={() => router.push({ pathname: '/legal', params: { tab: 'privacy' } })} style={s.row}>
               <View style={s.rowIcon}>
-                <Feather name="shield" size={18} color="#C99A2E" />
+                <Feather name="shield" size={18} color="#F0B429" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.rowTitle}>Privacy Policy</Text>
                 <Text style={s.rowSub}>How we handle your data</Text>
               </View>
-              <Feather name="chevron-right" size={16} color="#ECE7DC33" />
+              <Feather name="chevron-right" size={16} color="#F3EAD333" />
             </Pressable>
             <View style={s.divider} />
             <Pressable onPress={() => router.push({ pathname: '/legal', params: { tab: 'terms' } })} style={s.row}>
               <View style={s.rowIcon}>
-                <Feather name="file-text" size={18} color="#C99A2E" />
+                <Feather name="file-text" size={18} color="#F0B429" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.rowTitle}>Terms of Service</Text>
                 <Text style={s.rowSub}>Rules and license agreement</Text>
               </View>
-              <Feather name="chevron-right" size={16} color="#ECE7DC33" />
+              <Feather name="chevron-right" size={16} color="#F3EAD333" />
             </Pressable>
             <View style={s.divider} />
             <View style={s.row} accessible accessibilityLabel="Support contact not configured yet">
               <View style={s.rowIcon}>
-                <Feather name="help-circle" size={18} color="#B7B2A6" />
+                <Feather name="help-circle" size={18} color="#CFE0D6" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.rowTitle}>Support</Text>
@@ -311,14 +311,14 @@ export default function SettingsScreen() {
               }}
               style={s.row}
             >
-              <View style={[s.rowIcon, { backgroundColor: '#8C8F7A15' }]}>
-                <Feather name="book-open" size={18} color="#8C8F7A" />
+              <View style={[s.rowIcon, { backgroundColor: '#EDE3CC15' }]}>
+                <Feather name="book-open" size={18} color="#EDE3CC" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.rowTitle}>Replay Tutorial</Text>
                 <Text style={s.rowSub}>Re-watch the ability guide and skill quiz</Text>
               </View>
-              <Feather name="chevron-right" size={16} color="#ECE7DC33" />
+              <Feather name="chevron-right" size={16} color="#F3EAD333" />
             </Pressable>
             <View style={s.divider} />
             <Pressable
@@ -335,14 +335,14 @@ export default function SettingsScreen() {
               }}
               style={s.row}
             >
-              <View style={[s.rowIcon, { backgroundColor: '#C99A2E15' }]}>
-                <Feather name="star" size={18} color="#C99A2E" />
+              <View style={[s.rowIcon, { backgroundColor: '#F0B42915' }]}>
+                <Feather name="star" size={18} color="#F0B429" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[s.rowTitle, { color: '#C99A2E' }]}>Rate GoldRush Arena</Text>
+                <Text style={[s.rowTitle, { color: '#F0B429' }]}>Rate GoldRush Arena</Text>
                 <Text style={s.rowSub}>Enjoying the game? Leave a review!</Text>
               </View>
-              <Feather name="chevron-right" size={16} color="#C99A2E33" />
+              <Feather name="chevron-right" size={16} color="#F0B42933" />
             </Pressable>
           </View>
         </View>
@@ -354,29 +354,29 @@ export default function SettingsScreen() {
 const s = StyleSheet.create({
   header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 16 },
   back:      { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  title:     { fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 2, color: '#ECE7DC' },
+  title:     { fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 2, color: '#F3EAD3' },
   section:   { gap: 10 },
-  sectionTitle: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, letterSpacing: 1.5, color: '#ECE7DC55', paddingLeft: 4 },
-  card:      { borderRadius: 3, borderWidth: 1, borderColor: '#ECE7DC14', backgroundColor: '#ECE7DC07', overflow: 'hidden' },
-  divider:   { height: 1, backgroundColor: '#ECE7DC0E', marginHorizontal: 14 },
+  sectionTitle: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, letterSpacing: 1.5, color: '#F3EAD355', paddingLeft: 4 },
+  card:      { borderRadius: 3, borderWidth: 1, borderColor: '#F3EAD314', backgroundColor: '#F3EAD307', overflow: 'hidden' },
+  divider:   { height: 1, backgroundColor: '#F3EAD30E', marginHorizontal: 14 },
   row:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 14, gap: 12 },
-  rowIcon:   { width: 32, height: 32, borderRadius: 3, backgroundColor: '#C99A2E15', alignItems: 'center', justifyContent: 'center' },
-  rowTitle:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 14, color: '#ECE7DC' },
-  rowSub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#ECE7DC55', marginTop: 2 },
+  rowIcon:   { width: 32, height: 32, borderRadius: 3, backgroundColor: '#F0B42915', alignItems: 'center', justifyContent: 'center' },
+  rowTitle:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 14, color: '#F3EAD3' },
+  rowSub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#F3EAD355', marginTop: 2 },
   accountCard: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
   accountAvatar: { width: 44, height: 44, borderRadius: 3, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   accountEmoji: { fontSize: 22 },
-  accountName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#ECE7DC' },
-  accountSub:  { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#ECE7DC55', marginTop: 2 },
+  accountName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#F3EAD3' },
+  accountSub:  { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#F3EAD355', marginTop: 2 },
   accountStats: { alignItems: 'center', gap: 2, minWidth: 38 },
-  accountStatVal: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#C99A2E' },
-  accountStatLbl: { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#ECE7DC44', letterSpacing: 0.5 },
+  accountStatVal: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#F0B429' },
+  accountStatLbl: { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#F3EAD344', letterSpacing: 0.5 },
   sensitivityRow: { flexDirection: 'row', padding: 12, gap: 8 },
-  sensBtn:   { flex: 1, borderRadius: 3, borderWidth: 1, borderColor: '#ECE7DC18', backgroundColor: '#ECE7DC08', padding: 10, alignItems: 'center', gap: 3 },
-  sensBtnActive: { borderColor: '#C99A2E', backgroundColor: '#C99A2E15' },
-  sensBtnLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#ECE7DC66' },
-  sensBtnDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#ECE7DC33', textAlign: 'center' },
+  sensBtn:   { flex: 1, borderRadius: 3, borderWidth: 1, borderColor: '#F3EAD318', backgroundColor: '#F3EAD308', padding: 10, alignItems: 'center', gap: 3 },
+  sensBtnActive: { borderColor: '#F0B429', backgroundColor: '#F0B42915' },
+  sensBtnLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#F3EAD366' },
+  sensBtnDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#F3EAD333', textAlign: 'center' },
   aboutRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },
-  aboutLabel:{ fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#ECE7DC55' },
-  aboutValue:{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: '#ECE7DC' },
+  aboutLabel:{ fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#F3EAD355' },
+  aboutValue:{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: '#F3EAD3' },
 });

@@ -8,7 +8,7 @@
     "build": "node scripts/build.js",
     "serve": "node server/serve.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test:reliability": "node --test scripts/reliability.test.mjs"
+    "test:reliability": "node --test scripts/reliability.test.mjs scripts/lobby-recovery.test.mjs scripts/theme-contrast.test.mjs"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -209,7 +209,7 @@ export function HighlightShareModal({
           <View style={styles.previewArea}>
             {encoding && (
               <View style={styles.centred}>
-                <ActivityIndicator size="large" color="#C99A2E" />
+                <ActivityIndicator size="large" color="#F0B429" />
                 <Text style={styles.hintText}>Encoding clip…</Text>
               </View>
             )}
@@ -236,7 +236,7 @@ export function HighlightShareModal({
                 key={i}
                 style={[
                   styles.capDot,
-                  { backgroundColor: i < (MAX_DAILY_REWARDS - remainingToday) ? tier.color : '#ECE7DC18' },
+                  { backgroundColor: i < (MAX_DAILY_REWARDS - remainingToday) ? tier.color : '#F3EAD318' },
                 ]}
               />
             ))}
@@ -250,13 +250,13 @@ export function HighlightShareModal({
             <Pressable
               style={[
                 styles.shareBtn,
-                { backgroundColor: rewarded ? '#2A2C31' : tier.color },
+                { backgroundColor: rewarded ? '#1E4A3F' : tier.color },
                 (!gifUri || encoding || sharing) && styles.shareBtnDisabled,
               ]}
               onPress={handleShare}
               disabled={!gifUri || encoding || sharing || capReached}
             >
-              <Text style={[styles.shareBtnText, { color: rewarded ? '#6F8A5B' : '#16171A' }]}>
+              <Text style={[styles.shareBtnText, { color: rewarded ? '#9CC93E' : '#0E2621' }]}>
                 {sharing ? 'Opening share sheet…' : rewarded ? 'Shared & Rewarded' : capReached ? 'Share (cap reached)' : 'Share & Earn'}
               </Text>
             </Pressable>
@@ -281,15 +281,15 @@ export function HighlightShareModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: '#16171ACC',
+    backgroundColor: '#0E2621CC',
     justifyContent: 'flex-end',
   },
   card: {
-    backgroundColor: '#16171A',
+    backgroundColor: '#0E2621',
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
     borderWidth: 1,
-    borderColor: '#C99A2E44',
+    borderColor: '#F0B42944',
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 44,
@@ -302,19 +302,19 @@ const styles = StyleSheet.create({
   typeLabel: {
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 14,
-    color: '#C99A2E',
+    color: '#F0B429',
     letterSpacing: 1.2,
   },
   scoreLabel: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#ECE7DC44',
+    color: '#F3EAD344',
     letterSpacing: 0.8,
     marginTop: 2,
   },
   closeBtn: {
     fontSize: 18,
-    color: '#ECE7DC55',
+    color: '#F3EAD355',
     paddingHorizontal: 4,
   },
   tierBadge: {
@@ -335,14 +335,14 @@ const styles = StyleSheet.create({
   tierSub: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#ECE7DC55',
+    color: '#F3EAD355',
     marginTop: 2,
   },
   rewardBox: {
-    backgroundColor: '#1F2125',
+    backgroundColor: '#15372F',
     borderRadius: 3,
     borderWidth: 1,
-    borderColor: '#6F8A5B55',
+    borderColor: '#9CC93E55',
     padding: 14,
     alignItems: 'center',
     gap: 4,
@@ -350,27 +350,27 @@ const styles = StyleSheet.create({
   rewardTitle: {
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 15,
-    color: '#6F8A5B',
+    color: '#9CC93E',
   },
   rewardLine: {
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 18,
-    color: '#ECE7DC',
+    color: '#F3EAD3',
   },
   rewardRemain: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#ECE7DC55',
+    color: '#F3EAD355',
     marginTop: 2,
   },
   previewArea: {
     width: '100%',
     aspectRatio: 1,
     maxHeight: 240,
-    backgroundColor: '#16171A',
+    backgroundColor: '#0E2621',
     borderRadius: 3,
     borderWidth: 1,
-    borderColor: '#ECE7DC0A',
+    borderColor: '#F3EAD30A',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   hintText: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 13,
-    color: '#ECE7DC55',
+    color: '#F3EAD355',
   },
   gifPreview: { width: '100%', height: '100%' },
   capRow: {
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
   capText: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#ECE7DC33',
+    color: '#F3EAD333',
     marginLeft: 4,
   },
   actions: { gap: 8 },
@@ -414,19 +414,19 @@ const styles = StyleSheet.create({
   earnHint: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 12,
-    color: '#ECE7DC44',
+    color: '#F3EAD344',
     textAlign: 'center',
   },
   cancelBtn: { alignItems: 'center', paddingVertical: 10 },
   cancelText: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 14,
-    color: '#ECE7DC44',
+    color: '#F3EAD344',
   },
   caption: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 10,
-    color: '#ECE7DC1A',
+    color: '#F3EAD31A',
     textAlign: 'center',
     letterSpacing: 0.8,
   },

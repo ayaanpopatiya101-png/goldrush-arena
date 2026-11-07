@@ -61,7 +61,7 @@ export function Glyph({ value, size, color, style, children }: Props) {
   const v = value ?? children;
   const flat = StyleSheet.flatten(style) ?? {};
   const s = size ?? (typeof flat.fontSize === 'number' ? flat.fontSize : 18);
-  const c = color ?? (typeof flat.color === 'string' ? flat.color : '#ECE7DC');
+  const c = color ?? (typeof flat.color === 'string' ? flat.color : '#F3EAD3');
   if (typeof v !== 'string' && typeof v !== 'number') return null;
   const str = String(v);
   if (!hasEmoji(str)) return <Text style={style}>{str.replace(/[\uFE0F\u20E3]/g, '')}</Text>;

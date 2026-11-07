@@ -33,7 +33,7 @@ const STEPS = [
     tagline: '4-Player · Air Hockey · Last One Standing',
     body: 'Deflect flying balls to score on your opponents.\nLose all your lives and your paddle vanishes.\nBe the LAST ONE STANDING to claim victory.',
     icon: '👑',
-    color: '#C99A2E',
+    color: '#F0B429',
     demoKey: 0,
   },
   {
@@ -41,7 +41,7 @@ const STEPS = [
     tagline: 'Basic Ability · Always available',
     body: 'Press and hold to supercharge your paddle.\nThe next ball you deflect rockets away at\n2× speed, a lethal precision strike.',
     icon: '⚡',
-    color: '#C99A2E',
+    color: '#F0B429',
     demoKey: 1,
   },
   {
@@ -49,7 +49,7 @@ const STEPS = [
     tagline: 'Super Ability · Unlocks at Level 5',
     body: 'Seal your goal with an impenetrable barrier\nfor 3 full seconds. Use it to survive a\nmulti-ball onslaught or buy yourself time.',
     icon: '🛡️',
-    color: '#C99A2E',
+    color: '#F0B429',
     demoKey: 2,
   },
   {
@@ -57,7 +57,7 @@ const STEPS = [
     tagline: 'Super Ability · Unlocks at Level 10',
     body: 'Project a slow field across your half\nof the arena. Every incoming ball crawls\nto near-stop, giving you perfect control.',
     icon: '🌀',
-    color: '#8C8F7A',
+    color: '#EDE3CC',
     demoKey: 3,
   },
   {
@@ -65,7 +65,7 @@ const STEPS = [
     tagline: 'Super Ability · Unlocks at Level 15',
     body: 'Any ball that scores while Shatter is\nactive disappears from play permanently.\nSacrifice one ball for a decisive edge.',
     icon: '💥',
-    color: '#8C8F7A',
+    color: '#EDE3CC',
     demoKey: 4,
   },
 ] as const;
@@ -103,9 +103,9 @@ const QUIZ = [
 type Tier = 'Rookie' | 'Veteran' | 'Pro';
 
 const TIER_META: Record<Tier, { icon: string; color: string; desc: string }> = {
-  Rookie:  { icon: '🥉', color: '#C99A2E', desc: "You're just getting started.\nGoldRush is the perfect place to learn and grow." },
-  Veteran: { icon: '🥈', color: '#B7B2A6', desc: "You know the fundamentals.\nNow it's time to refine your strategy and climb the ranks." },
-  Pro:     { icon: '🏆', color: '#C99A2E', desc: "Elite instincts detected.\nGo claim those Champion ranks, the arena is yours." },
+  Rookie:  { icon: '🥉', color: '#F0B429', desc: "You're just getting started.\nGoldRush is the perfect place to learn and grow." },
+  Veteran: { icon: '🥈', color: '#CFE0D6', desc: "You know the fundamentals.\nNow it's time to refine your strategy and climb the ranks." },
+  Pro:     { icon: '🏆', color: '#F0B429', desc: "Elite instincts detected.\nGo claim those Champion ranks, the arena is yours." },
 };
 
 function calcTier(pts: number): Tier {
@@ -167,9 +167,9 @@ function ArenaDemo({ demoKey, color }: { demoKey: number; color: string }) {
   }
 
   const PADDLE_POS = [
-    { top: 0,              left: ARENA_R - 6, bg: '#B4533A' },
-    { top: ARENA_R - 6,   left: 0,            bg: '#8C8F7A' },
-    { top: ARENA_R - 6,   left: ARENA_D - 12, bg: '#6F8A5B' },
+    { top: 0,              left: ARENA_R - 6, bg: '#E04A2F' },
+    { top: ARENA_R - 6,   left: 0,            bg: '#EDE3CC' },
+    { top: ARENA_R - 6,   left: ARENA_D - 12, bg: '#9CC93E' },
     { top: ARENA_D - 12,  left: ARENA_R - 6,  bg: color     },
   ];
 
@@ -220,7 +220,7 @@ export default function OnboardingFlowScreen() {
 
   const progressPct = step < TOTAL ? ((step + 1) / TOTAL) * 100 : 100;
   const stepDef: StepDef | null = step < TOTAL ? STEPS[step] : null;
-  const color = stepDef?.color ?? '#C99A2E';
+  const color = stepDef?.color ?? '#F0B429';
 
   async function markDone() {
     await AsyncStorage.setItem(ONBOARDING_FLOW_KEY, '1');
@@ -265,8 +265,8 @@ export default function OnboardingFlowScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#16171A' }}>
-      <LinearGradient colors={['#16171A', '#16171A', '#16171A']} style={StyleSheet.absoluteFill} />
+    <View style={{ flex: 1, backgroundColor: '#0E2621' }}>
+      <LinearGradient colors={['#0E2621', '#0E2621', '#0E2621']} style={StyleSheet.absoluteFill} />
       <LinearGradient
         colors={[color + '28', color + '0A', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 320 }}
@@ -276,7 +276,7 @@ export default function OnboardingFlowScreen() {
       {/* ── Header bar ── */}
       <View style={{ paddingTop: topPad + 6, paddingHorizontal: 22, paddingBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
         {step < 6 && (
-          <View style={{ flex: 1, height: 3, backgroundColor: '#ECE7DC12', borderRadius: 3, overflow: 'hidden' }}>
+          <View style={{ flex: 1, height: 3, backgroundColor: '#F3EAD312', borderRadius: 3, overflow: 'hidden' }}>
             <View style={{ width: `${progressPct}%` as any, height: '100%', backgroundColor: color, borderRadius: 3, opacity: 0.85 }} />
           </View>
         )}
@@ -326,8 +326,8 @@ export default function OnboardingFlowScreen() {
                 <View style={{ flexDirection: 'row', gap: 12 }}>
                   {(['🔥', '🏆', '⚡', '💎'] as const).map((e, i) => (
                     <View key={i} style={[styles.welcomeOrb, {
-                      backgroundColor: ['#B4533A14', '#C99A2E14', '#C99A2E14', '#8C8F7A14'][i],
-                      borderColor:     ['#B4533A30', '#C99A2E30', '#C99A2E30', '#8C8F7A30'][i],
+                      backgroundColor: ['#E04A2F14', '#F0B42914', '#F0B42914', '#EDE3CC14'][i],
+                      borderColor:     ['#E04A2F30', '#F0B42930', '#F0B42930', '#EDE3CC30'][i],
                     }]}>
                       <Text style={{ fontSize: 26 }}>{e}</Text>
                     </View>
@@ -351,7 +351,7 @@ export default function OnboardingFlowScreen() {
             {/* Progress pills */}
             <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center' }}>
               {QUIZ.map((_, i) => (
-                <View key={i} style={[styles.quizPill, { backgroundColor: i <= quizIdx ? '#C99A2E' : '#ECE7DC18' }]} />
+                <View key={i} style={[styles.quizPill, { backgroundColor: i <= quizIdx ? '#F0B429' : '#F3EAD318' }]} />
               ))}
             </View>
 
@@ -365,7 +365,7 @@ export default function OnboardingFlowScreen() {
                     style={({ pressed }) => [styles.answerBtn, pressed && styles.answerBtnPressed]}
                   >
                     <Text style={styles.answerLabel}>{a.label}</Text>
-                    <Feather name="chevron-right" size={16} color="#ECE7DC33" />
+                    <Feather name="chevron-right" size={16} color="#F3EAD333" />
                   </Pressable>
                 ))}
               </View>
@@ -398,14 +398,14 @@ export default function OnboardingFlowScreen() {
         <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom + 12, 28) }]}>
           {step > 0 && (
             <Pressable onPress={goBack} style={styles.backBtn}>
-              <Feather name="arrow-left" size={20} color="#ECE7DC55" />
+              <Feather name="arrow-left" size={20} color="#F3EAD355" />
             </Pressable>
           )}
           <Pressable onPress={advance} style={[styles.nextBtn, { backgroundColor: color }]}>
             <Text style={styles.nextBtnText}>
               {step === TOTAL - 1 ? 'TAKE THE QUIZ' : 'NEXT'}
             </Text>
-            <Feather name={step === TOTAL - 1 ? 'zap' : 'arrow-right'} size={16} color="#16171AAA" />
+            <Feather name={step === TOTAL - 1 ? 'zap' : 'arrow-right'} size={16} color="#0E2621AA" />
           </Pressable>
         </View>
       )}
@@ -414,8 +414,8 @@ export default function OnboardingFlowScreen() {
       {step === 5 && (
         <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 24, paddingBottom: Math.max(insets.bottom + 12, 28), alignItems: 'center' }}>
           <Pressable onPress={goBack} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Feather name="arrow-left" size={13} color="#ECE7DC33" />
-            <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#ECE7DC33' }}>Back to tutorial</Text>
+            <Feather name="arrow-left" size={13} color="#F3EAD333" />
+            <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#F3EAD333' }}>Back to tutorial</Text>
           </Pressable>
         </View>
       )}
@@ -425,41 +425,41 @@ export default function OnboardingFlowScreen() {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  skipLabel:    { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#ECE7DC40', letterSpacing: 0.5 },
-  stepCounter:  { textAlign: 'center', fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#ECE7DC30', letterSpacing: 1.2, marginBottom: 2 },
+  skipLabel:    { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#F3EAD340', letterSpacing: 0.5 },
+  stepCounter:  { textAlign: 'center', fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#F3EAD330', letterSpacing: 1.2, marginBottom: 2 },
 
   iconBubble: { width: 90, height: 90, borderRadius: 3, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-  stepTitle:  { fontFamily: 'SourceSans3_700Bold', color: '#ECE7DC', textAlign: 'center', lineHeight: 36 },
+  stepTitle:  { fontFamily: 'SourceSans3_700Bold', color: '#F3EAD3', textAlign: 'center', lineHeight: 36 },
   taglinePill:{ borderRadius: 3, paddingHorizontal: 12, paddingVertical: 4 },
   taglineText:{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, letterSpacing: 1 },
-  stepBody:   { fontFamily: 'SourceSans3_400Regular', fontSize: 15, color: '#ECE7DC88', textAlign: 'center', lineHeight: 25, paddingHorizontal: 6 },
+  stepBody:   { fontFamily: 'SourceSans3_400Regular', fontSize: 15, color: '#F3EAD388', textAlign: 'center', lineHeight: 25, paddingHorizontal: 6 },
 
   welcomeOrb:  { width: 58, height: 58, borderRadius: 3, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  welcomeHint: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: '#ECE7DC30', letterSpacing: 1.2 },
+  welcomeHint: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: '#F3EAD330', letterSpacing: 1.2 },
 
   arenaWrap: { alignItems: 'center', justifyContent: 'center' },
-  arena:     { backgroundColor: '#ECE7DC06', borderWidth: 1.5, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  ball:      { width: 14, height: 14, borderRadius: 3, backgroundColor: '#ECE7DC', shadowColor: '#ECE7DC', shadowOpacity: 0, shadowRadius: 0 },
+  arena:     { backgroundColor: '#F3EAD306', borderWidth: 1.5, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  ball:      { width: 14, height: 14, borderRadius: 3, backgroundColor: '#F3EAD3', shadowColor: '#F3EAD3', shadowOpacity: 0, shadowRadius: 0 },
   tryBtn:    { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 3, paddingHorizontal: 22, paddingVertical: 10, borderWidth: 1 },
   tryBtnText:{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5 },
 
-  quizHeading: { fontFamily: 'SourceSans3_700Bold', fontSize: 24, color: '#ECE7DC', letterSpacing: 1 },
-  quizSubhead: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#ECE7DC44', letterSpacing: 0.5 },
+  quizHeading: { fontFamily: 'SourceSans3_700Bold', fontSize: 24, color: '#F3EAD3', letterSpacing: 1 },
+  quizSubhead: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#F3EAD344', letterSpacing: 0.5 },
   quizPill:    { width: 36, height: 4, borderRadius: 2 },
-  questionText:{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 17, color: '#ECE7DC', textAlign: 'center', lineHeight: 27 },
-  answerBtn:   { backgroundColor: '#ECE7DC08', borderRadius: 3, borderWidth: 1.5, borderColor: '#ECE7DC14', padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  answerBtnPressed: { backgroundColor: '#C99A2E1A', borderColor: '#C99A2E55' },
-  answerLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 15, color: '#ECE7DC', flex: 1, lineHeight: 22 },
+  questionText:{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 17, color: '#F3EAD3', textAlign: 'center', lineHeight: 27 },
+  answerBtn:   { backgroundColor: '#F3EAD308', borderRadius: 3, borderWidth: 1.5, borderColor: '#F3EAD314', padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  answerBtnPressed: { backgroundColor: '#F0B4291A', borderColor: '#F0B42955' },
+  answerLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 15, color: '#F3EAD3', flex: 1, lineHeight: 22 },
 
   tierLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, letterSpacing: 3 },
-  tierName:  { fontFamily: 'SourceSans3_700Bold', fontSize: 42, color: '#ECE7DC', letterSpacing: 2 },
+  tierName:  { fontFamily: 'SourceSans3_700Bold', fontSize: 42, color: '#F3EAD3', letterSpacing: 2 },
   tierCard:  { borderRadius: 3, borderWidth: 1, padding: 20, width: '100%' },
-  tierDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 15, color: '#ECE7DCBB', textAlign: 'center', lineHeight: 25 },
-  ctaBtn:    { backgroundColor: '#C99A2E', borderRadius: 3, paddingVertical: 17, paddingHorizontal: 32, width: '100%', alignItems: 'center' },
-  ctaBtnText:{ fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#16171A', letterSpacing: 0.5 },
+  tierDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 15, color: '#F3EAD3BB', textAlign: 'center', lineHeight: 25 },
+  ctaBtn:    { backgroundColor: '#F0B429', borderRadius: 3, paddingVertical: 17, paddingHorizontal: 32, width: '100%', alignItems: 'center' },
+  ctaBtnText:{ fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#0E2621', letterSpacing: 0.5 },
 
-  bottomNav: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 22, paddingTop: 14, flexDirection: 'row', gap: 12, backgroundColor: '#16171AE8' },
-  backBtn:   { backgroundColor: '#ECE7DC0A', borderRadius: 3, borderWidth: 1, borderColor: '#ECE7DC18', paddingVertical: 14, paddingHorizontal: 18 },
+  bottomNav: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 22, paddingTop: 14, flexDirection: 'row', gap: 12, backgroundColor: '#0E2621E8' },
+  backBtn:   { backgroundColor: '#F3EAD30A', borderRadius: 3, borderWidth: 1, borderColor: '#F3EAD318', paddingVertical: 14, paddingHorizontal: 18 },
   nextBtn:   { flex: 1, borderRadius: 3, paddingVertical: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
-  nextBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#16171ACC', letterSpacing: 0.5 },
+  nextBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#0E2621CC', letterSpacing: 0.5 },
 });
