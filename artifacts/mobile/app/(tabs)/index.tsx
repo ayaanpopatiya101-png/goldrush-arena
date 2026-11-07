@@ -29,6 +29,7 @@ import { getDeviceId } from '@/utils/deviceId';
 
 // ─── Mode catalog (all existing modes and rank gates preserved) ──────────────
 type ModeKind = 'ranked' | 'casual' | 'practice' | 'variant' | 'elite' | 'gauntlet' | 'challenge' | 'arcade';
+const PRIMARY_MODE_KINDS: readonly ModeKind[] = ['ranked', 'casual', 'practice'];
 interface ModeDef {
   key: string;
   kind: ModeKind;
@@ -75,12 +76,13 @@ const SEAT_NAMES = ['South', 'North', 'West', 'East'];
 // ─── Live arena preview: the actual game engine, practice rules, no progression ─
 function ArenaPreview({ size, playerColor }: { size: number; playerColor: string }) {
   const [focused, setFocused] = useState(true);
-  useFocusEffect(useCallback(() => { setFocused(true); return () => setFocused(false); }, []));
+  // Practice is opt-in: it never mounts until the player asks, and stops when Home loses focus.
+  const [started, setStarted] = useState(false);
+  useFocusEffect(useCallback(() => { setFocused(true); return () => { setFocused(false); setStarted(false); }; }, []));
   const reduced = useReducedMotion();
   const [run, setRun] = useState(0);
-  const [started, setStarted] = useState(false);
   const [userPaused, setUserPaused] = useState(false);
-  const active = !reduced || started;
+  const active = started && focused;
   const courtSize = Math.floor(size * 0.78);
 
   const restart = useCallback(() => setRun(r => r + 1), []);
@@ -108,8 +110,10 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
           />
         ) : (
           <View style={a.reducedBox}>
-            <Text style={a.reducedText}>Live preview paused while Reduce Motion is on.</Text>
-            <Button label="Run preview" size="sm" variant="secondary" icon="play" onPress={() => setStarted(true)} />
+            <Text style={a.reducedText}>Try a rally on the real court: you on the south wall, three easy local bots. No rank or rewards.</Text>
+            <Button testID="preview-start" label="Try a rally" size="sm" variant="secondary" icon="play"
+              accessibilityHint={reduced ? 'Starts a moving practice court. Reduce Motion is on.' : 'Starts a practice court'}
+              onPress={() => { setUserPaused(false); setStarted(true); }} />
           </View>
         )}
         </View>
@@ -132,7 +136,7 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
       </View>
       <View style={a.captionRow}>
         <Text style={[a.caption, { flex: 1 }]}>
-          Practice on the real match engine. Drag along the bottom edge. On desktop, click and drag. No rank or rewards.
+          {active ? 'Drag along the bottom edge. On desktop, click and drag.' : 'Practice starts only when you press Try a rally.'}
         </Text>
         {active ? (
           <Button
@@ -144,6 +148,9 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
             accessibilityHint="Pauses or resumes the practice preview"
             onPress={() => setUserPaused(p => !p)}
           />
+        ) : null}
+        {active ? (
+          <Button label="Stop" size="sm" variant="ghost" icon="square" onPress={() => setStarted(false)} />
         ) : null}
       </View>
     </View>
@@ -184,6 +191,7 @@ export default function HomeScreen() {
   const panelW = wide ? 460 - 2 : contentW;
   const modeCellW = Math.floor((panelW - 6) / 2);
   const [showAllModes, setShowAllModes] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   const selected = useMemo(() => MODES.find(m => m.key === selectedKey) ?? MODES[0]!, [selectedKey]);
   const isLocked = (m: ModeDef) => m.lockIdx != null && playerRankIdx < m.lockIdx;
@@ -323,7 +331,8 @@ export default function HomeScreen() {
         key={m.key}
         onPress={() => setSelectedKey(m.key)}
         accessibilityRole="radio"
-        accessibilityState={{ selected: on }}
+        accessibilityState={{ checked: on }}
+        aria-checked={on}
         accessibilityLabel={`${m.name}, ${m.sub}${locked ? `, requires ${m.lockLabel}` : ''}`}
         style={({ pressed }) => [s.modeCell, { width: modeCellW }, on && s.modeCellOn, pressed && { backgroundColor: ui.graphite2 }]}
       >
@@ -432,24 +441,25 @@ export default function HomeScreen() {
 
             {/* Compact initial choices */}
             <View style={s.modeGrid} accessibilityRole="radiogroup">
-              {MODES.filter(m => m.group === 'MATCH' || m.group === 'SOLO').map(m => renderMode(m))}
+              {MODES.filter(m => PRIMARY_MODE_KINDS.includes(m.kind)).map(m => renderMode(m))}
             </View>
             <Pressable
               testID="toggle-all-modes"
               onPress={() => setShowAllModes(v => !v)}
               accessibilityRole="button"
               accessibilityState={{ expanded: showAllModes }}
+              aria-expanded={showAllModes}
               style={({ pressed }) => [s.expandRow, pressed && { backgroundColor: ui.graphite2 }]}
             >
-              <Text style={s.expandText}>{showAllModes ? 'Hide variants and elite modes' : `All modes (${MODES.filter(m => m.group === 'VARIANT' || m.group === 'ELITE').length} more)`}</Text>
+              <Text style={s.expandText}>{showAllModes ? 'Hide more modes' : `More modes (${MODES.filter(m => !PRIMARY_MODE_KINDS.includes(m.kind)).length})`}</Text>
               <Feather name={showAllModes ? 'chevron-up' : 'chevron-down'} size={18} color={ui.paperDim} />
             </Pressable>
             {showAllModes ? (
               <View style={{ gap: 12, marginTop: 4 }}>
-                {(['VARIANT', 'ELITE'] as const).map(g => (
+                {(['SOLO', 'VARIANT', 'ELITE'] as const).map(g => (
                   <View key={g}>
-                    <SectionLabel title={g === 'VARIANT' ? 'Variants' : 'Elite'} />
-                    <View style={s.modeGrid}>{MODES.filter(m => m.group === g).map(m => renderMode(m))}</View>
+                    <SectionLabel title={g === 'SOLO' ? 'Solo' : g === 'VARIANT' ? 'Variants' : 'Elite'} />
+                    <View style={s.modeGrid}>{MODES.filter(m => m.group === g && !PRIMARY_MODE_KINDS.includes(m.kind)).map(m => renderMode(m))}</View>
                   </View>
                 ))}
               </View>
@@ -516,6 +526,24 @@ export default function HomeScreen() {
           )}
         </View>
 
+        <View style={s.block}>
+          <Pressable
+            testID="toggle-more"
+            onPress={() => setShowMore(v => !v)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showMore }}
+            aria-expanded={showMore}
+            accessibilityLabel={showMore ? 'Hide ability, record, season pass and shortcuts' : 'Show ability, record, season pass and shortcuts'}
+            style={({ pressed }) => [s.expandRow, pressed && { backgroundColor: ui.graphite2 }]}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={s.expandText}>{showMore ? 'Hide loadout and progress' : 'Loadout and progress'}</Text>
+              <Text style={s.modeSub}>Super ability, record, events, season track, clips</Text>
+            </View>
+            <Feather name={showMore ? 'chevron-up' : 'chevron-down'} size={18} color={ui.paperDim} />
+          </Pressable>
+        </View>
+        {showMore ? (<>
         {/* Super ability loadout */}
         <View style={s.block}>
           <SectionLabel title="Super ability" right={<Text style={s.meta}>Charges after 10 blocks</Text>} />
@@ -530,6 +558,8 @@ export default function HomeScreen() {
                   disabled={!unlocked}
                   accessibilityRole="radio"
                   accessibilityState={{ selected: active, disabled: !unlocked }}
+                  aria-pressed={active}
+                  aria-disabled={!unlocked}
                   accessibilityLabel={`${sup.name}${unlocked ? '' : `, unlocks at level ${sup.unlockLevel}`}`}
                   style={({ pressed }) => [s.superCell, active && unlocked && s.modeCellOn, pressed && { backgroundColor: ui.graphite2 }, !unlocked && { opacity: 0.5 }]}
                 >
@@ -598,6 +628,7 @@ export default function HomeScreen() {
             </View>
           </Pressable>
         </View>
+        </>) : null}
         </Shell>
       </ScrollView>
     </View>
@@ -620,7 +651,7 @@ const a = StyleSheet.create({
   seatDivider: { borderRightWidth: 1, borderRightColor: tactile.courtLine },
   seatSwatch: { width: 4, height: 24 },
   seatPos: { fontFamily: fonts.display, fontSize: 13, letterSpacing: 0.5, color: tactile.paperInk, textTransform: 'uppercase' },
-  seatWho: { fontFamily: fonts.body, fontSize: 11, color: tactile.paperInk },
+  seatWho: { fontFamily: fonts.body, fontSize: 12, color: tactile.paperInk },
   caption: { fontFamily: fonts.body, fontSize: 13, color: ui.muted, lineHeight: 18 },
   captionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
 });
@@ -642,14 +673,14 @@ const s = StyleSheet.create({
   xpFill: { height: 4, backgroundColor: ui.ochre },
   xpText: { fontFamily: fonts.body, fontSize: 12, color: ui.muted },
   block: { paddingHorizontal: 18, marginTop: 18 },
-  playArea: { paddingHorizontal: 18, marginTop: 14, flexDirection: 'column-reverse', gap: 24 },
+  playArea: { paddingHorizontal: 18, marginTop: 14, flexDirection: 'column', gap: 24 },
   playAreaWide: { flexDirection: 'row', alignItems: 'flex-start', gap: 24 },
   playPanel: {},
   ruleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   expandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, paddingHorizontal: 12, marginTop: 6, borderWidth: 1, borderColor: ui.line, borderRadius: 3 },
   expandText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: ui.paper },
   selectedPanel: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10, backgroundColor: tactile.paperPanel, borderWidth: 2, borderColor: ui.lineStrong, borderRadius: 0 },
-  kicker: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: tactile.paperMuted, textTransform: 'uppercase' },
+  kicker: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1.2, color: tactile.paperMuted, textTransform: 'uppercase' },
   selectedName: { fontFamily: fonts.display, fontSize: 30, color: tactile.paperInk, letterSpacing: 0.5, textTransform: 'uppercase' },
   selectedDesc: { fontFamily: fonts.body, fontSize: 14, color: tactile.paperMuted },
   paperRule: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: tactile.paperMuted },
@@ -657,10 +688,10 @@ const s = StyleSheet.create({
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, marginTop: 26, marginBottom: 4 },
   brandMark: { transform: [{ rotate: '-4deg' }] },
   wordmark: { fontFamily: fonts.display, fontSize: 36, color: ui.paper, letterSpacing: -1, lineHeight: 40 },
-  brandCaption: { fontFamily: fonts.body, fontSize: 11, color: ui.muted, letterSpacing: 1 },
-  seasonStamp: { minWidth: 40, minHeight: 48, padding: 4, alignItems: 'center', justifyContent: 'center', gap: 2, borderWidth: 2, borderColor: ui.paperDim, backgroundColor: tactile.coral, transform: [{ rotate: '3deg' }] },
+  brandCaption: { fontFamily: fonts.body, fontSize: 12, color: ui.muted, letterSpacing: 1 },
+  seasonStamp: { minWidth: 44, minHeight: 48, padding: 4, alignItems: 'center', justifyContent: 'center', gap: 2, borderWidth: 2, borderColor: ui.paperDim, backgroundColor: tactile.coral, transform: [{ rotate: '3deg' }] },
   stampText: { fontFamily: fonts.body, color: ui.ochreInk, fontSize: 13 },
-  stampLabel: { fontFamily: fonts.bodyBold, color: ui.ochreInk, fontSize: 11, letterSpacing: 0.7 },
+  stampLabel: { fontFamily: fonts.bodyBold, color: ui.ochreInk, fontSize: 12, letterSpacing: 0.7 },
   note: { fontFamily: fonts.body, fontSize: 13, color: ui.muted, marginTop: 8, lineHeight: 18 },
   errorRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   errorText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 13, color: ui.clay },
@@ -669,7 +700,7 @@ const s = StyleSheet.create({
   modeCellOn: { borderColor: ui.ochre, borderWidth: 2, paddingHorizontal: 9, paddingVertical: 8 },
   modeName: { fontFamily: fonts.display, fontSize: 17, color: ui.paper, letterSpacing: 0.5, textTransform: 'uppercase' },
   modeSub: { fontFamily: fonts.body, fontSize: 12, color: ui.muted },
-  superCell: { flexBasis: '31%', flexGrow: 1, borderWidth: 1, borderColor: ui.line, borderRadius: 3, padding: 10, gap: 2, backgroundColor: ui.graphite },
+  superCell: { minHeight: 44, flexBasis: '31%', flexGrow: 1, borderWidth: 1, borderColor: ui.line, borderRadius: 3, padding: 10, gap: 2, backgroundColor: ui.graphite },
   body: { fontFamily: fonts.body, fontSize: 14, color: ui.paperDim, lineHeight: 19 },
   codeInput: { flex: 1, height: 44, borderWidth: 1, borderColor: ui.line, borderRadius: 3, backgroundColor: ui.graphite2, color: ui.paper, fontFamily: fonts.display, fontSize: 20, letterSpacing: 4, paddingHorizontal: 12 },
   codeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderBottomWidth: 1, borderBottomColor: ui.line },

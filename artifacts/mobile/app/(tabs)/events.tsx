@@ -39,7 +39,7 @@ function fmt(ms: number): string {
 }
 
 const PLACEMENT_ICONS = ['🥇', '🥈', '🥉', '4️⃣'];
-const GENERAL1 = RANKS.find(r => r.name === 'General 1');
+const GENERAL1 = RANKS[EVENT_MIN_RANK_INDEX] ?? RANKS.find(r => r.name === 'General 1');
 
 // ─── Screen ────────────────────────────────────────────────────────────────────
 export default function EventsScreen() {
@@ -58,6 +58,7 @@ export default function EventsScreen() {
   const hasRank = rankIdx >= EVENT_MIN_RANK_INDEX;
   const topPad  = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
   const focusStyle = useFocusAnimation();
+  const nextRank = RANKS.find(r => r.minXP > profile.xp) ?? null;
 
   function handlePlayFeaturedMode(mode: FeaturedMode) {
     const skin = SKINS.find(sk => sk.id === profile.currentSkin) ?? SKINS[0];
@@ -161,7 +162,7 @@ export default function EventsScreen() {
         <View style={{ flex: 1 }}>
           <ScreenTitle kicker="GoldRush Arena" title="Events" />
           <Text style={[s.subtitle, { color: colors.mutedForeground }]}>
-            Exclusive · General 1+ · Qualifier system
+            Featured mode open to all · competitions from {GENERAL1?.name ?? 'the required rank'}
           </Text>
         </View>
         <View style={[s.datePill, { borderColor: colors.border }]}>
@@ -177,34 +178,37 @@ export default function EventsScreen() {
         contentContainerStyle={{ paddingTop: 4, paddingBottom: insets.bottom + 90 }}
       >
         <Shell style={{ gap: 14 }}>
-        {/* Rank gate, shown below General 1 */}
+        {/* ── Featured Mode ── */}
+        <FeaturedModeSection onPlay={handlePlayFeaturedMode} />
+
+        {/* Advanced competitions: clearly separated, gates unchanged */}
+        <View style={s.advHeader} accessibilityRole="header">
+          <Text style={s.advTitle}>ADVANCED COMPETITIONS</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: '#66897D' }} />
+          <Text style={s.advMeta}>{hasRank ? 'UNLOCKED' : `REQUIRES ${GENERAL1?.name.toUpperCase() ?? 'GENERAL 1'}`}</Text>
+        </View>
         {!hasRank && (
           <Panel tone="paper" style={[s.rankGate, { borderLeftWidth: 6, borderLeftColor: tactile.coral }]}>
-            <Glyph style={s.rankGateIcon} value="🔒" />
+            <Feather name="flag" size={22} color={paperText.ink} />
             <View style={{ flex: 1 }}>
-              <Text style={[s.rankGateTitle, { color: paperText.ink }]}>EVENTS LOCKED</Text>
+              <Text style={[s.rankGateTitle, { color: paperText.ink }]}>YOUR NEXT STEP: {nextRank ? nextRank.name.toUpperCase() : profile.rank.toUpperCase()}</Text>
               <Text style={[s.rankGateBody, { color: paperText.ink }]}>
-                Events require{' '}
-                <Text style={{ color: paperText.ink, fontFamily: 'SourceSans3_700Bold' }}>General 1</Text>
-                {' '}rank. Earn matches, climb ranks, and return to compete in the qualifier ladder.
+                {nextRank
+                  ? `${(nextRank.minXP - profile.xp).toLocaleString()} XP to ${nextRank.name}. Ranked, Casual and the featured mode above all earn XP.`
+                  : 'You are at the top XP rank.'}
               </Text>
               <Text style={[s.rankGateReq, { color: paperText.muted }]}>
-                Your rank: <Text style={{ color: paperText.ink, fontFamily: 'SourceSans3_700Bold' }}>{profile.rank}</Text>
-                {'  ·  '}
-                <Text style={{ color: paperText.ink }}>General 1</Text>{' '}requires {(340_000 - Math.min(profile.xp, 340_000)).toLocaleString()} more XP
+                The Weekly, Monthly Cup and Grand Prix below open at {GENERAL1?.name ?? 'General 1'} ({(GENERAL1?.minXP ?? 0).toLocaleString()} XP). You are {profile.rank}. You can read the formats now; entry stays locked until then.
               </Text>
             </View>
           </Panel>
         )}
 
-        {/* ── Featured Mode ── */}
-        <FeaturedModeSection onPlay={handlePlayFeaturedMode} />
-
         {/* Weekly, direct entry, no qualifier */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <GlowText intensity="medium" color='#EFBD3C' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>WEEKLY EVENT</GlowText>
           <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#D1DAC6', letterSpacing: 1 }}>DIRECT ENTRY</Text>
+          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1 }}>DIRECT ENTRY</Text>
         </View>
         <EventCard
           ev={events.weekly}
@@ -219,7 +223,7 @@ export default function EventsScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4, marginTop: 4 }}>
           <GlowText intensity="medium" color='#EFBD3C' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>MONTHLY CUP</GlowText>
           <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#D1DAC6', letterSpacing: 1 }}>2-ROUND QUALIFIER</Text>
+          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1 }}>2-ROUND QUALIFIER</Text>
         </View>
         <EventCard
           ev={events.monthly}
@@ -234,7 +238,7 @@ export default function EventsScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4, marginTop: 4 }}>
           <GlowText intensity="medium" color='#EFBD3C' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>ANNUAL GRAND PRIX</GlowText>
           <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#D1DAC6', letterSpacing: 1 }}>3-ROUND QUALIFIER</Text>
+          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1 }}>3-ROUND QUALIFIER</Text>
         </View>
         <EventCard
           ev={events.annual}
@@ -248,7 +252,7 @@ export default function EventsScreen() {
         <View style={[s.infoBox, { borderColor: '#F5E7C40C', backgroundColor: '#F5E7C406' }]}>
           <Glyph style={s.infoIcon} value="⚡" />
           <Text style={[s.infoText, { color: '#D1DAC6' }]}>
-            All participants earn <Text style={{ color: '#EDE3CC' }}>Credits</Text> (used in the Forge) plus bonus XP and coins in the <Text style={{ color: '#EFBD3C' }}>Main Draw</Text>. Qualifier rounds award <Text style={{ color: '#EDE3CC' }}>Qualifier Points (QP)</Text>, earn enough QP to advance to the next stage.
+            All participants earn <Text style={{ color: '#EDE3CC' }}>Credits</Text> (spent in the Forge to craft items) plus bonus XP and coins in the <Text style={{ color: '#EFBD3C' }}>Main Draw</Text>. Qualifier rounds award <Text style={{ color: '#EDE3CC' }}>Qualifier Points (QP)</Text> based on finishing place; earn enough QP to advance to the next stage.
           </Text>
         </View>
         </Shell>
@@ -272,7 +276,7 @@ function FeaturedModeSection({ onPlay }: { onPlay: (mode: FeaturedMode) => void 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 0 }}>
         <GlowText intensity="medium" color={color} style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color }}>FEATURED THIS WEEK</GlowText>
         <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
-        <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#D1DAC6', letterSpacing: 1 }}>OPT-IN · CASUAL</Text>
+        <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1 }}>OPEN TO ALL · CASUAL · COMPETITIVE LEVEL UNCHANGED</Text>
       </View>
 
       {/* Card */}
@@ -282,7 +286,7 @@ function FeaturedModeSection({ onPlay }: { onPlay: (mode: FeaturedMode) => void 
         {/* Top row */}
         <View style={s.cardTop}>
           <View style={[s.typeBadge, { borderColor: color + '55', backgroundColor: color + '18' }]}>
-            <Glyph style={{ fontSize: 11, marginRight: 3 }} value={mode.emoji} />
+            <Glyph style={{ fontSize: 12, marginRight: 3 }} value={mode.emoji} />
             <Text style={[s.badgeText, { color }]}>FEATURED</Text>
           </View>
           <View style={[s.timePill, { borderColor: '#F5E7C414' }]}>
@@ -335,6 +339,8 @@ function FeaturedModeSection({ onPlay }: { onPlay: (mode: FeaturedMode) => void 
         {/* Play button */}
         <Pressable
           onPress={() => onPlay(mode)}
+          accessibilityRole="button"
+          accessibilityLabel={`Play ${mode.name}, casual match, competitive level unchanged`}
           style={({ pressed }) => [
             s.playBtn,
             { backgroundColor: color + '20', borderColor: color + '66',
@@ -671,6 +677,10 @@ function PlayButton({ label, color, disabled, onPress }: {
   return (
     <Pressable
       onPress={disabled ? undefined : onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label.replace('▶', '').trim()}
+      accessibilityState={{ disabled }}
       style={({ pressed }) => [
         s.playBtn,
         {
@@ -688,19 +698,22 @@ function PlayButton({ label, color, disabled, onPress }: {
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
+  advHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
+  advTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 1, color: '#F5E7C4' },
+  advMeta: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.8, color: '#F0A38A' },
   root:            { flex: 1 },
   header:          { paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
   title:           { fontFamily: 'SourceSans3_700Bold', fontSize: 24, letterSpacing: 2 },
-  subtitle:        { fontFamily: 'SourceSans3_400Regular', fontSize: 11, marginTop: 2, letterSpacing: 0.4 },
+  subtitle:        { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 2, letterSpacing: 0.4 },
   datePill:        { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 2, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 5 },
-  dateText:        { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11 },
+  dateText:        { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
   scroll:          { paddingHorizontal: 16, paddingTop: 4, gap: 14 },
 
   rankGate:        { borderRadius: 3, borderWidth: 1, padding: 16, flexDirection: 'row', gap: 12, alignItems: 'flex-start', overflow: 'hidden' },
   rankGateIcon:    { fontSize: 26, marginTop: 2 },
   rankGateTitle:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13, letterSpacing: 1.2, marginBottom: 6 },
   rankGateBody:    { fontFamily: 'SourceSans3_400Regular', fontSize: 13, lineHeight: 19 },
-  rankGateReq:     { fontFamily: 'SourceSans3_400Regular', fontSize: 11, marginTop: 8, lineHeight: 16 },
+  rankGateReq:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 8, lineHeight: 16 },
 
   card:            { borderRadius: 0, borderWidth: 2, padding: 16, overflow: 'hidden', gap: 12 },
   cardTop:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -711,13 +724,13 @@ const s = StyleSheet.create({
   qualifiedBadge:  { borderWidth: 2, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4 },
   roundBadge:      { borderWidth: 2, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center' },
   roundBadgeEmoji: { fontSize: 12, marginRight: 4 },
-  roundCounter:    { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10 },
-  badgeText:       { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 1 },
+  roundCounter:    { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
+  badgeText:       { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
 
   modePill:        { borderWidth: 2, borderRadius: 0, paddingHorizontal: 8, paddingVertical: 3 },
-  modeText:        { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 0.4 },
+  modeText:        { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 0.4 },
   timePill:        { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 2, borderRadius: 0, paddingHorizontal: 8, paddingVertical: 3 },
-  timeText:        { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10 },
+  timeText:        { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
 
   nameRow:         { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   eventEmoji:      { fontSize: 28, lineHeight: 34 },
@@ -725,36 +738,36 @@ const s = StyleSheet.create({
   eventDesc:       { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 3, lineHeight: 17 },
 
   countdownBox:    { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 2, borderRadius: 0, paddingHorizontal: 14, paddingVertical: 12 },
-  countdownLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 1.2 },
+  countdownLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2 },
   countdownTime:   { fontFamily: 'SourceSans3_700Bold', fontSize: 18, marginTop: 1 },
   countdownDate:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginLeft: 'auto' as never },
 
   playsRow:        { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  playsLabel:      { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 1, width: 38 },
+  playsLabel:      { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 1, width: 38 },
   dots:            { flexDirection: 'row', gap: 5, flex: 1 },
   dot:             { width: 10, height: 10, borderRadius: 3 },
-  playsRemaining:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11 },
+  playsRemaining:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
 
   divider:         { height: 1, borderRadius: 1 },
 
   rewardRow:       { flexDirection: 'row', gap: 8 },
   rewardPill:      { flex: 1, alignItems: 'center', gap: 2 },
   rewardValue:     { fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
-  rewardLabel:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, letterSpacing: 0.8 },
-  lossNote:        { fontFamily: 'SourceSans3_400Regular', fontSize: 10, textAlign: 'center' },
+  rewardLabel:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 0.8 },
+  lossNote:        { fontFamily: 'SourceSans3_400Regular', fontSize: 12, textAlign: 'center' },
 
   // QP section
   qpSection:       { gap: 6 },
   qpHeader:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  qpLabel:         { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 1 },
+  qpLabel:         { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
   qpValue:         { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   qpTrack:         { height: 8, borderRadius: 4, overflow: 'hidden' },
   qpFill:          { height: '100%', borderRadius: 4 },
-  qpNearNote:      { fontFamily: 'SourceSans3_400Regular', fontSize: 11, textAlign: 'center' },
+  qpNearNote:      { fontFamily: 'SourceSans3_400Regular', fontSize: 12, textAlign: 'center' },
 
   // QP placement table
   qpTable:         { borderRadius: 3, borderWidth: 1, padding: 12, gap: 6 },
-  qpTableTitle:    { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 1.2, marginBottom: 2 },
+  qpTableTitle:    { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2, marginBottom: 2 },
   qpTableRows:     { gap: 6 },
   qpTableRow:      { flexDirection: 'row', alignItems: 'center', gap: 8 },
   qpTableIcon:     { fontSize: 14, width: 22 },
@@ -764,7 +777,7 @@ const s = StyleSheet.create({
   advanceNote:     { borderRadius: 3, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8 },
   advanceText:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 17 },
 
-  playBtn:         { borderRadius: 0, borderWidth: 2, paddingVertical: 14, alignItems: 'center' },
+  playBtn:         { borderRadius: 0, borderWidth: 2, paddingVertical: 14, minHeight: 48, justifyContent: 'center', alignItems: 'center' },
   playBtnText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 13, letterSpacing: 1.5 },
 
   infoBox:         { flexDirection: 'row', gap: 10, borderWidth: 2, borderRadius: 0, padding: 14, alignItems: 'flex-start', marginTop: 2 },

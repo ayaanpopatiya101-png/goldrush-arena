@@ -17,3 +17,10 @@ export const displayScale = {
   subheading: 17,
   stat: 26,
 } as const;
+
+/** Minimum readable roles for controls, metadata and explanatory copy. */
+export const textScale = {
+  body: 16,
+  control: 14,
+  caption: 12,
+} as const;

@@ -5,7 +5,7 @@ import React from 'react';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 
 import { palette, tactile } from '@/constants/colors';
-import { fonts } from '@/constants/typography';
+import { fonts, textScale } from '@/constants/typography';
 import { BrandMark } from '@/components/ui/BrandMark';
 
 export const ui = palette;
@@ -50,7 +50,7 @@ type BtnProps = {
 };
 
 export function Button({ label, onPress, variant = 'primary', icon, disabled, loading, size = 'md', style, testID, accessibilityHint }: BtnProps) {
-  const fg = variant === 'primary' ? palette.ochreInk : variant === 'danger' ? palette.clay : palette.paper;
+  const fg = disabled && !loading ? palette.muted : variant === 'primary' ? palette.ochreInk : variant === 'danger' ? palette.clay : palette.paper;
   return (
     <Pressable
       testID={testID}
@@ -60,6 +60,8 @@ export function Button({ label, onPress, variant = 'primary', icon, disabled, lo
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
+      aria-disabled={!!(disabled || loading)}
+      aria-busy={!!loading}
       style={({ pressed }) => [
         p.btn,
         size === 'lg' && p.btnLg,
@@ -68,12 +70,12 @@ export function Button({ label, onPress, variant = 'primary', icon, disabled, lo
         variant === 'secondary' && { backgroundColor: pressed ? palette.line : palette.graphite2, borderColor: palette.line },
         variant === 'ghost' && { backgroundColor: pressed ? palette.graphite2 : 'transparent', borderColor: palette.line },
         variant === 'danger' && { backgroundColor: pressed ? palette.graphite2 : 'transparent', borderColor: palette.clay },
-        (disabled && !loading) && { opacity: 0.4 },
+        (disabled && !loading) && { backgroundColor: palette.graphite, borderColor: palette.line },
         style,
       ]}
     >
       {loading ? <ActivityIndicator size="small" color={fg} /> : icon ? <Feather name={icon} size={size === 'lg' ? 20 : 15} color={fg} /> : null}
-      <Text style={[p.btnText, size === 'lg' && p.btnTextLg, size === 'sm' && p.btnTextSm, { color: fg }]}>{label}</Text>
+      <Text style={[p.btnText, size === 'lg' && p.btnTextLg, size === 'sm' && p.btnTextSm, { color: disabled && !loading ? palette.muted : fg }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -122,10 +124,10 @@ const p = StyleSheet.create({
   btnTextLg: { fontSize: 26, letterSpacing: 2 },
   btnTextSm: { fontSize: 14, letterSpacing: 1 },
   chip: { borderWidth: 1, borderRadius: 2, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start' },
-  chipText: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.8, textTransform: 'uppercase' },
+  chipText: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, letterSpacing: 0.8, textTransform: 'uppercase' },
   stat: { flex: 1, paddingVertical: 10, paddingHorizontal: 12, borderRightWidth: 1, borderRightColor: palette.line },
   statValue: { fontFamily: fonts.display, fontSize: 26, color: palette.paper, fontVariant: ['tabular-nums'] },
-  statLabel: { fontFamily: fonts.bodySemiBold, fontSize: 11, letterSpacing: 1, color: palette.muted, textTransform: 'uppercase' },
+  statLabel: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.muted, textTransform: 'uppercase' },
   iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: R, borderWidth: 1, borderColor: palette.line },
 });
 
@@ -152,7 +154,7 @@ export function ScreenTitle({ title, kicker, right, style }: { title: string; ki
         <BrandMark size={36} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
-        {kicker ? <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, letterSpacing: 1, color: palette.muted, textTransform: 'uppercase' }}>{kicker}</Text> : null}
+        {kicker ? <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.muted, textTransform: 'uppercase' }}>{kicker}</Text> : null}
         <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 34, letterSpacing: -0.5, color: palette.paper, textTransform: 'uppercase' }}>{title}</Text>
       </View>
       {right}

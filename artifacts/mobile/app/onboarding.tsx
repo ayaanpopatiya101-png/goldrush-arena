@@ -355,7 +355,7 @@ export default function OnboardingScreen({ onSuccess }: Props) {
         <Shell>
           <View style={s.brandRow}>
             <BrandMark size={40} />
-            <View>
+            <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={s.brand} accessibilityRole="header">GoldRush Arena</Text>
               <Text style={s.tagline}>Four paddles, one court. Keep the puck out of your goal.</Text>
             </View>

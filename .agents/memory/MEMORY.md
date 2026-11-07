@@ -7,3 +7,4 @@
 - [Standalone shop boundary](standalone-shop-boundary.md) — local save copies are not player linking; keep charges and redeem-code consumption unavailable without safe delivery.
 - [Arena verification boundaries](arena-verification.md) — isolate platform exports from browser testing; native and human evidence must be recorded separately.
 - [Reward lifecycle verification](reward-lifecycle-tests.md) — deduplication tests must also complete two games through Play Again, not merely retry one award.
+- [Expo accessibility](expo-accessibility.md) — native state props need explicit ARIA equivalents in the browser build; verify actual state changes, not only roles.

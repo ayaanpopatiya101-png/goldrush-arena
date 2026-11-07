@@ -6,6 +6,8 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWind
 import { Button, ScreenTitle, Shell, gridItemWidth, paperText } from '@/components/ui/Primitives';
 import { tactile } from '@/constants/colors';
 import { SkinComparison } from '@/components/SkinComparison';
+import { CosmeticPreview } from '@/components/CosmeticPreview';
+import { router } from 'expo-router';
 import Reanimated from 'react-native-reanimated';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -84,7 +86,7 @@ export default function InventoryScreen() {
       </View>
 
       {/* Tabs */}
-      <View style={[s.tabRow, { borderBottomColor: colors.border }]}>
+      <View accessibilityRole="tablist" style={[s.tabRow, { borderBottomColor: colors.border }]}>
         {(['skins', 'themes', 'strikes'] as Tab[]).map(tab => {
           const label =
             tab === 'skins'   ? `SKINS (${ownedSkins.length})` :
@@ -95,6 +97,10 @@ export default function InventoryScreen() {
             <Pressable
               key={tab}
               onPress={() => setActiveTab(tab)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              aria-selected={isActive}
+              accessibilityLabel={label.toLowerCase()}
               style={[s.tab, isActive && { backgroundColor: colors.primary, borderBottomColor: tactile.brassEdge, borderBottomWidth: 2 }]}
             >
               {tab === 'strikes' && pendingBlocks.length > 0 && (
@@ -122,10 +128,35 @@ export default function InventoryScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <GlowText intensity="medium" color='#EFBD3C' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>PADDLE SKINS</GlowText>
               <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#D1DAC6', letterSpacing: 1 }}>{ownedSkins.length}/{SKINS.length} OWNED</Text>
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1 }}>{ownedSkins.length}/{SKINS.length} OWNED</Text>
             </View>
             {ownedSkins.length === 0 ? (
               <EmptyState icon="shopping-bag" message="No skins yet" sub="Visit the Shop to buy paddle skins" />
+            ) : ownedSkins.length === 1 ? (
+              (() => {
+                const skin = ownedSkins[0]!;
+                const equipped = profile.currentSkin === skin.id;
+                return (
+                  <View style={[s.featureCard, { flexDirection: winW >= 700 ? 'row' : 'column' }]}>
+                    <CosmeticPreview skin={skin} size={winW >= 700 ? 220 : Math.min(avail - 40, 240)} />
+                    <View style={{ flex: 1, gap: 8, alignSelf: 'stretch', justifyContent: 'center' }}>
+                      <Text style={s.featureKicker}>{equipped ? 'Equipped paddle' : 'Your paddle'}</Text>
+                      <Text style={s.featureName}>{skin.name}</Text>
+                      <Text style={s.featureBody}>This colour appears on your south-wall paddle when equipped. Skins are cosmetic and never change paddle size or speed.</Text>
+                      {equipped ? (
+                        <View accessibilityLabel={`${skin.name} equipped`} style={[s.equippedBadge, { backgroundColor: skin.color, alignSelf: 'flex-start', minHeight: 32 }]}>
+                          <Feather name="check" size={12} color="#213D39" />
+                          <Text style={s.equippedText}>EQUIPPED</Text>
+                        </View>
+                      ) : (
+                        <Button label={`Equip ${skin.name}`} onPress={() => handleEquipSkin(skin.id)} />
+                      )}
+                      <Button label="Compare on court" variant="secondary" icon="play" onPress={() => setCompareSkinId(skin.id)} />
+                      <Button label="Browse Shop" variant="ghost" icon="shopping-bag" accessibilityHint="Opens the Shop to see more paddle skins" onPress={() => router.push('/shop')} />
+                    </View>
+                  </View>
+                );
+              })()
             ) : (
               <View style={s.skinGrid}>
                 {ownedSkins.map(skin => {
@@ -138,18 +169,14 @@ export default function InventoryScreen() {
                           borderColor: equipped ? skin.color : colors.border,
                         }]}
                       >
-                        {/* Paddle preview */}
-                        <LinearGradient colors={[skin.color + '33', skin.color + '0A']} style={s.skinPreview}>
-                          <View style={[s.paddlePreview, { backgroundColor: skin.color, shadowColor: skin.glowColor }]} />
-                        </LinearGradient>
-
-                        {/* Info */}
-                        <GlowText intensity="soft" color={skin.color ?? '#EFBD3C'} style={s.skinName}>{skin.name}</GlowText>
-                        <Button label="Compare on court" size="sm" variant="ghost" onPress={() => setCompareSkinId(skin.id)} />
-
+                        <View style={{ paddingVertical: 10 }}>
+                          <CosmeticPreview skin={skin} size={Math.min(cardW - 28, 132)} />
+                        </View>
+                        <Text style={[s.skinName, { color: '#F5E7C4' }]}>{skin.name}</Text>
+                        <Button label="Compare on court" size="sm" variant="ghost" style={{ alignSelf: 'stretch', marginHorizontal: 8, marginBottom: 8 }} onPress={() => setCompareSkinId(skin.id)} />
                       {equipped ? (
-                        <View style={[s.equippedBadge, { backgroundColor: skin.color }]}>
-                          <Feather name="check" size={10} color="#213D39" />
+                        <View accessibilityLabel={`${skin.name} equipped`} style={[s.equippedBadge, { backgroundColor: skin.color, minHeight: 32 }]}>
+                          <Feather name="check" size={12} color="#213D39" />
                           <Text style={s.equippedText}>EQUIPPED</Text>
                         </View>
                       ) : (
@@ -157,9 +184,11 @@ export default function InventoryScreen() {
                           onPress={() => handleEquipSkin(skin.id)}
                           accessibilityRole="button"
                           accessibilityLabel={`Equip ${skin.name}`}
+                          accessibilityState={{ selected: false }}
+                          aria-pressed={false}
                           style={({ pressed }) => [s.equipBtn, { borderColor: skin.color, opacity: pressed ? 0.7 : 1 }]}
                         >
-                          <Text style={[s.equipBtnText, { color: skin.color }]}>Equip</Text>
+                          <Text style={[s.equipBtnText, { color: '#F5E7C4' }]}>Equip</Text>
                         </Pressable>
                       )}
                       </View>
@@ -174,8 +203,9 @@ export default function InventoryScreen() {
               <View style={[s.hintCard, { borderColor: colors.border, backgroundColor: colors.card }]}>
                 <Feather name="shopping-bag" size={16} color={colors.mutedForeground} />
                 <Text style={[s.hintText, { color: colors.mutedForeground }]}>
-                  {SKINS.length - ownedSkins.length} more skin{SKINS.length - ownedSkins.length !== 1 ? 's' : ''} available in the Shop
+                  {SKINS.length - ownedSkins.length} more skin{SKINS.length - ownedSkins.length !== 1 ? 's' : ''} in the Shop
                 </Text>
+                {ownedSkins.length !== 1 ? <Button label="Browse Shop" size="sm" variant="ghost" onPress={() => router.push('/shop')} /> : null}
               </View>
             )}
           </>
@@ -187,7 +217,7 @@ export default function InventoryScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <GlowText intensity="medium" color='#EFBD3C' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>ARENA THEMES</GlowText>
               <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#D1DAC6', letterSpacing: 1 }}>{ownedThemes.length} OWNED</Text>
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1 }}>{ownedThemes.length} OWNED</Text>
             </View>
             {ownedThemes.length === 0 ? (
               <EmptyState icon="slash" message="No themes saved" sub="Arena themes are unavailable in this build. Nothing can be bought or equipped here yet." />
@@ -250,7 +280,7 @@ export default function InventoryScreen() {
                 {GOLD_STRIKE_NAME.toUpperCase()}S
               </GlowText>
               <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#D1DAC6', letterSpacing: 1 }}>
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1 }}>
                 {pendingBlocks.length} PENDING
               </Text>
             </View>
@@ -272,11 +302,11 @@ export default function InventoryScreen() {
                     <View key={tier}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                         <Glyph style={{ fontSize: 14 }} value={meta.emoji} />
-                        <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 1.5, color: meta.color }}>
+                        <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5, color: meta.color }}>
                           {meta.name.toUpperCase()}
                         </Text>
                         <View style={{ flex: 1, height: 1, backgroundColor: meta.color + '22' }} />
-                        <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: meta.color + '88', letterSpacing: 0.5 }}>
+                        <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: meta.color + '88', letterSpacing: 0.5 }}>
                           ×{tierBlocks.length}
                         </Text>
                       </View>
@@ -285,6 +315,8 @@ export default function InventoryScreen() {
                           <Pressable
                             key={block.id}
                             onPress={() => setActiveLuckyBlock(block)}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Open ${meta.name} ${GOLD_STRIKE_NAME} number ${i + 1}`}
                             style={({ pressed }) => [s.strikeCard, { width: strikeW,
                               borderColor: meta.color + (pressed ? 'FF' : '66'),
                               backgroundColor: meta.color + (pressed ? '22' : '10'),
@@ -326,7 +358,7 @@ export default function InventoryScreen() {
 function EmptyState({ icon, message, sub }: { icon: string; message: string; sub: string }) {
   return (
     <View style={s.emptyState}>
-      <Feather name={icon as never} size={40} color="#F5E7C422" />
+      <Feather name={icon as never} size={40} color="#8EAA98" />
       <Text style={s.emptyTitle}>{message}</Text>
       <Text style={s.emptySub}>{sub}</Text>
     </View>
@@ -339,8 +371,8 @@ const s = StyleSheet.create({
   countBadge:  { backgroundColor: '#EFBD3C1A', borderRadius: 0, borderWidth: 2, borderColor: '#EFBD3C44', paddingHorizontal: 8, paddingVertical: 4 },
   countText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#EFBD3C', letterSpacing: 0.5 },
   tabRow:      { flexDirection: 'row', borderBottomWidth: 1, paddingHorizontal: 16 },
-  tab:         { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 1.2 },
+  tab:         { flex: 1, minHeight: 44, justifyContent: 'center', paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tabText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2 },
 
   // Skin grid
   skinGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
@@ -354,11 +386,11 @@ const s = StyleSheet.create({
   themeSwatch: { width: 52, height: 52, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
   themeSwatchDot: { width: 18, height: 18, borderRadius: 3 },
   themeName:   { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
-  themeDesc:   { fontFamily: 'SourceSans3_400Regular', fontSize: 11 },
+  themeDesc:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
 
   // Shared
   equippedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 5 },
-  equippedText:  { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#213D39', letterSpacing: 0.5 },
+  equippedText:  { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#213D39', letterSpacing: 0.5 },
   equipBtn:    { borderWidth: 2, borderRadius: 0, paddingHorizontal: 16, minHeight: 44, justifyContent: 'center' },
   equipBtnText:{ fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
   hintCard:    { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 0, borderWidth: 2, padding: 12 },
@@ -367,15 +399,19 @@ const s = StyleSheet.create({
 
   emptyState:  { alignItems: 'center', paddingVertical: 60, gap: 10 },
   emptyTitle:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#D1DAC6' },
-  emptySub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#D1DAC6', textAlign: 'center' },
+  featureCard: { borderWidth: 2, borderColor: '#E7D6AC', backgroundColor: '#294C44', padding: 18, gap: 20, alignItems: 'center' },
+  featureKicker: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2, color: '#D1DAC6', textTransform: 'uppercase' },
+  featureName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 36, color: '#F5E7C4', textTransform: 'uppercase' },
+  featureBody: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: '#DFD1AD' },
+  emptySub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: '#D1DAC6', textAlign: 'center' },
 
   // Gold Strikes tab
   strikeBadge:     { position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 0, backgroundColor: '#EFBD3C', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  strikeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#213D39', letterSpacing: 0 },
+  strikeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#213D39', letterSpacing: 0 },
   strikesInfoRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#EFBD3C10', borderRadius: 0, borderWidth: 2, borderColor: '#EFBD3C22', paddingHorizontal: 12, paddingVertical: 9, marginBottom: 4 },
   strikesInfo:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, flex: 1 },
   strikeCard:      { aspectRatio: 0.85, borderRadius: 0, borderWidth: 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 4 },
-  strikeCardNum:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 0.5 },
+  strikeCardNum:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 0.5 },
   openChip:        { borderRadius: 3, paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
-  openChipText:    { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#213D39', letterSpacing: 1 },
+  openChipText:    { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#213D39', letterSpacing: 1 },
 });

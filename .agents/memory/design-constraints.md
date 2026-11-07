@@ -34,3 +34,9 @@ The user selected the “Tactile Arcade (unslop refined)” Home reference and a
 **Why:** This is the user's explicit visual choice for the app, not an unapproved alternative.
 
 **How to apply:** Preserve that composition and material palette when changing the mobile UI. The user explicitly wants the same design across the rest of the app, not only Home. Translate its static court into the real engine and use actual profile/season data rather than copying illustrative values.
+
+The user approved a usability review that prioritizes Play over moving practice content: practice is opt-in, playable activities precede advanced locks, and secondary systems should appear when relevant. Keep progression balance unchanged.
+
+**Why:** The user approved the review's recommended changes after selecting the tactile design; the screenshot's content order is not a requirement to keep Home distracting.
+
+**How to apply:** Preserve the approved materials and identity while reducing cognitive load. Cosmetic previews must not promise material or shape properties the actual game does not implement.

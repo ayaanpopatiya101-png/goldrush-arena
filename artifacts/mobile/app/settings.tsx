@@ -14,6 +14,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { usePlayer } from '@/context/PlayerContext';
 import { FloatingOrbs, GlowBorder } from '@/components/effects';
 import { Glyph } from '@/components/ui/Glyph';
+import { SupportHelp } from '@/components/SupportHelp';
 
 const SENSITIVITY_OPTIONS = [
   { value: 0.6,  label: 'Slow',   desc: 'Easier to control' },
@@ -41,6 +42,7 @@ function SettingRow({ icon, title, subtitle, right }: {
 export default function SettingsScreen() {
   const { settings, updateSetting, error } = useSettings();
   const [practiceOpen, setPracticeOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [practiceKey, setPracticeKey] = useState(0);
   const { width } = useWindowDimensions();
   const practiceSize = Math.min(width - 64, 320);
@@ -136,6 +138,7 @@ export default function SettingsScreen() {
               subtitle="Looping arcade soundtrack"
               right={
                 <Switch
+                  accessibilityLabel="Background music"
                   value={settings.musicEnabled}
                   onValueChange={v => updateSetting('musicEnabled', v)}
                   trackColor={{ false: '#F5E7C422', true: '#EFBD3C55' }}
@@ -150,6 +153,7 @@ export default function SettingsScreen() {
               subtitle="Hits, goals & match events"
               right={
                 <Switch
+                  accessibilityLabel="Game sound effects"
                   value={settings.soundEnabled}
                   onValueChange={v => updateSetting('soundEnabled', v)}
                   trackColor={{ false: '#F5E7C422', true: '#EFBD3C55' }}
@@ -174,6 +178,7 @@ export default function SettingsScreen() {
               subtitle="Arena shakes on every goal"
               right={
                 <Switch
+                  accessibilityLabel="Screen shake"
                   value={settings.screenShake}
                   onValueChange={v => updateSetting('screenShake', v)}
                   trackColor={{ false: '#F5E7C422', true: '#EFBD3C55' }}
@@ -198,6 +203,10 @@ export default function SettingsScreen() {
               {SENSITIVITY_OPTIONS.map(opt => (
                 <Pressable
                   key={opt.value}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${opt.label} paddle sensitivity. ${opt.desc}`}
+                  accessibilityState={{ checked: settings.sensitivity === opt.value }}
+                  aria-checked={settings.sensitivity === opt.value}
                   onPress={() => updateSetting('sensitivity', opt.value)}
                   style={[s.sensBtn, settings.sensitivity === opt.value && s.sensBtnActive]}
                 >
@@ -236,6 +245,7 @@ export default function SettingsScreen() {
               subtitle="Vibrations on hits, goals and match events"
               right={
                 <Switch
+                  accessibilityLabel="Haptic feedback"
                   value={settings.hapticsEnabled ?? true}
                   onValueChange={v => updateSetting('hapticsEnabled', v)}
                   trackColor={{ false: '#F5E7C422', true: '#CE786355' }}
@@ -250,6 +260,7 @@ export default function SettingsScreen() {
               subtitle="Display variant rules before every match"
               right={
                 <Switch
+                  accessibilityLabel="Show rules in lobby"
                   value={settings.showLobbyRules ?? true}
                   onValueChange={v => updateSetting('showLobbyRules', v)}
                   trackColor={{ false: '#F5E7C422', true: '#CE786355' }}
@@ -309,15 +320,17 @@ export default function SettingsScreen() {
               <Feather name="chevron-right" size={16} color="#F5E7C433" />
             </Pressable>
             <View style={s.divider} />
-            <View style={s.row} accessible accessibilityLabel="Support contact not configured yet">
+            <Pressable testID="open-support-help" onPress={() => setHelpOpen(value => !value)} style={s.row} accessibilityRole="button" accessibilityLabel="Help and support" accessibilityState={{ expanded: helpOpen }} aria-expanded={helpOpen}>
               <View style={s.rowIcon}>
                 <Feather name="help-circle" size={18} color="#CFE0D6" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={s.rowTitle}>Support</Text>
-                <Text style={s.rowSub}>Support contact not configured yet. No email or site is published for this pre-release build.</Text>
+                <Text style={s.rowTitle}>Help & support</Text>
+                <Text style={s.rowSub}>Purchase recovery, saved players and contact information</Text>
               </View>
-            </View>
+              <Feather name={helpOpen ? 'chevron-up' : 'chevron-down'} size={18} color={palette.paperDim} />
+            </Pressable>
+            {helpOpen ? <SupportHelp onOpenShop={() => router.push('/(tabs)/shop')} /> : null}
             <View style={s.divider} />
             <Pressable
               onPress={async () => {
@@ -377,8 +390,8 @@ const s = StyleSheet.create({
   divider:   { height: 1, backgroundColor: '#F5E7C40E', marginHorizontal: 14 },
   row:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 14, gap: 12 },
   rowIcon:   { width: 32, height: 32, borderRadius: 3, backgroundColor: '#EFBD3C15', alignItems: 'center', justifyContent: 'center' },
-  rowTitle:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 14, color: '#F5E7C4' },
-  rowSub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 13, lineHeight: 18, color: palette.muted, marginTop: 2 },
+  rowTitle:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 16, color: '#F5E7C4' },
+  rowSub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.muted, marginTop: 2 },
   accountCard: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12, backgroundColor: tactile.paperPanel },
   accountAvatar: { width: 44, height: 44, borderRadius: 3, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   accountEmoji: { fontSize: 22 },
@@ -386,12 +399,12 @@ const s = StyleSheet.create({
   accountSub:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: tactile.paperMuted, marginTop: 2 },
   accountStats: { alignItems: 'center', gap: 2, minWidth: 38 },
   accountStatVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: tactile.paperInk },
-  accountStatLbl: { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: tactile.paperMuted, letterSpacing: 0.5 },
+  accountStatLbl: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: tactile.paperMuted, letterSpacing: 0.5 },
   sensitivityRow: { flexDirection: 'row', padding: 12, gap: 8 },
   sensBtn:   { flex: 1, borderRadius: 0, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.ink, padding: 10, alignItems: 'center', gap: 3 },
   sensBtnActive: { borderColor: palette.paper, backgroundColor: palette.ochre },
   sensBtnLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.paper },
-  sensBtnDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: palette.paperDim, textAlign: 'center' },
+  sensBtnDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.paperDim, textAlign: 'center' },
   aboutRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },
   aboutLabel:{ fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: palette.muted },
   aboutValue:{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: '#F5E7C4' },

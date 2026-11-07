@@ -7,6 +7,7 @@ import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Tex
 import { Button, ScreenTitle, Shell, gridItemWidth, paperText } from '@/components/ui/Primitives';
 import { tactile } from '@/constants/colors';
 import { SkinComparison } from '@/components/SkinComparison';
+import { CosmeticPreview } from '@/components/CosmeticPreview';
 import { useBlockingOverlay } from '@/context/OverlayQueue';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -292,6 +293,8 @@ export default function ShopScreen() {
           </View>
           <Pressable
             onPress={() => setRedeemVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Redeem a code"
             style={({ pressed }) => [styles.redeemCodeBtn, { opacity: pressed ? 0.75 : 1 }]}
           >
             <Feather name="gift" size={13} color="#EFBD3C" />
@@ -303,7 +306,7 @@ export default function ShopScreen() {
       {/* Tabs */}
       <View accessibilityRole="tablist" style={[styles.tabRow, { borderBottomColor: colors.border }]}>
         {(['skins', 'themes', 'powerups', 'extras', 'store'] as const).map(t => (
-          <Pressable key={t} accessibilityRole="tab" accessibilityState={{ selected: activeTab === t }} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { backgroundColor: colors.primary, borderBottomColor: tactile.brassEdge }]}>
+          <Pressable key={t} accessibilityRole="tab" accessibilityState={{ selected: activeTab === t }} aria-selected={activeTab === t} accessibilityLabel={t === 'powerups' ? 'Power-ups' : t.charAt(0).toUpperCase() + t.slice(1)} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { backgroundColor: colors.primary, borderBottomColor: tactile.brassEdge }]}>
             {activeTab === t ? (
               <Text style={[styles.tabText, { color: paperText.ink }]}>
                 {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'store' ? 'STORE' : 'EXTRAS'}
@@ -324,7 +327,7 @@ export default function ShopScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#EFBD3C' }}>PADDLE SKINS</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#D1DAC6', letterSpacing: 1 }}>OWNED SKINS EQUIP ON TAP</Text>
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1 }}>TAP OWNED TO EQUIP · COSMETIC ONLY</Text>
             </View>
             <View style={styles.skinGrid}>
               {SKINS.map((skin, idx) => {
@@ -341,10 +344,16 @@ export default function ShopScreen() {
                   <Pressable
                     onPress={() => handleBuySkin(skin.id, skin.price, skin.name)}
                     disabled={purchasing === skin.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={equipped ? `${skin.name}, equipped` : owned ? `Equip ${skin.name}` : 'exclusive' in skin && skin.exclusive ? `${skin.name}, locked, earned from a Premium pass tier` : `Buy ${skin.name} for ${skin.price} coins`}
+                    accessibilityState={{ selected: equipped, disabled: purchasing === skin.id, busy: purchasing === skin.id }}
+                    aria-pressed={equipped}
+                    aria-disabled={purchasing === skin.id}
+                    aria-busy={purchasing === skin.id}
                     style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1, width: '100%' }]}
                   >
-                    <LinearGradient colors={[skin.color + '33', skin.color + '11']} style={styles.skinPreview}>
-                      <View style={[styles.paddlePreview, { backgroundColor: skin.color, shadowColor: skin.glowColor }]} />
+                    <View style={[styles.skinPreview, { paddingVertical: 10, height: undefined }]}>
+                      <CosmeticPreview skin={skin} size={Math.min(cardW - 28, 132)} />
                       {owned && !equipped && (
                         <View style={[styles.ownedBadge, { backgroundColor: skin.color + '44' }]}>
                           <Text style={[styles.ownedText, { color: skin.color }]}>OWNED</Text>
@@ -355,7 +364,7 @@ export default function ShopScreen() {
                           <Text style={styles.equippedText}>ON</Text>
                         </View>
                       )}
-                    </LinearGradient>
+                    </View>
                     <View style={styles.skinInfo}>
                       <Text style={[styles.skinName, { color: equipped ? skin.color : colors.foreground }]}>{skin.name}</Text>
                       {!owned ? (
@@ -370,7 +379,7 @@ export default function ShopScreen() {
                       )}
                     </View>
                   </Pressable>
-                  <Button label="Compare on court" size="sm" variant="ghost" onPress={() => setCompareSkinId(skin.id)} />
+                  <Button label="Compare on court" size="sm" variant="ghost" accessibilityHint={`Previews ${skin.name} in a practice court without buying or equipping`} onPress={() => setCompareSkinId(skin.id)} style={{ alignSelf: 'stretch', margin: 8 }} />
                   </Reanimated.View>
                 );
               })}
@@ -380,7 +389,7 @@ export default function ShopScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
               <Text style={[styles.subsectionTitle, { color: colors.foreground, marginBottom: 0 }]}>BALL TRAILS</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#D1DAC6', letterSpacing: 1 }}>COMING SOON</Text>
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1 }}>COMING SOON</Text>
             </View>
             {BALL_TRAILS.map(trail => (
               <Pressable
@@ -407,7 +416,7 @@ export default function ShopScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#EDE3CC' }}>ARENA THEMES</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: '#F5E7C40E' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#D1DAC6', letterSpacing: 1 }}>UNAVAILABLE IN THIS BUILD</Text>
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#D1DAC6', letterSpacing: 1 }}>UNAVAILABLE IN THIS BUILD</Text>
             </View>
             {ARENA_THEMES.map((theme, idx) => {
               const owned = (profile.ownedThemes ?? ['default']).includes(theme.id);
@@ -502,7 +511,7 @@ export default function ShopScreen() {
                   <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#CE7863' }}>
                     {profile.extraLivesInventory} Extra {(profile.extraLivesInventory ?? 0) === 1 ? 'Life' : 'Lives'} Ready
                   </Text>
-                  <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: colors.mutedForeground, marginTop: 2 }}>
+                  <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: colors.mutedForeground, marginTop: 2 }}>
                     You start your next {(profile.extraLivesInventory ?? 0) === 1 ? 'match' : `${profile.extraLivesInventory} matches`} with 1 bonus life.
                   </Text>
                 </View>
@@ -625,7 +634,7 @@ export default function ShopScreen() {
                       <GlowText intensity="medium" color='#EDE3CC' style={storeStyles.passName}>{STORE_BATTLE_PASS.name}</GlowText>
                       <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>{STORE_BATTLE_PASS.desc}</Text>
                       {profile.battlePassPremiumOwned && (
-                        <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#EDE3CC', letterSpacing: 1, marginTop: 4 }}>{`OWNED, ${CURRENT_SEASON.label.toUpperCase()}`}</Text>
+                        <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#EDE3CC', letterSpacing: 1, marginTop: 4 }}>{`OWNED, ${CURRENT_SEASON.label.toUpperCase()}`}</Text>
                       )}
                     </View>
                     {!profile.battlePassPremiumOwned && (
@@ -654,7 +663,7 @@ export default function ShopScreen() {
                       <GlowText intensity="soft" color='#EFBD3C' style={storeStyles.passName}>{STORE_SEASON_PASS.name}</GlowText>
                       <Text style={[storeStyles.passDesc, { color: colors.mutedForeground }]}>Unavailable for purchase. This legacy product has no active gameplay benefits. Existing ownership is preserved.</Text>
                       {profile.seasonPassPurchased && (
-                        <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#EFBD3C', letterSpacing: 1, marginTop: 4 }}>OWNED (SUPPORTER)</Text>
+                        <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#EFBD3C', letterSpacing: 1, marginTop: 4 }}>OWNED (SUPPORTER)</Text>
                       )}
                     </View>
                     {!profile.seasonPassPurchased && (
@@ -812,21 +821,21 @@ const styles = StyleSheet.create({
   skinPreview: { height: 88, alignItems: 'center', justifyContent: 'center' },
   paddlePreview: { width: 72, height: 13, borderRadius: 3, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
   ownedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 0, paddingHorizontal: 5, paddingVertical: 2 },
-  ownedText: { fontFamily: 'SourceSans3_700Bold', fontSize: 8, letterSpacing: 0.5 },
+  ownedText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5 },
   equippedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 0, paddingHorizontal: 6, paddingVertical: 2 },
-  equippedText: { fontFamily: 'SourceSans3_700Bold', fontSize: 8, color: '#213D39', letterSpacing: 0.5 },
+  equippedText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#213D39', letterSpacing: 0.5 },
   skinInfo: { padding: 10, gap: 3 },
   skinName: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   priceText: { color: '#EFBD3C', fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
-  ownedLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
+  ownedLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5 },
   itemRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, padding: 14, gap: 12 },
   trailDot: { width: 26, height: 26, borderRadius: 3, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
   itemName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
   itemDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 1 },
   bundleCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, padding: 14, gap: 12, overflow: 'hidden' },
   bundleIcon: { width: 44, height: 44, borderRadius: 3, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 0, borderWidth: 2, paddingHorizontal: 10, paddingVertical: 6 },
+  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 0, borderWidth: 2, paddingHorizontal: 10, paddingVertical: 6, minHeight: 44 },
   buyBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   iapBtn: { borderRadius: 0, borderWidth: 2, paddingHorizontal: 10, paddingVertical: 7 },
   iapText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12 },
@@ -837,13 +846,13 @@ const styles = StyleSheet.create({
   themeArena: { width: 50, height: 50, borderRadius: 3, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
   themePaddle: { width: 30, height: 5, borderRadius: 3, opacity: 0.9 },
   redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#EFBD3C18', borderRadius: 0, borderWidth: 2, borderColor: '#EFBD3C55', paddingHorizontal: 10, paddingVertical: 6 },
-  redeemCodeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 1.5, color: '#EFBD3C' },
+  redeemCodeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5, color: '#EFBD3C' },
 });
 
 const storeStyles = StyleSheet.create({
   banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 3, borderWidth: 1, padding: 14, overflow: 'hidden' },
   bannerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, letterSpacing: 2, color: '#EFBD3C' },
-  bannerSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 11, lineHeight: 16, marginTop: 2 },
+  bannerSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 16, marginTop: 2 },
   errorBox: { alignItems: 'center', borderRadius: 0, borderWidth: 2, padding: 16 },
   passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 0, borderWidth: 2, padding: 16, overflow: 'hidden' },
   passName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#EFBD3C', letterSpacing: 0.5 },
@@ -857,7 +866,7 @@ const storeStyles = StyleSheet.create({
   howTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, marginBottom: 4 },
   howStep: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18 },
   restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 0, borderWidth: 2, borderColor: '#EFBD3C88', backgroundColor: '#EFBD3C18', paddingHorizontal: 12, paddingVertical: 8 },
-  restoreText: { color: '#EFBD3C', fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 1 },
+  restoreText: { color: '#EFBD3C', fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
   confirmBackdrop: { flex: 1, backgroundColor: '#213D39AA', alignItems: 'center', justifyContent: 'center', padding: 24 },
   confirmCard: { width: '100%', maxWidth: 360, borderRadius: 0, borderWidth: 2, borderColor: '#EFBD3C66', padding: 20 },
   confirmTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 18, letterSpacing: 1 },

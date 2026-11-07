@@ -17,7 +17,7 @@ function TabIcon({ name, label, focused, wide }: { name: IconName; label: string
   return (
     <View style={wide ? styles.tabItemWide : styles.tabItem}>
       <Feather name={name} size={wide ? 18 : 20} color={c} />
-      <Text style={[wide ? styles.tabLabelWide : styles.tabLabel, { color: c, fontFamily: focused ? fonts.bodyBold : fonts.body }]} numberOfLines={1}>
+      <Text style={[wide ? styles.tabLabelWide : styles.tabLabel, { color: c, fontFamily: focused ? fonts.bodyBold : fonts.body }]} numberOfLines={2}>
         {label}
       </Text>
       {wide ? null : <View style={[styles.pip, { backgroundColor: focused ? palette.ochre : 'transparent' }]} />}
@@ -83,7 +83,7 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabItem: { alignItems: 'center', justifyContent: 'center', gap: 2, paddingTop: 6, minWidth: 64, minHeight: 44 },
-  tabLabel: { fontSize: 12 },
+  tabLabel: { fontSize: 13, textAlign: 'center' },
   tabItemWide: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 12 },
   tabLabelWide: { fontSize: 16 },
   pip: { width: 18, height: 2, borderRadius: 1, marginTop: 2 },

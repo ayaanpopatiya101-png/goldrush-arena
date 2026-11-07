@@ -153,7 +153,22 @@ pnpm run typecheck
 
 # Type-check mobile app only
 pnpm --filter @workspace/mobile run typecheck
+
+# Mobile gameplay, progression, contrast and support-contact regressions
+pnpm --filter @workspace/mobile run test:reliability
 ```
+
+### Support and recovery
+
+Settings → Help & support contains purchase and device-local-save recovery guidance.
+The public support contact must be supplied by the app owner and configured in
+`artifacts/mobile/constants/support.ts`. Until then, the help section explicitly
+states that direct developer contact is unavailable; no fake email or help site is shown.
+Do not clear app/browser data while diagnosing a missing local player. Restore purchases
+only applies to eligible permanent native purchases, not consumable coins or lives.
+
+Browser usability checks do not certify native VoiceOver, Dynamic Type, StoreKit purchases
+or signed iPhone behavior. Those still require real-device testing before release.
 
 ---
 
