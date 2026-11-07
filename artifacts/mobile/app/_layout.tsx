@@ -13,12 +13,12 @@ import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { PlayerProvider, getSavedAccounts, getLoggedInUser } from '@/context/PlayerContext';
+import { PlayerProvider, getSavedAccounts, getLoggedInUser, usePlayer } from '@/context/PlayerContext';
 import { PartyProvider } from '@/context/PartyContext';
 import OnboardingScreen from '@/app/onboarding';
-import { CinematicSplash, cinemaHasShown } from '@/components/CinematicSplash';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { initializeRevenueCat, RevenueCatProvider } from '@/lib/revenuecat';
+import { clearCompletedMatch } from '@/store/completedMatch';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initializeRevenueCat();
@@ -27,6 +27,13 @@ const queryClient = new QueryClient();
 
 function AppLoadingScreen() {
   return <StartupState />;
+}
+
+function PlayerEntry() {
+  const { profile, isLoaded } = usePlayer();
+  if (!isLoaded) return <AppLoadingScreen />;
+  if (!profile.tutorialComplete) return <TutorialOverlay onComplete={() => {}} />;
+  return <RootLayoutNav />;
 }
 
 function RootLayoutNav() {
@@ -59,8 +66,6 @@ export default function RootLayout() {
   const [attempt, setAttempt] = useState(0);
   const [authState, setAuthState] = useState<'loading' | 'in' | 'out'>('loading');
   const [authUser,  setAuthUser]  = useState<AuthUser | null>(null);
-  const [showCinematic, setShowCinematic] = useState(!cinemaHasShown());
-  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setFontTimedOut(true), 10000);
@@ -92,10 +97,11 @@ export default function RootLayout() {
   function handleLogin(username: string, emoji: string, color: string, isNew = false) {
     setAuthUser({ username, emoji, color });
     setAuthState('in');
-    if (isNew) setShowTutorial(true);
+    clearCompletedMatch();
   }
 
   function handleLogout() {
+    clearCompletedMatch();
     setAuthUser(null);
     setAuthState('out');
   }
@@ -122,13 +128,7 @@ export default function RootLayout() {
               <PartyProvider>
               <GestureHandlerRootView style={{ flex: 1 }}>
                 <KeyboardProvider>
-                  <RootLayoutNav />
-                  {showCinematic && !reducedMotion && (
-                    <CinematicSplash onDone={() => setShowCinematic(false)} />
-                  )}
-                  {showTutorial && (
-                    <TutorialOverlay onComplete={() => setShowTutorial(false)} />
-                  )}
+                  <PlayerEntry />
                 </KeyboardProvider>
               </GestureHandlerRootView>
               </PartyProvider>

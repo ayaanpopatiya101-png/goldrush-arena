@@ -35,6 +35,7 @@ function harness({ hangingJoin = false, pollStatus = 404 } = {}) {
     clearTimeout: id => timers.delete(id),
     clearInterval: id => timers.delete(id),
     updateGameConfig: () => {},
+    hasGameConfig: () => true,
     setStatus: () => {},
     setCountdown: n => state.countdown.push(n),
     setShowGoFlash: () => {},

@@ -1,186 +1,146 @@
 /**
- * Challenge entry screen, deep-link target.
- *
- * Opened when someone taps a friend's challenge link:
- *   goldrush://challenge?seed=YYYYMMDD&score=47&player=Alex
- *
- * Shows a "Beat Alex's 47 hits!" card and a single Play button
- * that launches the game with the challenge context stored in config.
+ * Incoming challenge (deep link): goldrush://challenge?seed=YYYYMMDD&score=47&player=Alex
+ * Validates the link, checks it against today's server seed, and never silently
+ * substitutes a different run.
  */
-
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from '@/components/ui/Flat';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
-import { Alert, Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import Reanimated, { FadeIn } from 'react-native-reanimated';
+import React, { useState } from 'react';
+import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FloatingOrbs, ORBS_GOLD, GlowText, PulseRing } from '@/components/effects';
-import { setGameConfig } from '@/store/gameSession';
+
+import { BrandMark } from '@/components/ui/BrandMark';
+import { Button, Panel, Shell } from '@/components/ui/Primitives';
+import { palette } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import { SKINS, usePlayer } from '@/context/PlayerContext';
+import { setGameConfig } from '@/store/gameSession';
 import { fetchTodayChallenge } from '@/utils/dailyChallenge';
 import { getDeviceId } from '@/utils/deviceId';
-import { Glyph } from '@/components/ui/Glyph';
-import { staticLoop } from '@/components/ui/motion';
+
+type Phase = 'ready' | 'loading' | 'error' | 'expired';
+
+function formatSeed(seed: string): string {
+  if (!/^\d{8}$/.test(seed)) return seed;
+  return `${seed.slice(0, 4)}-${seed.slice(4, 6)}-${seed.slice(6, 8)}`;
+}
 
 export default function ChallengeScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = usePlayer();
-  const params = useLocalSearchParams<{ seed: string; score: string; player: string }>();
+  const params = useLocalSearchParams<{ seed?: string; score?: string; player?: string }>();
 
-  const seed         = params.seed   ?? '';
-  const targetScore  = parseInt(params.score  ?? '0', 10);
-  const challengerName = decodeURIComponent(params.player ?? 'Your friend');
+  const seed = typeof params.seed === 'string' ? params.seed : '';
+  const rawScore = typeof params.score === 'string' ? params.score : '';
+  const targetScore = /^\d{1,5}$/.test(rawScore) ? parseInt(rawScore, 10) : NaN;
+  let challenger = 'A player';
+  try { if (typeof params.player === 'string' && params.player.trim()) challenger = decodeURIComponent(params.player).slice(0, 24); } catch { /* malformed name */ }
+  const valid = /^\d{8}$/.test(seed) && Number.isFinite(targetScore) && targetScore > 0;
 
-  // Guard: if we have no valid params, go home
-  useEffect(() => {
-    if (!seed || !targetScore) router.replace('/');
-  }, [seed, targetScore]);
+  const [phase, setPhase] = useState<Phase>('ready');
+  const [todaySeed, setTodaySeed] = useState<string | null>(null);
 
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    const loop = staticLoop(Animated.sequence([
-      Animated.timing(pulseAnim, { toValue: 1.08, duration: 800, useNativeDriver: true }),
-      Animated.timing(pulseAnim, { toValue: 1,    duration: 800, useNativeDriver: true }),
-    ]));
-    loop.start();
-    return () => loop.stop();
-  }, []);
-
-  async function handlePlay() {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0]!;
-
-    // Fetch today's challenge config with the device's stable UUID so the server
-    // issues a single-use match nonce. This also gives us the deterministic speed
-    // params and seedHash (used as client PRNG seed in GameArena).
-    const deviceId  = await getDeviceId();
-    const challenge = await fetchTodayChallenge(deviceId);
-
-    // Require valid server config, without a nonce the run would be random and
-    // ineligible for the leaderboard; show a recoverable error instead.
-    if (!challenge?.matchNonce || !challenge?.seedHash) {
-      Alert.alert(
-        'Challenge Unavailable',
-        "Could not reach the server to load today's challenge config. Please check your connection and try again.",
-        [{ text: 'OK' }],
-      );
-      return;
+  async function launch(useToday: boolean) {
+    if (phase === 'loading') return;
+    setPhase('loading');
+    try {
+      const deviceId = await getDeviceId();
+      const challenge = await fetchTodayChallenge(deviceId);
+      if (!challenge?.matchNonce || !challenge?.seedHash) { setPhase('error'); return; }
+      if (!useToday && challenge.seed && challenge.seed !== seed) {
+        setTodaySeed(challenge.seed); setPhase('expired'); return;
+      }
+      if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0]!;
+      setGameConfig({
+        playerName: profile.name, playerSkinId: skin.id,
+        playerColor: skin.color, playerGlowColor: skin.glowColor, playerRelicId: 'none',
+        matchType: 'casual', variant: 'survival',
+        challengeSeed: challenge.seed ?? seed,
+        matchNonce: challenge.matchNonce ?? '',
+        challengeSeedHash: challenge.seedHash ?? '',
+        challengeStartSpeedMult: challenge.startSpeedMult,
+        challengeRampRate: challenge.rampRate,
+        challengeTargetScore: useToday ? undefined : targetScore,
+        bankLivesUsed: 0,
+      });
+      router.push('/game');
+      setPhase('ready');
+    } catch {
+      setPhase('error');
     }
-
-    setGameConfig({
-      playerName:              profile.name,
-      playerSkinId:            skin.id,
-      playerColor:             skin.color,
-      playerGlowColor:         skin.glowColor,
-      playerRelicId:           'none',
-      matchType:               'casual',
-      variant:                 'survival',
-      challengeSeed:           challenge?.seed        ?? seed,
-      matchNonce:              challenge?.matchNonce  ?? '',
-      challengeSeedHash:       challenge?.seedHash    ?? '',
-      challengeStartSpeedMult: challenge?.startSpeedMult,
-      challengeRampRate:       challenge?.rampRate,
-      challengeTargetScore:    targetScore,
-      // Lobby is bypassed so it cannot override the locked challenge config
-      bankLivesUsed:           0,
-    });
-    router.push('/game');
   }
 
+  const goHome = () => router.replace('/');
+
   return (
-    <Reanimated.View entering={FadeIn.duration(400)} style={[styles.root]}>
-      <LinearGradient colors={['#0E2621', '#15372F', '#0E2621']} style={StyleSheet.absoluteFill} />
-      <FloatingOrbs orbs={ORBS_GOLD} opacity={0.6} />
-      <LinearGradient
-        colors={['#F0B4291A', '#F0B42908', 'transparent']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300 }}
-        pointerEvents="none"
-      />
+    <View style={s.root}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}>
+        <Shell variant="prose" style={{ gap: 16, maxWidth: 520 }}>
+          <BrandMark size={44} />
+          {!valid ? (
+            <>
+              <Text style={s.title} accessibilityRole="header">This challenge link is not valid</Text>
+              <Text style={s.body}>The link is missing its date or target score, or it was changed. Ask the sender for a new link, or play today&apos;s challenge from Home.</Text>
+              <Button label="Return home" size="lg" onPress={goHome} />
+            </>
+          ) : (
+            <>
+              <Text style={s.kicker}>Challenge from {challenger}</Text>
+              <Text style={s.title} accessibilityRole="header">Beat {targetScore} hits</Text>
+              <Panel style={s.rules}>
+                <Row k="Mode" v="Daily Challenge, solo survival" />
+                <Row k="Date" v={formatSeed(seed)} />
+                <Row k="Rules" v="Same speed pattern for every player that day. One miss ends the run." />
+                <Row k="Counts toward" v="Daily challenge score only. No rank change." last />
+              </Panel>
 
-      <View style={[styles.content, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 32 }]}>
-        {/* Crown + challenger name */}
-        <View style={styles.challengerRow}>
-          <Glyph style={styles.crown} value="👑" />
-          <View>
-            <Text style={styles.challengerLabel}>CHALLENGE FROM</Text>
-            <Text style={styles.challengerName}>{challengerName}</Text>
-          </View>
-        </View>
-
-        {/* Target score */}
-        <PulseRing color="#F0B429" size={200} rings={3} duration={2000} opacity={0.12}>
-          <Animated.View style={{ transform: [{ scale: pulseAnim }], alignItems: 'center' }}>
-            <Text style={styles.beatLabel}>BEAT</Text>
-            <GlowText intensity="strong" color="#F0B429" style={styles.scoreHero}>
-              {targetScore}
-            </GlowText>
-            <Text style={styles.hitsLabel}>HITS</Text>
-          </Animated.View>
-        </PulseRing>
-
-        {/* Info */}
-        <View style={styles.infoCard}>
-          <LinearGradient
-            colors={['#F0B42918', '#F0B42908']}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={{ width: 3, height: '100%', backgroundColor: '#F0B429', borderRadius: 2, position: 'absolute', left: 0 }} />
-          <View style={{ paddingLeft: 14, gap: 4 }}>
-            <Text style={styles.infoTitle}>DAILY CHALLENGE · {seed}</Text>
-            <Text style={styles.infoBody}>
-              Same ball-speed pattern for everyone today.
-              Deflect the ball as many times as you can, one miss ends the run.
-            </Text>
-          </View>
-        </View>
-
-        {/* Play button */}
-        <Pressable
-          onPress={handlePlay}
-          style={({ pressed }) => [styles.playBtn, pressed && { opacity: 0.88 }]}
-        >
-          <LinearGradient colors={['#F0B429', '#F0B429', '#C98E12']} style={styles.playBtnGrad}>
-            <Text style={styles.playBtnText}>ACCEPT CHALLENGE</Text>
-          </LinearGradient>
-        </Pressable>
-
-        {/* Skip */}
-        <Pressable onPress={() => router.replace('/')} style={{ paddingVertical: 12 }}>
-          <Text style={styles.skipText}>Not now</Text>
-        </Pressable>
-      </View>
-    </Reanimated.View>
+              {phase === 'expired' ? (
+                <>
+                  <Text style={s.error}>This challenge was for {formatSeed(seed)}. Today&apos;s seed is {formatSeed(todaySeed ?? '')}, so the target no longer applies.</Text>
+                  <Button label="Play today's challenge instead" size="lg" onPress={() => void launch(true)} />
+                  <Button label="Return home" variant="ghost" onPress={goHome} />
+                </>
+              ) : (
+                <>
+                  {phase === 'error' ? (
+                    <Text style={s.error} accessibilityLiveRegion="polite">The challenge could not be loaded from the server. Check your connection and try again.</Text>
+                  ) : null}
+                  <Button
+                    label={phase === 'error' ? 'Try again' : 'Accept challenge'}
+                    size="lg"
+                    loading={phase === 'loading'}
+                    onPress={() => void launch(false)}
+                  />
+                  <Button label="Not now" variant="ghost" onPress={goHome} />
+                </>
+              )}
+            </>
+          )}
+        </Shell>
+      </ScrollView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, gap: 28 },
+function Row({ k, v, last }: { k: string; v: string; last?: boolean }) {
+  return (
+    <View style={[s.row, !last && s.rowLine]}>
+      <Text style={s.k}>{k}</Text>
+      <Text style={s.v}>{v}</Text>
+    </View>
+  );
+}
 
-  challengerRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  crown:         { fontSize: 38 },
-  challengerLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#F3EAD355', letterSpacing: 2, marginBottom: 2 },
-  challengerName:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: '#F3EAD3' },
-
-  beatLabel:   { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 4, color: '#F3EAD355', marginBottom: 2 },
-  scoreHero: {
-    fontFamily: 'BarlowCondensed_700Bold', fontSize: 100, lineHeight: 100,
-    color: '#F0B429',
-    textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0,
-  },
-  hitsLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 18, letterSpacing: 5, color: '#F3EAD388', marginTop: -4 },
-
-  infoCard: {
-    width: '100%', borderRadius: 3, borderWidth: 1, borderColor: '#F0B42933',
-    paddingVertical: 14, paddingHorizontal: 14, overflow: 'hidden',
-  },
-  infoTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 2, color: '#F0B429', marginBottom: 4 },
-  infoBody:  { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#F3EAD388', lineHeight: 19 },
-
-  playBtn:     { width: '100%', borderRadius: 3, overflow: 'hidden', elevation: 0, shadowColor: '#F0B429', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0, shadowRadius: 0 },
-  playBtnGrad: { paddingVertical: 18, alignItems: 'center' },
-  playBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 17, color: '#0E2621', letterSpacing: 1 },
-
-  skipText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: '#F3EAD333' },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: palette.ink },
+  kicker: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.paperDim },
+  title: { fontFamily: fonts.display, fontSize: 38, color: palette.paper },
+  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 23, color: palette.paperDim },
+  rules: { paddingHorizontal: 14 },
+  row: { paddingVertical: 10, gap: 2 },
+  rowLine: { borderBottomWidth: 1, borderBottomColor: palette.line },
+  k: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.muted },
+  v: { fontFamily: fonts.body, fontSize: 16, color: palette.paper, lineHeight: 22 },
+  error: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.clay, lineHeight: 21 },
 });

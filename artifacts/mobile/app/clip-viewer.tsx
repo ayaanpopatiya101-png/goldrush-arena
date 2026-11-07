@@ -19,7 +19,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, Animated,
   Dimensions, InteractionManager, Keyboard,
-  Pressable, ScrollView, StyleSheet, Text,
+  Platform, Pressable, ScrollView, StyleSheet, Text,
   TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -27,7 +27,6 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { LinearGradient } from '@/components/ui/Flat';
 import { Feather } from '@expo/vector-icons';
 import Reanimated, { FadeIn, FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
 
@@ -41,6 +40,8 @@ import { getClipTier, canClaimClipReward, consumeClipRewardSlot, type ClipTier }
 import { usePlayer } from '@/context/PlayerContext';
 import { trackEvent } from '@/utils/analytics';
 import { Glyph } from '@/components/ui/Glyph';
+import { Button } from '@/components/ui/Primitives';
+import { palette } from '@/constants/colors';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -71,16 +72,18 @@ function formatDate(ts: number): string {
 
 function ToolPill({
   icon, label, active, onPress, accent,
-}: { icon: string; label: string; active: boolean; onPress: () => void; accent: string }) {
+}: { icon: React.ComponentProps<typeof Feather>['name']; label: string; active: boolean; onPress: () => void; accent: string }) {
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ expanded: active }}
       style={[
         cv.toolPill,
-        active && { backgroundColor: accent + '30', borderColor: accent },
+        active && { backgroundColor: palette.graphite2, borderColor: accent },
       ]}
     >
-      <Glyph style={{ fontSize: 14 }} value={icon} />
+      <Feather name={icon} size={16} color={active ? accent : palette.paperDim} />
       <Text style={[cv.toolPillTxt, active && { color: accent }]}>{label}</Text>
     </Pressable>
   );
@@ -104,7 +107,7 @@ function FrameStrip({
           <Pressable key={si} onPress={() => onSelect(realIdx)}>
             <Image
               source={{ uri: 'data:image/jpeg;base64,' + frame }}
-              style={[cv.thumb, active && { borderColor: '#F0B429', borderWidth: 2 }]}
+              style={[cv.thumb, active && { borderColor: palette.ochre, borderWidth: 2 }]}
             />
             {active && (
               <View style={cv.thumbActiveDot} />
@@ -137,6 +140,9 @@ export default function ClipViewer() {
   const [encoding,     setEncoding]     = useState(false);
   const [encodeError,  setEncodeError]  = useState(false);
 
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'missing'>('loading');
+  const shareSupported = Platform.OS !== 'web';
+
   // ── Edit state ───────────────────────────────────────────────────────────
   const [activeTool,   setActiveTool]   = useState<'trim' | 'caption' | 'sticker' | null>(null);
   const [trimStart,    setTrimStart]    = useState(0);
@@ -166,7 +172,7 @@ export default function ClipViewer() {
       // Load from library
       getClipLibrary().then(lib => {
         const c = lib.find(x => x.id === savedClipId);
-        if (!c) { router.back(); return; }
+        if (!c || !Array.isArray(c.frames) || c.frames.length === 0) { setLoadState('missing'); return; }
         setSourceFrames(c.frames);
         setSourceType(c.type);
         setSourceScore(c.score);
@@ -178,17 +184,19 @@ export default function ClipViewer() {
         setTrimStart(0); setTrimEnd(c.frames.length - 1);
         setPendingStart(0); setPendingEnd(c.frames.length - 1);
         setGifBase64(c.gifBase64 ?? null); // instant display (gifBase64 may be absent on auto-saved clips)
-      });
+        setLoadState('ready');
+      }).catch(() => setLoadState('missing'));
     } else {
       // Fresh clip from game
       const pending = getPendingClip();
-      if (!pending || pending.frames.length === 0) { router.back(); return; }
+      if (!pending || pending.frames.length === 0) { setLoadState('missing'); return; }
       setSourceFrames(pending.frames);
       setSourceType(pending.type);
       setSourceScore(pending.score);
       setSourceClipScore(pending.clipScore);
       setTrimStart(0); setTrimEnd(pending.frames.length - 1);
       setPendingStart(0); setPendingEnd(pending.frames.length - 1);
+      setLoadState('ready');
     }
   }, [savedClipId]);
 
@@ -299,15 +307,42 @@ export default function ClipViewer() {
   // ── GIF data URI ─────────────────────────────────────────────────────────
   const gifUri = gifBase64 ? `data:image/gif;base64,${gifBase64}` : null;
 
+  const close = () => (router.canGoBack() ? router.back() : router.replace('/my-clips'));
+
+  if (loadState !== 'ready') {
+    return (
+      <View style={[cv.root, { paddingTop: insets.top + 24, paddingHorizontal: 20, alignItems: 'center' }]}>
+        <View style={{ width: '100%', maxWidth: 520, gap: 14 }}>
+          {loadState === 'loading' ? (
+            <>
+              <View style={[cv.skel, { height: 28, width: 160 }]} />
+              <View style={[cv.skel, { aspectRatio: 4 / 3, width: '100%' }]} />
+              <Text style={cv.stateBody}>Loading clip from this device.</Text>
+            </>
+          ) : (
+            <>
+              <Text style={cv.stateTitle} accessibilityRole="header">No clip to show</Text>
+              <Text style={cv.stateBody}>
+                {savedClipId
+                  ? 'This clip is not in your library on this device. It may have been deleted or the link is out of date.'
+                  : 'There is no fresh match clip waiting. Clips are kept in memory only until you save them, so they are lost after a refresh.'}
+              </Text>
+              <Button label="Open My Clips" size="lg" onPress={() => router.replace('/my-clips')} />
+              <Button label="Return home" variant="ghost" onPress={() => router.replace('/')} />
+            </>
+          )}
+        </View>
+      </View>
+    );
+  }
+
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <View style={cv.root}>
-      <LinearGradient colors={['#0E2621', '#0E2621', '#0E2621']} style={StyleSheet.absoluteFill} />
-
       {/* ── Header ── */}
       <View style={[cv.header, { paddingTop: insets.top + 6 }]}>
-        <Pressable onPress={() => router.back()} style={cv.headerBtn} hitSlop={12}>
-          <Feather name="x" size={20} color="#F3EAD388" />
+        <Pressable onPress={close} style={cv.headerBtn} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close clip">
+          <Feather name="x" size={20} color={palette.paper} />
         </Pressable>
         <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={cv.headerTitle}>YOUR CLIP</Text>
@@ -315,26 +350,23 @@ export default function ClipViewer() {
         </View>
         <Pressable
           onPress={() => router.push('/my-clips')}
-          style={cv.headerBtn} hitSlop={12}
+          style={cv.headerBtn} hitSlop={12} accessibilityRole="button" accessibilityLabel="My clips library"
         >
-          <Feather name="grid" size={18} color="#F3EAD366" />
+          <Feather name="grid" size={18} color={palette.paperDim} />
         </Pressable>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 48, alignItems: 'center' }}
       >
+      <View style={cv.column}>
 
         {/* ── Clip card ── */}
         <Reanimated.View entering={FadeInDown.duration(500).springify()} style={cv.clipCardWrap}>
 
           <View style={cv.clipCard}>
-            <LinearGradient
-              colors={[tier.color + '18', '#0E262100']}
-              style={StyleSheet.absoluteFill}
-            />
             {/* Top strip, tier accent */}
             <View style={[cv.cardStripe, { backgroundColor: tier.color }]} />
 
@@ -350,7 +382,7 @@ export default function ClipViewer() {
               )}
               {encodeError && !encoding && (
                 <View style={cv.gifPlaceholder}>
-                  <Glyph style={{ fontSize: 36 }} value="⚠️" />
+                  <Feather name="alert-triangle" size={30} color={palette.clay} />
                   <Text style={cv.errorTxt}>Encoding failed</Text>
                   <Pressable onPress={() => encode(sourceFrames.slice(trimStart, trimEnd + 1))}
                     style={cv.retryBtn}>
@@ -390,9 +422,9 @@ export default function ClipViewer() {
 
             {/* Score row */}
             <View style={cv.scoreRow}>
-              <Text style={cv.scoreLabel}> {sourceScore} deflections</Text>
-              <Text style={[cv.scoreLabel, { color: '#F3EAD344' }]}>
-                {isFromLibrary ? 'Saved' : 'Fresh clip'}
+              <Text style={cv.scoreLabel}>{sourceScore} deflections</Text>
+              <Text style={cv.scoreLabel}>
+                {isFromLibrary ? 'Saved on this device' : 'Not saved yet'}
               </Text>
             </View>
           </View>
@@ -400,9 +432,9 @@ export default function ClipViewer() {
 
         {/* ── Tool bar ── */}
         <Reanimated.View entering={FadeInUp.delay(200).duration(400)} style={cv.toolBar}>
-          <ToolPill icon="✂️" label="TRIM"    active={activeTool === 'trim'}    accent="#F0B429" onPress={() => toggleTool('trim')}    />
-          <ToolPill icon="✏️" label="CAPTION" active={activeTool === 'caption'} accent="#EDE3CC" onPress={() => toggleTool('caption')} />
-          <ToolPill icon="😀" label="STICKER" active={activeTool === 'sticker'} accent="#EDE3CC" onPress={() => toggleTool('sticker')} />
+          <ToolPill icon="scissors" label="Trim"    active={activeTool === 'trim'}    accent={palette.ochre} onPress={() => toggleTool('trim')}    />
+          <ToolPill icon="type" label="Caption" active={activeTool === 'caption'} accent={palette.ochre} onPress={() => toggleTool('caption')} />
+          <ToolPill icon="smile" label="Sticker" active={activeTool === 'sticker'} accent={palette.ochre} onPress={() => toggleTool('sticker')} />
         </Reanimated.View>
 
         {/* ── Trim panel ── */}
@@ -420,12 +452,12 @@ export default function ClipViewer() {
             }} />
             <Text style={cv.trimInfo}>
               {pendingEnd - pendingStart + 1} frames selected
-              {' '}(~{((pendingEnd - pendingStart + 1) / 4).toFixed(1)}s)
+              {Platform.OS !== 'web' ? ` · ${((pendingEnd - pendingStart + 1) / 3).toFixed(1)}s at 3 frames per second` : ''}
             </Text>
             <Pressable onPress={applyTrim} style={cv.applyBtn}>
-              <LinearGradient colors={['#F0B429', '#F0B429']} style={cv.applyBtnGrad}>
-                <Text style={cv.applyBtnTxt}>APPLY TRIM</Text>
-              </LinearGradient>
+              <View style={cv.applyBtnGrad}>
+                <Text style={cv.applyBtnTxt}>Apply trim</Text>
+              </View>
             </Pressable>
           </Reanimated.View>
         )}
@@ -438,17 +470,17 @@ export default function ClipViewer() {
               style={cv.captionInput}
               value={caption}
               onChangeText={setCaption}
-              placeholder="Write something epic…"
-              placeholderTextColor="#F3EAD333"
+              placeholder="Add a caption"
+              placeholderTextColor={palette.muted}
               maxLength={80}
               multiline
               autoFocus
             />
             <Text style={cv.charCount}>{caption.length} / 80</Text>
             <Pressable onPress={() => setActiveTool(null)} style={cv.applyBtn}>
-              <LinearGradient colors={['#EDE3CC', '#EDE3CC']} style={cv.applyBtnGrad}>
-                <Text style={cv.applyBtnTxt}>DONE</Text>
-              </LinearGradient>
+              <View style={cv.applyBtnGrad}>
+                <Text style={cv.applyBtnTxt}>Done</Text>
+              </View>
             </Pressable>
           </Reanimated.View>
         )}
@@ -462,7 +494,8 @@ export default function ClipViewer() {
                 <Pressable
                   key={s}
                   onPress={() => { setSticker(prev => (prev === s ? null : s)); setActiveTool(null); }}
-                  style={[cv.stickerCell, sticker === s && { backgroundColor: '#EDE3CC30', borderColor: '#EDE3CC88' }]}
+                  accessibilityRole="button" accessibilityState={{ selected: sticker === s }}
+                  style={[cv.stickerCell, sticker === s && { backgroundColor: palette.graphite2, borderColor: palette.ochre, borderWidth: 2 }]}
                 >
                   <Glyph style={{ fontSize: 30 }} value={s} />
                 </Pressable>
@@ -472,18 +505,22 @@ export default function ClipViewer() {
         )}
 
         {/* ── Reward preview (new clips only) ── */}
-        {!isFromLibrary && !rewardClaimed && canReward && (
+        {!shareSupported && (
+          <View style={[cv.rewardCard, { borderColor: palette.line }]}>
+            <Text style={cv.stateBody}>Sharing clips needs the iOS or Android app. In the browser you can trim, caption and save to this device only.</Text>
+          </View>
+        )}
+        {shareSupported && !isFromLibrary && !rewardClaimed && canReward && (
           <Reanimated.View entering={ZoomIn.delay(400).duration(500).springify()} style={cv.rewardCard}>
-            <LinearGradient colors={[tier.color + '22', '#0E262100']} style={StyleSheet.absoluteFill} />
-            <Text style={cv.rewardTitle}>SHARE TO EARN</Text>
+            <Text style={cv.rewardTitle}>Share reward: granted after the share sheet closes, whether or not you send it</Text>
             <View style={cv.rewardRow}>
               <View style={cv.rewardPill}>
-                <Glyph style={{ fontSize: 16 }} value="🪙" />
-                <Text style={[cv.rewardVal, { color: '#F0B429' }]}>+{tier.coins}</Text>
+                <Feather name="disc" size={15} color={palette.ochre} />
+                <Text style={[cv.rewardVal, { color: palette.ochre }]}>+{tier.coins}</Text>
               </View>
               <View style={cv.rewardPill}>
-                <Glyph style={{ fontSize: 16 }} value="⭐" />
-                <Text style={[cv.rewardVal, { color: '#EDE3CC' }]}>+{tier.xp} XP</Text>
+                <Feather name="star" size={15} color={palette.paper} />
+                <Text style={[cv.rewardVal, { color: palette.paper }]}>+{tier.xp} XP</Text>
               </View>
               <View style={[cv.rewardPill, { borderColor: tier.color + '66' }]}>
                 <Glyph style={{ fontSize: 14 }} value={tier.emoji} />
@@ -493,8 +530,8 @@ export default function ClipViewer() {
           </Reanimated.View>
         )}
         {rewardClaimed && (
-          <Reanimated.View entering={ZoomIn.duration(400).springify()} style={[cv.rewardCard, { borderColor: '#9CC93E44' }]}>
-            <Text style={[cv.rewardTitle, { color: '#9CC93E' }]}>REWARD CLAIMED</Text>
+          <Reanimated.View entering={ZoomIn.duration(400).springify()} style={[cv.rewardCard, { borderColor: palette.moss }]}>
+            <Text style={[cv.rewardTitle, { color: palette.moss }]}>Share reward claimed</Text>
             <Text style={cv.rewardSub}>+{tier.coins} coins · +{tier.xp} XP added to your account</Text>
           </Reanimated.View>
         )}
@@ -504,142 +541,118 @@ export default function ClipViewer() {
           <Animated.View style={[{ flex: 1 }, { transform: [{ scale: saveAnim }] }]}>
             <Pressable
               onPress={handleSave}
+              disabled={!gifBase64}
+              accessibilityRole="button"
+              accessibilityLabel={saved ? 'Saved to this device' : 'Save clip to this device'}
               style={({ pressed }) => [cv.saveBtn, { opacity: pressed ? 0.8 : 1 }]}
             >
-              <LinearGradient
-                colors={saved ? ['#1E4A3F', '#15372F'] : ['#15372F', '#0E2621']}
-                style={cv.saveBtnGrad}
-              >
-                <Feather name={saved ? 'check-circle' : 'bookmark'} size={18} color={saved ? '#9CC93E' : '#F3EAD388'} />
-                <Text style={[cv.saveBtnTxt, saved && { color: '#9CC93E' }]}>
-                  {saved ? 'SAVED' : 'SAVE CLIP'}
+              <View style={cv.saveBtnGrad}>
+                <Feather name={saved ? 'check-circle' : 'bookmark'} size={18} color={saved ? palette.moss : palette.paper} />
+                <Text style={[cv.saveBtnTxt, saved && { color: palette.moss }]}>
+                  {saved ? 'Saved on this device' : 'Save to this device'}
                 </Text>
-              </LinearGradient>
+              </View>
             </Pressable>
           </Animated.View>
 
-          <Pressable
+          {shareSupported ? <Pressable
             onPress={handleShare}
             disabled={!gifBase64 || sharing}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !gifBase64 || sharing, busy: sharing }}
             style={({ pressed }) => [cv.shareBtn, { opacity: (pressed || sharing || !gifBase64) ? 0.75 : 1 }]}
           >
-            <LinearGradient colors={[tier.color, tier.color + 'AA']} style={cv.shareBtnGrad}>
+            <View style={cv.shareBtnGrad}>
               {sharing
-                ? <ActivityIndicator size="small" color="#FFF" />
-                : <Feather name="share-2" size={18} color="#FFF" />}
+                ? <ActivityIndicator size="small" color={palette.ochreInk} />
+                : <Feather name="share-2" size={18} color={palette.ochreInk} />}
               <Text style={cv.shareBtnTxt}>
-                {canReward && !rewardClaimed ? 'SHARE & EARN' : 'SHARE'}
+                {gifBase64 ? 'Open share sheet' : 'Preparing'}
               </Text>
-            </LinearGradient>
-          </Pressable>
+            </View>
+          </Pressable> : null}
         </View>
 
         {/* View library link */}
         <Pressable onPress={() => router.push('/my-clips')} style={cv.libraryLink}>
-          <Feather name="grid" size={14} color="#F3EAD333" />
+          <Feather name="grid" size={14} color={palette.paperDim} />
           <Text style={cv.libraryLinkTxt}>My Clips Library</Text>
-          <Feather name="chevron-right" size={14} color="#F3EAD333" />
+          <Feather name="chevron-right" size={14} color={palette.paperDim} />
         </Pressable>
 
+      </View>
       </ScrollView>
     </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const CARD_W = SW - 32;
-const GIF_H  = CARD_W * 0.75;
+const CARD_W = Math.min(SW - 32, 720);
 
 const cv = StyleSheet.create({
-  root:   { flex: 1, backgroundColor: '#0E2621' },
+  root:   { flex: 1, backgroundColor: palette.ink },
+  column: { width: '100%', maxWidth: 720, paddingHorizontal: 16, gap: 12 },
+  skel:   { backgroundColor: palette.graphite, borderRadius: 2 },
+  stateTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 32, color: palette.paper },
+  stateBody:  { fontFamily: 'SourceSans3_400Regular', fontSize: 16, lineHeight: 23, color: palette.paperDim },
 
-  // Header
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, gap: 10 },
-  headerBtn:   { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 20, color: '#F3EAD3', letterSpacing: 2 },
-  headerSub:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#F3EAD344', letterSpacing: 2 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, gap: 10, borderBottomWidth: 1, borderBottomColor: palette.line, marginBottom: 12 },
+  headerBtn:   { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 3, borderWidth: 1, borderColor: palette.line },
+  headerTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.paper, letterSpacing: 1 },
+  headerSub:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted },
 
-  // Clip card
-  clipCardWrap: { alignItems: 'center', paddingHorizontal: 16, paddingTop: 8 },
-  cardGlow: {
-    position: 'absolute', width: CARD_W + 20, height: GIF_H + 120,
-    borderRadius: 3, shadowRadius: 0, shadowOpacity: 0,
-    shadowOffset: { width: 0, height: 0 }, elevation: 0,
-  },
-  clipCard: {
-    width: CARD_W, borderRadius: 3, overflow: 'hidden',
-    backgroundColor: '#0E2621', borderWidth: 1, borderColor: '#F3EAD312',
-  },
+  clipCardWrap: { width: '100%' },
+  cardGlow: { position: 'absolute' },
+  clipCard: { width: '100%', borderRadius: 3, overflow: 'hidden', backgroundColor: palette.graphite, borderWidth: 1, borderColor: palette.line },
   cardStripe:   { height: 3, width: '100%' },
-  gifArea:      { height: GIF_H, backgroundColor: '#0E2621', position: 'relative' },
+  gifArea:      { width: '100%', aspectRatio: 4 / 3, maxHeight: CARD_W * 0.75, backgroundColor: palette.ink, position: 'relative' },
   gif:          { width: '100%', height: '100%' },
   gifPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
-  encodingTxt:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 0.5 },
-  errorTxt:     { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#E04A2F' },
-  retryBtn:     { borderRadius: 3, borderWidth: 1, borderColor: '#E04A2F55', paddingHorizontal: 16, paddingVertical: 6, marginTop: 4 },
-  retryTxt:     { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#E04A2F' },
+  encodingTxt:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 15 },
+  errorTxt:     { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.clay },
+  retryBtn:     { borderRadius: 3, borderWidth: 1, borderColor: palette.clay, paddingHorizontal: 18, minHeight: 44, justifyContent: 'center', marginTop: 4 },
+  retryTxt:     { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.clay },
   stickerOverlay: { position: 'absolute', bottom: 10, right: 10 },
-  tierBadge: {
-    position: 'absolute', top: 8, right: 8,
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    borderRadius: 3, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 4,
-  },
-  tierBadgeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 1 },
-  captionBar:   { paddingHorizontal: 14, paddingVertical: 10, backgroundColor: '#0E2621AA' },
-  captionTxt:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: '#F3EAD3', textAlign: 'center', letterSpacing: 0.3 },
+  tierBadge: { position: 'absolute', top: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 4, backgroundColor: palette.ink },
+  tierBadgeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5 },
+  captionBar:   { paddingHorizontal: 14, paddingVertical: 10, backgroundColor: palette.graphite2 },
+  captionTxt:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 16, color: palette.paper, textAlign: 'center' },
   scoreRow:     { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
-  scoreLabel:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: '#F3EAD366', letterSpacing: 0.3 },
+  scoreLabel:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 14, color: palette.paperDim },
 
-  // Tool bar
-  toolBar:    { flexDirection: 'row', paddingHorizontal: 16, paddingTop: 16, gap: 10 },
-  toolPill:   {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5,
-    borderRadius: 3, borderWidth: 1.5, borderColor: '#F3EAD318',
-    backgroundColor: '#F3EAD308', paddingVertical: 10,
-  },
-  toolPillTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 1.5, color: '#F3EAD344' },
+  toolBar:    { flexDirection: 'row', gap: 8 },
+  toolPill:   { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 3, borderWidth: 1, borderColor: palette.line, minHeight: 46 },
+  toolPillTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.paper },
 
-  // Panels
-  panel:        { marginHorizontal: 16, marginTop: 12, backgroundColor: '#0E2621', borderRadius: 3, borderWidth: 1, borderColor: '#F3EAD30D', padding: 14, gap: 6 },
-  panelTitle:   { fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#F3EAD344', letterSpacing: 2 },
-  panelSubLabel:{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#F3EAD333', letterSpacing: 1, marginTop: 6 },
-  trimInfo:     { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#F3EAD355', textAlign: 'center', marginTop: 4 },
-  thumb:        { width: 54, height: 42, borderRadius: 3, overflow: 'hidden', backgroundColor: '#111', borderWidth: 1, borderColor: '#F3EAD314' },
-  thumbActiveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#F0B429', alignSelf: 'center', marginTop: 2 },
+  panel:        { backgroundColor: palette.graphite, borderRadius: 3, borderWidth: 1, borderColor: palette.line, padding: 14, gap: 6 },
+  panelTitle:   { fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: palette.muted, letterSpacing: 0.5 },
+  panelSubLabel:{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 14, color: palette.paperDim, marginTop: 6 },
+  trimInfo:     { fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: palette.paperDim, marginTop: 4 },
+  thumb:        { width: 60, height: 46, borderRadius: 2, overflow: 'hidden', backgroundColor: palette.ink, borderWidth: 1, borderColor: palette.line },
+  thumbActiveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: palette.ochre, alignSelf: 'center', marginTop: 2 },
   applyBtn:     { borderRadius: 3, overflow: 'hidden', marginTop: 8 },
-  applyBtnGrad: { paddingVertical: 12, alignItems: 'center' },
-  applyBtnTxt:  { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#F3EAD3', letterSpacing: 1.5 },
-  captionInput: {
-    backgroundColor: '#F3EAD308', borderRadius: 3, borderWidth: 1, borderColor: '#F3EAD318',
-    color: '#F3EAD3', fontFamily: 'SourceSans3_400Regular', fontSize: 14,
-    paddingHorizontal: 14, paddingVertical: 10, minHeight: 60, textAlignVertical: 'top',
-  },
-  charCount:    { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#F3EAD333', textAlign: 'right' },
-  stickerGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', paddingTop: 4 },
-  stickerCell:  { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', borderRadius: 3, borderWidth: 1, borderColor: '#F3EAD314', backgroundColor: '#F3EAD308' },
+  applyBtnGrad: { minHeight: 46, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.ochre },
+  applyBtnTxt:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.ochreInk },
+  captionInput: { backgroundColor: palette.graphite2, borderRadius: 3, borderWidth: 1, borderColor: palette.line, color: palette.paper, fontFamily: 'SourceSans3_400Regular', fontSize: 16, paddingHorizontal: 14, paddingVertical: 10, minHeight: 64, textAlignVertical: 'top' },
+  charCount:    { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: palette.muted, textAlign: 'right' },
+  stickerGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 4 },
+  stickerCell:  { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', borderRadius: 3, borderWidth: 1, borderColor: palette.line },
 
-  // Reward card
-  rewardCard: {
-    marginHorizontal: 16, marginTop: 14, borderRadius: 3,
-    borderWidth: 1, borderColor: '#F0B42933', overflow: 'hidden',
-    padding: 14, gap: 8,
-  },
-  rewardTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: '#F0B429', letterSpacing: 2 },
-  rewardSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: '#F3EAD355', textAlign: 'center' },
-  rewardRow:   { flexDirection: 'row', gap: 8, justifyContent: 'center' },
-  rewardPill:  { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 3, borderWidth: 1, borderColor: '#F3EAD31A', backgroundColor: '#F3EAD308', paddingHorizontal: 12, paddingVertical: 6 },
-  rewardVal:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
+  rewardCard: { borderRadius: 3, borderWidth: 1, borderColor: palette.ochre, backgroundColor: palette.graphite, padding: 14, gap: 10 },
+  rewardTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.ochre },
+  rewardSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: palette.paperDim },
+  rewardRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  rewardPill:  { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 3, borderWidth: 1, borderColor: palette.line, paddingHorizontal: 12, paddingVertical: 6 },
+  rewardVal:   { fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
 
-  // Actions
-  actionRow:   { flexDirection: 'row', gap: 10, marginHorizontal: 16, marginTop: 16 },
-  saveBtn:     { flex: 1, borderRadius: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#F3EAD318' },
-  saveBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 15 },
-  saveBtnTxt:  { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#F3EAD388', letterSpacing: 1 },
-  shareBtn:    { flex: 1.4, borderRadius: 3, overflow: 'hidden' },
-  shareBtnGrad:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 15 },
-  shareBtnTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#F3EAD3', letterSpacing: 1 },
+  actionRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  saveBtn:     { flexGrow: 1, flexBasis: 200, borderRadius: 3, overflow: 'hidden', borderWidth: 1, borderColor: palette.line },
+  saveBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 50, backgroundColor: palette.graphite },
+  saveBtnTxt:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.paper },
+  shareBtn:    { flexGrow: 1, flexBasis: 200, borderRadius: 3, overflow: 'hidden' },
+  shareBtnGrad:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 50, backgroundColor: palette.ochre },
+  shareBtnTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.ochreInk },
 
-  // Library link
-  libraryLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 18, paddingVertical: 6 },
-  libraryLinkTxt: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#F3EAD333', letterSpacing: 0.5 },
+  libraryLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44 },
+  libraryLinkTxt: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 15, color: palette.paperDim },
 });

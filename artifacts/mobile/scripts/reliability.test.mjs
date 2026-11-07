@@ -85,6 +85,7 @@ test('native Shop loads and renders its unavailable store without a server addre
     };
     const native = {
       Platform: { OS: platform }, StyleSheet: { create: styles => styles, absoluteFill: {} },
+      useWindowDimensions: () => ({ width: 390, height: 844, scale: 1, fontScale: 1 }),
       Text: 'Text', View: 'View', Pressable: 'Pressable', ScrollView: 'ScrollView', Modal: 'Modal',
     };
     const react = {
@@ -102,6 +103,7 @@ test('native Shop loads and renders its unavailable store without a server addre
       'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
       '@/hooks/useFocusAnimation': { useFocusAnimation: () => ({ opacity: 1 }) },
       '@/hooks/useColors': { useColors: () => new Proxy({}, { get: () => '#16171A' }) },
+      '@/constants/season': { CURRENT_SEASON: { number: 1, label: 'Season 1' } },
       '@/context/PlayerContext': { SKINS: [{ id: 'classic', color: '#C99A2E', glowColor: '#C99A2E' }], getRankIndex: () => 0, usePlayer: () => ({ profile }) },
       '@/lib/revenuecat': { useRevenueCat: () => ({ available: false, isLoading: false, getPackage: () => null }) },
       '@/utils/api': { apiUrl: () => { addressCalls++; throw new Error('The game server address is not configured.'); } },

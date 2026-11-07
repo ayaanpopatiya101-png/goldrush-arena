@@ -1,15 +1,14 @@
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from '@/components/ui/Flat';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Modal, Platform, Pressable, StyleSheet, Text, Animated, View, useWindowDimensions } from 'react-native';
-import Reanimated, { FadeIn, SlideInRight, SlideOutRight } from 'react-native-reanimated';
+import Reanimated, { SlideInRight, SlideOutRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
 import { usePlayer, getMap, getRankIndex, MAX_RANK_INDEX, RANKS, MAPS, getStreakMultiplier, getDifficultyMultiplier, levelFromRank } from '@/context/PlayerContext';
-import { getGameConfig, updateGameConfig, getActiveEvent, clearActiveEvent, getQualifierContext, clearQualifierContext } from '@/store/gameSession';
+import { getGameConfig, hasGameConfig, updateGameConfig, getActiveEvent, clearActiveEvent, getQualifierContext, clearQualifierContext } from '@/store/gameSession';
 import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
 import { useHighlightCapture } from '@/hooks/useHighlightCapture';
@@ -18,7 +17,9 @@ import { computeClipScore, getClipTier } from '@/utils/clipRewards';
 import { startMatchTracking, getCurrentMatchId, recordMatchEvent, getBestMatchEvents } from '@/store/matchEvents';
 import { saveClipToLibrary } from '@/store/clipLibrary';
 import { trackEvent } from '@/utils/analytics';
-import { Glyph } from '@/components/ui/Glyph';
+import { clearCompletedMatch } from '@/store/completedMatch';
+import { Button } from '@/components/ui/Primitives';
+import { palette } from '@/constants/colors';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
 const BOT_RANKS  = ['Gold', 'Platinum', 'Diamond', 'Master 1', 'Master 2'];
@@ -68,14 +69,17 @@ export default function GameScreen() {
   const countdownComplete = useRef(Boolean(config.countdownComplete)).current;
   const startedRef = useRef(false);
   const completedRef = useRef(false);
+  const [completionError, setCompletionError] = useState<string | null>(null);
   useEffect(() => { updateGameConfig({ countdownComplete: false }); }, []);
   const music    = useBackgroundMusic();
   const { settings } = useSettings();
 
-  const topPad    = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
-  const bottomPad = Platform.OS === 'web' ? Math.max(insets.bottom, 34) : insets.bottom;
-  const hudHeight = 48 + 24 + 14 + 54 + bottomPad + 10;
-  const arenaSize = Math.max(260, Math.min(width - 8, height - topPad - hudHeight, 410));
+  const topPad    = insets.top + 4;
+  const bottomPad = insets.bottom;
+  // Court is square: fit it to both width and the height left after the grouped HUD
+  // (top bar 48, scoreboard 50, you-row 36, legend 28, web hint 20, margins 16).
+  const chromeH   = 48 + 50 + 36 + 28 + (Platform.OS === 'web' ? 20 : 0) + 16;
+  const arenaSize = Math.floor(Math.max(240, Math.min(width - 16, height - topPad - bottomPad - chromeH, 560)));
 
   const variantCfg = VARIANT_PROPS[config.variant ?? 'classic'] ?? {};
 
@@ -260,9 +264,10 @@ export default function GameScreen() {
     ]).start();
   }, [gameMode]);
 
-  function handleGameOver(result: GameResult) {
+  async function handleGameOver(result: GameResult) {
     if (completedRef.current) return;
     completedRef.current = true;
+    clearCompletedMatch();
     // Store the best clip for the post-game share button (no-op on web)
     const hlClip = stopAndGetClip();
     const existing = getPendingClip();
@@ -325,11 +330,16 @@ export default function GameScreen() {
       const { gauntletWon, gauntletOver } = recordRoundResult(result.won, finalXP, finalCoins);
       // One-time champion bonus on the winning round
       if (gauntletWon) { finalXP += 1500; finalCoins += 300; }
-      addMatchResult({
-        won: result.won, xpEarned: finalXP, coinsEarned: finalCoins,
-        deflections: result.deflections, goalsAgainst: result.goalsAgainst,
-        position: result.position, matchType: 'ranked', opponentLevels,
-      });
+      try {
+        await addMatchResult({
+          won: result.won, xpEarned: finalXP, coinsEarned: finalCoins,
+          deflections: result.deflections, goalsAgainst: result.goalsAgainst,
+          position: result.position, matchType: 'ranked', opponentLevels,
+        });
+      } catch {
+        setCompletionError('Saving this round could not be confirmed. Check device storage and your Profile before playing again. Results are unavailable to avoid showing unconfirmed rewards.');
+        return;
+      }
       const gs = getGauntletState();
       router.replace({
         pathname: '/gauntlet',
@@ -354,11 +364,17 @@ export default function GameScreen() {
     const evXP      = ev ? (result.won ? ev.winXP      : ev.loseXP)      : 0;
     const evCoins   = ev ? (result.won ? ev.winCoins   : ev.loseCoins)   : 0;
     const evCredits = ev ? (result.won ? ev.winCredits : ev.loseCredits) : 0;
-    addMatchResult({
-      won: result.won, xpEarned: finalXP, coinsEarned: finalCoins,
-      deflections: result.deflections, goalsAgainst: result.goalsAgainst,
-      position: result.position, matchType: mt, opponentLevels,
-    });
+    try {
+      await addMatchResult({
+        won: result.won, xpEarned: finalXP, coinsEarned: finalCoins,
+        deflections: result.deflections, goalsAgainst: result.goalsAgainst,
+        position: result.position, matchType: mt, opponentLevels,
+        eventBonus: { xp: evXP, coins: evCoins, credits: evCredits },
+      });
+    } catch {
+      setCompletionError('Saving this match could not be confirmed. Check device storage and your Profile before playing again. Results are unavailable to avoid showing unconfirmed rewards.');
+      return;
+    }
     router.replace({
       pathname: '/postgame',
       params: {
@@ -404,160 +420,200 @@ export default function GameScreen() {
   }
 
   const modeColor = MODE_COLORS[gameMode];
+  const isWeb = Platform.OS === 'web';
+  const configured = hasGameConfig();
+
+  // Web keyboard: Escape or P toggles pause. Paddle movement stays pointer-driven.
+  useEffect(() => {
+    if (!isWeb || typeof window === 'undefined') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (gameOver) return;
+      if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') setPaused(p => !p);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isWeb, gameOver]);
+
+  // Move keyboard focus to Resume when the pause dialog opens (web).
+  const resumeRef = useRef<View>(null);
+  useEffect(() => {
+    if (!paused || !isWeb) return;
+    const t = setTimeout(() => { (resumeRef.current as unknown as { focus?: () => void } | null)?.focus?.(); }, 50);
+    return () => clearTimeout(t);
+  }, [paused, isWeb]);
+
+  if (!configured) {
+    return (
+      <View style={[styles.stateRoot, { paddingTop: insets.top + 24 }]}>
+        <View style={styles.stateCard}>
+          <Text accessibilityRole="header" style={styles.stateTitle}>No match is set up</Text>
+          <Text style={styles.stateBody}>
+            This screen only runs a match started from Play, a lobby, an event or a challenge. Opening it directly, or refreshing the page, clears that setup, so nothing was started and nothing was recorded.
+          </Text>
+          <Button label="Go to Play" size="lg" onPress={() => router.replace('/')} />
+        </View>
+      </View>
+    );
+  }
+
+  if (completionError) {
+    return (
+      <View style={[styles.stateRoot, { paddingTop: topPad + 24 }]}>
+        <View style={styles.stateCard}>
+          <Text accessibilityRole="header" style={styles.stateTitle}>Match save unavailable</Text>
+          <Text accessibilityRole="alert" style={styles.stateBody}>{completionError}</Text>
+          <Button label="Return to Play" onPress={() => router.replace('/')} />
+        </View>
+      </View>
+    );
+  }
+
+  const seats = isChallenge ? ['SOUTH'] : mergedCfg.sixPlayer ? ['SOUTH L', 'NORTH L', 'WEST', 'EAST', 'SOUTH R', 'NORTH R'] : ['SOUTH', 'NORTH', 'WEST', 'EAST'];
+  const isGauntletRun = config.matchType === 'gauntlet';
 
   return (
     <Reanimated.View entering={SlideInRight.duration(260)} exiting={SlideOutRight.duration(220)} style={[styles.root, { paddingTop: topPad }]} onTouchStart={ensureMusic}>
-      <LinearGradient
-        colors={['#0E2621', '#0E2621']}
-        style={StyleSheet.absoluteFill}
-      />
-
-      {/* HUD Top */}
-      <View style={styles.hud}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Pause match" testID="pause-match" onPress={() => setPaused(true)} style={styles.iconBtn}>
-          <Feather name="pause" size={20} color="#ECE7DC88" />
-        </Pressable>
-        {captureStarted && !gameOver && (
-          <Pressable onPress={handleManualRecord} style={styles.iconBtn} hitSlop={8}>
-            <Glyph style={{ fontSize: 17, opacity: clipSaved ? 1 : 0.7 }} value={clipSaved ? '✅' : '📹'} />
+      <View style={[styles.column, { width: arenaSize }]}>
+        {/* Top bar: controls and match clock, grouped to the court width */}
+        <View style={styles.hud}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Pause match" testID="pause-match" onPress={() => setPaused(true)} style={styles.iconBtn}>
+            <Feather name="pause" size={20} color={palette.paper} />
           </Pressable>
-        )}
-
-        <Animated.View style={[styles.modeChip, { borderColor: modeColor+'88', backgroundColor: modeColor+'22', transform:[{scale:modePulse}] }]}>
-          <Text style={[styles.modeText, { color: modeColor }]}>{MODE_LABELS[gameMode]}</Text>
-        </Animated.View>
-
-        <View style={styles.hudRight}>
+          <Animated.View style={[styles.modeChip, { borderColor: modeColor, transform: [{ scale: modePulse }] }]}>
+            <Text style={[styles.modeText, { color: palette.paper }]}>{MODE_LABELS[gameMode]}</Text>
+          </Animated.View>
+          <View style={styles.stat} accessibilityLabel={`Time ${fmtTime(timerSecs)}`}>
+            <Feather name="clock" size={12} color={palette.muted} />
+            <Text style={styles.statText}>{fmtTime(timerSecs)}</Text>
+          </View>
+          <View style={styles.stat} accessibilityLabel={`${activeBalls} pucks in play`}>
+            <View style={[styles.ballDot, { backgroundColor: activeBalls > 1 ? palette.ochre : palette.muted }]} />
+            <Text style={styles.statText}>{activeBalls}</Text>
+          </View>
+          <View style={{ flex: 1 }} />
+          {captureStarted && !gameOver && (
+            <Pressable onPress={handleManualRecord} style={styles.iconBtn} hitSlop={8}
+              accessibilityRole="button" accessibilityLabel={clipSaved ? 'Moment captured' : 'Capture this moment'}>
+              <Feather name={clipSaved ? 'check' : 'video'} size={18} color={clipSaved ? palette.moss : palette.paper} />
+            </Pressable>
+          )}
           <BackgroundMusicButton muted={music.muted} onToggle={music.setMuted} />
         </View>
-      </View>
 
-      {/* Timer + Ball Count row */}
-      <View style={[styles.infoRow, { width: arenaSize }]}>
-        <View style={styles.timerBadge}>
-          <Feather name="clock" size={10} color="#ECE7DC55" />
-          <Text style={styles.timerText}>{fmtTime(timerSecs)}</Text>
+        {/* Scoreboard: lives per seat */}
+        <View style={styles.board} accessibilityLabel="Lives per seat. You control South; every other seat is a local bot.">
+          {seats.map((seat, i) => (
+            <View key={seat} style={[styles.boardCell, i === seats.length - 1 && { borderRightWidth: 0 }, i === 0 && styles.boardYou]}>
+              <Text style={[styles.boardSeat, i === 0 && { color: palette.ochreInk }]}>{i === 0 ? 'YOU' : 'BOT'} · {seat}</Text>
+              <Text style={[styles.boardLives, i === 0 && { color: palette.ochreInk }]}>{seatLives[i] ?? (variantCfg.initialLives ?? 5)}</Text>
+            </View>
+          ))}
         </View>
-        <View style={{ flex: 1 }} />
-        <View style={styles.ballsBadge}>
-          <View style={[styles.ballDot, { backgroundColor: activeBalls > 3 ? '#B4533A' : activeBalls > 1 ? '#C99A2E' : '#ECE7DC55' }]} />
-          <Text style={styles.ballsText}>{activeBalls} {activeBalls === 1 ? 'BALL' : 'BALLS'}</Text>
+
+        {/* Court */}
+        <View style={{ width: arenaSize, height: arenaSize }}>
+          {!gameOver && (
+            /* arenaWrapRef, used by useHighlightCapture to screen-capture frames */
+            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+            <View ref={arenaWrapRef as any} style={{ alignSelf: 'stretch' }}>
+            <GameArena
+              arenaSize={arenaSize}
+              playerName={config.playerName}
+              playerColor={config.playerColor}
+              playerGlowColor={config.playerGlowColor}
+              botNames={config.opponentNames ?? BOT_NAMES}
+              // Challenge: soloMode pre-eliminates bots in GameArena's state init;
+              // passing [] for botRanks is belt-and-suspenders (provides empty fallbacks).
+              soloMode={isChallenge}
+              botRanks={isChallenge ? [] : (config.opponentRanks ?? generatedBotRanks)}
+              onGameOver={handleGameOver}
+              onGameModeChange={handleGameModeChange}
+              onPlayerLivesChange={handleLivesChange}
+              onSeatLivesChange={setSeatLives}
+              onEliminatedSpectating={() => {}}
+              colorBoard={false}
+              soundEnabled={settings.soundEnabled}
+              sensitivity={settings.sensitivity}
+              onActiveBallsChange={setActiveBalls}
+              botDifficulty={botDifficulty}
+              onGameStart={handleGameStart}
+              skipCountdown={countdownComplete}
+              paused={paused}
+              playerRelic={undefined}
+              botSkill={isChallenge ? 0 : effectiveBotSkill}
+              arenaBg={['#14231F', '#14231F', '#14231F']}
+              playerSuperType={profile.selectedSuper ?? 1}
+              practice={config.practice}
+              onHighlight={handleHighlight}
+              {...mergedCfg}
+            />
+            </View>
+          )}
         </View>
-      </View>
 
-      <View style={{ width: arenaSize, flexDirection: 'row', borderWidth: 1, borderColor: '#46484C', marginBottom: 8 }}
-        accessibilityLabel="Live seat scoreboard: you control South; opponents are local bots">
-        {(isChallenge ? ['SOUTH'] : mergedCfg.sixPlayer ? ['SOUTH L', 'NORTH L', 'WEST', 'EAST', 'SOUTH R', 'NORTH R'] : ['SOUTH', 'NORTH', 'WEST', 'EAST']).map((seat, i) => (
-          <View key={seat} style={{ flex: 1, paddingVertical: 7, paddingHorizontal: 3, alignItems: 'center', borderRightWidth: i === 3 ? 0 : 1, borderRightColor: '#46484C' }}>
-            <Text style={{ color: '#B8B5AA', fontFamily: 'SourceSans3_600SemiBold', fontSize: 10 }}>{seat}</Text>
-            <Text style={{ color: '#ECE7DC', fontFamily: 'BarlowCondensed_700Bold', fontSize: 17 }}>{i === 0 ? 'YOU' : 'BOT'} {seatLives[i] ?? (variantCfg.initialLives ?? 5)}</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Arena */}
-      <View style={[styles.arenaWrap, { width: arenaSize }]}>
-
-        {!gameOver && (
-          /* arenaWrapRef, used by useHighlightCapture to screen-capture frames */
-          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-          <View ref={arenaWrapRef as any} style={{ alignSelf: 'stretch' }}>
-          <GameArena
-            arenaSize={arenaSize}
-            playerName={config.playerName}
-            playerColor={config.playerColor}
-            playerGlowColor={config.playerGlowColor}
-            botNames={config.opponentNames ?? BOT_NAMES}
-            // Challenge: soloMode pre-eliminates bots in GameArena's state init;
-            // passing [] for botRanks is belt-and-suspenders (provides empty fallbacks).
-            soloMode={isChallenge}
-            botRanks={isChallenge ? [] : (config.opponentRanks ?? generatedBotRanks)}
-            onGameOver={handleGameOver}
-            onGameModeChange={handleGameModeChange}
-            onPlayerLivesChange={handleLivesChange}
-            onSeatLivesChange={setSeatLives}
-            onEliminatedSpectating={() => {}}
-            colorBoard={false}
-            soundEnabled={settings.soundEnabled}
-            sensitivity={settings.sensitivity}
-            onActiveBallsChange={setActiveBalls}
-            botDifficulty={botDifficulty}
-            onGameStart={handleGameStart}
-            skipCountdown={countdownComplete}
-            paused={paused}
-            playerRelic={undefined}
-            botSkill={isChallenge ? 0 : effectiveBotSkill}
-            arenaBg={['#0E2621', '#0E2621', '#0E2621']}
-            playerSuperType={profile.selectedSuper ?? 1}
-            practice={config.practice}
-            onHighlight={handleHighlight}
-            {...mergedCfg}
-          />
-          </View>
+        {/* Persistent "you" marker directly under the South goal */}
+        <View style={styles.youRow}>
+          <Feather name="chevron-up" size={16} color={palette.ochre} />
+          <View style={[styles.labelDot, { backgroundColor: config.playerColor }]} />
+          <Text style={styles.youText} numberOfLines={1}>YOU · {config.playerName} · South paddle</Text>
+          <View style={{ flex: 1 }} />
+          <Text style={styles.livesLabel}>LIVES</Text>
+          <Text style={[styles.livesVal, playerLives <= 0 && { color: palette.clay }]}>{playerLives > 0 ? playerLives : 'OUT'}</Text>
+        </View>
+        {playerLives <= 0 && !gameOver && (
+          <Text style={styles.outNote}>{isGauntletRun ? 'You are out of this round. The bots finish it, then your Gauntlet run continues.' : 'You are out. The bots finish the match, then results open.'}</Text>
         )}
 
-        <View style={styles.topBotLabel}>
-          <View style={[styles.labelDot, { backgroundColor: config.playerColor }]} />
-          <Text style={[styles.labelTxt, { color: config.playerColor }]}>{config.playerName} · YOU</Text>
-        </View>
-      </View>
-
-      {/* HUD Bottom */}
-      <View style={[styles.hudBottom, { paddingBottom: bottomPad + 6 }]}>
-        <View style={styles.livesWrap}>
-          <Text style={styles.livesLabel}>LIVES</Text>
-          {Array.from({ length: Math.max(0, playerLives) }).map((_, i) => (
-            <View key={i} style={[styles.lifeHeart, { backgroundColor: config.playerColor }]} />
-          ))}
-          {playerLives <= 0 && <Text style={styles.elimText}>ELIMINATED</Text>}
-        </View>
-
-        <View style={{ flex: 1 }} />
-
-        <View style={styles.puRow}>
+        {/* Power-up legend: matches the letters on court pickups */}
+        <View style={styles.legend} accessibilityLabel="Pickup legend: SHD shield, SPD speed, SHK shrink rivals, plus 1 extra life, MLB multiball">
           {[
-            { c:'#C99A2E', l:'SHD' }, { c:'#6F8A5B', l:'SPD' }, { c:'#B4533A', l:'SHK' },
-            { c:'#B4533A', l:'+3L' }, { c:'#8C8F7A', l:'MLB' },
+            { c: '#D7A83B', l: 'SHD', d: 'Shield' }, { c: '#9BB77A', l: 'SPD', d: 'Speed' },
+            { c: '#CE7863', l: 'SHK', d: 'Shrink rivals' }, { c: '#D7A83B', l: '+1', d: 'Life' },
+            { c: '#EDE3CC', l: 'MLB', d: 'Multiball' },
           ].map(pu => (
             <View key={pu.l} style={styles.puLegend}>
-              <View style={[styles.puDot, { backgroundColor: pu.c }]} />
-              <Text style={[styles.puLabel, { color: pu.c }]}>{pu.l}</Text>
+              <Text style={[styles.puKey, { borderColor: pu.c, color: pu.c }]}>{pu.l}</Text>
+              <Text style={styles.puLabel}>{pu.d}</Text>
             </View>
           ))}
         </View>
+        {isWeb && (
+          <Text style={styles.hint}>Drag with the mouse or a finger inside the court to move your paddle. Esc or P pauses.</Text>
+        )}
       </View>
 
-      {/* Pause Modal */}
-      <Modal visible={paused} transparent animationType="fade">
+      {/* Pause dialog: opaque, explicit consequences */}
+      <Modal visible={paused} transparent animationType="none" onRequestClose={() => setPaused(false)}>
         <View style={styles.pauseOverlay}>
-          <View style={styles.pauseCard}>
-            <LinearGradient colors={['#15372F','#1E4A3F','#15372F']} style={StyleSheet.absoluteFill} />
-            <Text style={styles.pauseTitle}>PAUSED</Text>
+          <View style={styles.pauseCard} accessibilityViewIsModal accessibilityRole="alert">
+            <Text style={styles.pauseTitle} accessibilityRole="header">Paused</Text>
             <View style={styles.pauseStats}>
-              <View style={styles.pauseStat}>
-                <Text style={styles.pauseStatVal}>{fmtTime(timerSecs)}</Text>
-                <Text style={styles.pauseStatLbl}>TIME</Text>
-              </View>
-              <View style={styles.pauseDivider} />
-              <View style={styles.pauseStat}>
-                <Text style={styles.pauseStatVal}>{playerLives}</Text>
-                <Text style={styles.pauseStatLbl}>LIVES</Text>
-              </View>
-              <View style={styles.pauseDivider} />
-              <View style={styles.pauseStat}>
-                <Text style={styles.pauseStatVal}>{activeBalls}</Text>
-                <Text style={styles.pauseStatLbl}>BALLS</Text>
-              </View>
+              {[
+                { v: fmtTime(timerSecs), l: 'TIME' },
+                { v: String(Math.max(0, playerLives)), l: 'LIVES' },
+                { v: String(activeBalls), l: 'PUCKS' },
+              ].map(st => (
+                <View key={st.l} style={styles.pauseStat}>
+                  <Text style={styles.pauseStatVal}>{st.v}</Text>
+                  <Text style={styles.pauseStatLbl}>{st.l}</Text>
+                </View>
+              ))}
             </View>
-            <Pressable onPress={() => setPaused(false)} style={styles.resumeBtn}>
-              <LinearGradient colors={['#C99A2E','#C99A2E']} style={styles.resumeGrad}>
-                <Feather name="play" size={18} color="#0E2621" />
-                <Text style={styles.resumeText}>RESUME</Text>
-              </LinearGradient>
+            <Pressable ref={resumeRef} onPress={() => setPaused(false)} style={styles.resumeBtn}
+              accessibilityRole="button" accessibilityLabel="Resume match">
+              <Feather name="play" size={18} color={palette.ochreInk} />
+              <Text style={styles.resumeText}>Resume</Text>
             </Pressable>
-            <Pressable onPress={() => { setPaused(false); music.stop(); router.replace('/'); }} style={styles.quitBtn}>
-              <Feather name="home" size={14} color="#B4533A88" />
-              <Text style={styles.quitText}>Quit to Menu</Text>
+            <Text style={styles.pauseBody}>
+              {isGauntletRun
+                ? 'Exit ends this round without recording it. Your Gauntlet run stays where it was before this round.'
+                : 'Exit ends this match now. It is not recorded and earns no XP or coins.'}
+              {bankLivesUsed > 0 ? ' Bank lives used at the start are not refunded.' : ''}
+            </Text>
+            <Pressable onPress={() => { setPaused(false); music.stop(); router.replace('/'); }} style={styles.quitBtn}
+              accessibilityRole="button" accessibilityLabel="Exit match to Play">
+              <Feather name="log-out" size={16} color={palette.clay} />
+              <Text style={styles.quitText}>Exit to Play</Text>
             </Pressable>
           </View>
         </View>
@@ -567,48 +623,45 @@ export default function GameScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex:1, alignItems:'center' },
-  hud:  { flexDirection:'row', alignItems:'center', width:'100%', paddingHorizontal:12, height:48 },
-  iconBtn: { width:36, height:36, alignItems:'center', justifyContent:'center' },
-  modeChip: { flex:1, alignSelf:'center', maxWidth:140, borderRadius:3, borderWidth:1, paddingHorizontal:12, paddingVertical:5, alignItems:'center', marginHorizontal:8 },
-  modeText: { fontFamily:'SourceSans3_700Bold', fontSize:12, letterSpacing:1.5 },
-  hudRight: { width:36, alignItems:'flex-end' },
-  infoRow: { flexDirection:'row', alignItems:'center', paddingHorizontal:12, height:22 },
-  timerBadge: { flexDirection:'row', alignItems:'center', gap:4 },
-  timerText: { fontFamily:'SourceSans3_600SemiBold', fontSize:11, color:'#ECE7DC55', letterSpacing:0.8 },
-  ballsBadge: { flexDirection:'row', alignItems:'center', gap:5 },
-  ballDot: { width:7, height:7, borderRadius:4 },
-  ballsText: { fontFamily:'SourceSans3_600SemiBold', fontSize:10, color:'#ECE7DC88', letterSpacing:0.5 },
-  labelsRow:  { flexDirection:'row', paddingHorizontal:10, paddingBottom:2, alignItems:'center' },
-  sideLabel:  { fontFamily:'SourceSans3_600SemiBold', fontSize:10, letterSpacing:0.5 },
-  arenaWrap:  { alignItems:'center', gap:3 },
-  topBotLabel: { flexDirection:'row', alignItems:'center', gap:6 },
-  labelDot: { width:8, height:8, borderRadius:4 },
-  labelTxt: { fontFamily:'SourceSans3_600SemiBold', fontSize:11, letterSpacing:0.5 },
-  hudBottom:   { flexDirection:'row', alignItems:'center', flexWrap:'wrap', paddingTop:8, paddingHorizontal:16, gap:8, width:'100%' },
-  livesWrap:   { flexDirection:'row', alignItems:'center', gap:4 },
-  livesLabel:  { fontFamily:'SourceSans3_600SemiBold', fontSize:9, color:'#ECE7DC44', letterSpacing:1, marginRight:2 },
-  lifeHeart:   { width:10, height:10, borderRadius:3 },
-  elimText:    { color:'#B4533A', fontFamily:'SourceSans3_700Bold', fontSize:11, letterSpacing:1 },
-  extraLifeBtn: { flexDirection:'row', alignItems:'center', gap:4, backgroundColor:'#B4533A22', borderRadius:3, borderWidth:1, borderColor:'#B4533A55', paddingHorizontal:8, paddingVertical:4 },
-  extraLifeText: { color:'#B4533A', fontFamily:'SourceSans3_600SemiBold', fontSize:11 },
-  puRow:    { flexDirection:'row', gap:8 },
-  puLegend: { flexDirection:'row', alignItems:'center', gap:3 },
-  puDot:    { width:6, height:6, borderRadius:3 },
-  puLabel:  { fontFamily:'SourceSans3_600SemiBold', fontSize:9, letterSpacing:0.3 },
-  pauseOverlay: { flex:1, backgroundColor:'#0E2621BB', alignItems:'center', justifyContent:'center' },
-  pauseCard: { width:280, borderRadius:3, overflow:'hidden', padding:28, alignItems:'center', gap:18, borderWidth:1, borderColor:'#ECE7DC11' },
-  pauseTitle: { fontFamily:'SourceSans3_700Bold', fontSize:28, color:'#ECE7DC', letterSpacing:3 },
-  pauseStats: { flexDirection:'row', alignItems:'center', gap:0, backgroundColor:'#ECE7DC08', borderRadius:3, paddingVertical:10, paddingHorizontal:8, width:'100%', justifyContent:'space-around' },
-  pauseStat: { alignItems:'center', flex:1 },
-  pauseStatVal: { fontFamily:'SourceSans3_700Bold', fontSize:20, color:'#ECE7DC' },
-  pauseStatLbl: { fontFamily:'SourceSans3_600SemiBold', fontSize:10, color:'#ECE7DC55', letterSpacing:1 },
-  pauseDivider: { width:1, height:36, backgroundColor:'#ECE7DC22' },
-  resumeBtn: { width:'100%', borderRadius:3, overflow:'hidden' },
-  resumeGrad: { flexDirection:'row', alignItems:'center', justifyContent:'center', paddingVertical:14, gap:8 },
-  resumeText: { fontFamily:'SourceSans3_700Bold', fontSize:16, color:'#0E2621', letterSpacing:1 },
-  quitBtn: { flexDirection:'row', alignItems:'center', gap:8, paddingVertical:6 },
-  quitText: { fontFamily:'SourceSans3_600SemiBold', fontSize:13, color:'#B4533A77' },
-  lifeBtn: { flexDirection:'row', alignItems:'center', gap:6, backgroundColor:'#B4533A22', borderRadius:3, borderWidth:1, borderColor:'#B4533A44', paddingHorizontal:14, paddingVertical:8 },
-  lifeBtnText: { fontFamily:'SourceSans3_600SemiBold', fontSize:13, color:'#B4533A' },
+  root: { flex: 1, alignItems: 'center', backgroundColor: palette.ink },
+  column: { alignItems: 'stretch' },
+  stateRoot: { flex: 1, backgroundColor: palette.ink, alignItems: 'center', paddingHorizontal: 18 },
+  stateCard: { width: '100%', maxWidth: 520, gap: 16 },
+  stateTitle: { color: palette.paper, fontSize: 30, fontFamily: 'BarlowCondensed_700Bold' },
+  stateBody: { color: palette.paperDim, fontSize: 16, lineHeight: 24, fontFamily: 'SourceSans3_400Regular' },
+  hud: { flexDirection: 'row', alignItems: 'center', height: 48, gap: 6 },
+  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  modeChip: { borderRadius: 2, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
+  modeText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, letterSpacing: 1 },
+  stat: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 4 },
+  statText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, color: palette.paper },
+  ballDot: { width: 8, height: 8, borderRadius: 4 },
+  board: { flexDirection: 'row', borderWidth: 1, borderColor: palette.line, backgroundColor: palette.graphite, marginBottom: 6, height: 44 },
+  boardCell: { flex: 1, alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, borderRightColor: palette.line },
+  boardYou: { backgroundColor: palette.ochre },
+  boardSeat: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: palette.muted },
+  boardLives: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: palette.paper, lineHeight: 20 },
+  youRow: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 32, marginTop: 4 },
+  labelDot: { width: 8, height: 8, borderRadius: 4 },
+  youText: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.paper, flexShrink: 1 },
+  livesLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: palette.muted, letterSpacing: 1 },
+  livesVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 20, color: palette.paper },
+  outNote: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: palette.paperDim },
+  legend: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 10, rowGap: 4, minHeight: 24, alignItems: 'center' },
+  puLegend: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  puKey: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, borderWidth: 1, borderRadius: 2, paddingHorizontal: 3 },
+  puLabel: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.paperDim },
+  hint: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.muted, marginTop: 4 },
+  pauseOverlay: { flex: 1, backgroundColor: palette.ink, alignItems: 'center', justifyContent: 'center', padding: 18 },
+  pauseCard: { width: '100%', maxWidth: 360, borderRadius: 3, padding: 24, gap: 16, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.graphite },
+  pauseTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 34, color: palette.paper },
+  pauseStats: { flexDirection: 'row', borderWidth: 1, borderColor: palette.line, paddingVertical: 10 },
+  pauseStat: { alignItems: 'center', flex: 1 },
+  pauseStatVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: palette.paper },
+  pauseStatLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: palette.muted, letterSpacing: 1 },
+  pauseBody: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.paperDim },
+  resumeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 48, borderRadius: 3, backgroundColor: palette.ochre },
+  resumeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 17, color: palette.ochreInk },
+  quitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 44, borderRadius: 3, borderWidth: 1, borderColor: palette.clay },
+  quitText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.clay },
 });

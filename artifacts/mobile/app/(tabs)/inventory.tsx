@@ -2,23 +2,24 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Shell, gridItemWidth } from '@/components/ui/Primitives';
 import Reanimated from 'react-native-reanimated';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SKINS, RANKS, getRankIndex, usePlayer, LUCKY_BLOCK_META, GOLD_STRIKE_NAME, type LuckyBlock } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 import { useColors } from '@/hooks/useColors';
-import { FloatingOrbs, ORBS_ARCANE, GlowText, ShimmerCard, HolographicShimmer, GlowBorder } from '@/components/effects';
+import { FloatingOrbs, ORBS_ARCANE, GlowText, ShimmerCard, GlowBorder } from '@/components/effects';
 import { Glyph } from '@/components/ui/Glyph';
 
 const ARENA_THEMES = [
-  { id: 'default', name: 'Dark Void',      desc: 'Classic deep-space arena',   color: '#EDE3CC', preview: ['#0E2621', '#15372F'] as [string,string] },
-  { id: 'solar',   name: 'Solar Flare',    desc: 'Scorching red-orange arena',  color: '#E04A2F', preview: ['#15372F', '#1E4A3F'] as [string,string] },
-  { id: 'arctic',  name: 'Arctic Ice',     desc: 'Cool blue frost arena',       color: '#EDE3CC', preview: ['#0E2621', '#1E4A3F'] as [string,string] },
-  { id: 'toxic',   name: 'Toxic Wasteland',desc: 'Neon green hazard zone',      color: '#9CC93E', preview: ['#0E2621', '#0E2621'] as [string,string] },
-  { id: 'cosmic',  name: 'Cosmic Dream',   desc: 'Purple nebula atmosphere',    color: '#EDE3CC', preview: ['#0E2621', '#1E4A3F'] as [string,string] },
-  { id: 'golden',  name: 'Gold Rush',      desc: 'Prestige golden arena',       color: '#F0B429', preview: ['#0E2621', '#0E2621'] as [string,string] },
+  { id: 'default', name: 'Dark Void',      desc: 'Classic deep-space arena',   color: '#EDE3CC', preview: ['#14231F', '#20372F'] as [string,string] },
+  { id: 'solar',   name: 'Solar Flare',    desc: 'Scorching red-orange arena',  color: '#CE7863', preview: ['#20372F', '#1E4A3F'] as [string,string] },
+  { id: 'arctic',  name: 'Arctic Ice',     desc: 'Cool blue frost arena',       color: '#EDE3CC', preview: ['#14231F', '#1E4A3F'] as [string,string] },
+  { id: 'toxic',   name: 'Toxic Wasteland',desc: 'Neon green hazard zone',      color: '#9BB77A', preview: ['#14231F', '#14231F'] as [string,string] },
+  { id: 'cosmic',  name: 'Cosmic Dream',   desc: 'Purple nebula atmosphere',    color: '#EDE3CC', preview: ['#14231F', '#1E4A3F'] as [string,string] },
+  { id: 'golden',  name: 'Gold Rush',      desc: 'Prestige golden arena',       color: '#D7A83B', preview: ['#14231F', '#14231F'] as [string,string] },
 ];
 
 type Tab = 'skins' | 'themes' | 'strikes';
@@ -39,6 +40,10 @@ export default function InventoryScreen() {
   const ownedSkins  = SKINS.filter(s => profile.ownedSkins.includes(s.id));
   const ownedThemes = ARENA_THEMES.filter(t => profile.ownedThemes.includes(t.id));
   const focusStyle = useFocusAnimation();
+  const { width: winW } = useWindowDimensions();
+  const avail = Math.min(winW, 1160) - 36;
+  const cardW = gridItemWidth(avail, 150, 10);
+  const strikeW = gridItemWidth(avail, 100, 10);
 
   async function handleEquipSkin(skinId: string) {
     await equipSkin(skinId);
@@ -55,14 +60,14 @@ export default function InventoryScreen() {
   return (
     <Reanimated.View style={[{ flex: 1, backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs orbs={ORBS_ARCANE} opacity={0.7} />
-      <LinearGradient colors={['#0E2621', '#0E2621', '#0E2621']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#14231F', '#14231F', '#14231F']} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={['#F0B42922', '#F0B4290E', 'transparent']}
+        colors={['#D7A83B22', '#D7A83B0E', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 380 }}
         pointerEvents="none"
       />
       <LinearGradient
-        colors={['transparent', '#0E262188']}
+        colors={['transparent', '#14231F88']}
         style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 }}
         pointerEvents="none"
       />
@@ -70,8 +75,8 @@ export default function InventoryScreen() {
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
         <View>
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#F3EAD344', marginBottom: 2 }}>YOUR COLLECTION</Text>
-          <GlowText intensity="medium" color='#F0B429' style={s.title}>INVENTORY</GlowText>
+          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 2.5, color: '#EEE7D744', marginBottom: 2 }}>Owned items</Text>
+          <Text style={[s.title, { color: '#EEE7D7' }]} accessibilityRole="header">Collection</Text>
         </View>
         <View style={s.countBadge}>
           <Text style={s.countText}>{ownedSkins.length + ownedThemes.length} items</Text>
@@ -86,7 +91,7 @@ export default function InventoryScreen() {
             tab === 'themes'  ? `THEMES (${ownedThemes.length})` :
             pendingBlocks.length > 0 ? `STRIKES (${pendingBlocks.length})` : 'STRIKES';
           const isActive = activeTab === tab;
-          const accentColor = tab === 'strikes' ? '#F0B429' : colors.primary;
+          const accentColor = tab === 'strikes' ? '#D7A83B' : colors.primary;
           return (
             <Pressable
               key={tab}
@@ -108,15 +113,16 @@ export default function InventoryScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: insets.bottom + 90, gap: 12 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: insets.bottom + 90 }}
       >
+        <Shell style={{ gap: 12 }}>
         {/* ── Skins tab ── */}
         {activeTab === 'skins' && (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <GlowText intensity="medium" color='#F0B429' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>PADDLE SKINS</GlowText>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#F3EAD333', letterSpacing: 1 }}>{ownedSkins.length}/{SKINS.length} OWNED</Text>
+              <GlowText intensity="medium" color='#D7A83B' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>PADDLE SKINS</GlowText>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D70E' }} />
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#EEE7D733', letterSpacing: 1 }}>{ownedSkins.length}/{SKINS.length} OWNED</Text>
             </View>
             {ownedSkins.length === 0 ? (
               <EmptyState icon="shopping-bag" message="No skins yet" sub="Visit the Shop to buy paddle skins" />
@@ -125,9 +131,9 @@ export default function InventoryScreen() {
                 {ownedSkins.map(skin => {
                   const equipped = profile.currentSkin === skin.id;
                   return (
-                    <HolographicShimmer key={skin.id} borderRadius={3} active={equipped}>
+                    <View key={skin.id} style={{ width: cardW }}>
                       <View
-                        style={[s.skinCard, {
+                        style={[s.skinCard, { width: '100%',
                           backgroundColor: equipped ? skin.color + '18' : colors.card,
                           borderColor: equipped ? skin.color : colors.border,
                         }]}
@@ -138,23 +144,25 @@ export default function InventoryScreen() {
                         </LinearGradient>
 
                         {/* Info */}
-                        <GlowText intensity="soft" color={skin.color ?? '#F0B429'} style={s.skinName}>{skin.name}</GlowText>
+                        <GlowText intensity="soft" color={skin.color ?? '#D7A83B'} style={s.skinName}>{skin.name}</GlowText>
 
                       {equipped ? (
                         <View style={[s.equippedBadge, { backgroundColor: skin.color }]}>
-                          <Feather name="check" size={10} color="#0E2621" />
+                          <Feather name="check" size={10} color="#14231F" />
                           <Text style={s.equippedText}>EQUIPPED</Text>
                         </View>
                       ) : (
                         <Pressable
                           onPress={() => handleEquipSkin(skin.id)}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Equip ${skin.name}`}
                           style={({ pressed }) => [s.equipBtn, { borderColor: skin.color, opacity: pressed ? 0.7 : 1 }]}
                         >
-                          <Text style={[s.equipBtnText, { color: skin.color }]}>EQUIP</Text>
+                          <Text style={[s.equipBtnText, { color: skin.color }]}>Equip</Text>
                         </Pressable>
                       )}
                       </View>
-                    </HolographicShimmer>
+                    </View>
                   );
                 })}
               </View>
@@ -176,12 +184,12 @@ export default function InventoryScreen() {
         {activeTab === 'themes' && (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <GlowText intensity="medium" color='#F0B429' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>ARENA THEMES</GlowText>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#F3EAD333', letterSpacing: 1 }}>{ownedThemes.length} OWNED</Text>
+              <GlowText intensity="medium" color='#D7A83B' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>ARENA THEMES</GlowText>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D70E' }} />
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#EEE7D733', letterSpacing: 1 }}>{ownedThemes.length} OWNED</Text>
             </View>
             {ownedThemes.length === 0 ? (
-              <EmptyState icon="shopping-bag" message="No themes yet" sub="Visit the Shop to buy arena themes" />
+              <EmptyState icon="slash" message="No themes saved" sub="Arena themes are unavailable in this build. Nothing can be bought or equipped here yet." />
             ) : (
               ownedThemes.map(theme => {
                 const equipped = profile.currentArenaTheme === theme.id;
@@ -206,16 +214,16 @@ export default function InventoryScreen() {
 
                     {equipped ? (
                       <View style={[s.equippedBadge, { backgroundColor: theme.color }]}>
-                        <Feather name="check" size={10} color="#0E2621" />
-                        <Text style={s.equippedText}>SAVED</Text>
+                        <Feather name="check" size={10} color="#14231F" />
+                        <Text style={s.equippedText}>SAVED CHOICE</Text>
                       </View>
                     ) : (
-                      <Pressable
-                        onPress={() => handleEquipTheme(theme.id)}
-                        style={({ pressed }) => [s.equipBtn, { borderColor: theme.color, opacity: pressed ? 0.7 : 1 }]}
+                      <View
+                        accessibilityLabel={`${theme.name}: unavailable in this build`}
+                        style={[s.equipBtn, { borderColor: '#3B5A4E' }]}
                       >
-                        <Text style={[s.equipBtnText, { color: theme.color }]}>UNAVAILABLE</Text>
-                      </Pressable>
+                        <Text style={[s.equipBtnText, { color: '#C9D2C6' }]}>UNAVAILABLE</Text>
+                      </View>
                     )}
                   </View>
                 );
@@ -226,7 +234,7 @@ export default function InventoryScreen() {
               <View style={[s.hintCard, { borderColor: colors.border, backgroundColor: colors.card }]}>
                 <Feather name="shopping-bag" size={16} color={colors.mutedForeground} />
                 <Text style={[s.hintText, { color: colors.mutedForeground }]}>
-                  {ARENA_THEMES.length - ownedThemes.length} more theme{ARENA_THEMES.length - ownedThemes.length !== 1 ? 's' : ''} available in the Shop
+                  Arena themes are unavailable in this build. Saved ownership is kept and will not be charged again.
                 </Text>
               </View>
             )}
@@ -237,11 +245,11 @@ export default function InventoryScreen() {
         {activeTab === 'strikes' && (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <GlowText intensity="medium" color='#F0B429' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>
+              <GlowText intensity="medium" color='#D7A83B' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>
                 {GOLD_STRIKE_NAME.toUpperCase()}S
               </GlowText>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#F3EAD30E' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#F3EAD333', letterSpacing: 1 }}>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D70E' }} />
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, color: '#EEE7D733', letterSpacing: 1 }}>
                 {pendingBlocks.length} PENDING
               </Text>
             </View>
@@ -251,8 +259,7 @@ export default function InventoryScreen() {
             ) : (
               <>
                 <View style={s.strikesInfoRow}>
-                  <Glyph style={{ fontSize: 16 }} value="✨" />
-                  <Text style={[s.strikesInfo, { color: '#F3EAD355' }]}>
+                  <Text style={[s.strikesInfo, { color: '#EEE7D755' }]}>
                     Tap any {GOLD_STRIKE_NAME} to open it and reveal your reward
                   </Text>
                 </View>
@@ -277,7 +284,7 @@ export default function InventoryScreen() {
                           <Pressable
                             key={block.id}
                             onPress={() => setActiveLuckyBlock(block)}
-                            style={({ pressed }) => [s.strikeCard, {
+                            style={({ pressed }) => [s.strikeCard, { width: strikeW,
                               borderColor: meta.color + (pressed ? 'FF' : '66'),
                               backgroundColor: meta.color + (pressed ? '22' : '10'),
                             }]}
@@ -302,6 +309,7 @@ export default function InventoryScreen() {
           </>
         )}
 
+        </Shell>
       </ScrollView>
 
       {activeLuckyBlock && (
@@ -317,7 +325,7 @@ export default function InventoryScreen() {
 function EmptyState({ icon, message, sub }: { icon: string; message: string; sub: string }) {
   return (
     <View style={s.emptyState}>
-      <Feather name={icon as never} size={40} color="#F3EAD322" />
+      <Feather name={icon as never} size={40} color="#EEE7D722" />
       <Text style={s.emptyTitle}>{message}</Text>
       <Text style={s.emptySub}>{sub}</Text>
     </View>
@@ -327,15 +335,15 @@ function EmptyState({ icon, message, sub }: { icon: string; message: string; sub
 const s = StyleSheet.create({
   header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12, gap: 10 },
   title:       { fontFamily: 'SourceSans3_700Bold', fontSize: 20, letterSpacing: 2 },
-  countBadge:  { backgroundColor: '#F0B4291A', borderRadius: 3, borderWidth: 1, borderColor: '#F0B42944', paddingHorizontal: 8, paddingVertical: 4 },
-  countText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#F0B429', letterSpacing: 0.5 },
+  countBadge:  { backgroundColor: '#D7A83B1A', borderRadius: 3, borderWidth: 1, borderColor: '#D7A83B44', paddingHorizontal: 8, paddingVertical: 4 },
+  countText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#D7A83B', letterSpacing: 0.5 },
   tabRow:      { flexDirection: 'row', borderBottomWidth: 1, paddingHorizontal: 16 },
   tab:         { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 1.2 },
 
   // Skin grid
   skinGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  skinCard:    { width: '47%', borderRadius: 3, borderWidth: 1.5, overflow: 'hidden', alignItems: 'center', paddingBottom: 12 },
+  skinCard:    { borderRadius: 3, borderWidth: 1.5, overflow: 'hidden', alignItems: 'center', paddingBottom: 12 },
   skinPreview: { width: '100%', height: 80, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
   paddlePreview: { width: 70, height: 12, borderRadius: 3, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
   skinName:    { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5, marginBottom: 8 },
@@ -349,24 +357,24 @@ const s = StyleSheet.create({
 
   // Shared
   equippedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, paddingHorizontal: 10, paddingVertical: 5 },
-  equippedText:  { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#0E2621', letterSpacing: 0.5 },
-  equipBtn:    { borderWidth: 1.5, borderRadius: 3, paddingHorizontal: 14, paddingVertical: 6 },
-  equipBtnText:{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 0.5 },
+  equippedText:  { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#14231F', letterSpacing: 0.5 },
+  equipBtn:    { borderWidth: 1.5, borderRadius: 3, paddingHorizontal: 16, minHeight: 44, justifyContent: 'center' },
+  equipBtnText:{ fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
   hintCard:    { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 3, borderWidth: 1, padding: 12 },
   hintText:    { fontFamily: 'SourceSans3_400Regular', fontSize: 12, flex: 1 },
 
 
   emptyState:  { alignItems: 'center', paddingVertical: 60, gap: 10 },
-  emptyTitle:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#F3EAD344' },
-  emptySub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#F3EAD322', textAlign: 'center' },
+  emptyTitle:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#EEE7D744' },
+  emptySub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#EEE7D722', textAlign: 'center' },
 
   // Gold Strikes tab
-  strikeBadge:     { position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 3, backgroundColor: '#F0B429', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  strikeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#0E2621', letterSpacing: 0 },
-  strikesInfoRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F0B42910', borderRadius: 3, borderWidth: 1, borderColor: '#F0B42922', paddingHorizontal: 12, paddingVertical: 9, marginBottom: 4 },
+  strikeBadge:     { position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 3, backgroundColor: '#D7A83B', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  strikeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#14231F', letterSpacing: 0 },
+  strikesInfoRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#D7A83B10', borderRadius: 3, borderWidth: 1, borderColor: '#D7A83B22', paddingHorizontal: 12, paddingVertical: 9, marginBottom: 4 },
   strikesInfo:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, flex: 1 },
-  strikeCard:      { width: '30%', aspectRatio: 0.85, borderRadius: 3, borderWidth: 1.5, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  strikeCard:      { aspectRatio: 0.85, borderRadius: 3, borderWidth: 1.5, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 4 },
   strikeCardNum:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 0.5 },
   openChip:        { borderRadius: 3, paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
-  openChipText:    { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#0E2621', letterSpacing: 1 },
+  openChipText:    { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#14231F', letterSpacing: 1 },
 });

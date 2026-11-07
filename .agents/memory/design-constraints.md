@@ -22,3 +22,9 @@ The user requested a blend of neo-brutalism, 3D elements, bold typography, retro
 **Why:** The user explicitly requested this visual direction for GoldRush Arena.
 
 **How to apply:** Combine these treatments coherently while preserving readability and the earlier avoidance list. The user allows unsuitable styles to be left out.
+
+The later full-app brief prioritizes a professional physical air-hockey presentation with engraved brass scoreboards, restrained pine/charcoal surfaces, and meaningful color. Real engine demonstrations and honest local-bot, device-local-profile, unavailable-store and pre-release labels take priority over decoration.
+
+**Why:** The user supplied this more specific direction for the production app after the exploratory eight-style request.
+
+**How to apply:** Use it to resolve conflicts with earlier explorations. Do not add decorative effects merely to demonstrate every style, or present coordinated parties as synchronized human PvP.

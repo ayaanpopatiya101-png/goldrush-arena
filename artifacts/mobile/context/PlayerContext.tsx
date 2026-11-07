@@ -3,6 +3,7 @@ import { StartupState } from '@/components/StartupState';
 import { withTimeout } from '@/utils/withTimeout';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { getGameConfig } from '@/store/gameSession';
+import { setCompletedMatch } from '@/store/completedMatch';
 import { trackEvent } from '@/utils/analytics';
 
 // ─── Ranks & Skins ────────────────────────────────────────────────────────────
@@ -1041,7 +1042,7 @@ interface PlayerContextType {
   showStreakModal: boolean;
   dismissStreakModal: () => void;
   updateName: (name: string) => Promise<void>;
-  addMatchResult: (r: Omit<MatchResult, 'id'|'timestamp'>) => Promise<void>;
+  addMatchResult: (r: Omit<MatchResult, 'id'|'timestamp'> & { eventBonus?: { xp: number; coins: number; credits: number } }) => Promise<void>;
   unlockAchievement: (id: string) => Promise<string | null>;
   purchaseSkin: (skinId: string) => Promise<boolean>;
   equipSkin: (skinId: string) => Promise<void>;
@@ -1159,7 +1160,7 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({ ...profile, name: name.trim() || username });
   }, [profile, save]);
 
-  const addMatchResult = useCallback(async (result: Omit<MatchResult, 'id'|'timestamp'>) => {
+  const addMatchResult = useCallback(async (result: Omit<MatchResult, 'id'|'timestamp'> & { eventBonus?: { xp: number; coins: number; credits: number } }) => {
     const id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
     const matchType = result.matchType ?? 'casual';
     const opponentLevels = result.opponentLevels ?? [];
@@ -1169,7 +1170,8 @@ export function PlayerProvider({ username, onLogout, children }: {
     const { featuredCoinMult: _fcm = 1, featuredXpMult: _fxm = 1 } = getGameConfig();
     const finalXpEarned    = _fxm !== 1 ? Math.round(result.xpEarned   * _fxm) : result.xpEarned;
     const finalCoinsEarned = _fcm !== 1 ? Math.round(result.coinsEarned * _fcm) : result.coinsEarned;
-    const newXP  = profile.xp + finalXpEarned;
+    const eventBonus = result.eventBonus ?? { xp: 0, coins: 0, credits: 0 };
+    const newXP  = profile.xp + finalXpEarned + eventBonus.xp;
     const newWinStreak = result.won ? profile.winStreak + 1 : 0;
     const match: MatchResult = {
       ...result,
@@ -1234,8 +1236,8 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({
       ...profile,
       xp: newXP, level: xpToLevel(newXP), rank: getRankFromXP(newXP),
-      coins: profile.coins + finalCoinsEarned,
-      credits: (profile.credits ?? 0) + creditsEarned,
+      coins: profile.coins + finalCoinsEarned + eventBonus.coins,
+      credits: (profile.credits ?? 0) + creditsEarned + eventBonus.credits,
       wins:  result.won ? profile.wins + 1 : profile.wins,
       losses: !result.won ? profile.losses + 1 : profile.losses,
       totalGames: profile.totalGames + 1,
@@ -1253,6 +1255,14 @@ export function PlayerProvider({ username, onLogout, children }: {
       seasonalQuestProgress: sQP,
       lastDailyReset:  today2,
       lastWeeklyReset: weekKey2,
+    });
+    setCompletedMatch({
+      id, username, xpBefore: profile.xp, xpAfter: newXP,
+      xpEarned: finalXpEarned, coinsEarned: finalCoinsEarned,
+      levelBefore: profile.competitiveLevel, levelAfter: newCompLevel,
+      won: result.won, position: result.position, deflections: result.deflections,
+      goalsAgainst: result.goalsAgainst, matchType,
+      bonusApplied: true, qualifierApplied: false, ceremonySeen: false,
     });
   }, [profile, save]);
 

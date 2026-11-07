@@ -7,19 +7,19 @@ const PLAYER_COLORS = ['#F0B429', '#E04A2F', '#EDE3CC', '#9CC93E'] as const;
 const PLAYER_GLOW = PLAYER_COLORS;
 
 export const palette = {
-  ink: '#0E2621',        // page background
-  graphite: '#15372F',   // panel
-  graphite2: '#1E4A3F',  // raised panel / input
-  line: '#2F6456',       // borders
-  lineStrong: '#4A8574',
-  paper: '#F3EAD3',      // off-white text
-  paperDim: '#CFE0D6',
-  muted: '#93B8AB',
-  ochre: '#F0B429',      // action
-  ochreDeep: '#C98E12',
-  ochreInk: '#1C1402',   // text on ochre
-  clay: '#E04A2F',       // danger / loss
-  moss: '#9CC93E',       // success / owned
+  ink: '#14231F',        // page background
+  graphite: '#20372F',   // panel
+  graphite2: '#294239',  // raised panel / input
+  line: '#3B5A4E',       // borders
+  lineStrong: '#5C7D70',
+  paper: '#EEE7D7',      // off-white text
+  paperDim: '#C9D2C6',
+  muted: '#B8C3B6',
+  ochre: '#D7A83B',      // action
+  ochreDeep: '#B88B26',
+  ochreInk: '#18221C',   // text on ochre
+  clay: '#CE7863',       // danger / loss
+  moss: '#9BB77A',       // success / owned
 } as const;
 
 const gameTheme = {

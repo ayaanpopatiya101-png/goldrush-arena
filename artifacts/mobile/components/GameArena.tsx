@@ -175,18 +175,18 @@ interface GameArenaProps {
 }
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
-const POWERUP_COLORS:  Record<PowerUpType, string> = { shield:'#F0B429', speed:'#9CC93E', shrink:'#E04A2F', extralife:'#F0B429', multiball:'#EDE3CC' };
+const POWERUP_COLORS:  Record<PowerUpType, string> = { shield:'#D7A83B', speed:'#9BB77A', shrink:'#CE7863', extralife:'#D7A83B', multiball:'#EDE3CC' };
 const POWERUP_LABELS:  Record<PowerUpType, string> = { shield:'SHD', speed:'SPD', shrink:'SHK', extralife:'+1', multiball:'MLB' };
 const ARENA_BG:        Record<GameMode, [string,string,string]> = {
-  square:   ['#0E2621','#0E2621','#0E2621'],
-  triangle: ['#0E2621','#0E2621','#0E2621'],
-  duel:     ['#0E2621','#0E2621','#0E2621'],
+  square:   ['#14231F','#14231F','#14231F'],
+  triangle: ['#14231F','#14231F','#14231F'],
+  duel:     ['#14231F','#14231F','#14231F'],
 };
 // 6 seats derived from shared seat tones; extra seats repeat existing tones.
 const PLAYER_COLORS: string[] = [0,1,2,3,0,2].map(i => SHARED_SEATS[i]!);
 const PLAYER_GLOW: string[] = PLAYER_COLORS.map(c => c + '88');
 const GOAL_EMOJIS   = ['💥','🎯','⚡','🔥','😱','💫','🚀'];
-const COMBO_COLORS  = ['#F0B429','#F0B429','#E04A2F','#EDE3CC'];
+const COMBO_COLORS  = ['#D7A83B','#D7A83B','#CE7863','#EDE3CC'];
 
 function clampPaddle(v: number, len: number, sz: number) {
   return Math.max(len/2+2, Math.min(sz-len/2-2, v));
@@ -221,8 +221,8 @@ function relicForRank(rankName: string, botId: number): RelicEffect | null {
 
 // ─── Colour-board base hues (opacity applied dynamically in render) ────────────
 const COLOR_BOARD_COLORS = [
-  '#E04A2F','#F0B429','#F0B429','#9CC93E',
-  '#EDE3CC','#EDE3CC','#EDE3CC','#E04A2F',
+  '#CE7863','#D7A83B','#D7A83B','#9BB77A',
+  '#EDE3CC','#EDE3CC','#EDE3CC','#CE7863',
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -286,7 +286,7 @@ export function GameArena({
   const flashAnim  = useRef(new Animated.Value(0)).current;
   const screenShakeRef = useRef<ScreenShakeRef>(null);
   const sparkBurstRef  = useRef<SparkBurstRef>(null);
-  const [flashColor, setFlashColor]           = useState('#E04A2F');
+  const [flashColor, setFlashColor]           = useState('#CE7863');
   const [livesState, setLivesState]           = useState<number[]>([initialLivesVal,initialLivesVal,initialLivesVal,initialLivesVal,initialLivesVal,initialLivesVal]);
   const [eliminatedState, setEliminatedState] = useState<boolean[]>([false,false,false,false,false,false]);
   const [gamePhase, setGamePhase]             = useState<'countdown'|'playing'|'gameover'>(skipCountdown ? 'playing' : 'countdown');
@@ -682,8 +682,8 @@ export function GameArena({
     const types: BallType[] = ['normal','normal','normal','fire','heavy','tiny'];
     const type   = types[Math.floor(rand() * types.length)];
     const spd    = INITIAL_SPEED * gs.speedMultiplier * speedMult;
-    let radius   = 10, color = '#F3EAD3';
-    if (type === 'fire')  { radius = 10; color = '#E04A2F'; }
+    let radius   = 10, color = '#EEE7D7';
+    if (type === 'fire')  { radius = 10; color = '#CE7863'; }
     if (type === 'heavy') { radius = 15; color = '#EDE3CC'; }
     if (type === 'tiny')  { radius = 6;  color = '#EDE3CC'; }
     const angle  = (rand() * Math.PI * 1.5) + Math.PI * 0.25;
@@ -1343,9 +1343,9 @@ export function GameArena({
 
   // ─── Arena orbs (memoised so they don't recreate every render) ─────────────
   const gameOrbs = useMemo<OrbConfig[]>(() => [
-    { x: arenaSize * 0.15, y: arenaSize * 0.15, size: arenaSize * 0.65, color: '#F0B429', dur: 9000,  delay: 0,    scaleRange: [0.85, 1.1]  },
+    { x: arenaSize * 0.15, y: arenaSize * 0.15, size: arenaSize * 0.65, color: '#D7A83B', dur: 9000,  delay: 0,    scaleRange: [0.85, 1.1]  },
     { x: arenaSize * 0.82, y: arenaSize * 0.55, size: arenaSize * 0.5,  color: '#EDE3CC', dur: 11500, delay: 3000, scaleRange: [0.88, 1.07] },
-    { x: arenaSize * 0.35, y: arenaSize * 0.82, size: arenaSize * 0.42, color: '#9CC93E', dur: 13000, delay: 1500, scaleRange: [0.9,  1.08] },
+    { x: arenaSize * 0.35, y: arenaSize * 0.82, size: arenaSize * 0.42, color: '#9BB77A', dur: 13000, delay: 1500, scaleRange: [0.9,  1.08] },
   ], [arenaSize]);
 
   // ─── Derived display values ──────────────────────────────────────────────────
@@ -1402,12 +1402,12 @@ export function GameArena({
       {/* SVG layer */}
       <Svg width={arenaSize} height={arenaSize} style={StyleSheet.absoluteFill}>
         {/* Grid */}
-        <Line x1={0} y1={CY} x2={arenaSize} y2={CY} stroke="#F3EAD318" strokeWidth={1} />
-        <Line x1={CX} y1={0} x2={CX} y2={arenaSize} stroke="#F3EAD318" strokeWidth={1} />
+        <Line x1={0} y1={CY} x2={arenaSize} y2={CY} stroke="#EEE7D718" strokeWidth={1} />
+        <Line x1={CX} y1={0} x2={CX} y2={arenaSize} stroke="#EEE7D718" strokeWidth={1} />
         {/* Triangle overlay */}
-        {gameMode === 'triangle' && <Polygon points={triPoints()} fill="none" stroke="#9CC93E66" strokeWidth={1.5} strokeDasharray="10,5" />}
+        {gameMode === 'triangle' && <Polygon points={triPoints()} fill="none" stroke="#9BB77A66" strokeWidth={1.5} strokeDasharray="10,5" />}
         {/* Duel divider */}
-        {isDuel && <Line x1={0} y1={CY} x2={arenaSize} y2={CY} stroke="#E04A2F55" strokeWidth={2} strokeDasharray="12,6" />}
+        {isDuel && <Line x1={0} y1={CY} x2={arenaSize} y2={CY} stroke="#CE786355" strokeWidth={2} strokeDasharray="12,6" />}
         {/* Active player wall strips */}
         {/* Bottom wall, split in sixPlayer mode */}
         {!eliminatedState[BOTTOM] && !sixPlayer && <Line x1={WALL_MARGIN} y1={arenaSize-WALL_MARGIN+2} x2={arenaSize-WALL_MARGIN} y2={arenaSize-WALL_MARGIN+2} stroke={PLAYER_COLORS[BOTTOM]} strokeWidth={3} strokeOpacity={0.65} />}
@@ -1426,11 +1426,11 @@ export function GameArena({
         {!isDuel && !eliminatedState[LEFT]  && <Line x1={WALL_MARGIN-2} y1={WALL_MARGIN} x2={WALL_MARGIN-2} y2={arenaSize-WALL_MARGIN} stroke={PLAYER_COLORS[LEFT]} strokeWidth={3} strokeOpacity={0.65} />}
         {!isDuel && !eliminatedState[RIGHT] && <Line x1={arenaSize-WALL_MARGIN+2} y1={WALL_MARGIN} x2={arenaSize-WALL_MARGIN+2} y2={arenaSize-WALL_MARGIN} stroke={PLAYER_COLORS[RIGHT]} strokeWidth={3} strokeOpacity={0.65} />}
         {/* SixPlayer midline dividers on top/bottom */}
-        {sixPlayer && <Line x1={CX} y1={arenaSize-WALL_MARGIN} x2={CX} y2={arenaSize-WALL_MARGIN+5} stroke="#F3EAD344" strokeWidth={2} />}
-        {sixPlayer && <Line x1={CX} y1={WALL_MARGIN-5} x2={CX} y2={WALL_MARGIN} stroke="#F3EAD344" strokeWidth={2} />}
+        {sixPlayer && <Line x1={CX} y1={arenaSize-WALL_MARGIN} x2={CX} y2={arenaSize-WALL_MARGIN+5} stroke="#EEE7D744" strokeWidth={2} />}
+        {sixPlayer && <Line x1={CX} y1={WALL_MARGIN-5} x2={CX} y2={WALL_MARGIN} stroke="#EEE7D744" strokeWidth={2} />}
         {/* Duel side walls (solid bounce markers) */}
-        {isDuel && <Line x1={WALL_MARGIN-2} y1={WALL_MARGIN} x2={WALL_MARGIN-2} y2={arenaSize-WALL_MARGIN} stroke="#F3EAD322" strokeWidth={2} strokeDasharray="8,8" />}
-        {isDuel && <Line x1={arenaSize-WALL_MARGIN+2} y1={WALL_MARGIN} x2={arenaSize-WALL_MARGIN+2} y2={arenaSize-WALL_MARGIN} stroke="#F3EAD322" strokeWidth={2} strokeDasharray="8,8" />}
+        {isDuel && <Line x1={WALL_MARGIN-2} y1={WALL_MARGIN} x2={WALL_MARGIN-2} y2={arenaSize-WALL_MARGIN} stroke="#EEE7D722" strokeWidth={2} strokeDasharray="8,8" />}
+        {isDuel && <Line x1={arenaSize-WALL_MARGIN+2} y1={WALL_MARGIN} x2={arenaSize-WALL_MARGIN+2} y2={arenaSize-WALL_MARGIN} stroke="#EEE7D722" strokeWidth={2} strokeDasharray="8,8" />}
       </Svg>
 
       {/* Player wall zone backgrounds */}
@@ -1457,7 +1457,7 @@ export function GameArena({
         const active = botSuperActiveUI[idx];
         const bst    = botSuperTypesRef.current[idx];
         const icon   = bst === 1 ? '⚔️' : bst === 2 ? '🌀' : '💥';
-        const col    = active ? '#9CC93E' : player.color;
+        const col    = active ? '#9BB77A' : player.color;
         const pipW   = 14;
         const gap    = 2;
         const totalW = SUPER_MAX_CHARGE * pipW + (SUPER_MAX_CHARGE - 1) * gap;
@@ -1475,7 +1475,7 @@ export function GameArena({
               {Array.from({length: SUPER_MAX_CHARGE}).map((_,pi) => (
                 <View key={pi} style={{
                   width:pipW, height:4, borderRadius:2,
-                  backgroundColor: active ? '#9CC93E' : (pi < charge ? col : '#F3EAD31A'),
+                  backgroundColor: active ? '#9BB77A' : (pi < charge ? col : '#EEE7D71A'),
                   shadowColor: pi < charge ? col : 'transparent',
                   shadowOpacity: pi < charge ? 0.9 : 0,
                   shadowRadius: 0,
@@ -1545,7 +1545,7 @@ export function GameArena({
         <Animated.View style={[s.paddle, {
           width:getPaddleLen(isDuel ? duelBottomPlayer : gs.players[BOTTOM]), height:PADDLE_THICKNESS,
           bottom:WALL_MARGIN-PADDLE_THICKNESS/2, left:0,
-          backgroundColor: (isDuel ? shieldActive[duelBottomPlayer.id] : shieldActive[0]) ? '#F0B429' : (isDuel ? duelBottomPlayer.color : gs.players[BOTTOM].color),
+          backgroundColor: (isDuel ? shieldActive[duelBottomPlayer.id] : shieldActive[0]) ? '#D7A83B' : (isDuel ? duelBottomPlayer.color : gs.players[BOTTOM].color),
           shadowColor: isDuel ? duelBottomPlayer.color : gs.players[BOTTOM].color,
           transform:[{ translateX:Animated.subtract(paddleAnims[BOTTOM], getPaddleLen(isDuel ? duelBottomPlayer : gs.players[BOTTOM])/2) }],
         }]} />
@@ -1565,7 +1565,7 @@ export function GameArena({
           <Animated.View style={[s.paddle, {
             width:getPaddleLen(gs.players[BOTTOM_R]), height:PADDLE_THICKNESS,
             bottom:WALL_MARGIN-PADDLE_THICKNESS/2, left:0,
-            backgroundColor: shieldActive[BOTTOM_R] ? '#F0B429' : gs.players[BOTTOM_R].color,
+            backgroundColor: shieldActive[BOTTOM_R] ? '#D7A83B' : gs.players[BOTTOM_R].color,
             shadowColor: gs.players[BOTTOM_R].color,
             transform:[{ translateX:Animated.subtract(paddleAnims[BOTTOM_R], getPaddleLen(gs.players[BOTTOM_R])/2) }],
           }]} />
@@ -1639,7 +1639,7 @@ export function GameArena({
         {/* Duel timer */}
         {isDuel && (
           <View style={s.duelTimer}>
-            <Text style={[s.duelTimerText, { color: duelSecondsLeft <= 10 ? '#E04A2F' : '#F3EAD388' }]}>
+            <Text style={[s.duelTimerText, { color: duelSecondsLeft <= 10 ? '#CE7863' : '#EEE7D788' }]}>
               ⏱ {duelSecondsLeft}s
             </Text>
           </View>
@@ -1648,10 +1648,10 @@ export function GameArena({
         {/* Mode badge */}
         {(gameMode === 'triangle' || isDuel || sixPlayer) && (
           <View style={[s.modeBadge, {
-            backgroundColor: sixPlayer ? '#F0B42933' : isDuel ? '#E04A2F33' : '#9CC93E33',
-            borderColor:     sixPlayer ? '#F0B429'   : isDuel ? '#E04A2F'   : '#9CC93E',
+            backgroundColor: sixPlayer ? '#D7A83B33' : isDuel ? '#CE786333' : '#9BB77A33',
+            borderColor:     sixPlayer ? '#D7A83B'   : isDuel ? '#CE7863'   : '#9BB77A',
           }]}>
-            <Text style={[s.modeBadgeText, { color: sixPlayer ? '#F0B429' : isDuel ? '#E04A2F' : '#9CC93E' }]}>
+            <Text style={[s.modeBadgeText, { color: sixPlayer ? '#D7A83B' : isDuel ? '#CE7863' : '#9BB77A' }]}>
               {sixPlayer ? '6️⃣ 6P' : isDuel ? '1v1' : '▲ 3P'}
             </Text>
           </View>
@@ -1669,7 +1669,7 @@ export function GameArena({
         {/* Player deflection score, GlowText label + CounterText value */}
         {gamePhase === 'playing' && (
           <View style={[s.scoreWrap, gs.players[BOTTOM].isEliminated && { opacity: 0.4 }]} pointerEvents="none">
-            <GlowText style={s.scoreLabel} color="#F0B42966" intensity="soft">
+            <GlowText style={s.scoreLabel} color="#D7A83B66" intensity="soft">
               HITS
             </GlowText>
             <CounterText value={playerScoreUI} initialValue={deflectionsRef.current} style={s.scoreValue} duration={600} />
@@ -1683,10 +1683,10 @@ export function GameArena({
         {announcer !== '' && (
           <View style={[s.announcerWrap, { pointerEvents:'none' } as never]}>
             {goalPulse ? (
-              <PulseRing color="#F0B429" size={110} rings={2} duration={1100} opacity={0.5}>
+              <PulseRing color="#D7A83B" size={110} rings={2} duration={1100} opacity={0.5}>
                 <GlowText
                   style={s.announcerText}
-                  color="#F0B429"
+                  color="#D7A83B"
                   intensity="strong"
                   pulse
                 >
@@ -1694,7 +1694,7 @@ export function GameArena({
                 </GlowText>
               </PulseRing>
             ) : (
-              <GlowText style={s.announcerText} color="#F0B429" intensity="medium">
+              <GlowText style={s.announcerText} color="#D7A83B" intensity="medium">
                 {announcer}
               </GlowText>
             )}
@@ -1736,7 +1736,7 @@ export function GameArena({
             <Animated.Text style={[s.countdownText, {
               opacity: countdownOpacityAnim,
               transform: [{ scale: countdownScaleAnim }],
-              color: countdown === 0 ? '#9CC93E' : '#F0B429',
+              color: countdown === 0 ? '#9BB77A' : '#D7A83B',
               textShadowColor: 'transparent',
             }]}>
               {countdown > 0 ? String(countdown) : 'GO!'}
@@ -1749,8 +1749,8 @@ export function GameArena({
 
         <Animated.View pointerEvents="none" style={[s.border, {
           width:arenaSize, height:arenaSize,
-          borderColor: borderPulseAnim.interpolate({inputRange:[0,1], outputRange:['#F3EAD318','#F3EAD350']}),
-          shadowColor:'#F3EAD3',
+          borderColor: borderPulseAnim.interpolate({inputRange:[0,1], outputRange:['#EEE7D718','#EEE7D750']}),
+          shadowColor:'#EEE7D7',
           shadowOpacity: borderPulseAnim.interpolate({inputRange:[0,1], outputRange:[0,0.35]}),
           shadowRadius: 0,
         } as never]} />
@@ -1770,9 +1770,9 @@ export function GameArena({
               <View key={i} style={{
                 flex: 1, height: 6, borderRadius: 3,
                 backgroundColor: i < superChargeUI
-                  ? (superActiveUI ? '#9CC93E' : '#F0B429')
-                  : '#F3EAD31A',
-                shadowColor: i < superChargeUI ? '#F0B429' : 'transparent',
+                  ? (superActiveUI ? '#9BB77A' : '#D7A83B')
+                  : '#EEE7D71A',
+                shadowColor: i < superChargeUI ? '#D7A83B' : 'transparent',
                 shadowOpacity: i < superChargeUI ? 0.9 : 0,
                 shadowRadius: 0,
                 shadowOffset: { width: 0, height: 0 },
@@ -1782,11 +1782,11 @@ export function GameArena({
 
           {/* Active super: depleting timer bar */}
           {superActiveUI && (
-            <View style={{ height: 3, borderRadius: 1.5, backgroundColor: '#F3EAD315', overflow: 'hidden' }}>
+            <View style={{ height: 3, borderRadius: 1.5, backgroundColor: '#EEE7D715', overflow: 'hidden' }}>
               <View style={{
                 height: 3,
                 width: `${(superActiveFramesRef.current / SUPER_DURATION_FRAMES) * 100}%`,
-                backgroundColor: '#9CC93E',
+                backgroundColor: '#9BB77A',
                 borderRadius: 1.5,
               } as never} />
             </View>
@@ -1798,16 +1798,16 @@ export function GameArena({
               onPress={activateSuper}
               style={({ pressed }) => ({
                 alignSelf: 'center',
-                backgroundColor: pressed ? '#F0B42955' : '#F0B42933',
+                backgroundColor: pressed ? '#D7A83B55' : '#D7A83B33',
                 borderWidth: 1,
-                borderColor: '#F0B429',
+                borderColor: '#D7A83B',
                 borderRadius: 8,
                 paddingHorizontal: 14,
                 paddingVertical: 4,
               })}
             >
               <Text style={{
-                color: '#F0B429',
+                color: '#D7A83B',
                 fontFamily: 'SourceSans3_700Bold',
                 fontSize: 11,
                 letterSpacing: 1.5,
@@ -1824,7 +1824,7 @@ export function GameArena({
           {superActiveUI && (
             <View style={{ alignSelf: 'center' }}>
               <Text style={{
-                color: '#9CC93E',
+                color: '#9BB77A',
                 fontFamily: 'SourceSans3_700Bold',
                 fontSize: 10,
                 letterSpacing: 1.5,
@@ -1858,30 +1858,30 @@ const s = StyleSheet.create({
   duelTimer: { position:'absolute', top:6, left:0, right:0, alignItems:'center' },
   duelTimerText: { fontFamily:'SourceSans3_700Bold', fontSize:11, letterSpacing:1 },
   announcerWrap: { position:'absolute', top:'42%', left:0, right:0, alignItems:'center' },
-  announcerText: { color:'#F0B429', fontSize:19, fontFamily:'SourceSans3_700Bold', letterSpacing:1.5, textShadowColor: 'transparent', textShadowOffset:{width:0,height:0}, textShadowRadius: 0 },
+  announcerText: { color:'#D7A83B', fontSize:19, fontFamily:'SourceSans3_700Bold', letterSpacing:1.5, textShadowColor: 'transparent', textShadowOffset:{width:0,height:0}, textShadowRadius: 0 },
   comboWrap: { position:'absolute', top:'30%', left:0, right:0, alignItems:'center' },
   comboText: { fontFamily:'SourceSans3_700Bold', fontSize:22, letterSpacing:2, textShadowColor: 'transparent', textShadowOffset:{width:0,height:0}, textShadowRadius: 0 },
   floatEmoji: { position:'absolute', bottom:60, fontSize:28 },
-  countdownOverlay: { position:'absolute', top:0,left:0,right:0,bottom:0, backgroundColor:'#0E2621AA', alignItems:'center', justifyContent:'center', gap:10 },
-  countdownText: { color:'#F0B429', fontSize:78, fontFamily:'SourceSans3_700Bold', textShadowColor: 'transparent', textShadowOffset:{width:0,height:0}, textShadowRadius: 0 },
-  countdownSub:  { color:'#F3EAD388', fontFamily:'SourceSans3_600SemiBold', fontSize:13, letterSpacing:1 },
-  border: { position:'absolute', top:0, left:0, borderWidth:2, borderColor:'#F3EAD325', borderRadius:6 },
+  countdownOverlay: { position:'absolute', top:0,left:0,right:0,bottom:0, backgroundColor:'#14231FAA', alignItems:'center', justifyContent:'center', gap:10 },
+  countdownText: { color:'#D7A83B', fontSize:78, fontFamily:'SourceSans3_700Bold', textShadowColor: 'transparent', textShadowOffset:{width:0,height:0}, textShadowRadius: 0 },
+  countdownSub:  { color:'#EEE7D788', fontFamily:'SourceSans3_600SemiBold', fontSize:13, letterSpacing:1 },
+  border: { position:'absolute', top:0, left:0, borderWidth:2, borderColor:'#EEE7D725', borderRadius:6 },
 
   // Player score display (deflection counter)
   scoreWrap:  { position:'absolute', bottom: WALL_MARGIN + 20, right: 10, alignItems:'flex-end', gap: 1 },
-  scoreLabel: { fontFamily:'SourceSans3_600SemiBold', fontSize:8, letterSpacing:1, color:'#F0B42966' },
-  scoreValue: { fontFamily:'SourceSans3_700Bold', fontSize:15, color:'#F0B429', letterSpacing:0.5,
+  scoreLabel: { fontFamily:'SourceSans3_600SemiBold', fontSize:8, letterSpacing:1, color:'#D7A83B66' },
+  scoreValue: { fontFamily:'SourceSans3_700Bold', fontSize:15, color:'#D7A83B', letterSpacing:0.5,
     textShadowColor: 'transparent', textShadowOffset:{width:0,height:0}, textShadowRadius: 0 },
 
   // Spectator overlay
-  spectatorOverlay: { position:'absolute', top:0,left:0,right:0,bottom:0, backgroundColor:'#0E262188', alignItems:'center', justifyContent:'center', padding:16 },
-  spectatorCard: { backgroundColor:'#15372FEE', borderRadius:18, borderWidth:1, borderColor:'#E04A2F88', padding:20, alignItems:'center', width:'100%', gap:10 },
-  spectatorTitle: { color:'#E04A2F', fontFamily:'SourceSans3_700Bold', fontSize:22, letterSpacing:2 },
-  spectatorSub:   { color:'#F3EAD388', fontFamily:'SourceSans3_400Regular', fontSize:12, textAlign:'center', lineHeight:17 },
+  spectatorOverlay: { position:'absolute', top:0,left:0,right:0,bottom:0, backgroundColor:'#14231F88', alignItems:'center', justifyContent:'center', padding:16 },
+  spectatorCard: { backgroundColor:'#20372FEE', borderRadius:18, borderWidth:1, borderColor:'#CE786388', padding:20, alignItems:'center', width:'100%', gap:10 },
+  spectatorTitle: { color:'#CE7863', fontFamily:'SourceSans3_700Bold', fontSize:22, letterSpacing:2 },
+  spectatorSub:   { color:'#EEE7D788', fontFamily:'SourceSans3_400Regular', fontSize:12, textAlign:'center', lineHeight:17 },
   spectatorRewards: { flexDirection:'row', gap:20, marginVertical:4 },
-  rewardItem: { color:'#F0B429', fontFamily:'SourceSans3_700Bold', fontSize:16 },
-  collectBtn: { backgroundColor:'#F0B429', borderRadius:12, paddingHorizontal:28, paddingVertical:13, width:'100%', alignItems:'center' },
-  collectBtnText: { color:'#0E2621', fontFamily:'SourceSans3_700Bold', fontSize:16, letterSpacing:1 },
+  rewardItem: { color:'#D7A83B', fontFamily:'SourceSans3_700Bold', fontSize:16 },
+  collectBtn: { backgroundColor:'#D7A83B', borderRadius:12, paddingHorizontal:28, paddingVertical:13, width:'100%', alignItems:'center' },
+  collectBtnText: { color:'#14231F', fontFamily:'SourceSans3_700Bold', fontSize:16, letterSpacing:1 },
   keepWatchBtn: { paddingVertical:6 },
-  keepWatchText: { color:'#F3EAD355', fontFamily:'SourceSans3_600SemiBold', fontSize:12 },
+  keepWatchText: { color:'#EEE7D755', fontFamily:'SourceSans3_600SemiBold', fontSize:12 },
 });

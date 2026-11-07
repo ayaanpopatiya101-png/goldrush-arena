@@ -43,8 +43,8 @@ function Ironhide() {
       {/* Helmet top (darker plate) */}
       <Path d="M31,44 Q31,24 50,24 Q69,24 69,44 Z" fill="#2F6456" />
       {/* Visor, T slot */}
-      <Rect x="36" y="41" width="28" height="5" rx="2" fill="#15372F" />
-      <Rect x="47" y="34" width="6" height="15" rx="2" fill="#15372F" />
+      <Rect x="36" y="41" width="28" height="5" rx="2" fill="#20372F" />
+      <Rect x="47" y="34" width="6" height="15" rx="2" fill="#20372F" />
       {/* Visor glow */}
       <Rect x="36" y="41" width="28" height="2" rx="1" fill="#EDE3CC" opacity="0.5" />
       {/* Feet */}
@@ -60,16 +60,16 @@ function Longarm() {
     <G>
       <Defs>
         <LinearGradient id="la_bg" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#C98E12" /><Stop offset="1" stopColor="#15372F" />
+          <Stop offset="0" stopColor="#C98E12" /><Stop offset="1" stopColor="#20372F" />
         </LinearGradient>
         <LinearGradient id="la_body" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#F0B429" /><Stop offset="1" stopColor="#C98E12" />
+          <Stop offset="0" stopColor="#D7A83B" /><Stop offset="1" stopColor="#C98E12" />
         </LinearGradient>
       </Defs>
       <Circle cx="50" cy="60" r="52" fill="url(#la_bg)" />
       {/* Extra-long arms, the defining feature */}
-      <Ellipse cx="19" cy="72" rx="19" ry="7" fill="#F0B429" opacity="0.9" transform="rotate(-10,19,72)" />
-      <Ellipse cx="81" cy="72" rx="19" ry="7" fill="#F0B429" opacity="0.9" transform="rotate(10,81,72)" />
+      <Ellipse cx="19" cy="72" rx="19" ry="7" fill="#D7A83B" opacity="0.9" transform="rotate(-10,19,72)" />
+      <Ellipse cx="81" cy="72" rx="19" ry="7" fill="#D7A83B" opacity="0.9" transform="rotate(10,81,72)" />
       {/* Wrench at left hand */}
       <Rect x="2" y="68" width="10" height="3" rx="1" fill="#888" />
       <Rect x="3" y="65" width="4" height="3" rx="1" fill="#888" />
@@ -81,17 +81,17 @@ function Longarm() {
       <Rect x="55" y="62" width="5" height="36" rx="2" fill="#C98E12" opacity="0.6" />
       <Rect x="38" y="70" width="24" height="3" rx="1" fill="#C98E12" opacity="0.6" />
       {/* Head */}
-      <Circle cx="50" cy="44" r="18" fill="#F0B429" />
+      <Circle cx="50" cy="44" r="18" fill="#D7A83B" />
       {/* Hair */}
       <Path d="M33,40 Q34,26 50,26 Q66,26 67,40" fill="#1C1402" />
       {/* Goggles */}
-      <Circle cx="43" cy="44" r="7" fill="#15372F" />
-      <Circle cx="57" cy="44" r="7" fill="#15372F" />
+      <Circle cx="43" cy="44" r="7" fill="#20372F" />
+      <Circle cx="57" cy="44" r="7" fill="#20372F" />
       <Rect x="43" y="40" width="14" height="2" rx="1" fill="#1C1402" />
-      <Circle cx="43" cy="44" r="5" fill="#F0B429" opacity="0.7" />
-      <Circle cx="57" cy="44" r="5" fill="#F0B429" opacity="0.7" />
-      <Circle cx="44" cy="43" r="2" fill="#F3EAD3" opacity="0.5" />
-      <Circle cx="58" cy="43" r="2" fill="#F3EAD3" opacity="0.5" />
+      <Circle cx="43" cy="44" r="5" fill="#D7A83B" opacity="0.7" />
+      <Circle cx="57" cy="44" r="5" fill="#D7A83B" opacity="0.7" />
+      <Circle cx="44" cy="43" r="2" fill="#EEE7D7" opacity="0.5" />
+      <Circle cx="58" cy="43" r="2" fill="#EEE7D7" opacity="0.5" />
       {/* Feet */}
       <Ellipse cx="40" cy="97" rx="8" ry="5" fill="#C98E12" />
       <Ellipse cx="60" cy="97" rx="8" ry="5" fill="#C98E12" />
@@ -119,7 +119,7 @@ function Quicksilver() {
       {/* Body */}
       <Ellipse cx="52" cy="72" rx="16" ry="20" fill="url(#qs_body)" />
       {/* Lightning bolt on chest */}
-      <Polygon points="52,62 46,74 52,72 48,84 58,68 52,70" fill="#F0B429" />
+      <Polygon points="52,62 46,74 52,72 48,84 58,68 52,70" fill="#D7A83B" />
       {/* Helmet */}
       <Ellipse cx="52" cy="44" rx="18" ry="20" fill="url(#qs_body)" />
       {/* Helmet visor */}
@@ -142,34 +142,34 @@ function SecondWind() {
     <G>
       <Defs>
         <LinearGradient id="sw_bg" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#C98E12" /><Stop offset="1" stopColor="#0E2621" />
+          <Stop offset="0" stopColor="#C98E12" /><Stop offset="1" stopColor="#14231F" />
         </LinearGradient>
       </Defs>
       <Circle cx="50" cy="60" r="52" fill="url(#sw_bg)" />
       {/* Body, white coat */}
-      <Rect x="30" y="60" width="40" height="38" rx="12" fill="#F3EAD3" />
+      <Rect x="30" y="60" width="40" height="38" rx="12" fill="#EEE7D7" />
       {/* Coat lapels */}
-      <Path d="M50,60 L38,68 L38,98 L50,90 L62,98 L62,68 Z" fill="#F3EAD3" />
+      <Path d="M50,60 L38,68 L38,98 L50,90 L62,98 L62,68 Z" fill="#EEE7D7" />
       {/* Red cross on chest */}
-      <Rect x="46" y="70" width="8" height="18" rx="2" fill="#E04A2F" />
-      <Rect x="40" y="76" width="20" height="7" rx="2" fill="#E04A2F" />
+      <Rect x="46" y="70" width="8" height="18" rx="2" fill="#CE7863" />
+      <Rect x="40" y="76" width="20" height="7" rx="2" fill="#CE7863" />
       {/* Head */}
-      <Circle cx="50" cy="44" r="18" fill="#F0B429" />
+      <Circle cx="50" cy="44" r="18" fill="#D7A83B" />
       {/* Nurse cap */}
-      <Rect x="36" y="26" width="28" height="16" rx="4" fill="#F3EAD3" />
-      <Rect x="44" y="24" width="12" height="20" rx="3" fill="#F3EAD3" />
+      <Rect x="36" y="26" width="28" height="16" rx="4" fill="#EEE7D7" />
+      <Rect x="44" y="24" width="12" height="20" rx="3" fill="#EEE7D7" />
       {/* Cross on cap */}
-      <Rect x="48" y="27" width="4" height="12" rx="1" fill="#E04A2F" />
-      <Rect x="44" y="30" width="12" height="4" rx="1" fill="#E04A2F" />
+      <Rect x="48" y="27" width="4" height="12" rx="1" fill="#CE7863" />
+      <Rect x="44" y="30" width="12" height="4" rx="1" fill="#CE7863" />
       {/* Eyes, caring */}
-      <Ellipse cx="44" cy="46" rx="4" ry="4.5" fill="#15372F" />
-      <Ellipse cx="56" cy="46" rx="4" ry="4.5" fill="#15372F" />
-      <Circle cx="45" cy="45" r="1.5" fill="#F3EAD3" />
-      <Circle cx="57" cy="45" r="1.5" fill="#F3EAD3" />
+      <Ellipse cx="44" cy="46" rx="4" ry="4.5" fill="#20372F" />
+      <Ellipse cx="56" cy="46" rx="4" ry="4.5" fill="#20372F" />
+      <Circle cx="45" cy="45" r="1.5" fill="#EEE7D7" />
+      <Circle cx="57" cy="45" r="1.5" fill="#EEE7D7" />
       {/* Smile */}
       <Path d="M44,54 Q50,59 56,54" stroke="#C98E12" strokeWidth="2" fill="none" strokeLinecap="round" />
       {/* Floating hearts */}
-      <Path d="M72,28 Q75,22 80,28 Q85,22 88,28 Q88,34 80,40 Q72,34 72,28 Z" fill="#E04A2F" opacity="0.85" />
+      <Path d="M72,28 Q75,22 80,28 Q85,22 88,28 Q88,34 80,40 Q72,34 72,28 Z" fill="#CE7863" opacity="0.85" />
       {/* Feet */}
       <Rect x="35" y="95" width="12" height="7" rx="5" fill="#CFE0D6" />
       <Rect x="53" y="95" width="12" height="7" rx="5" fill="#CFE0D6" />
@@ -183,35 +183,35 @@ function Prospector() {
     <G>
       <Defs>
         <LinearGradient id="pr_bg" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#C98E12" /><Stop offset="1" stopColor="#0E2621" />
+          <Stop offset="0" stopColor="#C98E12" /><Stop offset="1" stopColor="#14231F" />
         </LinearGradient>
         <LinearGradient id="pr_body" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#F0B429" /><Stop offset="1" stopColor="#F0B429" />
+          <Stop offset="0" stopColor="#D7A83B" /><Stop offset="1" stopColor="#D7A83B" />
         </LinearGradient>
       </Defs>
       <Circle cx="50" cy="60" r="52" fill="url(#pr_bg)" />
       {/* Body / vest */}
       <Rect x="31" y="62" width="38" height="35" rx="11" fill="#C98E12" />
-      <Rect x="36" y="62" width="28" height="35" rx="8" fill="#F0B429" />
+      <Rect x="36" y="62" width="28" height="35" rx="8" fill="#D7A83B" />
       {/* Arm holding magnet (right) */}
-      <Ellipse cx="74" cy="74" rx="12" ry="7" fill="#F0B429" transform="rotate(15,74,74)" />
+      <Ellipse cx="74" cy="74" rx="12" ry="7" fill="#D7A83B" transform="rotate(15,74,74)" />
       {/* Horseshoe magnet */}
-      <Path d="M82,68 Q92,68 92,78 Q92,88 82,88" stroke="#E04A2F" strokeWidth="5" fill="none" strokeLinecap="round" />
+      <Path d="M82,68 Q92,68 92,78 Q92,88 82,88" stroke="#CE7863" strokeWidth="5" fill="none" strokeLinecap="round" />
       <Path d="M82,68 Q72,68 72,78 Q72,88 82,88" stroke="#EDE3CC" strokeWidth="5" fill="none" strokeLinecap="round" />
       <Rect x="77" y="64" width="10" height="6" rx="2" fill="#888" />
       {/* Head */}
-      <Circle cx="50" cy="44" r="18" fill="#F0B429" />
+      <Circle cx="50" cy="44" r="18" fill="#D7A83B" />
       {/* Mining helmet */}
-      <Path d="M32,44 Q33,24 50,24 Q67,24 68,44" fill="#F0B429" />
-      <Rect x="33" y="40" width="34" height="6" rx="3" fill="#F0B429" />
+      <Path d="M32,44 Q33,24 50,24 Q67,24 68,44" fill="#D7A83B" />
+      <Rect x="33" y="40" width="34" height="6" rx="3" fill="#D7A83B" />
       {/* Helmet lamp */}
-      <Circle cx="50" cy="30" r="6" fill="#F0B429" />
-      <Circle cx="50" cy="30" r="3" fill="#F3EAD3" opacity="0.8" />
+      <Circle cx="50" cy="30" r="6" fill="#D7A83B" />
+      <Circle cx="50" cy="30" r="3" fill="#EEE7D7" opacity="0.8" />
       {/* Eyes */}
-      <Ellipse cx="44" cy="46" rx="4" ry="4" fill="#15372F" />
-      <Ellipse cx="56" cy="46" rx="4" ry="4" fill="#15372F" />
-      <Circle cx="45" cy="45" r="1.5" fill="#F3EAD3" />
-      <Circle cx="57" cy="45" r="1.5" fill="#F3EAD3" />
+      <Ellipse cx="44" cy="46" rx="4" ry="4" fill="#20372F" />
+      <Ellipse cx="56" cy="46" rx="4" ry="4" fill="#20372F" />
+      <Circle cx="45" cy="45" r="1.5" fill="#EEE7D7" />
+      <Circle cx="57" cy="45" r="1.5" fill="#EEE7D7" />
       {/* Grin */}
       <Path d="M43,53 Q50,58 57,53" stroke="#C98E12" strokeWidth="2" fill="none" strokeLinecap="round" />
       {/* Boots */}
@@ -227,7 +227,7 @@ function Aftershock() {
     <G>
       <Defs>
         <LinearGradient id="as_bg" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#1E4A3F" /><Stop offset="1" stopColor="#0E2621" />
+          <Stop offset="0" stopColor="#1E4A3F" /><Stop offset="1" stopColor="#14231F" />
         </LinearGradient>
         <LinearGradient id="as_body" x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor="#EDE3CC" /><Stop offset="1" stopColor="#1E4A3F" />
@@ -235,18 +235,18 @@ function Aftershock() {
       </Defs>
       <Circle cx="50" cy="60" r="52" fill="url(#as_bg)" />
       {/* Fuse hair, zigzag line up with flame ball */}
-      <Path d="M50,24 L47,17 L53,12 L49,6 L55,2" stroke="#F0B429" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <Circle cx="55" cy="2" r="4" fill="#E04A2F" />
-      <Circle cx="55" cy="2" r="2" fill="#F0B429" />
+      <Path d="M50,24 L47,17 L53,12 L49,6 L55,2" stroke="#D7A83B" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx="55" cy="2" r="4" fill="#CE7863" />
+      <Circle cx="55" cy="2" r="2" fill="#D7A83B" />
       {/* Body armour */}
       <Rect x="28" y="60" width="44" height="37" rx="10" fill="url(#as_body)" />
       {/* Armour panels */}
       <Rect x="32" y="64" width="16" height="10" rx="3" fill="#EDE3CC" opacity="0.7" />
       <Rect x="52" y="64" width="16" height="10" rx="3" fill="#EDE3CC" opacity="0.7" />
       {/* Bomb on chest */}
-      <Circle cx="50" cy="82" r="7" fill="#15372F" />
-      <Path d="M50,75 L50,70 L56,66" stroke="#F0B429" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <Circle cx="57" cy="65" r="2" fill="#E04A2F" />
+      <Circle cx="50" cy="82" r="7" fill="#20372F" />
+      <Path d="M50,75 L50,70 L56,66" stroke="#D7A83B" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <Circle cx="57" cy="65" r="2" fill="#CE7863" />
       {/* Rivets */}
       <Circle cx="32" cy="74" r="2.5" fill="#1E4A3F" />
       <Circle cx="68" cy="74" r="2.5" fill="#1E4A3F" />
@@ -257,10 +257,10 @@ function Aftershock() {
       {/* Head armour ridge */}
       <Path d="M32,42 Q32,24 50,24 Q68,24 68,42" fill="#1E4A3F" />
       {/* Orange glowing eyes */}
-      <Ellipse cx="43" cy="46" rx="5" ry="5" fill="#F0B429" />
-      <Ellipse cx="57" cy="46" rx="5" ry="5" fill="#F0B429" />
-      <Ellipse cx="43" cy="46" rx="3" ry="3" fill="#F0B429" />
-      <Ellipse cx="57" cy="46" rx="3" ry="3" fill="#F0B429" />
+      <Ellipse cx="43" cy="46" rx="5" ry="5" fill="#D7A83B" />
+      <Ellipse cx="57" cy="46" rx="5" ry="5" fill="#D7A83B" />
+      <Ellipse cx="43" cy="46" rx="3" ry="3" fill="#D7A83B" />
+      <Ellipse cx="57" cy="46" rx="3" ry="3" fill="#D7A83B" />
       {/* Scowl */}
       <Path d="M43,55 Q50,51 57,55" stroke="#1E4A3F" strokeWidth="2" fill="none" strokeLinecap="round" />
       {/* Boots */}
@@ -276,7 +276,7 @@ function TimeWarp() {
     <G>
       <Defs>
         <LinearGradient id="tw_bg" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#1E4A3F" /><Stop offset="1" stopColor="#0E2621" />
+          <Stop offset="0" stopColor="#1E4A3F" /><Stop offset="1" stopColor="#14231F" />
         </LinearGradient>
         <LinearGradient id="tw_robe" x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor="#EDE3CC" /><Stop offset="1" stopColor="#EDE3CC" />
@@ -299,8 +299,8 @@ function TimeWarp() {
       {/* Glowing cyan eyes */}
       <Ellipse cx="43" cy="46" rx="5" ry="5" fill="#EDE3CC" opacity="0.9" />
       <Ellipse cx="57" cy="46" rx="5" ry="5" fill="#EDE3CC" opacity="0.9" />
-      <Ellipse cx="43" cy="46" rx="3" ry="3" fill="#F3EAD3" opacity="0.7" />
-      <Ellipse cx="57" cy="46" rx="3" ry="3" fill="#F3EAD3" opacity="0.7" />
+      <Ellipse cx="43" cy="46" rx="3" ry="3" fill="#EEE7D7" opacity="0.7" />
+      <Ellipse cx="57" cy="46" rx="3" ry="3" fill="#EEE7D7" opacity="0.7" />
       {/* Hood point */}
       <Path d="M38,26 Q50,8 62,26 Q50,24 38,26 Z" fill="#EDE3CC" />
       {/* Hourglass in sleeve */}
@@ -309,7 +309,7 @@ function TimeWarp() {
       <Path d="M70,74 L70,84 L82,84 L82,74 Z" fill="#EDE3CC" opacity="0.3" />
       <Rect x="70" y="78" width="12" height="2" rx="1" fill="#EDE3CC" opacity="0.6" />
       {/* Falling sand */}
-      <Rect x="74" y="80" width="4" height="2" rx="1" fill="#F0B429" opacity="0.7" />
+      <Rect x="74" y="80" width="4" height="2" rx="1" fill="#D7A83B" opacity="0.7" />
     </G>
   );
 }
@@ -320,7 +320,7 @@ function Bulwark() {
     <G>
       <Defs>
         <LinearGradient id="bk_bg" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#15372F" /><Stop offset="1" stopColor="#0E2621" />
+          <Stop offset="0" stopColor="#20372F" /><Stop offset="1" stopColor="#14231F" />
         </LinearGradient>
         <LinearGradient id="bk_stone" x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor="#93B8AB" /><Stop offset="1" stopColor="#2F6456" />
@@ -330,30 +330,30 @@ function Bulwark() {
       {/* Massive body */}
       <Rect x="16" y="57" width="68" height="45" rx="8" fill="url(#bk_stone)" />
       {/* Red cracks */}
-      <Path d="M30,60 L38,72 L34,85" stroke="#E04A2F" strokeWidth="2.5" fill="none" opacity="0.8" />
-      <Path d="M60,58 L55,70 L62,82 L58,95" stroke="#E04A2F" strokeWidth="2" fill="none" opacity="0.7" />
-      <Path d="M20,75 L32,80" stroke="#E04A2F" strokeWidth="2" fill="none" opacity="0.6" />
-      <Path d="M68,72 L78,78 L74,88" stroke="#E04A2F" strokeWidth="2" fill="none" opacity="0.6" />
+      <Path d="M30,60 L38,72 L34,85" stroke="#CE7863" strokeWidth="2.5" fill="none" opacity="0.8" />
+      <Path d="M60,58 L55,70 L62,82 L58,95" stroke="#CE7863" strokeWidth="2" fill="none" opacity="0.7" />
+      <Path d="M20,75 L32,80" stroke="#CE7863" strokeWidth="2" fill="none" opacity="0.6" />
+      <Path d="M68,72 L78,78 L74,88" stroke="#CE7863" strokeWidth="2" fill="none" opacity="0.6" />
       {/* Fists */}
       <Rect x="6" y="78" width="20" height="18" rx="6" fill="url(#bk_stone)" />
       <Rect x="74" y="78" width="20" height="18" rx="6" fill="url(#bk_stone)" />
-      <Path d="M6,83 L18,83" stroke="#E04A2F" strokeWidth="1.5" fill="none" opacity="0.7" />
-      <Path d="M82,83 L94,83" stroke="#E04A2F" strokeWidth="1.5" fill="none" opacity="0.7" />
+      <Path d="M6,83 L18,83" stroke="#CE7863" strokeWidth="1.5" fill="none" opacity="0.7" />
+      <Path d="M82,83 L94,83" stroke="#CE7863" strokeWidth="1.5" fill="none" opacity="0.7" />
       {/* Square-ish head */}
       <Rect x="28" y="26" width="44" height="34" rx="8" fill="url(#bk_stone)" />
       {/* Cracks on head */}
-      <Path d="M38,28 L44,40" stroke="#E04A2F" strokeWidth="2" fill="none" opacity="0.7" />
-      <Path d="M60,30 L56,42" stroke="#E04A2F" strokeWidth="2" fill="none" opacity="0.7" />
+      <Path d="M38,28 L44,40" stroke="#CE7863" strokeWidth="2" fill="none" opacity="0.7" />
+      <Path d="M60,30 L56,42" stroke="#CE7863" strokeWidth="2" fill="none" opacity="0.7" />
       {/* Thick angry brows */}
-      <Path d="M30,36 L46,32" stroke="#0E2621" strokeWidth="5" strokeLinecap="round" />
-      <Path d="M54,32 L70,36" stroke="#0E2621" strokeWidth="5" strokeLinecap="round" />
+      <Path d="M30,36 L46,32" stroke="#14231F" strokeWidth="5" strokeLinecap="round" />
+      <Path d="M54,32 L70,36" stroke="#14231F" strokeWidth="5" strokeLinecap="round" />
       {/* Deep-set red eyes */}
-      <Ellipse cx="40" cy="44" rx="5" ry="4" fill="#E04A2F" />
-      <Ellipse cx="60" cy="44" rx="5" ry="4" fill="#E04A2F" />
-      <Ellipse cx="40" cy="44" rx="2.5" ry="2" fill="#E04A2F" />
-      <Ellipse cx="60" cy="44" rx="2.5" ry="2" fill="#E04A2F" />
+      <Ellipse cx="40" cy="44" rx="5" ry="4" fill="#CE7863" />
+      <Ellipse cx="60" cy="44" rx="5" ry="4" fill="#CE7863" />
+      <Ellipse cx="40" cy="44" rx="2.5" ry="2" fill="#CE7863" />
+      <Ellipse cx="60" cy="44" rx="2.5" ry="2" fill="#CE7863" />
       {/* Grim mouth */}
-      <Rect x="38" y="52" width="24" height="4" rx="2" fill="#0E2621" />
+      <Rect x="38" y="52" width="24" height="4" rx="2" fill="#14231F" />
     </G>
   );
 }
@@ -364,44 +364,44 @@ function Phoenix() {
     <G>
       <Defs>
         <LinearGradient id="px_bg" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#1E4A3F" /><Stop offset="1" stopColor="#0E2621" />
+          <Stop offset="0" stopColor="#1E4A3F" /><Stop offset="1" stopColor="#14231F" />
         </LinearGradient>
         <LinearGradient id="px_body" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#E04A2F" /><Stop offset="1" stopColor="#E04A2F" />
+          <Stop offset="0" stopColor="#CE7863" /><Stop offset="1" stopColor="#CE7863" />
         </LinearGradient>
       </Defs>
       <Circle cx="50" cy="60" r="52" fill="url(#px_bg)" />
       {/* Wings behind body */}
-      <Path d="M50,68 Q20,50 8,65 Q18,85 50,82 Z" fill="#E04A2F" opacity="0.8" />
-      <Path d="M50,68 Q80,50 92,65 Q82,85 50,82 Z" fill="#E04A2F" opacity="0.8" />
+      <Path d="M50,68 Q20,50 8,65 Q18,85 50,82 Z" fill="#CE7863" opacity="0.8" />
+      <Path d="M50,68 Q80,50 92,65 Q82,85 50,82 Z" fill="#CE7863" opacity="0.8" />
       {/* Wing feathers left */}
-      <Path d="M50,70 Q28,52 14,56" stroke="#E04A2F" strokeWidth="2.5" fill="none" opacity="0.7" />
-      <Path d="M50,72 Q24,58 10,68" stroke="#F0B429" strokeWidth="2" fill="none" opacity="0.5" />
+      <Path d="M50,70 Q28,52 14,56" stroke="#CE7863" strokeWidth="2.5" fill="none" opacity="0.7" />
+      <Path d="M50,72 Q24,58 10,68" stroke="#D7A83B" strokeWidth="2" fill="none" opacity="0.5" />
       {/* Wing feathers right */}
-      <Path d="M50,70 Q72,52 86,56" stroke="#E04A2F" strokeWidth="2.5" fill="none" opacity="0.7" />
-      <Path d="M50,72 Q76,58 90,68" stroke="#F0B429" strokeWidth="2" fill="none" opacity="0.5" />
+      <Path d="M50,70 Q72,52 86,56" stroke="#CE7863" strokeWidth="2.5" fill="none" opacity="0.7" />
+      <Path d="M50,72 Q76,58 90,68" stroke="#D7A83B" strokeWidth="2" fill="none" opacity="0.5" />
       {/* Body */}
       <Circle cx="50" cy="74" r="18" fill="url(#px_body)" />
       {/* Belly light */}
-      <Ellipse cx="50" cy="76" rx="9" ry="7" fill="#F0B429" opacity="0.5" />
+      <Ellipse cx="50" cy="76" rx="9" ry="7" fill="#D7A83B" opacity="0.5" />
       {/* Head */}
-      <Circle cx="50" cy="47" r="18" fill="#E04A2F" />
+      <Circle cx="50" cy="47" r="18" fill="#CE7863" />
       {/* Flame crown, 5 flame tongues */}
-      <Path d="M50,30 Q47,18 50,10 Q53,18 50,30 Z" fill="#F0B429" />
-      <Path d="M42,32 Q36,22 40,14 Q45,22 42,32 Z" fill="#F0B429" />
-      <Path d="M58,32 Q64,22 60,14 Q55,22 58,32 Z" fill="#F0B429" />
-      <Path d="M36,37 Q28,30 34,22 Q40,30 36,37 Z" fill="#E04A2F" opacity="0.8" />
-      <Path d="M64,37 Q72,30 66,22 Q60,30 64,37 Z" fill="#E04A2F" opacity="0.8" />
+      <Path d="M50,30 Q47,18 50,10 Q53,18 50,30 Z" fill="#D7A83B" />
+      <Path d="M42,32 Q36,22 40,14 Q45,22 42,32 Z" fill="#D7A83B" />
+      <Path d="M58,32 Q64,22 60,14 Q55,22 58,32 Z" fill="#D7A83B" />
+      <Path d="M36,37 Q28,30 34,22 Q40,30 36,37 Z" fill="#CE7863" opacity="0.8" />
+      <Path d="M64,37 Q72,30 66,22 Q60,30 64,37 Z" fill="#CE7863" opacity="0.8" />
       {/* Bright orange eyes */}
-      <Ellipse cx="43" cy="48" rx="5" ry="5" fill="#F0B429" />
-      <Ellipse cx="57" cy="48" rx="5" ry="5" fill="#F0B429" />
-      <Ellipse cx="43" cy="48" rx="3" ry="3" fill="#F3EAD3" opacity="0.8" />
-      <Ellipse cx="57" cy="48" rx="3" ry="3" fill="#F3EAD3" opacity="0.8" />
+      <Ellipse cx="43" cy="48" rx="5" ry="5" fill="#D7A83B" />
+      <Ellipse cx="57" cy="48" rx="5" ry="5" fill="#D7A83B" />
+      <Ellipse cx="43" cy="48" rx="3" ry="3" fill="#EEE7D7" opacity="0.8" />
+      <Ellipse cx="57" cy="48" rx="3" ry="3" fill="#EEE7D7" opacity="0.8" />
       {/* Beak-like pointed chin / mouth */}
-      <Path d="M44,56 Q50,62 56,56" stroke="#E04A2F" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <Path d="M44,56 Q50,62 56,56" stroke="#CE7863" strokeWidth="2" fill="none" strokeLinecap="round" />
       {/* Feather boots */}
-      <Path d="M38,92 Q32,88 30,96 Q36,100 42,96 Z" fill="#E04A2F" />
-      <Path d="M62,92 Q68,88 70,96 Q64,100 58,96 Z" fill="#E04A2F" />
+      <Path d="M38,92 Q32,88 30,96 Q36,100 42,96 Z" fill="#CE7863" />
+      <Path d="M62,92 Q68,88 70,96 Q64,100 58,96 Z" fill="#CE7863" />
     </G>
   );
 }
@@ -412,10 +412,10 @@ function MidasTouch() {
     <G>
       <Defs>
         <LinearGradient id="mt_bg" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#0E2621" /><Stop offset="1" stopColor="#0E2621" />
+          <Stop offset="0" stopColor="#14231F" /><Stop offset="1" stopColor="#14231F" />
         </LinearGradient>
         <LinearGradient id="mt_gold" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#F0B429" /><Stop offset="1" stopColor="#F0B429" />
+          <Stop offset="0" stopColor="#D7A83B" /><Stop offset="1" stopColor="#D7A83B" />
         </LinearGradient>
         <LinearGradient id="mt_cape" x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor="#EDE3CC" /><Stop offset="1" stopColor="#1E4A3F" />
@@ -425,34 +425,34 @@ function MidasTouch() {
       {/* Purple royal cape behind */}
       <Path d="M30,64 Q18,68 14,90 L50,102 L86,90 Q82,68 70,64 Z" fill="url(#mt_cape)" />
       {/* Cape ermine trim */}
-      <Circle cx="22" cy="82" r="3" fill="#F3EAD3" opacity="0.7" />
-      <Circle cx="78" cy="82" r="3" fill="#F3EAD3" opacity="0.7" />
-      <Circle cx="28" cy="94" r="3" fill="#F3EAD3" opacity="0.7" />
-      <Circle cx="72" cy="94" r="3" fill="#F3EAD3" opacity="0.7" />
+      <Circle cx="22" cy="82" r="3" fill="#EEE7D7" opacity="0.7" />
+      <Circle cx="78" cy="82" r="3" fill="#EEE7D7" opacity="0.7" />
+      <Circle cx="28" cy="94" r="3" fill="#EEE7D7" opacity="0.7" />
+      <Circle cx="72" cy="94" r="3" fill="#EEE7D7" opacity="0.7" />
       {/* Golden armour body */}
       <Rect x="30" y="62" width="40" height="38" rx="12" fill="url(#mt_gold)" />
       {/* Chest plate detail */}
-      <Ellipse cx="50" cy="75" rx="10" ry="12" fill="#F0B429" opacity="0.6" />
+      <Ellipse cx="50" cy="75" rx="10" ry="12" fill="#D7A83B" opacity="0.6" />
       {/* Gold trim lines */}
-      <Rect x="30" y="72" width="40" height="3" rx="1" fill="#F0B429" />
-      <Rect x="30" y="82" width="40" height="2" rx="1" fill="#F0B429" opacity="0.7" />
+      <Rect x="30" y="72" width="40" height="3" rx="1" fill="#D7A83B" />
+      <Rect x="30" y="82" width="40" height="2" rx="1" fill="#D7A83B" opacity="0.7" />
       {/* Head */}
-      <Circle cx="50" cy="45" r="18" fill="#F0B429" />
+      <Circle cx="50" cy="45" r="18" fill="#D7A83B" />
       {/* Face skin under gold tint */}
-      <Ellipse cx="50" cy="48" rx="13" ry="11" fill="#F0B429" />
+      <Ellipse cx="50" cy="48" rx="13" ry="11" fill="#D7A83B" />
       {/* Crown, 5 points */}
       <Path d="M32,34 L32,26 L38,32 L44,20 L50,28 L56,20 L62,32 L68,26 L68,34 Z" fill="url(#mt_gold)" />
       {/* Crown gems */}
       <Ellipse cx="44" cy="22" rx="3" ry="4" fill="#EDE3CC" />
-      <Ellipse cx="50" cy="27" rx="4" ry="5" fill="#E04A2F" />
+      <Ellipse cx="50" cy="27" rx="4" ry="5" fill="#CE7863" />
       <Ellipse cx="56" cy="22" rx="3" ry="4" fill="#EDE3CC" />
       {/* Crown band */}
-      <Rect x="32" y="32" width="36" height="5" rx="2" fill="#F0B429" />
+      <Rect x="32" y="32" width="36" height="5" rx="2" fill="#D7A83B" />
       {/* Eyes, regal */}
-      <Ellipse cx="43" cy="47" rx="4.5" ry="4.5" fill="#0E2621" />
-      <Ellipse cx="57" cy="47" rx="4.5" ry="4.5" fill="#0E2621" />
-      <Circle cx="44" cy="46" r="1.5" fill="#F3EAD3" opacity="0.7" />
-      <Circle cx="58" cy="46" r="1.5" fill="#F3EAD3" opacity="0.7" />
+      <Ellipse cx="43" cy="47" rx="4.5" ry="4.5" fill="#14231F" />
+      <Ellipse cx="57" cy="47" rx="4.5" ry="4.5" fill="#14231F" />
+      <Circle cx="44" cy="46" r="1.5" fill="#EEE7D7" opacity="0.7" />
+      <Circle cx="58" cy="46" r="1.5" fill="#EEE7D7" opacity="0.7" />
       {/* Regal smirk */}
       <Path d="M44,55 Q50,58 57,55" stroke="#C98E12" strokeWidth="2" fill="none" strokeLinecap="round" />
       {/* Gold shoulders */}

@@ -1,536 +1,80 @@
-import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from '@/components/ui/Flat';
-import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
-import {
-  Animated, Dimensions, Platform, Pressable,
-  ScrollView, StyleSheet, Text, View,
-} from 'react-native';
+import React, { useState } from 'react';
+import { Platform, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GameArena } from '@/components/GameArena';
+import { Button } from '@/components/ui/Primitives';
+import { palette } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import { usePlayer } from '@/context/PlayerContext';
-import { setGameConfig } from '@/store/gameSession';
-import { Glyph } from '@/components/ui/Glyph';
-import { staticLoop } from '@/components/ui/motion';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
-const { width: SW, height: SH } = Dimensions.get('window');
+const LESSONS = [
+  { title: 'Move your paddle', body: 'Your paddle is at the bottom. Drag along your edge to move it. On desktop, move the pointer along the court. Try it in the practice court below.' },
+  { title: 'Deflect and protect your lives', body: 'Meet the ball with your paddle to return it. A ball that passes your edge costs a life. In a standard match you start with five lives.' },
+  { title: 'Survive to win', body: 'The last paddle standing wins. Power-ups appear on the court, and your selected ability charges as you block. This practice court uses local bots and gives no rank or rewards.' },
+] as const;
 
-// ─── Tutorial step definitions ─────────────────────────────────────────────
-interface Step {
-  emoji: string;
-  title: string;
-  subtitle: string;
-  body: string;
-  illustration: React.ReactNode;
-  accentColor: string;
-}
-
-function ArenaIllustration() {
-  return (
-    <View style={il.arena}>
-      <View style={[il.paddle, il.paddleTop, { backgroundColor: '#E04A2F' }]} />
-      <View style={[il.paddle, il.paddleLeft, { backgroundColor: '#EDE3CC' }]} />
-      <View style={[il.paddle, il.paddleRight, { backgroundColor: '#9CC93E' }]} />
-      <View style={[il.paddle, il.paddleBottom, { backgroundColor: '#F0B429' }]} />
-      <View style={il.ball} />
-      <View style={[il.ring, il.ring1]} />
-      <View style={[il.ring, il.ring2]} />
-    </View>
-  );
-}
-
-function ControlsIllustration() {
-  const swipeAnim = useRef(new Animated.Value(0)).current;
-  React.useEffect(() => {
-    staticLoop(
-      Animated.sequence([
-        Animated.timing(swipeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
-        Animated.timing(swipeAnim, { toValue: 0, duration: 700, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-  return (
-    <View style={il.arena}>
-      <View style={[il.halfBottom, { backgroundColor: '#F0B42910', borderTopWidth: 1, borderTopColor: '#F0B42933' }]} />
-      <View style={[il.paddle, il.paddleBottom, { backgroundColor: '#F0B429', width: 60 }]} />
-      <Animated.View style={[il.finger, {
-        transform: [{ translateX: swipeAnim.interpolate({ inputRange: [0, 1], outputRange: [-28, 28] }) }],
-      }]}>
-        <Glyph style={{ fontSize: 24 }} value="👆" />
-      </Animated.View>
-      <View style={[il.halfTop, { opacity: 0.2 }]}>
-        <View style={[il.paddle, il.paddleTop, { backgroundColor: '#E04A2F' }]} />
-      </View>
-      <Text style={il.zoneLabel}>YOUR ZONE</Text>
-    </View>
-  );
-}
-
-function LivesIllustration() {
-  return (
-    <View style={il.arena}>
-      {/* 4 paddles → 3 → 1v1 sequence */}
-      <View style={il.stageRow}>
-        {['4P', '3P', '1v1'].map((label, i) => (
-          <View key={i} style={[il.stageBox, { opacity: 1 - i * 0.1 }]}>
-            <Text style={il.stageText}>{label}</Text>
-            <View style={il.stageDotsRow}>
-              {Array.from({ length: i === 0 ? 4 : i === 1 ? 3 : 2 }).map((_, j) => (
-                <View key={j} style={[il.stageDot, { backgroundColor: ['#F0B429','#9CC93E','#E04A2F'][i] }]} />
-              ))}
-            </View>
-          </View>
-        ))}
-      </View>
-      <View style={il.livesRow}>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <View key={i} style={[il.heart, { backgroundColor: i < 3 ? '#E04A2F' : '#F3EAD322' }]} />
-        ))}
-      </View>
-      <Text style={il.livesLabel}>LIVES REMAINING</Text>
-    </View>
-  );
-}
-
-function PowerupsIllustration() {
-  const pups = [
-    { icon: '🛡️', label: 'Shield', color: '#EDE3CC' },
-    { icon: '⚡', label: 'Speed',  color: '#F0B429' },
-    { icon: '⊕',  label: 'Ball+',  color: '#E04A2F' },
-    { icon: '🔻', label: 'Shrink', color: '#EDE3CC' },
-  ];
-  return (
-    <View style={il.pupGrid}>
-      {pups.map(p => (
-        <View key={p.label} style={[il.pupBox, { borderColor: p.color + '55', backgroundColor: p.color + '14' }]}>
-          <Glyph style={{ fontSize: 22 }} value={p.icon} />
-          <Text style={[il.pupLabel, { color: p.color }]}>{p.label}</Text>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-function RanksIllustration() {
-  const ranks = [
-    { name: 'Bronze',   color: '#F0B429' },
-    { name: 'Diamond',  color: '#EDE3CC' },
-    { name: 'Master 2', color: '#E04A2F' },
-    { name: 'Legend 1', color: '#EDE3CC' },
-    { name: 'Recruit',  color: '#93B8AB' },
-    { name: 'Spartan 3',color: '#F0B429' },
-  ];
-  return (
-    <View style={il.rankRow}>
-      {ranks.map((r, i) => (
-        <View key={r.name} style={il.rankItem}>
-          <View style={[il.rankDot, { backgroundColor: r.color, width: 8 + i * 3, height: 8 + i * 3, borderRadius: (8 + i * 3) / 2 }]} />
-          <Text style={[il.rankName, { color: r.color, fontSize: 8 + i }]}>{r.name}</Text>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-function RelicsIllustration() {
-  const chars = [
-    { emoji: '🛡️', name: 'Ironhide', color: '#F0B429', effect: 'Shield' },
-    { emoji: '🔥', name: 'Phoenix',  color: '#E04A2F', effect: 'Revive' },
-    { emoji: '⚡', name: 'Quicksilver', color: '#EDE3CC', effect: 'Speed' },
-    { emoji: '👑', name: 'Midas',    color: '#F0B429', effect: 'Lives+' },
-  ];
-  return (
-    <View style={il.relicRow}>
-      {chars.map(c => (
-        <View key={c.name} style={[il.relicCard, { borderColor: c.color + '66' }]}>
-          <Glyph style={{ fontSize: 22 }} value={c.emoji} />
-          <Text style={[il.relicCardName, { color: c.color }]}>{c.name}</Text>
-          <View style={[il.relicEffectBadge, { backgroundColor: c.color + '22' }]}>
-            <Text style={[il.relicEffectText, { color: c.color }]}>{c.effect}</Text>
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-function StreakIllustration() {
-  const mults = [
-    { streak: '1 win',  mult: '1.0×', color: '#93B8AB' },
-    { streak: '2 wins', mult: '1.25×', color: '#F0B429' },
-    { streak: '3 wins', mult: '1.5×', color: '#E04A2F' },
-    { streak: '4 wins', mult: '1.75×', color: '#E04A2F' },
-    { streak: '5+ wins', mult: '2.0×', color: '#F0B429' },
-  ];
-  return (
-    <View style={il.streakCol}>
-      {mults.map(m => (
-        <View key={m.streak} style={il.streakRow}>
-          <Text style={[il.streakLabel, { color: '#F3EAD366' }]}>{m.streak}</Text>
-          <View style={[il.streakBar, { backgroundColor: m.color + '22', borderColor: m.color + '44', flex: parseFloat(m.mult) * 0.4 }]} />
-          <Text style={[il.streakMult, { color: m.color }]}>{m.mult}</Text>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-function ReadyIllustration() {
-  const bounceAnim = useRef(new Animated.Value(0)).current;
-  React.useEffect(() => {
-    staticLoop(
-      Animated.sequence([
-        Animated.timing(bounceAnim, { toValue: -12, duration: 500, useNativeDriver: true }),
-        Animated.timing(bounceAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-  return (
-    <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-      <Animated.Text style={{ fontSize: 72, transform: [{ translateY: bounceAnim }] }}></Animated.Text>
-      <View style={il.readyBotRow}>
-        <Glyph style={{ fontSize: 32 }} value="🤖" />
-        <Text style={[il.readyVs, { color: '#F0B429' }]}>VS</Text>
-        <Glyph style={{ fontSize: 32 }} value="⚔️" />
-      </View>
-      <Text style={il.readyPractice}>PRACTICE MATCH</Text>
-    </View>
-  );
-}
-
-const STEPS: Step[] = [
-  {
-    emoji: '🏟️',
-    title: 'Welcome to GoldRush Arena!',
-    subtitle: 'The ultimate air-hockey battle',
-    body: "You're about to enter 4-player last-one-standing air hockey, fast, chaotic, and incredibly satisfying. Let's get you up to speed in under 2 minutes.",
-    illustration: <ArenaIllustration />,
-    accentColor: '#F0B429',
-  },
-  {
-    emoji: '🎯',
-    title: 'The Goal',
-    subtitle: 'Deflect. Survive. Win.',
-    body: 'Balls fly around the arena. Deflect them back with your paddle. Let one slip past and you lose a life. Lose all your lives and you\'re eliminated. Last player standing wins!',
-    illustration: <ArenaIllustration />,
-    accentColor: '#E04A2F',
-  },
-  {
-    emoji: '👆',
-    title: 'How to Play',
-    subtitle: 'Swipe anywhere on your side',
-    body: "You don't need to tap exactly on the paddle. Just drag your finger ANYWHERE on your half of the screen, the golden paddle follows your touch instantly.",
-    illustration: <ControlsIllustration />,
-    accentColor: '#F0B429',
-  },
-  {
-    emoji: '❤️',
-    title: 'Lives & Arena Stages',
-    subtitle: 'The arena shrinks as players fall',
-    body: "Every player starts with 5 lives. As players are eliminated the arena tightens: 4-player square → 3-player triangle → 1v1 duel. The pressure keeps building!",
-    illustration: <LivesIllustration />,
-    accentColor: '#E04A2F',
-  },
-  {
-    emoji: '⚡',
-    title: 'Power-Ups',
-    subtitle: 'Grab them, they change everything',
-    body: "Power-ups spawn mid-match inside the arena. A Shield blocks one hit. Speed Boost cranks your paddle. Extra Ball adds chaos. Shrink makes enemy paddles tiny. Time it right!",
-    illustration: <PowerupsIllustration />,
-    accentColor: '#EDE3CC',
-  },
-  {
-    emoji: '🏆',
-    title: 'Ranks & XP',
-    subtitle: 'Bronze → Spartan 3, 23 ranks to climb',
-    body: "Every match earns XP. Climb through Bronze, Silver, Gold, Platinum, Diamond, then into Master and Legend tiers. Reach the Prestige ranks, Recruit through Spartan 3, to prove elite status.",
-    illustration: <RanksIllustration />,
-    accentColor: '#CFE0D6',
-  },
-  {
-    emoji: '🧬',
-    title: 'Relic Characters',
-    subtitle: 'Choose your fighter, level them up',
-    body: "Relics are characters you equip for a passive edge. Ironhide starts with a shield. Phoenix revives when eliminated. Spend coins to level them up from L1 to L10 for stronger effects!",
-    illustration: <RelicsIllustration />,
-    accentColor: '#9CC93E',
-  },
-  {
-    emoji: '🔥',
-    title: 'Streak & Mode Bonuses',
-    subtitle: 'Win more, earn more',
-    body: "Consecutive wins multiply your XP and coin rewards, up to 2× on a 5-win streak! Harder modes pay out more too: Chaos mode gives 1.5× rewards, 6-Player gives 1.75×.",
-    illustration: <StreakIllustration />,
-    accentColor: '#E04A2F',
-  },
-  {
-    emoji: '🎮',
-    title: "You're Ready!",
-    subtitle: "Let's do a practice match",
-    body: "That covers everything! A friendly practice bot is waiting for you. Beat it, learn the controls, and earn your first coins. Your journey to Legend starts now.",
-    illustration: <ReadyIllustration />,
-    accentColor: '#F0B429',
-  },
-];
-
-// ─── Main overlay ───────────────────────────────────────────────────────────
-interface Props { onComplete: () => void }
-
-export function TutorialOverlay({ onComplete }: Props) {
-  const insets = useSafeAreaInsets();
-  const router = useRouter();
+/** First-run and Settings replay share the same lessons and profile completion flag. */
+export function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
   const { profile, completeTutorial } = usePlayer();
-
-  const [stepIdx, setStepIdx] = useState(0);
-  const slideAnim  = useRef(new Animated.Value(0)).current;
-  const fadeAnim   = useRef(new Animated.Value(1)).current;
-
-  const step = STEPS[stepIdx];
-  const isLast = stepIdx === STEPS.length - 1;
-
-  function animateTo(next: number) {
-    Animated.parallel([
-      Animated.timing(fadeAnim,  { toValue: 0, duration: 150, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: -20, duration: 150, useNativeDriver: true }),
-    ]).start(() => {
-      setStepIdx(next);
-      slideAnim.setValue(30);
-      Animated.parallel([
-        Animated.timing(fadeAnim,  { toValue: 1, duration: 200, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-      ]).start();
-    });
-  }
-
-  function handleNext() {
-    if (isLast) {
-      handleStartPractice();
-    } else {
-      animateTo(stepIdx + 1);
+  const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+  const [step, setStep] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const reducedMotion = useReducedMotion();
+  const [practiceRunning, setPracticeRunning] = useState(!reducedMotion);
+  const arenaSize = Math.max(160, Math.min(width - 64, height * .32, 280));
+  async function finish() {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await completeTutorial();
+      onComplete();
+    } catch {
+      setError('Could not save tutorial progress. Your player data is unchanged. Please retry.');
+    } finally {
+      setBusy(false);
     }
   }
-
-  async function handleSkip() {
-    await completeTutorial();
-    onComplete();
-  }
-
-  async function handleStartPractice() {
-    await completeTutorial();
-    setGameConfig({
-      playerName:      profile.name,
-      playerSkinId:    profile.currentSkin,
-      playerColor:     profile.avatarFrameColor,
-      playerGlowColor: profile.avatarFrameColor + '55',
-      matchType:       'casual',
-      variant:         'classic',
-      playerRelicId:   profile.currentRelic,
-      mapId:           'dustbowl',
-      practice:        true,
-    });
-    onComplete();
-    router.push('/game');
-  }
-
-  const topPad    = Platform.OS === 'web' ? Math.max(insets.top, 24) : insets.top;
-  const bottomPad = Math.max(insets.bottom, 16);
-
   return (
-    <View style={[s.overlay, { paddingTop: topPad, paddingBottom: bottomPad }]}>
-      <LinearGradient
-        colors={['#0E2621EE', '#0E2621FA']}
-        style={StyleSheet.absoluteFill}
-      />
-
-      {/* Skip button */}
-      {!isLast && (
-        <Pressable onPress={handleSkip} style={s.skipBtn}>
-          <Text style={s.skipText}>SKIP</Text>
-        </Pressable>
-      )}
-
-      {/* Step counter */}
-      <Text style={s.stepCounter}>{stepIdx + 1} / {STEPS.length}</Text>
-
-      {/* Animated step card */}
-      <Animated.View style={[s.card, {
-        opacity: fadeAnim,
-        transform: [{ translateY: slideAnim }],
-        borderColor: step.accentColor + '44',
-      }]}>
-        {/* Illustration */}
-        <View style={[s.illustrationBox, { backgroundColor: step.accentColor + '0C' }]}>
-          {step.illustration}
+    <View style={[s.root, { paddingTop: Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top, paddingBottom: Math.max(insets.bottom, 20) }]}>
+      <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+        <View style={s.heading}>
+          <Text style={s.step}>Learn to play · {step + 1} of {LESSONS.length}</Text>
+          <Button label="Skip tutorial" variant="ghost" onPress={finish} disabled={busy} />
         </View>
-
-        {/* Text */}
-        <View style={s.textBlock}>
-          <View style={s.titleRow}>
-            <Glyph style={s.emoji} value={step.emoji} />
-            <View style={{ flex: 1 }}>
-              <Text style={[s.title, { color: step.accentColor }]}>{step.title}</Text>
-              <Text style={s.subtitle}>{step.subtitle}</Text>
-            </View>
-          </View>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={s.body}>{step.body}</Text>
-          </ScrollView>
+        <Text accessibilityRole="header" style={s.title}>{LESSONS[step].title}</Text>
+        <Text style={s.body}>{LESSONS[step].body}</Text>
+        <View style={{ alignSelf: 'center', width: arenaSize, height: arenaSize }}>
+          <GameArena arenaSize={arenaSize} playerName="You" playerColor={palette.ochre}
+            playerGlowColor={palette.ochre} botNames={['North bot', 'West bot', 'East bot']}
+            botRanks={['Bronze 1', 'Bronze 1', 'Bronze 1']} practice
+            botDifficulty="easy" soundEnabled={false} paused={!practiceRunning} onGameOver={() => {}} />
         </View>
-      </Animated.View>
-
-      {/* Dot pagination */}
-      <View style={s.dotsRow}>
-        {STEPS.map((_, i) => (
-          <Pressable key={i} onPress={() => i < stepIdx && animateTo(i)}>
-            <View style={[s.dot, {
-              backgroundColor: i === stepIdx ? step.accentColor : i < stepIdx ? step.accentColor + '55' : '#F3EAD322',
-              width: i === stepIdx ? 20 : 7,
-            }]} />
-          </Pressable>
-        ))}
-      </View>
-
-      {/* Action buttons */}
-      <View style={s.btnRow}>
-        {stepIdx > 0 && (
-          <Pressable onPress={() => animateTo(stepIdx - 1)} style={s.backBtn}>
-            <Feather name="chevron-left" size={20} color="#F3EAD366" />
-          </Pressable>
-        )}
-        <Pressable onPress={handleNext} style={[s.nextBtn, { flex: 1 }]}>
-          <LinearGradient
-            colors={isLast
-              ? [step.accentColor, step.accentColor + 'CC']
-              : ['#F0B429', '#F0B429']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={s.nextGrad}
-          >
-            {isLast ? (
-              <>
-                <Feather name="play" size={16} color="#0E2621" />
-                <Text style={[s.nextText, { color: '#0E2621' }]}>START PRACTICE MATCH</Text>
-              </>
-            ) : (
-              <>
-                <Text style={s.nextText}>NEXT</Text>
-                <Feather name="chevron-right" size={16} color="#0E2621" />
-              </>
-            )}
-          </LinearGradient>
-        </Pressable>
-      </View>
+        <Text style={s.note}>You · bottom paddle · Practice only</Text>
+        <Button label={practiceRunning ? 'Pause practice' : 'Run practice'} variant="secondary" onPress={() => setPracticeRunning(value => !value)} />
+        {error && <Text accessibilityRole="alert" style={[s.body, { color: palette.clay }]}>{error}</Text>}
+        <View style={s.actions}>
+          {step > 0 && <Button label="Back" variant="secondary" disabled={busy} onPress={() => setStep(n => n - 1)} />}
+          <Button label={step === LESSONS.length - 1 ? 'Finish tutorial' : 'Next lesson'}
+            style={{ flex: 1 }} loading={busy}
+            onPress={step === LESSONS.length - 1 ? finish : () => setStep(n => n + 1)} />
+        </View>
+        <Text style={s.note}>Replay these lessons anytime from Settings</Text>
+      </ScrollView>
     </View>
   );
 }
 
-// ─── Illustration styles ───────────────────────────────────────────────────
-const il = StyleSheet.create({
-  arena: {
-    width: '100%', height: '100%',
-    alignItems: 'center', justifyContent: 'center',
-    position: 'relative',
-  },
-  paddle: {
-    position: 'absolute', borderRadius: 3,
-    shadowOpacity: 0, shadowRadius: 0, elevation: 0,
-  },
-  paddleTop:    { top: 10,    left: '50%', marginLeft: -30, width: 60, height: 9 },
-  paddleBottom: { bottom: 10, left: '50%', marginLeft: -30, width: 60, height: 9 },
-  paddleLeft:   { left: 10,   top: '50%',  marginTop: -4,   width: 9,  height: 40 },
-  paddleRight:  { right: 10,  top: '50%',  marginTop: -4,   width: 9,  height: 40 },
-  ball: {
-    width: 16, height: 16, borderRadius: 3,
-    backgroundColor: '#F3EAD3',
-    shadowColor: '#F3EAD3', shadowOpacity: 0, shadowRadius: 0, elevation: 0,
-  },
-  ring: {
-    position: 'absolute', borderRadius: 3,
-    borderWidth: 1, borderColor: '#F3EAD310',
-  },
-  ring1: { width: 80, height: 80 },
-  ring2: { width: 140, height: 140 },
-  halfBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', borderRadius: 4 },
-  halfTop:    { position: 'absolute', top: 0, left: 0, right: 0, height: '50%' },
-  finger: { position: 'absolute', bottom: 30 },
-  zoneLabel: {
-    position: 'absolute', bottom: 4,
-    fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 1.5, color: '#F0B42966',
-  },
-  stageRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-end', marginBottom: 16 },
-  stageBox: { alignItems: 'center', gap: 4 },
-  stageText: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#F3EAD388', letterSpacing: 1 },
-  stageDotsRow: { flexDirection: 'row', gap: 4 },
-  stageDot: { width: 10, height: 10, borderRadius: 3 },
-  livesRow: { flexDirection: 'row', gap: 6 },
-  heart: { width: 14, height: 14, borderRadius: 3 },
-  livesLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: '#F3EAD344', marginTop: 8, letterSpacing: 1 },
-  pupGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', padding: 8 },
-  pupBox: { width: 70, height: 70, borderRadius: 3, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', gap: 4 },
-  pupLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 0.5 },
-  rankRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-around', width: '100%', paddingHorizontal: 8 },
-  rankItem: { alignItems: 'center', gap: 6 },
-  rankDot: {},
-  rankName: { fontFamily: 'SourceSans3_700Bold', letterSpacing: 0.3 },
-  streakCol: { gap: 7, width: '100%', paddingHorizontal: 12 },
-  streakRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  streakLabel: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, width: 50 },
-  streakBar: { height: 16, borderRadius: 3, borderWidth: 1, minWidth: 10 },
-  streakMult: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, width: 38, textAlign: 'right' },
-  relicRow: { flexDirection: 'row', gap: 6, justifyContent: 'center' },
-  relicCard: { alignItems: 'center', gap: 4, borderWidth: 1.5, borderRadius: 3, padding: 8, backgroundColor: '#F3EAD306' },
-  relicCardName: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.3 },
-  relicEffectBadge: { borderRadius: 3, paddingHorizontal: 5, paddingVertical: 2 },
-  relicEffectText: { fontFamily: 'SourceSans3_700Bold', fontSize: 8 },
-  readyBotRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 8 },
-  readyVs: { fontFamily: 'SourceSans3_700Bold', fontSize: 20, letterSpacing: 2 },
-  readyPractice: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 2, color: '#F3EAD344', marginTop: 8 },
-});
-
-// ─── Overlay styles ────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  overlay: {
-    position: 'absolute', inset: 0,
-    zIndex: 9999,
-    flex: 1, paddingHorizontal: 20,
-    gap: 14,
-  },
-  skipBtn: {
-    position: 'absolute', top: 60, right: 20, zIndex: 1,
-    paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: 3, borderWidth: 1, borderColor: '#F3EAD322',
-    backgroundColor: '#F3EAD30A',
-  },
-  skipText: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#F3EAD355', letterSpacing: 1 },
-  stepCounter: {
-    fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: '#F3EAD333',
-    letterSpacing: 1, textAlign: 'center', marginTop: 8,
-  },
-  card: {
-    flex: 1, borderRadius: 3, borderWidth: 1.5,
-    overflow: 'hidden', backgroundColor: '#0E262199',
-  },
-  illustrationBox: {
-    height: SH * 0.26, minHeight: 160,
-    borderBottomWidth: 1, borderBottomColor: '#F3EAD30C',
-  },
-  textBlock: { flex: 1, padding: 20, gap: 12 },
-  titleRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
-  emoji: { fontSize: 32, lineHeight: 38 },
-  title: { fontFamily: 'SourceSans3_700Bold', fontSize: 17, letterSpacing: 0.2 },
-  subtitle: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#F3EAD355', marginTop: 2 },
-  body: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: '#F0B429', lineHeight: 22 },
-  dotsRow: { flexDirection: 'row', gap: 6, justifyContent: 'center', alignItems: 'center' },
-  dot: { height: 7, borderRadius: 3.5 },
-  btnRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  backBtn: {
-    width: 48, height: 52, borderRadius: 3,
-    borderWidth: 1.5, borderColor: '#F3EAD322',
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#F3EAD308',
-  },
-  nextBtn: { borderRadius: 3, overflow: 'hidden', elevation: 0 },
-  nextGrad: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 16, gap: 8,
-  },
-  nextText: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: '#0E2621', letterSpacing: 1 },
+  root: { flex: 1, backgroundColor: palette.ink },
+  content: { width: '100%', maxWidth: 720, alignSelf: 'center', padding: 20, gap: 20 },
+  heading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  step: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.paperDim },
+  title: { fontFamily: fonts.display, fontSize: 32, color: palette.paper },
+  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 23, color: palette.paperDim },
+  note: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: palette.muted, textAlign: 'center' },
+  actions: { flexDirection: 'row', gap: 12 },
 });

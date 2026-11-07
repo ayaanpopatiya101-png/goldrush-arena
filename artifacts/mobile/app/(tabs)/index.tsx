@@ -9,9 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DailyStreakModal } from '@/components/DailyStreakModal';
 import { GameArena } from '@/components/GameArena';
 import { LiveEventBanner } from '@/components/LiveEventBanner';
-import { RankBadge } from '@/components/RankBadge';
 import { Glyph } from '@/components/ui/Glyph';
-import { Button, Chip, IconButton, Panel, SectionLabel, Stat, ui } from '@/components/ui/Primitives';
+import { Button, Chip, IconButton, Panel, SectionLabel, Shell, Stat, ui } from '@/components/ui/Primitives';
 import { PLAYER_COLORS } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import {
@@ -41,8 +40,8 @@ interface ModeDef {
 }
 
 const MODES: ModeDef[] = [
-  { key: 'ranked', kind: 'ranked', name: 'Ranked', sub: '4 seats · 5 lives', desc: 'Last paddle standing. Result moves your rank.', group: 'MATCH', partyLaunch: true },
-  { key: 'casual', kind: 'casual', name: 'Casual', sub: '4 seats · no rank change', desc: 'Same arena, no rank on the line.', group: 'MATCH', partyLaunch: true },
+  { key: 'ranked', kind: 'ranked', name: 'Ranked', sub: '4 seats · 5 lives', desc: 'Last paddle standing. Earns account XP and moves your competitive level.', group: 'MATCH', partyLaunch: true },
+  { key: 'casual', kind: 'casual', name: 'Casual', sub: '4 seats · level unchanged', desc: 'Earns account XP, which still counts toward your XP rank. Competitive level does not change.', group: 'MATCH', partyLaunch: true },
   { key: 'arcade', kind: 'arcade', name: 'Survival Run', sub: 'Solo · arcade', desc: 'Deflect as long as you can. Speed ramps up.', group: 'SOLO', partyLaunch: false },
   { key: 'challenge', kind: 'challenge', name: 'Daily Challenge', sub: 'Solo · seeded', desc: 'Today\'s seed, same for every player.', group: 'SOLO', partyLaunch: false },
   { key: 'duos', kind: 'variant', variant: 'duos', name: 'Duos', sub: '2v2 teams', desc: 'Bottom and right versus top and left.', group: 'VARIANT', partyLaunch: true },
@@ -53,11 +52,17 @@ const MODES: ModeDef[] = [
   { key: 'turbo', kind: 'variant', variant: 'turbo', name: 'Turbo', sub: '1.8x speed', desc: 'Full speed from the first second.', group: 'VARIANT', partyLaunch: true },
   { key: 'pinball', kind: 'variant', variant: 'pinball', name: 'Pinball', sub: 'Ball every 3s', desc: 'Up to 8 balls in play.', group: 'VARIANT', partyLaunch: true },
   { key: 'six_player', kind: 'variant', variant: 'six_player', name: '6-Player', sub: '6 zones · split walls', desc: 'Split walls, six paddles.', group: 'VARIANT', partyLaunch: true },
-  { key: 'gauntlet', kind: 'gauntlet', name: 'Champion\'s Gauntlet', sub: 'Multi-round run', desc: 'Survive consecutive rounds across variants.', group: 'ELITE', lockIdx: 9, lockLabel: 'Diamond+', partyLaunch: false },
+  { key: 'gauntlet', kind: 'gauntlet', name: 'Champion\'s Gauntlet', sub: 'First to 5 round wins', desc: 'Rounds across variants. A lost round does not end the run; a bot reaching 5 wins does.', group: 'ELITE', lockIdx: 9, lockLabel: 'Diamond+', partyLaunch: false },
   { key: 'storm_surge', kind: 'elite', variant: 'storm_surge', name: 'Storm Surge', sub: '3 balls · 1 life', desc: 'Max-skill opponents. 2x XP and coins.', group: 'ELITE', lockIdx: 12, lockLabel: 'Master 1+', partyLaunch: true },
   { key: 'ghost_protocol', kind: 'elite', variant: 'ghost_protocol', name: 'Ghost Protocol', sub: 'Balls vanish', desc: 'Balls turn invisible mid-flight. 3x XP and coins.', group: 'ELITE', lockIdx: 15, lockLabel: 'Champion 1+', partyLaunch: true },
   { key: 'warlord', kind: 'elite', variant: 'warlord', name: 'Warlord', sub: '1 vs 5', desc: 'Six players, 8 lives for you. 5x XP and coins.', group: 'ELITE', lockIdx: 17, lockLabel: 'Champion 3+', partyLaunch: true },
 ];
+
+function opponentLabel(m: ModeDef): string {
+  if (m.kind === 'arcade' || m.kind === 'challenge') return 'Solo, no opponents';
+  if (m.kind === 'gauntlet') return 'Local bots, multi-round';
+  return 'Local bots';
+}
 
 const PREVIEW_BOTS = ['Bot North', 'Bot West', 'Bot East'];
 const PREVIEW_RANKS = ['Gold', 'Gold', 'Gold'];
@@ -70,6 +75,7 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
   const reduced = useReducedMotion();
   const [run, setRun] = useState(0);
   const [started, setStarted] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);
   const active = !reduced || started;
   const compact = size < 320;
 
@@ -92,7 +98,7 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
             soundEnabled={false}
             colorBoard={false}
             botDifficulty="easy"
-            paused={!focused}
+            paused={!focused || userPaused}
           />
         ) : (
           <View style={a.reducedBox}>
@@ -113,9 +119,22 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
           </View>
         ))}
       </View>
-      <Text style={a.caption}>
-        Practice preview running on the match engine. Drag along your edge to move. Nothing here counts toward rank or rewards.
-      </Text>
+      <View style={a.captionRow}>
+        <Text style={[a.caption, { flex: 1 }]}>
+          Practice on the real match engine. Drag along the bottom edge to move your paddle. No rank or rewards.
+        </Text>
+        {active ? (
+          <Button
+            testID="preview-pause"
+            label={userPaused ? 'Resume' : 'Pause'}
+            size="sm"
+            variant="ghost"
+            icon={userPaused ? 'play' : 'pause'}
+            accessibilityHint="Pauses or resumes the practice preview"
+            onPress={() => setUserPaused(p => !p)}
+          />
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -145,7 +164,15 @@ export default function HomeScreen() {
   const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0]!;
   const winRate = profile.totalGames > 0 ? ((profile.wins / profile.totalGames) * 100).toFixed(1) : null;
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
-  const arenaSize = Math.min(width - 32, width > 700 ? 340 : Math.max(220, height * 0.28));
+  const wide = width >= 900;
+  const contentW = Math.min(width, 1160) - 36;
+  // Phone: play panel first, preview below. Wide: preview beside the panel, sized to the viewport height.
+  const arenaSize = wide
+    ? Math.min(contentW - 460 - 24, height - topPad - 220, 520)
+    : Math.min(contentW, 360, Math.max(240, height * 0.45));
+  const panelW = wide ? 460 - 2 : contentW;
+  const modeCellW = Math.floor((panelW - 6) / 2);
+  const [showAllModes, setShowAllModes] = useState(false);
 
   const selected = useMemo(() => MODES.find(m => m.key === selectedKey) ?? MODES[0]!, [selectedKey]);
   const isLocked = (m: ModeDef) => m.lockIdx != null && playerRankIdx < m.lockIdx;
@@ -276,7 +303,26 @@ export default function HomeScreen() {
     : isInParty && isLeader && selected.partyLaunch ? `Play ${selected.name} with party`
     : `Play ${selected.name}`;
 
-  const groups: ModeDef['group'][] = ['MATCH', 'SOLO', 'VARIANT', 'ELITE'];
+  function renderMode(m: ModeDef) {
+    const locked = isLocked(m);
+    const on = m.key === selected.key;
+    return (
+      <Pressable
+        key={m.key}
+        onPress={() => setSelectedKey(m.key)}
+        accessibilityRole="radio"
+        accessibilityState={{ selected: on }}
+        accessibilityLabel={`${m.name}, ${m.sub}${locked ? `, requires ${m.lockLabel}` : ''}`}
+        style={({ pressed }) => [s.modeCell, { width: modeCellW }, on && s.modeCellOn, pressed && { backgroundColor: ui.graphite2 }]}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          {locked ? <Feather name="lock" size={12} color={ui.paperDim} /> : null}
+          <Text style={[s.modeName, on && { color: ui.ochre }]} numberOfLines={1}>{m.name}</Text>
+        </View>
+        <Text style={s.modeSub} numberOfLines={1}>{locked ? `Requires ${m.lockLabel}` : m.sub}</Text>
+      </Pressable>
+    );
+  }
 
   return (
     <View style={s.root}>
@@ -291,6 +337,7 @@ export default function HomeScreen() {
         contentContainerStyle={{ paddingTop: topPad + 8, paddingBottom: insets.bottom + 110 }}
         showsVerticalScrollIndicator={false}
       >
+        <Shell style={{ paddingHorizontal: 0 }}>
         {/* Header: player identity and wallet */}
         <View style={s.header}>
           <Pressable
@@ -312,7 +359,8 @@ export default function HomeScreen() {
               <Feather name="disc" size={13} color={ui.ochre} />
               <Text style={s.walletText}>{profile.coins.toLocaleString()}</Text>
             </View>
-            <RankBadge rank={profile.rank} size="sm" showLabel={false} />
+            <IconButton icon="award" label="Ranks" onPress={() => router.push('/leaderboard')} />
+            <IconButton icon="gift" label="Season pass" onPress={() => router.push('/trophyroad')} />
             <IconButton icon="settings" label="Settings" onPress={() => router.push('/settings')} />
           </View>
         </View>
@@ -325,70 +373,69 @@ export default function HomeScreen() {
           <Text style={s.xpText}>{rankInfo.next ? `${rankInfo.remaining.toLocaleString()} XP to ${rankInfo.next}` : 'Top rank reached'}</Text>
         </View>
 
-        {/* The arena itself */}
-        <View style={{ marginTop: 14 }}>
-          <ArenaPreview size={arenaSize} playerColor={skin.color} />
-        </View>
-
-        {/* Selected mode + single Play */}
-        <View style={s.block}>
-          <Panel style={s.selectedPanel}>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text style={s.kicker}>Selected mode</Text>
-              <Text style={s.selectedName}>{selected.name}</Text>
-              <Text style={s.selectedDesc}>{selected.sub} · {selected.desc}</Text>
-            </View>
-            {selectedLocked ? <Chip label={selected.lockLabel ?? 'Locked'} tone="clay" /> : null}
-          </Panel>
-          <Button
-            testID="home-play"
-            label={playLabel}
-            size="lg"
-            icon={selectedLocked ? 'lock' : 'play'}
-            disabled={selectedLocked || partyBlocks}
-            loading={selected.kind === 'challenge' && challengeLoading}
-            onPress={handlePlay}
-            style={{ marginTop: 8 }}
-          />
-          {challengeError && selected.kind === 'challenge' ? (
-            <View style={s.errorRow}>
-              <Text style={s.errorText}>{challengeError}</Text>
-              <Button label="Retry" size="sm" variant="ghost" onPress={startChallenge} />
-            </View>
-          ) : null}
-          {partyBlocks ? <Text style={s.note}>You are in a party. The leader picks the mode and launches for everyone. Solo modes stay available.</Text> : null}
-          {isInParty && isLeader && !selected.partyLaunch ? <Text style={s.note}>This mode starts for you only. Party members stay on their home screen.</Text> : null}
-        </View>
-
-        {/* Mode selection */}
-        <View style={s.block}>
-          {groups.map(g => (
-            <View key={g} style={{ marginBottom: 12 }}>
-              <SectionLabel title={g === 'MATCH' ? 'Four-seat match' : g === 'SOLO' ? 'Solo' : g === 'VARIANT' ? 'Variants' : 'Elite'} />
-              <View style={s.modeGrid}>
-                {MODES.filter(m => m.group === g).map(m => {
-                  const locked = isLocked(m);
-                  const on = m.key === selected.key;
-                  return (
-                    <Pressable
-                      key={m.key}
-                      onPress={() => setSelectedKey(m.key)}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected: on, disabled: locked }}
-                      accessibilityLabel={`${m.name}, ${m.sub}${locked ? `, locked until ${m.lockLabel}` : ''}`}
-                      style={({ pressed }) => [s.modeCell, on && s.modeCellOn, pressed && { backgroundColor: ui.graphite2 }]}
-                    >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        {locked ? <Feather name="lock" size={12} color={ui.muted} /> : null}
-                        <Text style={[s.modeName, on && { color: ui.ochre }, locked && { color: ui.muted }]} numberOfLines={1}>{m.name}</Text>
-                      </View>
-                      <Text style={s.modeSub} numberOfLines={1}>{locked ? m.lockLabel : m.sub}</Text>
-                    </Pressable>
-                  );
-                })}
+        {/* Primary play task: mode, rules, opponents and Play together; preview beside on wide screens */}
+        <View style={[s.playArea, wide && s.playAreaWide]}>
+          <View style={[s.playPanel, wide && { flex: 1, maxWidth: 460 }]}>
+            <Panel style={s.selectedPanel}>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text style={s.kicker}>Selected mode</Text>
+                <Text style={s.selectedName}>{selected.name}</Text>
+                <Text style={s.selectedDesc}>{selected.desc}</Text>
+                <View style={s.ruleRow}>
+                  <Chip label={selected.sub} />
+                  <Chip label={opponentLabel(selected)} />
+                  <Chip label={selected.kind === 'ranked' || selected.kind === 'elite' ? 'Affects rank' : 'No rank change'} tone={selected.kind === 'ranked' || selected.kind === 'elite' ? 'ochre' : 'neutral'} />
+                </View>
               </View>
+              {selectedLocked ? <Chip label={`Requires ${selected.lockLabel ?? 'higher rank'}`} tone="clay" /> : null}
+            </Panel>
+            <Button
+              testID="home-play"
+              label={playLabel}
+              size="lg"
+              icon={selectedLocked ? 'lock' : undefined}
+              disabled={selectedLocked || partyBlocks}
+              loading={selected.kind === 'challenge' && challengeLoading}
+              onPress={handlePlay}
+              style={{ marginTop: 8 }}
+            />
+            {challengeError && selected.kind === 'challenge' ? (
+              <View style={s.errorRow}>
+                <Text style={s.errorText}>{challengeError}</Text>
+                <Button label="Retry" size="sm" variant="ghost" onPress={startChallenge} />
+              </View>
+            ) : null}
+            {partyBlocks ? <Text style={s.note}>You are in a party. The leader picks the mode and launches for everyone. Solo modes stay available.</Text> : null}
+            {isInParty && isLeader && !selected.partyLaunch ? <Text style={s.note}>This mode starts for you only. Party members stay on their home screen.</Text> : null}
+
+            {/* Compact initial choices */}
+            <View style={s.modeGrid} accessibilityRole="radiogroup">
+              {MODES.filter(m => m.group === 'MATCH' || m.group === 'SOLO').map(m => renderMode(m))}
             </View>
-          ))}
+            <Pressable
+              testID="toggle-all-modes"
+              onPress={() => setShowAllModes(v => !v)}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showAllModes }}
+              style={({ pressed }) => [s.expandRow, pressed && { backgroundColor: ui.graphite2 }]}
+            >
+              <Text style={s.expandText}>{showAllModes ? 'Hide variants and elite modes' : `All modes (${MODES.filter(m => m.group === 'VARIANT' || m.group === 'ELITE').length} more)`}</Text>
+              <Feather name={showAllModes ? 'chevron-up' : 'chevron-down'} size={18} color={ui.paperDim} />
+            </Pressable>
+            {showAllModes ? (
+              <View style={{ gap: 12, marginTop: 4 }}>
+                {(['VARIANT', 'ELITE'] as const).map(g => (
+                  <View key={g}>
+                    <SectionLabel title={g === 'VARIANT' ? 'Variants' : 'Elite'} />
+                    <View style={s.modeGrid}>{MODES.filter(m => m.group === g).map(m => renderMode(m))}</View>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+          </View>
+          <View style={wide ? { width: arenaSize } : { marginTop: 16 }}>
+            <ArenaPreview size={arenaSize} playerColor={skin.color} />
+          </View>
         </View>
 
         {/* Party */}
@@ -529,6 +576,7 @@ export default function HomeScreen() {
             </View>
           </Pressable>
         </View>
+        </Shell>
       </ScrollView>
     </View>
   );
@@ -547,34 +595,41 @@ const a = StyleSheet.create({
   seatSwatch: { width: 4, height: 24 },
   seatPos: { fontFamily: fonts.display, fontSize: 13, letterSpacing: 1, color: ui.paper, textTransform: 'uppercase' },
   seatWho: { fontFamily: fonts.body, fontSize: 11, color: ui.muted },
-  caption: { fontFamily: fonts.body, fontSize: 12, color: ui.muted, marginTop: 6, lineHeight: 16 },
+  caption: { fontFamily: fonts.body, fontSize: 13, color: ui.muted, lineHeight: 18 },
+  captionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
 });
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: ui.ink },
   skel: { backgroundColor: ui.graphite, borderRadius: 2 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, gap: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, gap: 8 },
   identity: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
   avatar: { width: 44, height: 44, borderWidth: 2, borderRadius: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: ui.graphite },
   name: { fontFamily: fonts.display, fontSize: 22, color: ui.paper, letterSpacing: 0.5 },
   meta: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: ui.muted },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  wallet: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: ui.line, borderRadius: 3, paddingHorizontal: 8, height: 32 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  wallet: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: ui.line, borderRadius: 3, paddingHorizontal: 8, height: 44 },
   walletText: { fontFamily: fonts.display, fontSize: 17, color: ui.paper, fontVariant: ['tabular-nums'] },
-  xpWrap: { paddingHorizontal: 16, marginTop: 12, gap: 4 },
+  xpWrap: { paddingHorizontal: 18, marginTop: 12, gap: 4 },
   xpTrack: { height: 4, backgroundColor: ui.graphite2 },
   xpFill: { height: 4 },
   xpText: { fontFamily: fonts.body, fontSize: 12, color: ui.muted },
-  block: { paddingHorizontal: 16, marginTop: 18 },
+  block: { paddingHorizontal: 18, marginTop: 18 },
+  playArea: { paddingHorizontal: 18, marginTop: 14 },
+  playAreaWide: { flexDirection: 'row', alignItems: 'flex-start', gap: 24 },
+  playPanel: {},
+  ruleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
+  expandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, paddingHorizontal: 12, marginTop: 6, borderWidth: 1, borderColor: ui.line, borderRadius: 3 },
+  expandText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: ui.paper },
   selectedPanel: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10 },
   kicker: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: ui.muted, textTransform: 'uppercase' },
-  selectedName: { fontFamily: fonts.display, fontSize: 28, color: ui.paper, letterSpacing: 0.5, textTransform: 'uppercase' },
+  selectedName: { fontFamily: fonts.display, fontSize: 30, color: ui.paper, letterSpacing: 0.5, textTransform: 'uppercase' },
   selectedDesc: { fontFamily: fonts.body, fontSize: 14, color: ui.paperDim },
   note: { fontFamily: fonts.body, fontSize: 13, color: ui.muted, marginTop: 8, lineHeight: 18 },
   errorRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   errorText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 13, color: ui.clay },
   modeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
-  modeCell: { flexBasis: '48%', flexGrow: 1, borderWidth: 1, borderColor: ui.line, borderRadius: 3, paddingHorizontal: 10, paddingVertical: 9, backgroundColor: ui.graphite, minHeight: 52 },
+  modeCell: { borderWidth: 1, borderColor: ui.line, borderRadius: 3, paddingHorizontal: 10, paddingVertical: 9, backgroundColor: ui.graphite, minHeight: 52 },
   modeCellOn: { borderColor: ui.ochre, borderWidth: 2, paddingHorizontal: 9, paddingVertical: 8 },
   modeName: { fontFamily: fonts.display, fontSize: 17, color: ui.paper, letterSpacing: 0.5, textTransform: 'uppercase' },
   modeSub: { fontFamily: fonts.body, fontSize: 12, color: ui.muted },

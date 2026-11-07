@@ -56,6 +56,7 @@ export interface GameSessionConfig {
   featuredBallSpeedFactor?: number;
 }
 
+let _configured = false;
 let _config: GameSessionConfig = {
   playerName:      'Player',
   playerSkinId:    'default',
@@ -69,6 +70,12 @@ let _config: GameSessionConfig = {
 
 export function setGameConfig(config: GameSessionConfig) {
   _config = { ...config };
+  _configured = true;
+}
+
+/** Direct links must not silently start a fabricated match from default settings. */
+export function hasGameConfig(): boolean {
+  return _configured;
 }
 
 /** Merge a partial update into the current config without clobbering other fields. */

@@ -258,11 +258,11 @@ export function BackgroundMusicButton({ muted, onToggle }: Props) {
     <Pressable
       onPress={() => onToggle?.(!muted)}
       style={[styles.btn, {
-        backgroundColor: muted ? '#F3EAD311' : '#F0B42922',
-        borderColor:     muted ? '#F3EAD333' : '#F0B42955',
+        backgroundColor: muted ? '#EEE7D711' : '#D7A83B22',
+        borderColor:     muted ? '#EEE7D733' : '#D7A83B55',
       }]}
     >
-      <Feather name={muted ? 'volume-x' : 'volume-2'} size={16} color={muted ? '#F3EAD366' : '#F0B429'} />
+      <Feather name={muted ? 'volume-x' : 'volume-2'} size={16} color={muted ? '#EEE7D766' : '#D7A83B'} />
     </Pressable>
   );
 }

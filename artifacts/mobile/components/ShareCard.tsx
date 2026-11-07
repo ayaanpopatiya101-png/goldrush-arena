@@ -73,12 +73,12 @@ export function ShareCard({
           {/* Card body, screenshot-able */}
           <View style={styles.card}>
             <LinearGradient
-              colors={['#15372F', '#15372F', '#0E2621']}
+              colors={['#20372F', '#20372F', '#14231F']}
               style={StyleSheet.absoluteFill}
             />
             {/* Gold top border */}
             <LinearGradient
-              colors={['#F0B429', '#F0B429', '#F0B429']}
+              colors={['#D7A83B', '#D7A83B', '#D7A83B']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.topBorder}
             />
@@ -92,7 +92,7 @@ export function ShareCard({
             {/* Score hero */}
             <View style={styles.scoreSection}>
               <Text style={styles.survivedLabel}>I SURVIVED</Text>
-              <GlowText intensity="strong" color="#F0B429" style={styles.scoreNumber}>
+              <GlowText intensity="strong" color="#D7A83B" style={styles.scoreNumber}>
                 {score}
               </GlowText>
               <Text style={styles.hitsLabel}>HIT{score !== 1 ? 'S' : ''}</Text>
@@ -106,14 +106,14 @@ export function ShareCard({
               {personalBest > 0 && (
                 <View style={styles.statItem}>
                   <Text style={styles.statValue}>
-                    {isNewPB ? '🏆 ' : ''}{personalBest}
+                    {personalBest}{isNewPB ? ' (new)' : ''}
                   </Text>
                   <Text style={styles.statLabel}>PERSONAL BEST</Text>
                 </View>
               )}
               {dailyRank && totalPlayers > 1 && (
                 <View style={styles.statItem}>
-                  <Text style={[styles.statValue, { color: '#F0B429' }]}>
+                  <Text style={[styles.statValue, { color: '#D7A83B' }]}>
                     #{dailyRank}
                   </Text>
                   <Text style={styles.statLabel}>OF {totalPlayers} TODAY</Text>
@@ -132,7 +132,7 @@ export function ShareCard({
 
           {/* Action buttons */}
           <Pressable onPress={handleShare} style={styles.shareBtn}>
-            <LinearGradient colors={['#F0B429', '#F0B429']} style={styles.shareBtnGrad}>
+            <LinearGradient colors={['#D7A83B', '#D7A83B']} style={styles.shareBtnGrad}>
               <Text style={styles.shareBtnText}>SHARE &amp; CHALLENGE</Text>
             </LinearGradient>
           </Pressable>
@@ -147,13 +147,13 @@ export function ShareCard({
 }
 
 const styles = StyleSheet.create({
-  backdrop:     { backgroundColor: '#0E2621CC' },
+  backdrop:     { backgroundColor: '#14231FCC' },
   centerer:     { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
   cardWrap:     { width: '100%', maxWidth: 360, gap: 10 },
 
   card: {
     borderRadius: 3, overflow: 'hidden',
-    borderWidth: 1.5, borderColor: '#F0B42944',
+    borderWidth: 1.5, borderColor: '#D7A83B44',
     paddingHorizontal: 24, paddingBottom: 24, paddingTop: 0,
     alignItems: 'center', gap: 0,
   },
@@ -161,33 +161,33 @@ const styles = StyleSheet.create({
 
   logoRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   logoEmoji:  { fontSize: 20 },
-  logoText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 3, color: '#F0B429' },
+  logoText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 3, color: '#D7A83B' },
 
   scoreSection: { alignItems: 'center', gap: 0 },
-  survivedLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 4, color: '#F3EAD355', marginBottom: 4 },
+  survivedLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 4, color: '#EEE7D755', marginBottom: 4 },
   scoreNumber: {
     fontFamily: 'BarlowCondensed_700Bold', fontSize: 96, lineHeight: 96,
-    color: '#F0B429',
+    color: '#D7A83B',
     textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0,
   },
-  hitsLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 18, letterSpacing: 5, color: '#F3EAD388', marginTop: -8 },
+  hitsLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 18, letterSpacing: 5, color: '#EEE7D788', marginTop: -8 },
 
-  divider: { width: '80%', height: 1, backgroundColor: '#F3EAD311', marginVertical: 16 },
+  divider: { width: '80%', height: 1, backgroundColor: '#EEE7D711', marginVertical: 16 },
 
   statsRow:   { flexDirection: 'row', gap: 32, justifyContent: 'center', marginBottom: 16 },
   statItem:   { alignItems: 'center', gap: 4 },
-  statValue:  { fontFamily: 'SourceSans3_700Bold', fontSize: 22, color: '#9CC93E' },
-  statLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 8, letterSpacing: 2, color: '#F3EAD344' },
+  statValue:  { fontFamily: 'SourceSans3_700Bold', fontSize: 22, color: '#9BB77A' },
+  statLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 8, letterSpacing: 2, color: '#EEE7D744' },
 
-  ctaRow:     { backgroundColor: '#F0B42915', borderRadius: 3, borderWidth: 1, borderColor: '#F0B42933', paddingHorizontal: 20, paddingVertical: 10, marginBottom: 12 },
-  ctaText:    { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: '#F0B429', letterSpacing: 1 },
+  ctaRow:     { backgroundColor: '#D7A83B15', borderRadius: 3, borderWidth: 1, borderColor: '#D7A83B33', paddingHorizontal: 20, paddingVertical: 10, marginBottom: 12 },
+  ctaText:    { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: '#D7A83B', letterSpacing: 1 },
 
-  playerTag:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#F3EAD344', fontStyle: 'italic' },
+  playerTag:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#EEE7D744', fontStyle: 'italic' },
 
-  shareBtn:     { borderRadius: 3, overflow: 'hidden', elevation: 0, shadowColor: '#F0B429', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0, shadowRadius: 0 },
+  shareBtn:     { borderRadius: 3, overflow: 'hidden', elevation: 0, shadowColor: '#D7A83B', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0, shadowRadius: 0 },
   shareBtnGrad: { paddingVertical: 16, alignItems: 'center' },
-  shareBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#0E2621', letterSpacing: 1 },
+  shareBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#14231F', letterSpacing: 1 },
 
   closeBtn:     { alignItems: 'center', paddingVertical: 10 },
-  closeBtnText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: '#F3EAD344' },
+  closeBtnText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: '#EEE7D744' },
 });

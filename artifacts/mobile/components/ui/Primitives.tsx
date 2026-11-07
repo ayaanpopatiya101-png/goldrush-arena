@@ -114,7 +114,7 @@ const p = StyleSheet.create({
   sectionRule: { flex: 1, height: 1, backgroundColor: palette.line },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderRadius: R, minHeight: 44, paddingHorizontal: 16 },
   btnLg: { minHeight: 60, paddingHorizontal: 20 },
-  btnSm: { minHeight: 34, paddingHorizontal: 10 },
+  btnSm: { minHeight: 44, paddingHorizontal: 10 },
   btnText: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.2, textTransform: 'uppercase' },
   btnTextLg: { fontSize: 26, letterSpacing: 2 },
   btnTextSm: { fontSize: 14, letterSpacing: 1 },
@@ -123,5 +123,20 @@ const p = StyleSheet.create({
   stat: { flex: 1, paddingVertical: 10, paddingHorizontal: 12, borderRightWidth: 1, borderRightColor: palette.line },
   statValue: { fontFamily: fonts.display, fontSize: 26, color: palette.paper, fontVariant: ['tabular-nums'] },
   statLabel: { fontFamily: fonts.bodySemiBold, fontSize: 11, letterSpacing: 1, color: palette.muted, textTransform: 'uppercase' },
-  iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: R, borderWidth: 1, borderColor: palette.line },
+  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: R, borderWidth: 1, borderColor: palette.line },
 });
+
+// Responsive shell: centers content at 1160 (wide) or 720 (prose) with 16-20 phone gutters.
+export function Shell({ children, variant = 'wide', style }: { children?: React.ReactNode; variant?: 'wide' | 'prose'; style?: StyleProp<ViewStyle> }) {
+  return (
+    <View style={[{ width: '100%', alignSelf: 'center', maxWidth: variant === 'prose' ? 720 : 1160, paddingHorizontal: 18 }, style]}>
+      {children}
+    </View>
+  );
+}
+
+// Explicit responsive card width for grids: avoids collapsed or stretched last-row cards.
+export function gridItemWidth(available: number, minCard = 150, gap = 10): number {
+  const cols = Math.max(2, Math.floor((available + gap) / (minCard + gap)));
+  return Math.floor((available - gap * (cols - 1)) / cols);
+}

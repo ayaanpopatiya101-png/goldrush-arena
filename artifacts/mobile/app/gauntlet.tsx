@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from '@/components/ui/Flat';
+import { Feather } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -12,25 +12,20 @@ import {
   GAUNTLET_VARIANT_META, GAUNTLET_TARGET_WINS,
 } from '@/store/gauntletSession';
 import { updateGameConfig } from '@/store/gameSession';
-import { useColors } from '@/hooks/useColors';
-import { Glyph } from '@/components/ui/Glyph';
+import { palette } from '@/constants/colors';
 
 // ─── Win-dot row for a player ─────────────────────────────────────────────────
 function WinDots({ wins, isPlayer }: { wins: number; isPlayer: boolean }) {
   return (
-    <View style={{ flexDirection: 'row', gap: 5 }}>
+    <View style={{ flexDirection: 'row', gap: 4 }} accessibilityLabel={`${wins} of ${GAUNTLET_TARGET_WINS} round wins`}>
       {Array.from({ length: GAUNTLET_TARGET_WINS }).map((_, i) => (
         <View
           key={i}
           style={{
-            width: 13, height: 13, borderRadius: 3,
-            backgroundColor: i < wins
-              ? (isPlayer ? '#F0B429' : '#E04A2F')
-              : '#F3EAD318',
+            width: 12, height: 12, borderRadius: 2,
+            backgroundColor: i < wins ? (isPlayer ? palette.ochre : palette.paperDim) : 'transparent',
             borderWidth: 1,
-            borderColor: i < wins
-              ? (isPlayer ? '#F0B42999' : '#E04A2F88')
-              : '#F3EAD328',
+            borderColor: i < wins ? (isPlayer ? palette.ochre : palette.paperDim) : palette.lineStrong,
           }}
         />
       ))}
@@ -77,226 +72,138 @@ export default function GauntletScreen() {
     router.replace('/');
   }
 
-  return (
-    <Reanimated.View entering={FadeIn.duration(350)} style={s.root}>
-      <LinearGradient colors={['#0E2621', '#0E2621', '#0E2621']} style={StyleSheet.absoluteFill} />
+  if (state.lastRoundWon === null || state.roundNumber < 2) {
+    return (
+      <View style={[s.root, { alignItems: 'center', justifyContent: 'center', padding: 24 }]}>
+        <View style={[s.column, { gap: 16 }]}>
+          <Text accessibilityRole="header" style={[s.title, { color: palette.paper }]}>No completed Gauntlet round</Text>
+          <Text style={s.body}>This link has no saved round to display. Gauntlet runs live in memory, so a refresh clears them. Return to Play to begin a new run. No rewards were created.</Text>
+          <Pressable accessibilityRole="button" onPress={handleGoHome} style={s.primaryBtn}>
+            <Text style={s.primaryText}>Return to Play</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
 
+  const leaderWins = Math.max(state.playerWins, ...state.botWins);
+  const playerNeeds = GAUNTLET_TARGET_WINS - state.playerWins;
+  const rows = [
+    { key: 'you', name: profile.name, tag: 'YOU', wins: state.playerWins, isPlayer: true },
+    ...state.bots.map((b, i) => ({ key: b.name, name: b.name, tag: 'BOT', wins: state.botWins[i], isPlayer: false })),
+  ];
+
+  return (
+    <Reanimated.View entering={FadeIn.duration(250)} style={s.root}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingTop: insets.top + 24,
-          paddingBottom: insets.bottom + 48,
-          paddingHorizontal: 20,
-        }}
+        contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 40, paddingHorizontal: 18, alignItems: 'center' }}
       >
-        {/* ── Header ── */}
-        <View style={s.header}>
-          <Text style={s.headerEyebrow}>CHAMPION'S GAUNTLET</Text>
-          <Text style={s.headerTitle}> ROUND {completedRound} COMPLETE</Text>
-        </View>
-
-        {/* ── Round result banner ── */}
-        <Animated.View style={[
-          s.resultBanner,
-          roundWon
-            ? { backgroundColor: '#9CC93E12', borderColor: '#9CC93E50' }
-            : { backgroundColor: '#E04A2F12', borderColor: '#E04A2F50' },
-          { transform: [{ scale: bannerScale }] },
-        ]}>
-          <Glyph style={s.resultEmoji} value={roundWon ? '🥇' : '💀'} />
-          <Text style={[s.resultLabel, { color: roundWon ? '#9CC93E' : '#E04A2F' }]}>
-            {roundWon ? 'ROUND WIN!' : 'ELIMINATED'}
-          </Text>
-          <View style={s.resultRewards}>
-            <Text style={s.rewardXP}>+{xpEarned} XP</Text>
-            <Text style={s.rewardCoins}>+{coinsEarned} </Text>
-          </View>
-          <Text style={s.bonusNote}>3× GAUNTLET BONUS APPLIED</Text>
-        </Animated.View>
-
-        {/* ── Scoreboard ── */}
-        <Text style={s.sectionLabel}>STANDINGS · FIRST TO {GAUNTLET_TARGET_WINS}</Text>
-        <View style={s.scoreboard}>
-          {/* Human player */}
-          <View style={[s.playerRow, { borderColor: '#F0B42944', backgroundColor: '#F0B42910' }]}>
-            <View style={s.playerInfo}>
-              <Text style={[s.playerName, { color: '#F0B429' }]}>{profile.name}</Text>
-              <Text style={s.playerTag}>YOU</Text>
+        <View style={s.column}>
+          {/* ── Round result ── */}
+          <Animated.View style={[s.card, { transform: [{ scale: bannerScale }] }, roundWon && { borderColor: palette.ochre }]}>
+            <Text style={s.kicker}>Champion's Gauntlet · round {completedRound}</Text>
+            <Text accessibilityRole="header" style={[s.title, { color: roundWon ? palette.ochre : palette.paper }]}>
+              {gauntletOver ? (gauntletWon ? 'Gauntlet won' : 'Gauntlet over') : roundWon ? 'Round won' : 'Round lost'}
+            </Text>
+            <Text style={s.body}>
+              {gauntletOver
+                ? (gauntletWon ? `You reached ${GAUNTLET_TARGET_WINS} round wins first.` : `A bot reached ${GAUNTLET_TARGET_WINS} round wins first. The run has ended.`)
+                : roundWon
+                  ? `You need ${playerNeeds} more round win${playerNeeds === 1 ? '' : 's'}.`
+                  : `The run continues. This round's win went to one of the bots. You need ${playerNeeds} more round win${playerNeeds === 1 ? '' : 's'}.`}
+            </Text>
+            <View style={s.statsRow}>
+              <View style={s.stat}><Text style={s.statVal}>+{xpEarned}</Text><Text style={s.statLbl}>Account XP this round</Text></View>
+              <View style={s.stat}><Text style={s.statVal}>+{coinsEarned}</Text><Text style={s.statLbl}>Coins this round</Text></View>
             </View>
-            <WinDots wins={state.playerWins} isPlayer />
-            <Text style={[s.winCount, { color: '#F0B429' }]}>{state.playerWins}</Text>
-          </View>
-          {/* Bots */}
-          {state.bots.map((bot, i) => (
-            <View key={bot.name} style={[s.playerRow, { borderColor: '#F3EAD318', backgroundColor: '#F3EAD305' }]}>
-              <View style={s.playerInfo}>
-                <Text style={[s.playerName, { color: bot.color }]}>{bot.name}</Text>
-                <Text style={s.playerTag}>BOT</Text>
+            <Text style={s.note}>Gauntlet rounds use a 3× reward multiplier and are saved as ranked matches.</Text>
+          </Animated.View>
+
+          {/* ── Next action, above the fold ── */}
+          {gauntletOver ? (
+            <Pressable onPress={handleGoHome} accessibilityRole="button" style={({ pressed }) => [s.primaryBtn, pressed && { opacity: 0.85 }]}>
+              <Text style={s.primaryText}>Return to Play</Text>
+            </Pressable>
+          ) : (
+            <View style={{ gap: 8 }}>
+              <View style={s.nextRow}>
+                <Feather name={VARIANT_ICON[nextVariant] ?? 'circle'} size={22} color={palette.ochre} />
+                <View style={{ flex: 1 }}>
+                  <Text style={s.nextLabel}>Next: round {state.roundNumber}</Text>
+                  <Text style={s.nextName}>{nextMeta.name}</Text>
+                  <Text style={s.body}>{nextMeta.sub}</Text>
+                </View>
               </View>
-              <WinDots wins={state.botWins[i]} isPlayer={false} />
-              <Text style={[s.winCount, { color: '#F3EAD377' }]}>{state.botWins[i]}</Text>
+              <Pressable onPress={handleStartNextRound} accessibilityRole="button" style={({ pressed }) => [s.primaryBtn, pressed && { opacity: 0.85 }]}>
+                <Feather name="play" size={18} color={palette.ochreInk} />
+                <Text style={s.primaryText}>Start round {state.roundNumber}</Text>
+              </Pressable>
+              <Pressable onPress={handleGoHome} accessibilityRole="button" style={({ pressed }) => [s.secondaryBtn, pressed && { opacity: 0.8 }]}>
+                <Text style={s.secondaryText}>Leave for now</Text>
+              </Pressable>
+              <Text style={s.note}>Leaving keeps this run in memory until the app is closed or refreshed.</Text>
             </View>
-          ))}
-        </View>
+          )}
 
-        {/* ── End state OR next round ── */}
-        {gauntletOver ? (
-          <View style={s.endState}>
-            {gauntletWon ? (
-              <>
-                <Glyph style={s.endEmoji} value="🏆" />
-                <Text style={[s.endTitle, { color: '#F0B429' }]}>CHAMPION!</Text>
-                <Text style={[s.endSub, { color: '#F0B429' }]}>You dominated the gauntlet!</Text>
-                <View style={s.totalRewards}>
-                  <View style={s.rewardPill}>
-                    <Text style={[s.rewardPillNum, { color: '#F0B429' }]}>{state.totalXP}</Text>
-                    <Text style={s.rewardPillLabel}>TOTAL XP</Text>
-                  </View>
-                  <View style={s.rewardDivider} />
-                  <View style={s.rewardPill}>
-                    <Text style={[s.rewardPillNum, { color: '#F0B429' }]}>{state.totalCoins}</Text>
-                    <Text style={s.rewardPillLabel}>TOTAL COINS</Text>
-                  </View>
+          {/* ── Run standings ── */}
+          <View style={s.card}>
+            <Text style={s.kicker}>Run standings · first to {GAUNTLET_TARGET_WINS} round wins</Text>
+            {rows.map(r => (
+              <View key={r.key} style={[s.playerRow, r.isPlayer && s.playerRowYou]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.playerName} numberOfLines={1}>{r.name}</Text>
+                  <Text style={s.playerTag}>{r.tag}{r.wins === leaderWins && leaderWins > 0 ? ' · leading' : ''}</Text>
                 </View>
-                <View style={s.championBonus}>
-                  <Text style={s.championBonusText}>+1500 CHAMPION BONUS XP AWARDED</Text>
-                </View>
-              </>
-            ) : (
-              <>
-                <Glyph style={s.endEmoji} value="💀" />
-                <Text style={[s.endTitle, { color: '#E04A2F' }]}>DEFEATED</Text>
-                <Text style={[s.endSub, { color: '#E04A2F88' }]}>
-                  The gauntlet claims another challenger.
-                </Text>
-                <View style={s.totalRewards}>
-                  <View style={s.rewardPill}>
-                    <Text style={[s.rewardPillNum, { color: '#F0B429' }]}>{state.totalXP}</Text>
-                    <Text style={s.rewardPillLabel}>TOTAL XP</Text>
-                  </View>
-                  <View style={s.rewardDivider} />
-                  <View style={s.rewardPill}>
-                    <Text style={[s.rewardPillNum, { color: '#F0B429' }]}>{state.totalCoins}</Text>
-                    <Text style={s.rewardPillLabel}>TOTAL COINS</Text>
-                  </View>
-                </View>
-              </>
-            )}
-            <Pressable
-              onPress={handleGoHome}
-              style={({ pressed }) => [s.homeBtn, pressed && { opacity: 0.8 }]}
-            >
-              <Text style={s.homeBtnText}>BACK TO HOME</Text>
-            </Pressable>
+                <WinDots wins={r.wins} isPlayer={r.isPlayer} />
+                <Text style={s.winCount}>{r.wins}/{GAUNTLET_TARGET_WINS}</Text>
+              </View>
+            ))}
           </View>
-        ) : (
-          <View>
-            <Text style={s.sectionLabel}>NEXT ROUND</Text>
-            <View style={[s.nextRoundCard, {
-              borderColor: nextMeta.color + '55',
-              backgroundColor: nextMeta.color + '10',
-            }]}>
-              <Glyph style={s.nextRoundEmoji} value={nextMeta.emoji} />
-              <Text style={[s.nextRoundName, { color: nextMeta.color }]}>{nextMeta.name}</Text>
-              <Text style={s.nextRoundSub}>{nextMeta.sub}</Text>
+
+          {/* ── Run totals ── */}
+          <View style={s.card}>
+            <Text style={s.kicker}>Run totals so far</Text>
+            <View style={s.statsRow}>
+              <View style={s.stat}><Text style={s.statVal}>{state.totalXP}</Text><Text style={s.statLbl}>Account XP</Text></View>
+              <View style={s.stat}><Text style={s.statVal}>{state.totalCoins}</Text><Text style={s.statLbl}>Coins</Text></View>
             </View>
-            <Pressable
-              onPress={handleStartNextRound}
-              style={({ pressed }) => [s.startBtn, pressed && { opacity: 0.85 }]}
-            >
-              <LinearGradient
-                colors={['#F0B429', '#F0B429', '#C98E12']}
-                style={s.startBtnGrad}
-              >
-                <Text style={s.startBtnText}> START ROUND {state.roundNumber}</Text>
-              </LinearGradient>
-            </Pressable>
+            {gauntletWon && <Text style={[s.body, { color: palette.ochre }]}>Champion bonus included: +1500 account XP and +300 coins.</Text>}
           </View>
-        )}
+        </View>
       </ScrollView>
     </Reanimated.View>
   );
 }
 
+const VARIANT_ICON: Record<string, React.ComponentProps<typeof Feather>['name']> = {
+  blitz: 'zap', chaos: 'shuffle', turbo: 'fast-forward', sudden_death: 'alert-octagon',
+  survival: 'shield', pinball: 'target', classic: 'square',
+};
+
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0E2621' },
-
-  header: { alignItems: 'center', marginBottom: 20 },
-  headerEyebrow: {
-    fontSize: 11, letterSpacing: 3, color: '#F0B429',
-    fontFamily: 'SourceSans3_700Bold', marginBottom: 4,
-  },
-  headerTitle: {
-    fontSize: 24, fontFamily: 'SourceSans3_700Bold', color: '#F0B429', letterSpacing: 1,
-  },
-
-  resultBanner: {
-    borderRadius: 3, borderWidth: 1.5,
-    padding: 20, alignItems: 'center', marginBottom: 24,
-  },
-  resultEmoji:   { fontSize: 40, marginBottom: 6 },
-  resultLabel:   { fontSize: 20, fontFamily: 'SourceSans3_700Bold', letterSpacing: 1.5 },
-  resultRewards: { flexDirection: 'row', gap: 24, marginTop: 10 },
-  rewardXP:      { color: '#F0B429', fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
-  rewardCoins:   { color: '#F0B429', fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
-  bonusNote:     { color: '#F0B42977', fontSize: 11, marginTop: 6, fontFamily: 'SourceSans3_600SemiBold', letterSpacing: 0.5 },
-
-  sectionLabel: {
-    fontSize: 10, letterSpacing: 3, color: '#F3EAD344',
-    fontFamily: 'SourceSans3_700Bold', marginBottom: 10,
-  },
-
-  scoreboard: { gap: 8, marginBottom: 24 },
-  playerRow: {
-    flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderRadius: 3,
-    padding: 14, gap: 12,
-  },
-  playerInfo: { flex: 1 },
-  playerName: { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
-  playerTag:  { color: '#F3EAD344', fontSize: 11, marginTop: 2 },
-  winCount:   { fontFamily: 'SourceSans3_700Bold', fontSize: 20, minWidth: 22, textAlign: 'right' },
-
-  endState: { alignItems: 'center', paddingTop: 8 },
-  endEmoji: { fontSize: 64, marginBottom: 12 },
-  endTitle: { fontSize: 28, fontFamily: 'SourceSans3_700Bold', letterSpacing: 2, marginBottom: 6 },
-  endSub:   { fontSize: 14, marginBottom: 24 },
-
-  totalRewards: { flexDirection: 'row', gap: 28, marginBottom: 20 },
-  rewardPill:   { alignItems: 'center' },
-  rewardPillNum:   { fontFamily: 'SourceSans3_700Bold', fontSize: 24 },
-  rewardPillLabel: { color: '#F3EAD355', fontSize: 11, marginTop: 2 },
-  rewardDivider:   { width: 1, backgroundColor: '#F3EAD322' },
-
-  championBonus: {
-    backgroundColor: '#F0B42918', borderColor: '#F0B42944',
-    borderWidth: 1, borderRadius: 3,
-    paddingHorizontal: 16, paddingVertical: 10, marginBottom: 28,
-  },
-  championBonusText: { color: '#F0B429', fontSize: 13, fontFamily: 'SourceSans3_700Bold' },
-
-  homeBtn: {
-    backgroundColor: '#F0B429', borderRadius: 3,
-    paddingVertical: 16, paddingHorizontal: 52,
-  },
-  homeBtnText: {
-    color: '#0E2621', fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 1.5,
-  },
-
-  nextRoundCard: {
-    borderRadius: 3, borderWidth: 1.5,
-    padding: 22, alignItems: 'center', marginBottom: 20,
-  },
-  nextRoundEmoji: { fontSize: 48, marginBottom: 10 },
-  nextRoundName:  { fontSize: 22, fontFamily: 'SourceSans3_700Bold', letterSpacing: 1 },
-  nextRoundSub:   { color: '#F3EAD366', fontSize: 14, marginTop: 6 },
-
-  startBtn: { borderRadius: 3, overflow: 'hidden' },
-  startBtnGrad: {
-    paddingVertical: 18, alignItems: 'center',
-  },
-  startBtnText: {
-    color: '#0E2621', fontFamily: 'SourceSans3_700Bold', fontSize: 18, letterSpacing: 1.5,
-  },
+  root: { flex: 1, backgroundColor: palette.ink },
+  column: { width: '100%', maxWidth: 640, gap: 12 },
+  card: { borderWidth: 1, borderColor: palette.line, backgroundColor: palette.graphite, borderRadius: 3, padding: 16, gap: 8 },
+  kicker: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted, letterSpacing: 0.5 },
+  title: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 40, lineHeight: 44 },
+  body: { fontFamily: 'SourceSans3_400Regular', fontSize: 15, lineHeight: 21, color: palette.paperDim },
+  note: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, lineHeight: 18, color: palette.muted },
+  statsRow: { flexDirection: 'row', gap: 16, borderTopWidth: 1, borderTopColor: palette.line, paddingTop: 8 },
+  stat: { flex: 1 },
+  statVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: palette.paper },
+  statLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.muted },
+  nextRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', borderWidth: 1, borderColor: palette.line, borderRadius: 3, padding: 14, backgroundColor: palette.graphite },
+  nextLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted },
+  nextName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.paper },
+  primaryBtn: { flexDirection: 'row', gap: 8, minHeight: 52, alignItems: 'center', justifyContent: 'center', borderRadius: 3, backgroundColor: palette.ochre },
+  primaryText: { fontFamily: 'SourceSans3_700Bold', fontSize: 17, color: palette.ochreInk },
+  secondaryBtn: { minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 3, borderWidth: 1, borderColor: palette.line },
+  secondaryText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.paper },
+  playerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 10, borderWidth: 1, borderColor: palette.line, borderRadius: 3 },
+  playerRowYou: { borderColor: palette.ochre },
+  playerName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.paper },
+  playerTag: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.muted },
+  winCount: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: palette.paper, minWidth: 34, textAlign: 'right' },
 });

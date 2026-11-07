@@ -3,6 +3,8 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { palette } from '@/constants/colors';
+import { Button } from '@/components/ui/Primitives';
 import {
   Animated,
   Easing,
@@ -30,7 +32,7 @@ import { FloatingOrbs, ORBS_GOLD, GlowText } from '@/components/effects';
 import { RANKS, SKINS, MAPS, getRankIndex, usePlayer } from '@/context/PlayerContext';
 import { getActiveFeaturedMode } from '@/utils/featuredModes';
 import { useParty } from '@/context/PartyContext';
-import { getGameConfig, updateGameConfig } from '@/store/gameSession';
+import { getGameConfig, hasGameConfig, updateGameConfig } from '@/store/gameSession';
 import { getGauntletState } from '@/store/gauntletSession';
 import { useColors } from '@/hooks/useColors';
 import { useSettings } from '@/hooks/useSettings';
@@ -157,7 +159,7 @@ const goFlashStyles = StyleSheet.create({
   overlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#0E262155',
+    backgroundColor: '#14231F55',
   },
   text: {
     fontFamily: 'SourceSans3_700Bold', fontSize: 112, color: '#6F8A5B',
@@ -243,6 +245,13 @@ export default function LobbyScreen() {
   // Matchmaking state
   const [opponents, setOpponents]   = useState<MatchPlayer[]>([]);  // up to 3 others
   const [status, setStatus]         = useState<'searching' | 'found' | 'countdown'>('searching');
+  const [rulesOpen, setRulesOpenState] = useState(settings.showLobbyRules ?? true);
+  const rulesTouched = useRef(false);
+  const setRulesOpen = (fn: (o: boolean) => boolean) => { rulesTouched.current = true; setRulesOpenState(fn); };
+  // Settings load asynchronously; follow the saved preference until the player toggles.
+  useEffect(() => {
+    if (!rulesTouched.current) setRulesOpenState(settings.showLobbyRules ?? true);
+  }, [settings.showLobbyRules]);
   const [countdown, setCountdown]   = useState<number | null>(null);
   const [showGoFlash, setShowGoFlash] = useState(false);
   const [apiAvailable, setApiAvailable] = useState<boolean | null>(null); // null = unknown
@@ -291,6 +300,8 @@ export default function LobbyScreen() {
 
   // Matchmaking logic
   useFocusEffect(useCallback(() => {
+    // Without a setup from Play/Events, never start a fabricated match.
+    if (!hasGameConfig()) return;
     let cancelled = false;
     let readyScheduled = false;
     let navigated = false;
@@ -500,17 +511,31 @@ export default function LobbyScreen() {
   }, []));
 
   const searchingLabel = status === 'countdown' && countdown !== null
-    ? `Match found! Starting in ${countdown}...`
+    ? `Bots ready. Starting in ${countdown}`
     : status === 'found'
-    ? 'Local bot seats ready!'
+    ? 'Local bot seats ready'
     : opponents.length === 0
     ? 'Preparing local bot seats...'
     : `${opponents.length}/3 bot seats prepared...`;
   const statusColor = status === 'searching' ? '#C99A2E' : '#6F8A5B';
 
+  if (!hasGameConfig()) {
+    return (
+      <View style={{ flex: 1, backgroundColor: palette.ink, alignItems: 'center', paddingTop: topPad + 24, paddingHorizontal: 18 }}>
+        <View style={{ width: '100%', maxWidth: 520, gap: 16 }}>
+          <Text accessibilityRole="header" style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 30, color: palette.paper }}>No match is set up</Text>
+          <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 16, lineHeight: 24, color: palette.paperDim }}>
+            The lobby opens from Play or Events with a chosen mode. Opening it directly or refreshing clears that choice, so no bots were prepared and nothing will start.
+          </Text>
+          <Button label="Go to Play" size="lg" onPress={() => router.replace('/')} />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <Reanimated.View entering={SlideInRight.duration(260)} exiting={SlideOutRight.duration(220)} style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#0E2621', '#15372F', '#0E2621']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#14231F', '#20372F', '#14231F']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.5} />
       <LinearGradient
         colors={['#C99A2E1A', '#C99A2E08', 'transparent']}
@@ -520,11 +545,11 @@ export default function LobbyScreen() {
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Leave lobby" testID="leave-lobby" onPress={() => router.back()} style={styles.backBtn}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Leave lobby" testID="leave-lobby" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={styles.backBtn}>
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </Pressable>
         <View style={{ alignItems: 'center', gap: 4 }}>
-          <GlowText intensity="soft" color="#C99A2E" style={[styles.headerTitle, { color: colors.foreground }]}>MATCHMAKING</GlowText>
+          <GlowText intensity="soft" color="#C99A2E" style={[styles.headerTitle, { color: colors.foreground }]}>MATCH SETUP</GlowText>
           <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
             {(() => {
               const isGauntlet = config.matchType === 'gauntlet';
@@ -595,8 +620,8 @@ export default function LobbyScreen() {
           </Text>
         )}
 
-        {/* ── Lives Bank ── */}
-        <View style={{ marginBottom: 8, backgroundColor: '#B4533A10', borderRadius: 3, borderWidth: 1, borderColor: '#B4533A33', padding: 14, gap: 10 }}>
+        {/* Lives bank: shown only when it can be used */}
+        {bankLives > 0 ? <View style={{ marginBottom: 8, backgroundColor: '#B4533A10', borderRadius: 3, borderWidth: 1, borderColor: '#B4533A33', padding: 14, gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, color: '#B4533A' }}>LIVES BANK</Text>
             <View style={{ flex: 1 }} />
@@ -647,7 +672,7 @@ export default function LobbyScreen() {
               Earn lives from Gold Strikes (Dragon Cache &amp; Nexus Core), the Premium Pass, the Shop, or by referring friends.
             </Text>
           )}
-        </View>
+        </View> : null}
 
         {/* Party panel, only visible when player is in a party */}
         {isInParty && (
@@ -656,7 +681,7 @@ export default function LobbyScreen() {
               <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, color: '#8C8F7A' }}>YOUR PARTY</Text>
               <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: '#8C8F7A88', letterSpacing: 1.5 }}>· {partyCode}</Text>
               <View style={{ flex: 1 }} />
-              <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#ECE7DC55' }}>Queueing together</Text>
+              <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#C9D2C6' }}>Entered together; arena opponents are local bots</Text>
             </View>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {partyMembers.map(m => (
@@ -673,6 +698,39 @@ export default function LobbyScreen() {
           </View>
         )}
 
+        {/* Game rules */}
+        <View style={[styles.rulesCard, {
+          backgroundColor: colors.card,
+          borderColor: config.variant !== 'classic'
+            ? (VARIANT_META[config.variant]?.color ?? colors.border) + '44'
+            : colors.border,
+        }]}>
+          <Pressable
+            onPress={() => setRulesOpen(o => !o)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: rulesOpen }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 }}>
+            <Text style={[styles.rulesTitle, { color: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? colors.foreground) : colors.foreground, marginBottom: 0 }]}>
+              {config.variant !== 'classic'
+                ? `${VARIANT_META[config.variant]?.name ?? ''} RULES`
+                : 'HOW TO PLAY'}
+            </Text>
+            <View style={{ flex: 1 }} />
+            <Feather name={rulesOpen ? 'chevron-up' : 'chevron-down'} size={18} color={colors.foreground} />
+          </Pressable>
+          {rulesOpen ? <View style={styles.rulesList}>
+            {(VARIANT_RULES[config.variant] ?? VARIANT_RULES['classic']!).map((rule, i) => (
+              <View key={i} style={styles.ruleItem}>
+                <View style={[styles.ruleDot, {
+                  backgroundColor: config.variant !== 'classic'
+                    ? (VARIANT_META[config.variant]?.color ?? colors.primary)
+                    : colors.primary,
+                }]} />
+                <Text style={[styles.ruleText, { color: colors.mutedForeground }]}>{rule}</Text>
+              </View>
+            ))}
+          </View> : null}
+        </View>
         {/* Players */}
         <View style={styles.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -711,7 +769,7 @@ export default function LobbyScreen() {
                 <Animated.View style={{ opacity: pulseAnim }}>
                   <Feather name="user" size={20} color={colors.mutedForeground} />
                 </Animated.View>
-                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Searching...</Text>
+                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Preparing bot seat</Text>
               </View>
             ))}
           </View>
@@ -742,12 +800,13 @@ export default function LobbyScreen() {
                   }}
                   style={[styles.mapCard, {
                     borderColor: selected ? map.accent : colors.border,
-                    opacity: unlocked ? 1 : 0.55,
+                    opacity: 1,
                     shadowColor: map.accent,
                     shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: selected ? 0.55 : 0,
-                    shadowRadius: selected ? 10 : 0,
-                    elevation: selected ? 6 : 0,
+                    shadowOpacity: 0,
+                    shadowRadius: 0,
+                    elevation: 0,
+                    borderWidth: selected ? 2 : 1,
                   }]}
                 >
                   <LinearGradient colors={map.arenaBg} style={StyleSheet.absoluteFill} />
@@ -756,7 +815,7 @@ export default function LobbyScreen() {
                   <Text style={[styles.mapDesc, { color: colors.mutedForeground }]} numberOfLines={3}>{map.desc}</Text>
                   {unlocked
                     ? (selected
-                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#0E2621" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
+                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#14231F" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
                         : <View style={[styles.mapBadge, { backgroundColor: '#ECE7DC14' }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
                     : <View style={[styles.mapLockBadge, { borderColor: reqRank?.color + '66' }]}><Feather name="lock" size={9} color={reqRank?.color} /><Text style={[styles.mapLockText, { color: reqRank?.color }]}>{reqRank?.name}</Text></View>}
                 </Pressable>
@@ -765,34 +824,6 @@ export default function LobbyScreen() {
           </ScrollView>
         </View>
 
-        {/* Game rules */}
-        <View style={[styles.rulesCard, {
-          backgroundColor: colors.card,
-          borderColor: config.variant !== 'classic'
-            ? (VARIANT_META[config.variant]?.color ?? colors.border) + '44'
-            : colors.border,
-        }]}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <Text style={[styles.rulesTitle, { color: config.variant !== 'classic' ? (VARIANT_META[config.variant]?.color ?? colors.foreground) : colors.foreground, marginBottom: 0 }]}>
-              {config.variant !== 'classic'
-                ? `${VARIANT_META[config.variant]?.name ?? ''} RULES`
-                : 'HOW TO PLAY'}
-            </Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
-          </View>
-          <View style={styles.rulesList}>
-            {(VARIANT_RULES[config.variant] ?? VARIANT_RULES['classic']!).map((rule, i) => (
-              <View key={i} style={styles.ruleItem}>
-                <View style={[styles.ruleDot, {
-                  backgroundColor: config.variant !== 'classic'
-                    ? (VARIANT_META[config.variant]?.color ?? colors.primary)
-                    : colors.primary,
-                }]} />
-                <Text style={[styles.ruleText, { color: colors.mutedForeground }]}>{rule}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
       </ScrollView>
 
       {/* Big countdown overlay */}
@@ -808,12 +839,12 @@ export default function LobbyScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingBottom: 12, width: '100%', maxWidth: 760, alignSelf: 'center' },
   backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 2 },
   modeBadge:   { borderRadius: 3, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 4 },
   modeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 1.5 },
-  content: { paddingHorizontal: 20, paddingBottom: 40, gap: 20 },
+  content: { paddingHorizontal: 18, paddingBottom: 40, gap: 20, width: '100%', maxWidth: 760, alignSelf: 'center' },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 },
   dot: { width: 8, height: 8, borderRadius: 4 },
   statusText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
@@ -828,7 +859,7 @@ const styles = StyleSheet.create({
   mapName: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   mapDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, lineHeight: 14, minHeight: 42 },
   mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
-  mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#0E2621', letterSpacing: 0.5 },
+  mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#14231F', letterSpacing: 0.5 },
   mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
   mapLockText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
   rulesCard: { borderRadius: 3, borderWidth: 1, padding: 16, gap: 10 },
@@ -837,6 +868,6 @@ const styles = StyleSheet.create({
   ruleItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   ruleDot: { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
   ruleText: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, flex: 1, lineHeight: 19 },
-  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#0E262199', alignItems: 'center', justifyContent: 'center' },
+  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#14231F99', alignItems: 'center', justifyContent: 'center' },
   countdownText: { color: '#C99A2E', fontSize: 96, fontFamily: 'SourceSans3_700Bold', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
 });

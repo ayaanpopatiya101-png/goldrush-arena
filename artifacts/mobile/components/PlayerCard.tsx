@@ -86,7 +86,7 @@ export function PlayerCard({
           </View>
         </View>
         {isReady != null && (
-          <View style={[styles.readyDot, { backgroundColor: isReady ? '#9CC93E' : colors.muted }]} />
+          <View style={[styles.readyDot, { backgroundColor: isReady ? '#9BB77A' : colors.muted }]} />
         )}
       </LinearGradient>
     </ShimmerCard>
