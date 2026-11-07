@@ -1,9 +1,10 @@
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { Shell, gridItemWidth } from '@/components/ui/Primitives';
+import { Button, Shell, gridItemWidth } from '@/components/ui/Primitives';
+import { SkinComparison } from '@/components/SkinComparison';
 import Reanimated from 'react-native-reanimated';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,6 +32,7 @@ export default function InventoryScreen() {
   const insets  = useSafeAreaInsets();
   const { profile, equipSkin, equipTheme } = usePlayer();
   const [activeTab, setActiveTab] = useState<Tab>('skins');
+  const [compareSkinId, setCompareSkinId] = useState<string | null>(null);
   const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
 
   const pendingBlocks = profile.luckyBlocks ?? [];
@@ -117,6 +119,7 @@ export default function InventoryScreen() {
       >
         <Shell style={{ gap: 12 }}>
         {/* ── Skins tab ── */}
+        {compareSkinId && <SkinComparison key={compareSkinId} skinId={compareSkinId} onClose={() => setCompareSkinId(null)} />}
         {activeTab === 'skins' && (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -145,6 +148,7 @@ export default function InventoryScreen() {
 
                         {/* Info */}
                         <GlowText intensity="soft" color={skin.color ?? '#D7A83B'} style={s.skinName}>{skin.name}</GlowText>
+                        <Button label="Compare on court" size="sm" variant="ghost" onPress={() => setCompareSkinId(skin.id)} />
 
                       {equipped ? (
                         <View style={[s.equippedBadge, { backgroundColor: skin.color }]}>

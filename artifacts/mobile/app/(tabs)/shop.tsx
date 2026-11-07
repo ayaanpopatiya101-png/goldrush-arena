@@ -1,10 +1,12 @@
 import { CURRENT_SEASON } from '@/constants/season';
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { Shell, gridItemWidth } from '@/components/ui/Primitives';
+import { Button, Shell, gridItemWidth } from '@/components/ui/Primitives';
+import { SkinComparison } from '@/components/SkinComparison';
+import { useBlockingOverlay } from '@/context/OverlayQueue';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
@@ -90,6 +92,7 @@ export default function ShopScreen() {
   const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras' | 'forge' | 'store'>('skins');
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [redeemVisible, setRedeemVisible] = useState(false);
+  const [compareSkinId, setCompareSkinId] = useState<string | null>(null);
   const focusStyle = useFocusAnimation();
 
   // Store: product price ID cache (keyed by product name)
@@ -100,6 +103,7 @@ export default function ShopScreen() {
   const [storeError, setStoreError] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
   const [pendingNativeProduct, setPendingNativeProduct] = useState<string | null>(null);
+  const nativeConfirmationVisible = useBlockingOverlay(Boolean(pendingNativeProduct));
   const catalogLoading = Platform.OS === 'web' ? storeLoading : revenueCat.isLoading;
   const catalogError = Platform.OS === 'web'
     ? storeError
@@ -368,6 +372,7 @@ export default function ShopScreen() {
                       )}
                     </View>
                   </Pressable>
+                  <Button label="Compare on court" size="sm" variant="ghost" onPress={() => setCompareSkinId(skin.id)} />
                   </Reanimated.View>
                 );
               })}
@@ -766,7 +771,8 @@ export default function ShopScreen() {
       </ScrollView>
 
       <RedeemCodeModal visible={redeemVisible} onClose={() => setRedeemVisible(false)} />
-      <Modal visible={Boolean(pendingNativeProduct)} transparent animationType="fade" onRequestClose={() => setPendingNativeProduct(null)}>
+      {compareSkinId && <SkinComparison key={compareSkinId} skinId={compareSkinId} onClose={() => setCompareSkinId(null)} />}
+      <Modal visible={nativeConfirmationVisible} transparent animationType="fade" onRequestClose={() => setPendingNativeProduct(null)}>
         <View style={storeStyles.confirmBackdrop}>
           <View style={[storeStyles.confirmCard, { backgroundColor: colors.card }]}>
             <Text style={[storeStyles.confirmTitle, { color: colors.foreground }]}>Test purchase</Text>

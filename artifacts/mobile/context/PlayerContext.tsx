@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StartupState } from '@/components/StartupState';
 import { withTimeout } from '@/utils/withTimeout';
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { getGameConfig } from '@/store/gameSession';
-import { setCompletedMatch } from '@/store/completedMatch';
+import { setCompletedMatch, type CompletedMatch } from '@/store/completedMatch';
 import { trackEvent } from '@/utils/analytics';
 
 // ─── Ranks & Skins ────────────────────────────────────────────────────────────
@@ -849,6 +849,7 @@ export interface PlayerProfile {
   winStreak: number;
   bestStreak: number;
   matchHistory: MatchResult[];
+  rewardedMatchIds?: string[];
   loginStreak: number;
   lastLoginDate: string;
   streakBonusClaimed: boolean;
@@ -916,6 +917,8 @@ export interface PlayerProfile {
 }
 
 export interface MatchResult {
+  receipt?: CompletedMatch;
+  transactionId?: string;
   id: string; won: boolean; xpEarned: number; coinsEarned: number;
   deflections: number; goalsAgainst: number; position: number; timestamp: number;
   matchType?: 'ranked' | 'casual';
@@ -1089,6 +1092,10 @@ export function PlayerProvider({ username, onLogout, children }: {
   children: React.ReactNode;
 }) {
   const [profile, setProfile]             = useState<PlayerProfile>(DEFAULT_PROFILE);
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
+  const matchSaves = useRef(new Map<string, Promise<void>>());
+  const matchQueue = useRef<Promise<void>>(Promise.resolve());
   const [isLoaded, setIsLoaded]           = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -1146,14 +1153,19 @@ export function PlayerProvider({ username, onLogout, children }: {
 
   const save = useCallback(async (updated: PlayerProfile) => {
     await AsyncStorage.setItem(KEY, JSON.stringify(updated));
+    profileRef.current = updated;
     setProfile(updated);
     // Update saved accounts meta
+    // The profile write is the transaction commit. A directory-metadata failure
+    // must not report an already committed reward as failed and invite a retry.
+    try {
     const accounts = await getSavedAccounts();
     const idx = accounts.findIndex(a => a.username === username);
     if (idx >= 0) {
       accounts[idx] = { ...accounts[idx], rank: updated.rank, avatarEmoji: updated.avatarEmoji, avatarColor: updated.avatarFrameColor, lastPlayed: Date.now() };
       await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
     }
+    } catch { console.warn('Player saved; player-list metadata could not be refreshed.'); }
   }, [KEY, username]);
 
   const updateName = useCallback(async (name: string) => {
@@ -1161,7 +1173,15 @@ export function PlayerProvider({ username, onLogout, children }: {
   }, [profile, save]);
 
   const addMatchResult = useCallback(async (result: Omit<MatchResult, 'id'|'timestamp'> & { eventBonus?: { xp: number; coins: number; credits: number } }) => {
-    const id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    const id = result.transactionId ?? getGameConfig().matchId;
+    if (!id) throw new Error('No match identity; reward was not applied.');
+    const pending = matchSaves.current.get(id);
+    if (pending) return pending;
+    const commit = async () => {
+    const profile = profileRef.current;
+    const previous = profile.matchHistory.find(match => match.id === id);
+    if (previous?.receipt) { setCompletedMatch(previous.receipt); return; }
+    if (profile.rewardedMatchIds?.includes(id)) throw new Error('Match already awarded; receipt expired.');
     const matchType = result.matchType ?? 'casual';
     const opponentLevels = result.opponentLevels ?? [];
     const levelDelta = calcTrueSkillDelta(result.position, profile.competitiveLevel, opponentLevels, matchType);
@@ -1175,10 +1195,19 @@ export function PlayerProvider({ username, onLogout, children }: {
     const newWinStreak = result.won ? profile.winStreak + 1 : 0;
     const match: MatchResult = {
       ...result,
-      xpEarned: finalXpEarned, coinsEarned: finalCoinsEarned,
+      xpEarned: finalXpEarned + eventBonus.xp, coinsEarned: finalCoinsEarned + eventBonus.coins,
       id, timestamp: Date.now(),
       levelBefore: profile.competitiveLevel, levelAfter: newCompLevel,
     };
+    const receipt: CompletedMatch = {
+      id, username, xpBefore: profile.xp, xpAfter: newXP,
+      xpEarned: match.xpEarned, coinsEarned: match.coinsEarned,
+      levelBefore: profile.competitiveLevel, levelAfter: newCompLevel,
+      won: result.won, position: result.position, deflections: result.deflections,
+      goalsAgainst: result.goalsAgainst, matchType,
+      bonusApplied: true, qualifierApplied: false, ceremonySeen: false,
+    };
+    match.receipt = receipt;
     // Award credits when all relics are unlocked (Brawl Stars overflow mechanic)
     const trophyRelics = profile.trophyUnlockedRelics ?? [];
     const allRelicsOwned = RELICS.every(r =>
@@ -1244,6 +1273,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       totalDeflections: profile.totalDeflections + result.deflections,
       winStreak: newWinStreak, bestStreak: Math.max(profile.bestStreak, newWinStreak),
       matchHistory: [match, ...profile.matchHistory].slice(0, 50),
+      rewardedMatchIds: [...(profile.rewardedMatchIds ?? []), id],
       competitiveLevel: newCompLevel,
       highestLevel: Math.max(profile.highestLevel, newCompLevel),
       luckyBlocks: streakBlock
@@ -1256,14 +1286,12 @@ export function PlayerProvider({ username, onLogout, children }: {
       lastDailyReset:  today2,
       lastWeeklyReset: weekKey2,
     });
-    setCompletedMatch({
-      id, username, xpBefore: profile.xp, xpAfter: newXP,
-      xpEarned: finalXpEarned, coinsEarned: finalCoinsEarned,
-      levelBefore: profile.competitiveLevel, levelAfter: newCompLevel,
-      won: result.won, position: result.position, deflections: result.deflections,
-      goalsAgainst: result.goalsAgainst, matchType,
-      bonusApplied: true, qualifierApplied: false, ceremonySeen: false,
-    });
+    setCompletedMatch(receipt);
+    };
+    const operation = matchQueue.current.then(commit);
+    matchQueue.current = operation.catch(() => {});
+    matchSaves.current.set(id, operation);
+    try { await operation; } finally { matchSaves.current.delete(id); }
   }, [profile, save]);
 
   const unlockAchievement = useCallback(async (id: string): Promise<string|null> => {

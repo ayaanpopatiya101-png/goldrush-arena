@@ -5,6 +5,7 @@
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { View, ViewProps } from 'react-native';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { getSettings } from '@/hooks/useSettings';
 import Animated, {
   useSharedValue, useAnimatedStyle, withSequence, withTiming, Easing as REasing,
 } from 'react-native-reanimated';
@@ -28,7 +29,7 @@ export const ScreenShake = forwardRef<ScreenShakeRef, ScreenShakeProps>(function
 
   useImperativeHandle(ref, () => ({
     shake(intensity = 0.6) {
-      if (reduced) return;
+      if (reduced || !getSettings().screenShake) return;
       const m = Math.round(intensity * 10);   // max pixels
       const h = Math.round(m * 0.5);
       const q = Math.round(m * 0.25);

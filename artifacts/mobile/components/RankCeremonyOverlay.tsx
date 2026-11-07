@@ -28,8 +28,9 @@ import Reanimated, {
 } from 'react-native-reanimated';
 import { RankBadge } from '@/components/RankBadge';
 import { RANKS } from '@/context/PlayerContext';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 import { staticLoop } from '@/components/ui/motion';
+import { useBlockingOverlay } from '@/context/OverlayQueue';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -124,7 +125,8 @@ interface RankCeremonyOverlayProps {
 
 let _pid = 0;
 
-export function RankCeremonyOverlay({ newRank, visible, onDismiss }: RankCeremonyOverlayProps) {
+export function RankCeremonyOverlay({ newRank, visible: requested, onDismiss }: RankCeremonyOverlayProps) {
+  const visible = useBlockingOverlay(requested);
   const rankData = RANKS.find(r => r.name === newRank) ?? RANKS[0];
   const rankColor = rankData.color;
   const flavor = getTierFlavor(newRank);

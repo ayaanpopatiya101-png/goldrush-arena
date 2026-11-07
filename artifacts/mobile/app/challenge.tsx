@@ -3,7 +3,7 @@
  * Validates the link, checks it against today's server seed, and never silently
  * substitutes a different run.
  */
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';

@@ -14,6 +14,8 @@ export type GameVariant =
   | 'warlord';
 
 export interface GameSessionConfig {
+  /** Stable award identity, generated for each newly configured match. */
+  matchId?: string;
   playerName:      string;
   playerSkinId:    string;
   playerColor:     string;
@@ -69,8 +71,27 @@ let _config: GameSessionConfig = {
 };
 
 export function setGameConfig(config: GameSessionConfig) {
-  _config = { ...config };
+  _config = { ...config, matchId: Date.now().toString(36) + Math.random().toString(36).slice(2) };
   _configured = true;
+}
+
+/** A new match, not a retry of the completed award. Lobby updates keep this ID. */
+export function startRematch() {
+  if (!_configured) throw new Error('Choose a mode before starting another match.');
+  setGameConfig({
+    ..._config,
+    countdownComplete: false,
+    bankLivesUsed: 0,
+    opponentNames: undefined,
+    opponentRanks: undefined,
+    // Challenge submission credentials belong only to the original run.
+    matchNonce: undefined,
+    challengeSeed: undefined,
+    challengeSeedHash: undefined,
+    challengeTargetScore: undefined,
+    challengeStartSpeedMult: undefined,
+    challengeRampRate: undefined,
+  });
 }
 
 /** Direct links must not silently start a fabricated match from default settings. */

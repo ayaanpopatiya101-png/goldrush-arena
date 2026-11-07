@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -67,10 +67,10 @@ const VARIANT_META: Record<string, { emoji: string; name: string; color: string 
 
 const VARIANT_RULES: Record<string, string[]> = {
   classic: [
-    'Swipe anywhere to move YOUR GOLD paddle',
+    'Drag to move your bottom paddle (desktop: click and drag)',
     'Deflect balls, let them through and lose a life',
     'Each player starts with 5 lives',
-    'New balls spawn every 15 seconds',
+    'New balls spawn every 7 seconds',
     'Collect power-ups near your paddle zone',
     'Last player standing wins!',
   ],

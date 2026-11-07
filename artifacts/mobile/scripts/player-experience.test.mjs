@@ -1,0 +1,295 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
+import vm from 'node:vm';
+import { collisionSteps, paddleInput } from '../utils/arenaGeometry.ts';
+
+const ts = createRequire(import.meta.url)('typescript');
+const source = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
+const compile = text => ts.transpileModule(text, { compilerOptions: {
+  module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, esModuleInterop: true,
+} }).outputText;
+const noop = () => {};
+const animation = () => ({ start: noop, stop: noop });
+class Value {
+  constructor(value) { this._value = value; }
+  setValue(value) { this._value = value; }
+  interpolate() { return this; }
+}
+class ValueXY extends Value {}
+const settings = { soundEnabled: false, screenShake: false, hapticsEnabled: false };
+const generic = new Proxy({}, { get: () => noop });
+
+// Execute the production component with deterministic scheduling and no renderer.
+// This tests the actual collision loop, not a second physics implementation.
+async function court(options = {}) {
+  let captured, time = 0;
+  const effects = [], callbacks = [], events = [], results = [];
+  const text = await source('components/GameArena.tsx');
+  const marker = '  return (\n    <ScreenShake';
+  assert.ok(text.includes(marker), 'engine instrumentation marker exists');
+  const code = compile(text.replace(marker,
+    '  __capture({ gs: gsRef.current, tick: gameLoop, input: panResponder, forceWin }); return null;\n' + marker));
+  const react = {
+    useRef: current => ({ current }),
+    useState: initial => [typeof initial === 'function' ? initial() : initial, noop],
+    useEffect: effect => effects.push(effect),
+    useCallback: fn => fn, useMemo: fn => fn(),
+  };
+  const exports = {};
+  const modules = {
+    react,
+    'react-native': {
+      Platform: { OS: 'web' }, StyleSheet: { create: value => value },
+      Animated: { Value, ValueXY, parallel: animation, sequence: animation, loop: animation,
+        timing: animation, spring: animation, delay: animation },
+      PanResponder: { create: handlers => handlers },
+    },
+    '@/context/PlayerContext': { RELICS: [], getRankIndex: () => 0, MAX_RANK_INDEX: 19 },
+    '@/hooks/useSettings': { getSettings: () => settings },
+    '@/hooks/useReducedMotion': { useReducedMotion: () => true },
+    '@/hooks/useSoundFX': { useSoundFX: () => new Proxy({}, { get: () => noop }) },
+    '@/utils/arenaGeometry': { collisionSteps, paddleInput },
+    '@/constants/colors': { PLAYER_COLORS: ['a', 'b', 'c', 'd'] },
+  };
+  vm.runInNewContext(code, {
+    exports, require: id => modules[id] ?? generic, __capture: data => { captured = data; },
+    performance: { now: () => 0 }, requestAnimationFrame: () => 1, cancelAnimationFrame: noop,
+    setTimeout: fn => { callbacks.push(fn); return callbacks.length; }, clearTimeout: noop,
+    setInterval: () => 1, clearInterval: noop,
+    Math: Object.assign(Object.create(Math), { random: () => 0.5 }),
+  });
+  exports.GameArena({
+    arenaSize: 320, playerName: 'You', playerColor: 'a', playerGlowColor: 'a',
+    botNames: [], botRanks: [], skipCountdown: true, noPowerups: true,
+    soundEnabled: false, onGameOver: result => results.push(result),
+    onTutorialEvent: event => events.push(event), ...options,
+  });
+  effects.forEach(effect => effect());
+  return { ...captured, events, results, finish: () => callbacks.forEach(fn => fn()),
+    frame: (delta = 16.667) => { time += delta; captured.tick(time); } };
+}
+
+test('all sensitivities reach both ends and map monotonically at phone and desktop sizes', () => {
+  for (const size of [240, 320, 375, 390, 560, 1024]) for (const sensitivity of [0.6, 1, 1.5]) {
+    assert.equal(paddleInput(0, size, 88, sensitivity), 46);
+    assert.equal(paddleInput(size, size, 88, sensitivity), size - 46);
+    let previous = 0;
+    for (let x = 0; x <= size; x++) {
+      const next = paddleInput(x, size, 88, sensitivity);
+      assert.ok(next >= previous && next >= 46 && next <= size - 46);
+      previous = next;
+    }
+  }
+});
+
+test('production collisions block high-speed balls at 60, 30 and 15 fps without repeat hits', async () => {
+  for (const size of [240, 390, 560]) for (const delta of [16.667, 33.334, 66.667]) {
+    const c = await court({ arenaSize: size });
+    c.gs.balls = [{ id: 1, x: size / 2, y: size - 48, vx: 0, vy: 70,
+      radius: 6, active: true, type: 'tiny' }];
+    const lives = c.gs.players[0].lives;
+    c.frame(delta);
+    assert.ok(c.gs.balls[0].vy < 0, `rebound at ${size}/${delta}`);
+    assert.equal(c.gs.players[0].lives, lives);
+    assert.equal(c.gs.players[0].score, 1);
+    c.frame(delta);
+    assert.equal(c.gs.players[0].score, 1);
+  }
+});
+
+test('corner miss costs only one life, clamps inside the court and leaves ball moving inward', async () => {
+  const c = await court();
+  c.gs.balls = [{ id: 1, x: 38, y: 282, vx: -12, vy: 12, radius: 10, active: true, type: 'normal' }];
+  const before = c.gs.players.map(p => p.lives);
+  c.frame();
+  const losses = c.gs.players.reduce((sum, p, i) => sum + before[i] - p.lives, 0);
+  assert.equal(losses, 1);
+  assert.ok(c.gs.balls[0].vx > 0 && c.gs.balls[0].vy < 0);
+});
+
+test('eight simultaneous fast balls are handled independently without tunneling', async () => {
+  const c = await court();
+  c.gs.balls = Array.from({ length: 8 }, (_, id) => ({
+    id, x: 152 + id * 2, y: 270, vx: 0, vy: 45, radius: 6, active: true, type: 'tiny',
+  }));
+  c.frame(33.334);
+  assert.ok(c.gs.balls.every(ball => ball.vy < 0));
+  assert.equal(c.gs.players[0].score, 8);
+  assert.equal(c.gs.players[0].lives, 5);
+});
+
+test('real-input tutorial stages emit only their own event and practice awards zero', async () => {
+  const move = await court({ tutorialStage: 'move', practice: true });
+  assert.equal(move.gs.balls.length, 0);
+  move.input.onPanResponderGrant({ nativeEvent: { locationX: 80 } });
+  move.input.onPanResponderMove({ nativeEvent: { locationX: 100 } });
+  assert.deepEqual(move.events, ['move']);
+  const block = await court({ tutorialStage: 'block', practice: true });
+  for (let i = 0; i < 100; i++) block.frame();
+  assert.deepEqual(block.events, ['block']);
+  const miss = await court({ tutorialStage: 'miss', practice: true });
+  for (let i = 0; i < 100; i++) miss.frame();
+  assert.deepEqual(miss.events, ['miss']);
+  const practice = await court({ practice: true });
+  practice.forceWin(practice.gs, 0);
+  practice.finish();
+  assert.equal(practice.results[0].xpEarned, 0);
+  assert.equal(practice.results[0].coinsEarned, 0);
+});
+
+// Run the actual PlayerProvider award callback with a memory-backed storage adapter.
+async function playerHarness(storage = new Map(), fail = () => false, session) {
+  let stateIndex = 0, refIndex = 0;
+  const states = [], refs = [];
+  const profileKey = '@goldrush_v3_regression';
+  let receipt;
+  const react = {
+    createContext: () => ({ Provider: 'Provider' }),
+    createElement: (type, props) => ({ type, props }),
+    useState: initial => {
+      const i = stateIndex++;
+      if (!(i in states)) states[i] = i === 0 && storage.has(profileKey)
+        ? JSON.parse(storage.get(profileKey)) : typeof initial === 'function' ? initial() : initial;
+      return [states[i], value => { states[i] = typeof value === 'function' ? value(states[i]) : value; }];
+    },
+    useRef: initial => {
+      const i = refIndex++;
+      return refs[i] ??= { current: initial };
+    },
+    useEffect: noop, useCallback: fn => fn,
+  };
+  const modules = {
+    react,
+    '@react-native-async-storage/async-storage': {
+      getItem: async key => storage.get(key) ?? null,
+      setItem: async (key, value) => { if (fail(key)) throw new Error('storage full'); storage.set(key, value); },
+    },
+    '@/store/gameSession': session ?? { getGameConfig: () => ({ matchId: 'match-1', featuredXpMult: 2 }) },
+    '@/store/completedMatch': { setCompletedMatch: value => { receipt = value; } },
+  };
+  const exports = {};
+  const text = (await source('context/PlayerContext.tsx')).replace(
+    /if \(!isLoaded\) return <StartupState[^;]+;/, '');
+  vm.runInNewContext(compile(text), {
+    exports, require: id => modules[id] ?? generic, console, Date, Math,
+  });
+  function render() {
+    stateIndex = 0; refIndex = 0;
+    return exports.PlayerProvider({ username: 'regression', onLogout: noop }).props.value;
+  }
+  return { render, storage, profileKey, receipt: () => receipt };
+}
+
+const award = { won: true, xpEarned: 100, coinsEarned: 20, position: 1,
+  deflections: 9, goalsAgainst: 2, matchType: 'casual', eventBonus: { xp: 30, coins: 10, credits: 1 } };
+
+test('web API requests retain their origin and 44px icon hit areas do not overlap neighbors', async () => {
+  const exports = {};
+  vm.runInNewContext(compile(await source('utils/api.ts')), {
+    exports, require: () => ({ Platform: { OS: 'web' } }),
+    window: { location: { origin: 'https://example.expo.test' } },
+  });
+  assert.equal(exports.apiUrl('/healthz'), 'https://example.expo.test/api/healthz');
+  const primitives = await source('components/ui/Primitives.tsx');
+  assert.match(primitives, /hitSlop=\{0\}/);
+  assert.match(primitives, /iconBtn: \{ width: 44, height: 44/);
+});
+
+test('persisted receipt, History and balances agree, including featured and event bonuses', async () => {
+  const h = await playerHarness();
+  await h.render().addMatchResult(award);
+  const p = JSON.parse(h.storage.get(h.profileKey));
+  assert.equal(p.xp, 230);
+  assert.equal(p.coins, 230); // existing 200 + base 20 + event 10
+  assert.equal(p.matchHistory[0].xpEarned, 230);
+  assert.equal(p.matchHistory[0].coinsEarned, 30);
+  assert.equal(p.matchHistory[0].receipt.xpAfter, p.xp);
+  assert.equal(p.competitiveLevel, 1);
+  assert.equal(p.battlePassPoints ?? 0, 0);
+});
+
+test('simultaneous callbacks, stale closures and reload/retry award a match once', async () => {
+  const h = await playerHarness();
+  const stale = h.render().addMatchResult;
+  await Promise.all([stale(award), stale(award)]);
+  await stale(award);
+  const reloaded = await playerHarness(h.storage);
+  await reloaded.render().addMatchResult(award);
+  const p = JSON.parse(h.storage.get(h.profileKey));
+  assert.equal(p.totalGames, 1);
+  assert.equal(p.xp, 230);
+  assert.equal(p.matchHistory.length, 1);
+  assert.equal(reloaded.receipt().id, 'match-1');
+});
+
+test('failed profile storage preserves balances and permits one safe retry', async () => {
+  let failing = true;
+  const h = await playerHarness(new Map(), key => failing && key.includes('v3'));
+  const save = h.render().addMatchResult;
+  await assert.rejects(save(award), /storage full/);
+  assert.equal(h.storage.has(h.profileKey), false);
+  assert.equal(h.receipt(), undefined);
+  failing = false;
+  await save(award);
+  assert.equal(JSON.parse(h.storage.get(h.profileKey)).totalGames, 1);
+});
+
+test('Play Again commits a second distinct receipt while each match retry still awards once', async () => {
+  const session = {};
+  vm.runInNewContext(compile(await source('store/gameSession.ts')), { exports: session, Date, Math });
+  session.setGameConfig({
+    playerName: 'regression', matchType: 'ranked', variant: 'classic',
+    featuredXpMult: 2, matchNonce: 'single-use', challengeSeed: 'old-run',
+    countdownComplete: true, bankLivesUsed: 2, opponentNames: ['old-opponent'],
+  });
+  const firstId = session.getGameConfig().matchId;
+  const h = await playerHarness(new Map(), () => false, session);
+  const save = h.render().addMatchResult;
+  const ranked = { ...award, matchType: 'ranked' };
+  await save(ranked);
+  const firstReceipt = h.receipt();
+  await save(ranked); // retry the first award, without pressing Play Again
+  assert.equal(JSON.parse(h.storage.get(h.profileKey)).totalGames, 1);
+
+  // Execute the actual Results press handler, including its double-press guard.
+  const postgame = await source('app/postgame.tsx');
+  assert.match(postgame, /onPress=\{handlePlayAgain\}/);
+  const handler = postgame.match(/  function handlePlayAgain\(\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(handler);
+  const routes = [], press = {};
+  vm.runInNewContext(compile(`${handler}\nexports.press = handlePlayAgain;`), {
+    exports: press, startingRematchRef: { current: false }, isArcade: false,
+    startRematch: session.startRematch, router: { replace: path => routes.push(path) },
+  });
+  press.press();
+  const secondId = session.getGameConfig().matchId;
+  press.press(); // rapid double press must not rotate a second time
+  assert.notEqual(secondId, firstId);
+  assert.equal(session.getGameConfig().matchId, secondId);
+  assert.deepEqual(routes, ['/lobby']);
+  assert.equal(session.getGameConfig().matchNonce, undefined);
+  assert.equal(session.getGameConfig().bankLivesUsed, 0);
+  assert.equal(session.getGameConfig().countdownComplete, false);
+  session.updateGameConfig({ opponentNames: ['new-bot'], countdownComplete: true });
+  assert.equal(session.getGameConfig().matchId, secondId); // lobby/retries retain identity
+
+  await save(ranked); // same provider closure, genuinely new match
+  await save(ranked); // repeat second award callback
+  const reloaded = await playerHarness(h.storage, () => false, session);
+  await reloaded.render().addMatchResult(ranked); // reload/retry of the second receipt
+  const p = JSON.parse(h.storage.get(h.profileKey));
+  assert.equal(p.totalGames, 2);
+  assert.equal(p.matchHistory.length, 2);
+  assert.equal(p.xp, 460);
+  assert.equal(p.coins, 260);
+  assert.equal(p.competitiveLevel, reloaded.receipt().levelAfter);
+  assert.equal(reloaded.receipt().levelBefore, firstReceipt.levelAfter);
+  assert.ok(p.competitiveLevel > firstReceipt.levelAfter);
+  assert.equal(p.matchHistory[0].receipt.id, secondId);
+  assert.equal(p.matchHistory[1].receipt.id, firstId);
+  assert.equal(firstReceipt.xpAfter, 230);
+  assert.equal(reloaded.receipt().id, secondId);
+  assert.equal(reloaded.receipt().xpAfter, 460);
+});

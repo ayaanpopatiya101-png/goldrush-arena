@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 import { Feather } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
@@ -63,7 +63,7 @@ export default function GauntletScreen() {
 
   function handleStartNextRound() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    updateGameConfig({ variant: nextVariant });
+    updateGameConfig({ variant: nextVariant, matchId: Date.now().toString(36) + Math.random().toString(36).slice(2) });
     router.replace('/lobby');
   }
 

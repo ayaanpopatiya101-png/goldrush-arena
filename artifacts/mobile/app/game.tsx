@@ -219,7 +219,7 @@ export default function GameScreen() {
       bank_lives: bankLivesUsed,
     });
     // Deduct the chosen bank lives, consumed once at match start, non-refundable
-    if (bankLivesUsed > 0) consumeExtraLives(bankLivesUsed);
+    if (!config.practice && bankLivesUsed > 0) consumeExtraLives(bankLivesUsed);
   }
 
   function handleHighlight(type: 'multi_block' | 'near_death' | 'hot_streak') {
@@ -267,6 +267,7 @@ export default function GameScreen() {
   async function handleGameOver(result: GameResult) {
     if (completedRef.current) return;
     completedRef.current = true;
+    if (config.practice) { router.replace('/practice'); return; }
     clearCompletedMatch();
     // Store the best clip for the post-game share button (no-op on web)
     const hlClip = stopAndGetClip();

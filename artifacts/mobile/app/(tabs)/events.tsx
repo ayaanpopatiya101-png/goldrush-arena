@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { Shell } from '@/components/ui/Primitives';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';

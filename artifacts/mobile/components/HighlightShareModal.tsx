@@ -35,6 +35,7 @@ import {
   type ClipTier,
 } from '@/utils/clipRewards';
 import { usePlayer } from '@/context/PlayerContext';
+import { useBlockingOverlay } from '@/context/OverlayQueue';
 import { Glyph } from '@/components/ui/Glyph';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -62,8 +63,9 @@ interface Props {
 }
 
 export function HighlightShareModal({
-  visible, onClose, frames, highlightType, score, clipScore,
+  visible: requested, onClose, frames, highlightType, score, clipScore,
 }: Props) {
+  const visible = useBlockingOverlay(requested);
   const { claimEventBonus } = usePlayer();
 
   const [gifUri,         setGifUri]         = useState<string | null>(null);

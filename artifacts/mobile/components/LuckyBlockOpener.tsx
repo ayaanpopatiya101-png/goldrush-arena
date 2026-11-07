@@ -1,4 +1,5 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
+import { useBlockingOverlay } from '@/context/OverlayQueue';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function LuckyBlockOpener({ block, onClose }: Props) {
+  const visible = useBlockingOverlay(true);
   const { openLuckyBlock } = usePlayer();
 
   const [currentTier, setCurrentTier] = useState<LuckyBlockTier>(block.tier);
@@ -59,6 +61,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
   }
 
   useEffect(() => {
+    if (!visible) return;
     Animated.parallel([
       Animated.timing(overlayOp,  { toValue: 1, duration: 350, useNativeDriver: true }),
       Animated.spring(blockScale, { toValue: 1, friction: 5, tension: 70, useNativeDriver: true }),
@@ -69,7 +72,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
       Animated.timing(glowPulse, { toValue: 1,   duration: 900, useNativeDriver: true }),
       Animated.timing(glowPulse, { toValue: 0.7, duration: 900, useNativeDriver: true }),
     ])).start();
-  }, []);
+  }, [visible]);
 
   function handleTap() {
     if (phaseRef.current !== 'ready') return;
@@ -190,7 +193,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
   const meta = LUCKY_BLOCK_META[currentTier];
 
   return (
-    <Modal animationType="none" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="none" transparent presentationStyle="overFullScreen">
       <Animated.View style={[s.overlay, { opacity: overlayOp }]}>
         <LinearGradient colors={['#14231F', '#14231F']} style={StyleSheet.absoluteFill} />
 

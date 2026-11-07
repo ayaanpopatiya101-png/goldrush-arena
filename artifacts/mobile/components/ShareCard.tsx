@@ -7,7 +7,8 @@
  * No new native packages required, uses Share API + styled React Native Views.
  */
 
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
+import { useBlockingOverlay } from '@/context/OverlayQueue';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef } from 'react';
 import {
@@ -30,8 +31,9 @@ interface ShareCardProps {
 }
 
 export function ShareCard({
-  visible, score, personalBest, playerName, dailyRank, totalPlayers, seed, onClose,
+  visible: requested, score, personalBest, playerName, dailyRank, totalPlayers, seed, onClose,
 }: ShareCardProps) {
+  const visible = useBlockingOverlay(requested);
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

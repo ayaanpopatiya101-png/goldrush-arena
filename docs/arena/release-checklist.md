@@ -1,5 +1,9 @@
 # Release gates: not store ready
 
+Current candidate evidence: `player-experience-verification.md`.
+Human protocol/results: `formative-playtest.md`.
+Final asset and verified-contact inputs: `store-assets.md`.
+
 ## Blocking capabilities and owner details
 - Real four-human PvP is NOT implemented. Either build an authenticated authoritative game service in separately approved work or market the current experience truthfully as local bot matches. A party lobby is not proof of PvP.
 - Publisher legal identity, verified support/privacy contact, jurisdiction and a public Privacy URL need owner confirmation and legal review. In-app product disclosures are not legal certification.

@@ -6,13 +6,15 @@ import {
   Pressable, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { usePlayer } from '@/context/PlayerContext';
+import { useBlockingOverlay } from '@/context/OverlayQueue';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
 }
 
-export function RedeemCodeModal({ visible, onClose }: Props) {
+export function RedeemCodeModal({ visible: requested, onClose }: Props) {
+  const visible = useBlockingOverlay(requested);
   const { redeemCode } = usePlayer();
   const [code, setCode]       = useState('');
   const [loading, setLoading] = useState(false);

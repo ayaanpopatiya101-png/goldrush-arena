@@ -25,7 +25,7 @@ import { fetchTodayChallenge } from '@/utils/dailyChallenge';
 import { getDeviceId } from '@/utils/deviceId';
 
 // ─── Mode catalog (all existing modes and rank gates preserved) ──────────────
-type ModeKind = 'ranked' | 'casual' | 'variant' | 'elite' | 'gauntlet' | 'challenge' | 'arcade';
+type ModeKind = 'ranked' | 'casual' | 'practice' | 'variant' | 'elite' | 'gauntlet' | 'challenge' | 'arcade';
 interface ModeDef {
   key: string;
   kind: ModeKind;
@@ -42,6 +42,7 @@ interface ModeDef {
 const MODES: ModeDef[] = [
   { key: 'ranked', kind: 'ranked', name: 'Ranked', sub: '4 seats · 5 lives', desc: 'Last paddle standing. Earns account XP and moves your competitive level.', group: 'MATCH', partyLaunch: true },
   { key: 'casual', kind: 'casual', name: 'Casual', sub: '4 seats · level unchanged', desc: 'Earns account XP, which still counts toward your XP rank. Competitive level does not change.', group: 'MATCH', partyLaunch: true },
+  { key: 'practice', kind: 'practice', name: 'Practice', sub: 'Safe controls · no rewards', desc: 'Test paddle sensitivity against easy local bots. No progression or bank lives.', group: 'SOLO', partyLaunch: false },
   { key: 'arcade', kind: 'arcade', name: 'Survival Run', sub: 'Solo · arcade', desc: 'Deflect as long as you can. Speed ramps up.', group: 'SOLO', partyLaunch: false },
   { key: 'challenge', kind: 'challenge', name: 'Daily Challenge', sub: 'Solo · seeded', desc: 'Today\'s seed, same for every player.', group: 'SOLO', partyLaunch: false },
   { key: 'duos', kind: 'variant', variant: 'duos', name: 'Duos', sub: '2v2 teams', desc: 'Bottom and right versus top and left.', group: 'VARIANT', partyLaunch: true },
@@ -121,7 +122,7 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
       </View>
       <View style={a.captionRow}>
         <Text style={[a.caption, { flex: 1 }]}>
-          Practice on the real match engine. Drag along the bottom edge to move your paddle. No rank or rewards.
+          Practice on the real match engine. Drag along the bottom edge. On desktop, click and drag. No rank or rewards.
         </Text>
         {active ? (
           <Button
@@ -242,6 +243,7 @@ export default function HomeScreen() {
       case 'gauntlet': return startGauntletRun();
       case 'challenge': return void startChallenge();
       case 'arcade': return router.push('/arcade');
+      case 'practice': return router.push('/practice');
     }
   }
 
@@ -384,7 +386,7 @@ export default function HomeScreen() {
                 <View style={s.ruleRow}>
                   <Chip label={selected.sub} />
                   <Chip label={opponentLabel(selected)} />
-                  <Chip label={selected.kind === 'ranked' || selected.kind === 'elite' ? 'Affects rank' : 'No rank change'} tone={selected.kind === 'ranked' || selected.kind === 'elite' ? 'ochre' : 'neutral'} />
+                  <Chip label={selected.kind === 'ranked' || selected.kind === 'elite' ? 'Competitive level changes' : 'Competitive level unchanged'} tone={selected.kind === 'ranked' || selected.kind === 'elite' ? 'ochre' : 'neutral'} />
                 </View>
               </View>
               {selectedLocked ? <Chip label={`Requires ${selected.lockLabel ?? 'higher rank'}`} tone="clay" /> : null}

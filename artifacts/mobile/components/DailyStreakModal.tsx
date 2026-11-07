@@ -4,6 +4,7 @@ import { LinearGradient } from '@/components/ui/Flat';
 import { getStreakReward } from '@/context/PlayerContext';
 import { Glyph } from '@/components/ui/Glyph';
 import { staticLoop } from '@/components/ui/motion';
+import { useBlockingOverlay } from '@/context/OverlayQueue';
 
 interface Props {
   visible: boolean;
@@ -15,7 +16,8 @@ interface Props {
 const DAY_LABELS = ['1', '2', '3', '4', '5', '6', '7+'];
 const WEEK_REWARDS = [50, 100, 150, 200, 250, 300, 500];
 
-export function DailyStreakModal({ visible, streak, onClaim, onDismiss }: Props) {
+export function DailyStreakModal({ visible: requested, streak, onClaim, onDismiss }: Props) {
+  const visible = useBlockingOverlay(requested);
   const scaleAnim = useRef(new Animated.Value(0.7)).current;
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const coinAnim  = useRef(new Animated.Value(0)).current;

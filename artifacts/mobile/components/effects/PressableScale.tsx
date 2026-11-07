@@ -1,5 +1,5 @@
 // Pressable with a direct, non-decorative press state and optional haptic.
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 import React from 'react';
 import { Platform, Pressable, PressableProps, StyleProp, ViewStyle } from 'react-native';
 

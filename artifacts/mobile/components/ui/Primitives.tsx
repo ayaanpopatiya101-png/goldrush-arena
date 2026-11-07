@@ -99,7 +99,7 @@ export function IconButton({ icon, onPress, label, style }: { icon: React.Compon
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      hitSlop={6}
+      hitSlop={0}
       style={({ pressed }) => [p.iconBtn, pressed && { backgroundColor: palette.graphite2 }, style]}
     >
       <Feather name={icon} size={18} color={palette.paperDim} />

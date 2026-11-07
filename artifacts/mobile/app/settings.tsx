@@ -1,11 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
-import { Shell } from '@/components/ui/Primitives';
+import { Button, Shell } from '@/components/ui/Primitives';
+import { GameArena } from '@/components/GameArena';
+import { palette } from '@/constants/colors';
 import { LinearGradient } from '@/components/ui/Flat';
 import { router } from 'expo-router';
 import * as StoreReview from 'expo-store-review';
-import React from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
 import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettings } from '@/hooks/useSettings';
@@ -37,7 +39,11 @@ function SettingRow({ icon, title, subtitle, right }: {
 }
 
 export default function SettingsScreen() {
-  const { settings, updateSetting } = useSettings();
+  const { settings, updateSetting, error } = useSettings();
+  const [practiceOpen, setPracticeOpen] = useState(false);
+  const [practiceKey, setPracticeKey] = useState(0);
+  const { width } = useWindowDimensions();
+  const practiceSize = Math.min(width - 64, 320);
   const { profile, logout } = usePlayer();
   const safe   = useSafeAreaInsets();
   const topPad = Platform.OS === 'web' ? Math.max(safe.top, 67) : safe.top;
@@ -180,6 +186,7 @@ export default function SettingsScreen() {
 
         {/* ── Controls ── */}
         <View style={s.section}>
+          {error && <Text accessibilityRole="alert" style={s.rowSub}>{error}</Text>}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={s.sectionTitle}>CONTROLS</Text>
             <View style={{ flex: 1, height: 1, backgroundColor: '#EEE7D70E' }} />
@@ -202,6 +209,20 @@ export default function SettingsScreen() {
                   </Text>
                 </Pressable>
               ))}
+            </View>
+            <View style={{ padding: 12, gap: 12 }}>
+              <Button label={practiceOpen ? 'Close practice court' : 'Test sensitivity'} variant="secondary" onPress={() => setPracticeOpen(value => !value)} />
+              {practiceOpen && <>
+                <Text style={s.rowSub}>Drag to move the bottom paddle. On desktop, click and drag. No rewards or bank lives are used.</Text>
+                <View style={{ width: practiceSize, height: practiceSize, alignSelf: 'center' }}>
+                  <GameArena key={practiceKey} arenaSize={practiceSize} playerName="You" playerColor={palette.ochre} playerGlowColor={palette.ochre}
+                    botNames={['North bot', 'West bot', 'East bot']} botRanks={['Bronze 1', 'Bronze 1', 'Bronze 1']}
+                    sensitivity={settings.sensitivity} practice botDifficulty="easy" botSkill={0} soundEnabled={settings.soundEnabled}
+                    onGameOver={() => setPracticeKey(key => key + 1)} />
+                </View>
+              </>}
+              <SettingRow icon="eye" title="Reduced effects" subtitle="Reduce decorative motion. OS Reduce Motion also applies."
+                right={<Switch accessibilityLabel="Reduced effects" value={settings.reducedEffects} onValueChange={value => updateSetting('reducedEffects', value)} />} />
             </View>
           </View>
         </View>

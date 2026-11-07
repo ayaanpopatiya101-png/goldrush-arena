@@ -22,7 +22,7 @@ A 4-player air-hockey "last-one-standing" mobile game built with Expo SDK 54. Pl
 
 | Path | Purpose |
 |---|---|
-| `artifacts/mobile/app/(tabs)/` | Tab screens: Home, Leaderboard, Profile, Shop, Inventory, Trophy Road |
+| `artifacts/mobile/app/(tabs)/` | Five primary tabs: Play, Events, Collection, Shop, Profile; contextual Rankings and Pass routes retained |
 | `artifacts/mobile/app/` | Stack screens: Lobby, Game, Postgame, Gauntlet, Settings, Legal, Onboarding |
 | `artifacts/mobile/context/PlayerContext.tsx` | Single source of truth: profile, XP, coins, skins, relics, supers, Trophy Road |
 | `artifacts/mobile/components/GameArena.tsx` | Full game engine: physics, paddles, balls, power-ups, super abilities |
@@ -48,7 +48,7 @@ A 4-player air-hockey "last-one-standing" mobile game built with Expo SDK 54. Pl
 
 ## Release status
 
-**Not App Store ready.** Current release gates and four-device test protocol are in `docs/arena/release-checklist.md`. Product brief, visual rules and QA findings are in `docs/arena/`.
+**Not App Store ready.** Current release gates and four-device test protocol are in `docs/arena/release-checklist.md`. Latest engineering evidence is `docs/arena/player-experience-verification.md`; human observations remain pending in `docs/arena/formative-playtest.md`.
 
 Before submitting:
 1. Replace placeholder App Store URLs in `app/settings.tsx` with real URLs
@@ -64,10 +64,11 @@ Key config in `app.json`:
 ## Gotchas
 
 - **Do NOT run `pnpm dev` at workspace root.** Run via Replit workflows or `pnpm --filter @workspace/mobile run dev`.
-- **Postgame refresh guard:** if `params.won` is missing on load (hard-refresh on web), the screen redirects to `/` to prevent a blank zero-stats display.
+- **Results require a persisted award receipt for the active player.** URL numbers cannot manufacture a match. Missing session context shows recovery; the receipt totals also live in History.
 - **Native audio warm-up:** On first launch, `useSoundFX` and `BackgroundMusic` write WAV files to `expo-file-system`'s cache directory. There is a brief delay on the very first note/hit — subsequent plays are instant (cached).
 - **Rate button (Settings):** Uses `expo-store-review` for native in-app review. Shows a "coming soon" alert on web or before the app is published.
 - Browser verification is not native-device evidence. Use the managed phone preview for development; store builds need their own device checks.
+- In constrained workspaces, export platforms sequentially with `--max-workers 1`, separately from the browser pass. An interrupted concurrent export is not a passing build.
 
 ## User preferences
 

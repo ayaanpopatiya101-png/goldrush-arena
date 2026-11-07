@@ -1,30 +1,51 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GameArena } from '@/components/GameArena';
-import { Button } from '@/components/ui/Primitives';
+import { Button, Chip, Panel } from '@/components/ui/Primitives';
 import { palette } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { usePlayer } from '@/context/PlayerContext';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useBlockingOverlay } from '@/context/OverlayQueue';
 
-const LESSONS = [
-  { title: 'Move your paddle', body: 'Your paddle is at the bottom. Drag along your edge to move it. On desktop, move the pointer along the court. Try it in the practice court below.' },
-  { title: 'Deflect and protect your lives', body: 'Meet the ball with your paddle to return it. A ball that passes your edge costs a life. In a standard match you start with five lives.' },
-  { title: 'Survive to win', body: 'The last paddle standing wins. Power-ups appear on the court, and your selected ability charges as you block. This practice court uses local bots and gives no rank or rewards.' },
-] as const;
+export type TutorialStep = 'move' | 'block' | 'miss' | 'missDone' | 'match' | 'progress';
+type StageEvent = 'move' | 'block' | 'miss';
 
-/** First-run and Settings replay share the same lessons and profile completion flag. */
+/** Pure step machine, exported for tests. Events only advance their own stage, once. */
+export function nextTutorialStep(step: TutorialStep, event: StageEvent | 'startMatch' | 'gameOver'): TutorialStep {
+  if (step === 'move' && event === 'move') return 'block';
+  if (step === 'block' && event === 'block') return 'miss';
+  if (step === 'miss' && event === 'miss') return 'missDone';
+  if (step === 'missDone' && event === 'startMatch') return 'match';
+  if (step === 'match' && event === 'gameOver') return 'progress';
+  return step;
+}
+
+const COPY: Record<TutorialStep, { kicker: string; title: string; body: string }> = {
+  move: { kicker: 'Step 1 of 4 · Move', title: 'Slide your paddle', body: 'Your paddle sits on the bottom edge, nearest you. Drag along the court. On desktop, click and drag. The ball waits until you move.' },
+  block: { kicker: 'Step 2 of 4 · Block', title: 'Meet the slow ball', body: 'A slow ball is heading for your edge. Put your paddle in its path to send it back.' },
+  miss: { kicker: 'Step 3 of 4 · Miss', title: 'Now let one through', body: 'Place your paddle, then watch. This ball is aimed away from you on purpose so you can see what a miss looks like.' },
+  missDone: { kicker: 'Step 3 of 4 · Miss', title: 'That cost a life', body: 'A ball that crosses your bottom edge removes one life. Lose them all and you are out. Here it was free. Next, a gentle match against three local bots.' },
+  match: { kicker: 'Step 4 of 4 · Intro match', title: 'Last paddle standing', body: 'Slow ball, no power-ups, extra lives. Protect the bottom edge. Nothing here affects rank or history.' },
+  progress: { kicker: 'Debrief', title: 'How you climb', body: 'Account XP unlocks XP ranks and cosmetics. Only Ranked changes competitive level. Quest claims earn pass points separately. Practice and this tutorial award nothing.' },
+};
+
+/** First-run and Settings replay share this flow and the profile completion flag. */
 export function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
-  const { profile, completeTutorial } = usePlayer();
+  const active = useBlockingOverlay(true);
+  const { completeTutorial } = usePlayer();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState<TutorialStep>('move');
+  const [matchKey, setMatchKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const reducedMotion = useReducedMotion();
-  const [practiceRunning, setPracticeRunning] = useState(!reducedMotion);
-  const arenaSize = Math.max(160, Math.min(width - 64, height * .32, 280));
+  // Court fits a 390x844 phone alongside heading, copy and one action row.
+  const arenaSize = Math.floor(Math.max(200, Math.min(width - 40, height * 0.42, 420)));
+
+  const onEvent = useCallback((e: StageEvent) => setStep(s => nextTutorialStep(s, e)), []);
+  const onGameOver = useCallback(() => setStep(s => nextTutorialStep(s, 'gameOver')), []);
+
   async function finish() {
     if (busy) return;
     setBusy(true);
@@ -38,31 +59,63 @@ export function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
       setBusy(false);
     }
   }
+
+  const copy = COPY[step];
+  const stage: StageEvent | undefined = step === 'move' || step === 'block' || step === 'miss' ? step
+    : step === 'missDone' ? 'miss' : undefined;
+  const showCourt = step !== 'progress';
+  const isMatch = step === 'match';
+  const shared = {
+    arenaSize, playerName: 'You', playerColor: palette.ochre, playerGlowColor: palette.ochre,
+    botNames: ['North bot', 'West bot', 'East bot'], botRanks: ['Bronze 1', 'Bronze 1', 'Bronze 1'],
+    practice: true, botDifficulty: 'easy' as const, soundEnabled: false,
+  };
+
+  if (!active) return null;
   return (
-    <View style={[s.root, { paddingTop: Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top, paddingBottom: Math.max(insets.bottom, 20) }]}>
+    <View testID={`tutorial-step-${step}`} style={[s.root, { paddingTop: Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top, paddingBottom: Math.max(insets.bottom, 12) }]}>
       <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.heading}>
-          <Text style={s.step}>Learn to play · {step + 1} of {LESSONS.length}</Text>
-          <Button label="Skip tutorial" variant="ghost" onPress={finish} disabled={busy} />
+          <Text style={s.kicker}>{copy.kicker}</Text>
+          <Button testID="tutorial-skip" label="Skip" size="sm" variant="ghost" onPress={finish} disabled={busy} />
         </View>
-        <Text accessibilityRole="header" style={s.title}>{LESSONS[step].title}</Text>
-        <Text style={s.body}>{LESSONS[step].body}</Text>
-        <View style={{ alignSelf: 'center', width: arenaSize, height: arenaSize }}>
-          <GameArena arenaSize={arenaSize} playerName="You" playerColor={palette.ochre}
-            playerGlowColor={palette.ochre} botNames={['North bot', 'West bot', 'East bot']}
-            botRanks={['Bronze 1', 'Bronze 1', 'Bronze 1']} practice
-            botDifficulty="easy" soundEnabled={false} paused={!practiceRunning} onGameOver={() => {}} />
-        </View>
-        <Text style={s.note}>You · bottom paddle · Practice only</Text>
-        <Button label={practiceRunning ? 'Pause practice' : 'Run practice'} variant="secondary" onPress={() => setPracticeRunning(value => !value)} />
+        <Text accessibilityRole="header" style={s.title}>{copy.title}</Text>
+        <Text style={s.body} accessibilityLiveRegion="polite">{copy.body}</Text>
+
+        {showCourt && (
+          <View testID="tutorial-court" style={[s.court, { width: arenaSize, height: arenaSize }]}>
+            {isMatch ? (
+              <GameArena key={`match-${matchKey}`} {...shared} botSkill={0} noPowerups startSpeedMult={0.4}
+                initialLives={3} playerBonusLives={3} skipCountdown onGameOver={onGameOver} />
+            ) : (
+              <GameArena key={stage} {...shared} tutorialStage={stage} onTutorialEvent={onEvent} skipCountdown noPowerups onGameOver={() => {}} />
+            )}
+          </View>
+        )}
+        {showCourt && (
+          <View style={s.legend}>
+            <Chip label="You · bottom edge" tone="ochre" />
+            <Chip label={isMatch ? '3 local bots' : 'Lesson court'} />
+          </View>
+        )}
+
+        {step === 'missDone' && (
+          <Button testID="tutorial-start-match" label="Start intro match" icon="play" onPress={() => { setMatchKey(k => k + 1); setStep(st => nextTutorialStep(st, 'startMatch')); }} />
+        )}
+
+        {step === 'progress' && (
+          <Panel style={s.debrief}>
+            {[['Account XP', 'Casual and Ranked earn XP toward cosmetic unlocks.'], ['Competitive level', 'Ranked placement changes your level. Casual does not.'], ['Pass points', 'Claim completed quests to advance the pass.'], ['Ownership', 'Owned cosmetics stay in Collection.']].map(([k, v]) => (
+              <View key={k} style={s.row}><Text style={s.rowKey}>{k}</Text><Text style={s.rowVal}>{v}</Text></View>
+            ))}
+          </Panel>
+        )}
+
         {error && <Text accessibilityRole="alert" style={[s.body, { color: palette.clay }]}>{error}</Text>}
-        <View style={s.actions}>
-          {step > 0 && <Button label="Back" variant="secondary" disabled={busy} onPress={() => setStep(n => n - 1)} />}
-          <Button label={step === LESSONS.length - 1 ? 'Finish tutorial' : 'Next lesson'}
-            style={{ flex: 1 }} loading={busy}
-            onPress={step === LESSONS.length - 1 ? finish : () => setStep(n => n + 1)} />
-        </View>
-        <Text style={s.note}>Replay these lessons anytime from Settings</Text>
+        {step === 'progress' && (
+          <Button testID="tutorial-finish" label={error ? 'Retry save' : 'Finish tutorial'} size="lg" loading={busy} onPress={finish} />
+        )}
+        <Text style={s.note}>Replay anytime from Settings</Text>
       </ScrollView>
     </View>
   );
@@ -70,11 +123,16 @@ export function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.ink },
-  content: { width: '100%', maxWidth: 720, alignSelf: 'center', padding: 20, gap: 20 },
-  heading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  step: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.paperDim },
-  title: { fontFamily: fonts.display, fontSize: 32, color: palette.paper },
-  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 23, color: palette.paperDim },
-  note: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: palette.muted, textAlign: 'center' },
-  actions: { flexDirection: 'row', gap: 12 },
+  content: { width: '100%', maxWidth: 720, alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 8, gap: 12 },
+  heading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  kicker: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.4, color: palette.ochre, textTransform: 'uppercase', flexShrink: 1 },
+  title: { fontFamily: fonts.display, fontSize: 30, color: palette.paper },
+  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22, color: palette.paperDim },
+  court: { alignSelf: 'center' },
+  legend: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap' },
+  debrief: { padding: 4 },
+  row: { flexDirection: 'row', gap: 12, paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: palette.line },
+  rowKey: { fontFamily: fonts.display, fontSize: 17, color: palette.paper, width: 90, textTransform: 'uppercase', letterSpacing: 1 },
+  rowVal: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.paperDim, flex: 1 },
+  note: { fontFamily: fonts.body, fontSize: 13, color: palette.muted, textAlign: 'center' },
 });

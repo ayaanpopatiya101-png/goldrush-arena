@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { getCompletedMatch, updateCompletedMatch } from '@/store/completedMatch';
-import * as Haptics from 'expo-haptics';
+import { startRematch } from '@/store/gameSession';
+import * as Haptics from '@/utils/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
@@ -73,6 +74,14 @@ function PostGameContent() {
   const insets = useSafeAreaInsets();
   const { settings } = useSettings();
   const sfx = useSoundFX(settings.soundEnabled);
+  const startingRematchRef = useRef(false);
+
+  function handlePlayAgain() {
+    if (startingRematchRef.current) return;
+    startingRematchRef.current = true;
+    if (!isArcade) startRematch();
+    router.replace((isArcade ? '/arcade' : '/lobby') as never);
+  }
 
   // ── Guard: if params are missing (e.g. hard-refresh on web), go home ──────
 
@@ -313,7 +322,7 @@ function PostGameContent() {
 
         <Animated.View style={{ opacity: card3Anim, gap: 10 }}>
           <Pressable
-            onPress={() => router.replace((isArcade ? '/arcade' : '/lobby') as never)}
+            onPress={handlePlayAgain}
             accessibilityRole="button"
             style={({ pressed }) => [styles.playAgainBtn, pressed && { opacity: 0.85 }]}
           >
@@ -416,7 +425,7 @@ function PostGameContent() {
         {/* Event bonus card */}
         {hasEvent && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Event bonus · {evName}</Text>
+            <Text style={styles.cardTitle}>Included in totals · {evName}</Text>
             {evXP > 0 && <BonusLine icon="star" label="Bonus account XP" value={`+${evXP}`} />}
             {evCoins > 0 && <BonusLine icon="disc" label="Bonus coins" value={`+${evCoins}`} />}
             {evCredits > 0 && <BonusLine icon="zap" label="Credits" value={`+${evCredits}`} />}

@@ -19,6 +19,7 @@ import OnboardingScreen from '@/app/onboarding';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { initializeRevenueCat, RevenueCatProvider } from '@/lib/revenuecat';
 import { clearCompletedMatch } from '@/store/completedMatch';
+import { OverlayQueueProvider } from '@/context/OverlayQueue';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initializeRevenueCat();
@@ -128,7 +129,7 @@ export default function RootLayout() {
               <PartyProvider>
               <GestureHandlerRootView style={{ flex: 1 }}>
                 <KeyboardProvider>
-                  <PlayerEntry />
+                  <OverlayQueueProvider><PlayerEntry /></OverlayQueueProvider>
                 </KeyboardProvider>
               </GestureHandlerRootView>
               </PartyProvider>

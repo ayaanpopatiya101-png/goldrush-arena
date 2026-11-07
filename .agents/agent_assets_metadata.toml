@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "URuOJP7ZfxM2UDZuEkgkp"
@@ -114,3 +113,31 @@ id = "zkIoGfUBXg6aEkF0di8wr"
 uri = "file://artifacts/mobile/assets/images/mode_blitz.png"
 type = "image"
 title = "crossed blades blitz mode icon"
+
+[[outputs]]
+id = "t0BKXdVUOl_hPXBDvPtnk"
+uri = "file://generated-artifacts/player-experience/06-tutorial-debrief.png"
+type = "image"
+title = "Verified tutorial debrief"
+description = "Actual 390×844 browser capture after completing the playable introduction. Browser evidence only, not a native-device or human playtest."
+logical_id = "40604bd4-e3c0-4a83-a24c-835b870e98e8"
+content_hash = "sha256:b1b606370bc6eefc9a0af6014695f6fcd0287a56f134a318f55ef97c5b153fd0"
+size = 46685
+mtime_ms = 1794056398975
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:c3199f00-0b97-4a6a-8d55-e6f39d4aa04e/40604bd4-e3c0-4a83-a24c-835b870e98e8/4eae41cd-6f1a-4030-bd7d-7890054c2a15"
+storage_version_token = "1794057080690209"
+content_type = "image/png"
+
+[[outputs]]
+id = "tYFA_bA4VHe0sokfwPXAZ"
+uri = "file://generated-artifacts/player-experience/11-casual-result.png"
+type = "image"
+title = "Verified Casual result"
+description = "Actual browser result: 179 XP and 56 coins. Profile and History matched these totals during the bounded walkthrough."
+logical_id = "1ee3f6a3-9234-467b-ac80-622d8979be96"
+content_hash = "sha256:0ae3fcb78de98257106290c037c98a0a79b28a4eb1c59d3843709ffe2e5ad2f4"
+size = 52442
+mtime_ms = 1794056468059
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:c3199f00-0b97-4a6a-8d55-e6f39d4aa04e/1ee3f6a3-9234-467b-ac80-622d8979be96/ded67f97-ae4e-45f6-ae38-b70398b6d1a1"
+storage_version_token = "1794057273288820"
+content_type = "image/png"

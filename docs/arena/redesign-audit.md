@@ -1,5 +1,9 @@
 # GoldRush Arena implementation audit
 
+For the current candidate, provenance, additive save changes and actual checks, read
+`player-experience-verification.md`. This older audit remains historical evidence,
+not a claim that all routes below have been browser- or device-tested.
+
 ## Starting point and release provenance
 
 The supplied implementation brief is retained in `attached_assets/Pasted-Redesign-and-polish-GoldRush-Arena-into-a-distinctive-p_1794024390910.txt`.
@@ -15,7 +19,8 @@ This is a source inventory, not a claim that every state has been exercised.
 | Route | Main and nested states to cover | Verification constraints |
 | --- | --- | --- |
 | Entry / `onboarding` | Create, validation, emblems/colors, local saved players, delete confirmation, Terms and Privacy | Device-local profiles, not authenticated cloud accounts |
-| `/onboarding-flow` | Three shared tutorial lessons, skip, replay, practice pause, save failure | Real local engine; native gesture checks still necessary |
+| `/onboarding-flow` | Real input, block, miss, introductory match, debrief, skip/replay, save failure | Real local engine; native gesture checks still necessary |
+| `/practice` | Reward-free real-engine court, sensitivity selection, pause, completion/restart, settings write error | No profile rewards, quests, purchased lives or rank changes |
 | `/` | Main/solo/locked/variant modes, practice, party create/join/errors, ability, season, statistics | Parties coordinate entry; actual court opponents are bots |
 | `/lobby` | Join, preparation, missing room, offline fallback, cancel, countdown, seats, lives bank, loadout | Real four-human synchronized play is not implemented |
 | `/game` | All variants, countdown, lives, ability, pause/resume/quit, background pause, capture, completion/save failure | Physical touch mapping, audio and capture need device evidence |
@@ -52,6 +57,13 @@ This is a source inventory, not a claim that every state has been exercised.
 See `redesign-verification.md` for the actual completed checks and the incomplete browser/device evidence. The inventory above is not a release sign-off.
 
 ## Verification policy and release boundaries
+
+Current nested state additions: Tutorial input/block/miss/intro/debrief/save-retry;
+Shop and Collection selected-versus-equipped court comparison, opt-in simulation and
+close; Settings reduced-effects and sensitivity practice/write failure. Blocking
+tutorial, daily rewards, rank ceremony, drop opener, share, redeem and native store
+confirmation requests are serialized by the shared overlay queue. OS dialogs and a
+fatal error surface remain separate safety/recovery surfaces.
 
 Run type checks and regression tests over the completed implementation, then one bounded browser walkthrough of the changed user journey. Record actual screenshots and findings rather than converting this inventory into assumed passes.
 

@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import { File, Paths } from 'expo-file-system';
 import { Audio } from 'expo-av';
+import { getSettings } from '@/hooks/useSettings';
 
 // ─── WAV generator (native only) ──────────────────────────────────────────────
 // Produces a mono 16-bit 22050 Hz sine-wave WAV as raw Uint8Array bytes.
@@ -43,6 +44,7 @@ function getNativeToneUri(freq: number, dur: number): string {
 }
 
 async function nativeTone(freq: number, dur: number): Promise<void> {
+  if (!getSettings().soundEnabled) return;
   try {
     const uri           = getNativeToneUri(freq, dur);
     const { sound }     = await Audio.Sound.createAsync({ uri });
@@ -155,7 +157,7 @@ export function useSoundFX(enabled: boolean): SoundFX {
     };
   }
 
-  const g = (fn: () => void) => () => { if (enabled) fn(); };
+  const g = (fn: () => void) => () => { if (enabled && getSettings().soundEnabled) fn(); };
   return {
     paddleHit:        g(() => tone(380, 0.04, 'square', 0.07)),
     wallBounce:       g(() => tone(220, 0.035, 'square', 0.055)),

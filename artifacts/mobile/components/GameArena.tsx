@@ -1,10 +1,10 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Line, Polygon } from 'react-native-svg';
 import { getSettings } from '@/hooks/useSettings';
-import { RELICS, getRankIndex, MAX_RANK_INDEX, type RelicEffect } from '@/context/PlayerContext';
+import { getRankIndex, MAX_RANK_INDEX, type RelicEffect } from '@/context/PlayerContext';
 import {
   ScreenShake, type ScreenShakeRef,
   SparkBurst, type SparkBurstRef,
@@ -13,6 +13,9 @@ import {
 } from '@/components/effects';
 import { Glyph } from '@/components/ui/Glyph';
 import { PLAYER_COLORS as SHARED_SEATS } from '@/constants/colors';
+import { collisionSteps, paddleInput } from '@/utils/arenaGeometry';
+import { useSoundFX } from '@/hooks/useSoundFX';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const WALL_MARGIN = 24;
@@ -64,6 +67,8 @@ export interface GameResult {
 }
 
 interface GameArenaProps {
+  tutorialStage?: 'move' | 'block' | 'miss';
+  onTutorialEvent?: (event: 'move' | 'block' | 'miss') => void;
   arenaSize: number;
 
   playerName: string; playerColor: string; playerGlowColor: string;
@@ -211,14 +216,6 @@ function applyRelicToPlayer(p: PlayerRef, effect: RelicEffect | null | undefined
   if (effect.shrinkImmune)    p.shrinkImmune    = true;
 }
 
-// Pick a rank-appropriate relic for a bot (variety via bot id).
-function relicForRank(rankName: string, botId: number): RelicEffect | null {
-  const idx  = getRankIndex(rankName);
-  const pool = RELICS.filter(r => r.unlockRankIndex <= idx);
-  if (!pool.length) return null;
-  return pool[botId % pool.length].effect;
-}
-
 // ─── Colour-board base hues (opacity applied dynamically in render) ────────────
 const COLOR_BOARD_COLORS = [
   '#CE7863','#D7A83B','#D7A83B','#9BB77A',
@@ -227,6 +224,7 @@ const COLOR_BOARD_COLORS = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function GameArena({
+  tutorialStage, onTutorialEvent,
   arenaSize, playerName, playerColor, playerGlowColor,
   botNames, botRanks, onGameOver, onGameModeChange,
   onPlayerLivesChange, grantExtraLifeRef, onEliminatedSpectating,
@@ -239,6 +237,24 @@ export function GameArena({
   onHighlight,
   arcadeMode = false, onScoreChange,
 }: GameArenaProps) {
+  const tutorialRef = useRef(tutorialStage);
+  const reducedEffects = useReducedMotion();
+  const reducedRef = useRef(reducedEffects);
+  reducedRef.current = reducedEffects;
+  tutorialRef.current = tutorialStage;
+  const tutorialEventRef = useRef(onTutorialEvent);
+  tutorialEventRef.current = onTutorialEvent;
+  const tutorialEmitted = useRef(false);
+  const sfx = useSoundFX(soundEnabled);
+  const sfxRef = useRef(sfx);
+  sfxRef.current = sfx;
+  function tutorialEvent(event: 'move' | 'block' | 'miss') {
+    if (tutorialRef.current !== event || tutorialEmitted.current) return;
+    tutorialEmitted.current = true;
+    gsRef.current.balls.forEach(ball => { ball.active = false; });
+    setBallVisuals([]);
+    tutorialEventRef.current?.(event);
+  }
 
   const szRef = useRef(arenaSize);
   szRef.current = arenaSize;
@@ -434,6 +450,17 @@ export function GameArena({
 
   // ── Sound effects (Web Audio API, web-only) ─────────────────────────────────
   function playSFX(type: 'hit' | 'goal' | 'start' | 'elim' | 'powerup') {
+    if (!getSettings().soundEnabled) return;
+    if (Platform.OS !== 'web') {
+      const sounds = sfxRef.current;
+      if (!soundEnabled) return;
+      if (type === 'hit') sounds.paddleHit();
+      else if (type === 'goal') sounds.goalScored();
+      else if (type === 'start') sounds.matchStart();
+      else if (type === 'elim') sounds.playerEliminated();
+      else sounds.powerUp();
+      return;
+    }
     if (!soundEnabled) return;
     if (Platform.OS !== 'web') return;
     if (typeof AudioContext === 'undefined' &&
@@ -499,13 +526,12 @@ export function GameArena({
     // Human relic (from props) + Time-Warp slow-start window.
     applyRelicToPlayer(gs.players[BOTTOM], playerRelic);
     slowStartFramesRef.current = playerRelic?.slowStartFrames ?? 0;
-    // Bots: rank-appropriate relic + per-bot skill derived from each bot's own
-    // rank (not the human's rank).  botSkill acts as a global cap so the
+    // Per-bot movement skill derives from each bot's own rank. botSkill caps it so the
     // training ramp still clamps all bots to easy regardless of their label.
     const skillCap = Math.max(0, Math.min(1, botSkill ?? 1));
     for (const pid of [TOP, LEFT, RIGHT, BOTTOM_R, TOP_R]) {
       const bot = gs.players[pid];
-      applyRelicToPlayer(bot, relicForRank(bot.rank, bot.id));
+      // Difficulty changes perception and movement, never hidden ball modifiers.
       const perBotSkill = Math.min(skillCap, getRankIndex(bot.rank) / MAX_RANK_INDEX);
       bot.botSpeed    = bot.botSpeed * (0.7 + 0.4 * perBotSkill);
       bot.botAccuracy = Math.min(0.97, bot.botAccuracy * (0.85 + 0.2 * perBotSkill));
@@ -533,12 +559,14 @@ export function GameArena({
   }
 
   function triggerFlash(color: string) {
+    if (reducedRef.current) return;
     setFlashColor(color);
-    flashAnim.setValue(0.45);
+    flashAnim.setValue(0.06);
     Animated.timing(flashAnim, { toValue: 0, duration: 700, useNativeDriver: true }).start();
   }
 
   function spawnSparks(x: number, y: number, color: string) {
+    if (reducedRef.current) return;
     const COUNT = 10;
     const newSparks: Spark[] = Array.from({length:COUNT}, (_, i) => {
       const angle = (i/COUNT)*Math.PI*2 + Math.random()*0.5;
@@ -648,8 +676,9 @@ export function GameArena({
     isRunningRef.current = false;
     setGamePhase('gameover');
     const won  = winnerId === BOTTOM;
-    const xp   = won ? 220 + deflectionsRef.current * 2 : 40 + deflectionsRef.current;
-    const coins = won ? 70 : 20;
+    const xp   = practice ? 0 : won ? 220 + deflectionsRef.current * 2 : 40 + deflectionsRef.current;
+    const coins = practice ? 0 : won ? 70 : 20;
+    if (won && soundEnabled) sfxRef.current.matchEnd();
     showAnnouncer(won ? 'YOU WIN!' : 'TIME UP!');
     setTimeout(() => {
       onGameOverRef.current({ won, position: won ? 1 : finishPositionRef.current, deflections: deflectionsRef.current, goalsAgainst: goalsAgainstRef.current, xpEarned: xp, coinsEarned: coins });
@@ -676,6 +705,7 @@ export function GameArena({
 
   // ── Spawn helpers ──
   function spawnBall(gs: GameStateRef, size: number, speedMult = 1.0) {
+    if (tutorialRef.current === 'move' || tutorialEmitted.current) return;
     let idx = gs.balls.findIndex(b => !b.active);
     if (idx === -1) { if (gs.balls.length >= MAX_BALLS) return; idx = gs.balls.length; }
     const rand   = rngRef.current ?? Math.random;
@@ -690,6 +720,16 @@ export function GameArena({
     let vx = Math.cos(angle) * spd, vy = Math.sin(angle) * spd;
     if (Math.abs(vy) < 1.5) vy = vy >= 0 ? 1.5 : -1.5;
     const ball: BallRef = { id: Date.now() + idx, x: size/2, y: size/2, vx, vy, radius, type, color, active: true };
+    if (tutorialRef.current) {
+      ball.x = tutorialRef.current === 'block' ? gs.players[BOTTOM].paddleCenter
+        : (gs.players[BOTTOM].paddleCenter < size / 2 ? size - 44 : 44);
+      ball.y = size / 2;
+      ball.vx = 0;
+      ball.vy = 1.8;
+      ball.radius = 10;
+      ball.type = 'normal';
+      ball.color = '#EEE7D7';
+    }
     if (idx < gs.balls.length) gs.balls[idx] = ball; else gs.balls.push(ball);
     ballAnims[idx]?.setValue({ x: ball.x, y: ball.y });
     setBallVisuals(gs.balls.map(b => ({ active: b.active, color: b.color, radius: b.radius })));
@@ -718,7 +758,9 @@ export function GameArena({
     }
 
     player.lives = Math.max(0, player.lives - 1);
+    playSFX('goal');
     if (playerId === BOTTOM) { goalsAgainstRef.current++; onPlayerLivesChange?.(player.lives); }
+    if (playerId === BOTTOM) tutorialEvent('miss');
     setLivesState(gs.players.map(p => p.lives));
     triggerFlash(player.color);
     if (!practice && getSettings().screenShake) screenShakeRef.current?.shake(0.8);
@@ -750,8 +792,13 @@ export function GameArena({
         return;
       }
       player.isEliminated = true;
+      playSFX('elim');
       if (playerId !== BOTTOM) finishPositionRef.current = Math.max(2, finishPositionRef.current - 1);
       else {
+        if (practice) {
+          forceWin(gs, gs.players.find(p => !p.isEliminated)?.id ?? TOP);
+          return;
+        }
         // Human eliminated, enter spectating
         setIsSpectating(true);
       }
@@ -781,6 +828,7 @@ export function GameArena({
 
   // ── Apply power-up ──
   function applyPowerup(gs: GameStateRef, type: PowerUpType, player: PlayerRef, size: number) {
+    playSFX('powerup');
     switch (type) {
       case 'shield':     player.hasShield = true; setShieldActive(prev=>{const n=[...prev];n[player.id]=true;return n;}); showAnnouncer('SHIELD ACTIVATED!'); break;
       case 'speed':      player.speedBoostFrames = 360; showAnnouncer('SPEED BOOST!'); break;
@@ -896,7 +944,9 @@ export function GameArena({
     for (let i = 0; i < gs.balls.length; i++) {
       const ball = gs.balls[i];
       if (!ball.active) continue;
-      ball.x += ball.vx * slowF * dtScale; ball.y += ball.vy * slowF * dtScale;
+      const steps = collisionSteps(ball.vx, ball.vy, ball.radius, dtScale * slowF);
+      for (let step = 0; step < steps && ball.active && gs.phase === 'playing'; step++) {
+      ball.x += ball.vx * slowF * dtScale / steps; ball.y += ball.vy * slowF * dtScale / steps;
 
       // Super 2 – Slow Field: cap vy of balls heading toward human's bottom goal
       if (superActiveFramesRef.current > 0 && superTypeRef.current === 2 && ball.vy > 0) {
@@ -914,7 +964,7 @@ export function GameArena({
       }
 
       // ─ BOTTOM wall ─
-      if (ball.y + ball.radius >= GYB) {
+      if (ball.vy > 0 && ball.y + ball.radius >= GYB) {
         const isSix = sixPlayerRef.current;
         const midX  = size / 2;
         const defender = isDuel ? duelHuman : (isSix && ball.x >= midX ? gs.players[BOTTOM_R] : gs.players[BOTTOM]);
@@ -926,14 +976,18 @@ export function GameArena({
           const boost = Math.min(defender.relicEffect.deflectBoost ?? 1, 1.3);
           ball.vy  = -(Math.abs(ball.vy) + 0.12) * boost;
           ball.vx += pv * 0.4;
-          defender.score++; deflectionsRef.current++;
+          defender.score++;
           if (defender.id === BOTTOM) {
+            deflectionsRef.current++;
+            playSFX('hit');
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            tutorialEvent('block');
             recordCombo();
             // Charge super on each successful block
             superChargeRef.current = Math.min(SUPER_MAX_CHARGE, superChargeRef.current + 1);
             if (gs.frame % 2 === 0) setSuperChargeUI(superChargeRef.current);
             // Screen shake + SparkBurst on human deflection
-            if (!practice) screenShakeRef.current?.shake(0.3);
+            if (!practice && getSettings().screenShake) screenShakeRef.current?.shake(0.3);
             sparkBurstRef.current?.burst(ball.x, ball.y, defender.color);
             setPlayerScoreUI(deflectionsRef.current);
             onScoreChangeRef.current?.(deflectionsRef.current);
@@ -967,7 +1021,7 @@ export function GameArena({
           } else if (arcadeModeRef.current) {
             // Arcade mode: first miss = instant game over
             ball.vy = -Math.abs(ball.vy);
-            if (gs.phase !== 'gameover') {
+            {
               gs.phase = 'gameover';
               isRunningRef.current = false;
               setGamePhase('gameover');
@@ -983,10 +1037,13 @@ export function GameArena({
           }
         }
         ball.y = GYB - ball.radius - 1;
+        // A corner contact belongs to one wall, not two life-loss events.
+        if (ball.x - ball.radius <= GXL) { ball.x = GXL + ball.radius + 1; ball.vx = Math.abs(ball.vx); }
+        if (ball.x + ball.radius >= GXR) { ball.x = GXR - ball.radius - 1; ball.vx = -Math.abs(ball.vx); }
       }
 
       // ─ TOP wall ─
-      if (ball.y - ball.radius <= GYT) {
+      if (ball.vy < 0 && ball.y - ball.radius <= GYT) {
         const isSix = sixPlayerRef.current;
         const midX  = size / 2;
         const defender = isDuel ? duelBot : (isSix && ball.x >= midX ? gs.players[TOP_R] : gs.players[TOP]);
@@ -1020,10 +1077,12 @@ export function GameArena({
           }
         }
         ball.y = GYT + ball.radius + 1;
+        if (ball.x - ball.radius <= GXL) { ball.x = GXL + ball.radius + 1; ball.vx = Math.abs(ball.vx); }
+        if (ball.x + ball.radius >= GXR) { ball.x = GXR - ball.radius - 1; ball.vx = -Math.abs(ball.vx); }
       }
 
       // ─ LEFT wall ─
-      if (ball.x - ball.radius <= GXL) {
+      if (ball.vx < 0 && ball.x - ball.radius <= GXL) {
         if (!isDuel && !gs.players[LEFT].isEliminated) {
           const p    = gs.players[LEFT];
           const pLen = getPaddleLen(p);
@@ -1046,7 +1105,7 @@ export function GameArena({
       }
 
       // ─ RIGHT wall ─
-      if (ball.x + ball.radius >= GXR) {
+      if (ball.vx > 0 && ball.x + ball.radius >= GXR) {
         if (!isDuel && !gs.players[RIGHT].isEliminated) {
           const p    = gs.players[RIGHT];
           const pLen = getPaddleLen(p);
@@ -1068,6 +1127,7 @@ export function GameArena({
         ball.x = GXR - ball.radius - 1;
       }
 
+      }
       // Speed cap
       const spd    = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy);
       const maxSpd = gs.speedMultiplier * MAX_SPEED;
@@ -1271,12 +1331,12 @@ export function GameArena({
         if (p0.isEliminated || gs.phase !== 'playing') return;
         p0.prevPaddleCenter = p0.paddleCenter;
         const sz = szRef.current;
-        const cx = sz / 2;
-        const raw = cx + (x - cx) * sensitivityRef.current * p0.paddleSpeedMult;
+        const raw = paddleInput(x, sz, getPaddleLen(p0), sensitivityRef.current * p0.paddleSpeedMult);
         p0.paddleCenter = sixPlayerRef.current
           ? clampPaddleRange(raw, getPaddleLen(p0), WALL_MARGIN, sz / 2)
           : clampPaddle(raw, getPaddleLen(p0), sz);
         paddleAnims[BOTTOM].setValue(p0.paddleCenter);
+        if (Math.abs(p0.paddleCenter - sz / 2) >= 12) tutorialEvent('move');
       },
       onPanResponderMove: (evt) => {
         const x   = evt.nativeEvent.locationX;
@@ -1285,12 +1345,12 @@ export function GameArena({
         if (p0.isEliminated || gs.phase !== 'playing') return;
         p0.prevPaddleCenter = p0.paddleCenter;
         const sz = szRef.current;
-        const cx = sz / 2;
-        const raw = cx + (x - cx) * sensitivityRef.current * p0.paddleSpeedMult;
+        const raw = paddleInput(x, sz, getPaddleLen(p0), sensitivityRef.current * p0.paddleSpeedMult);
         p0.paddleCenter = sixPlayerRef.current
           ? clampPaddleRange(raw, getPaddleLen(p0), WALL_MARGIN, sz / 2)
           : clampPaddle(raw, getPaddleLen(p0), sz);
         paddleAnims[BOTTOM].setValue(p0.paddleCenter);
+        if (Math.abs(p0.paddleCenter - sz / 2) >= 12) tutorialEvent('move');
       },
     })
   ).current;
@@ -1702,7 +1762,7 @@ export function GameArena({
         )}
 
         {/* Spectator overlay, human eliminated */}
-        {isSpectating && gamePhase === 'playing' && (
+        {!practice && isSpectating && gamePhase === 'playing' && (
           <View style={s.spectatorOverlay}>
             <View style={s.spectatorCard}>
               <Text style={s.spectatorTitle}>ELIMINATED</Text>

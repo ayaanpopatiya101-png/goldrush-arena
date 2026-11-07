@@ -1,5 +1,9 @@
 # Redesign verification record
 
+**Historical record.** Current candidate evidence and release gates are in
+`player-experience-verification.md`. Do not reuse this record's old test count
+or incomplete browser attempt as the current candidate's result.
+
 ## Passed
 
 | Check | Outcome |
