@@ -6,6 +6,7 @@ export const modules: ModuleMap = {
   "./components/mockups/battle-pass-fx/Forge.tsx": () => import("../components/mockups/battle-pass-fx/Forge.tsx"),
   "./components/mockups/palettes/ColorPalettes.tsx": () => import("../components/mockups/palettes/ColorPalettes.tsx"),
   "./components/mockups/tactile-arcade/Current.tsx": () => import("../components/mockups/tactile-arcade/Current.tsx"),
+  "./components/mockups/tactile-arcade/GoldRushItemShop.tsx": () => import("../components/mockups/tactile-arcade/GoldRushItemShop.tsx"),
   "./components/mockups/tactile-arcade/TactileArcade.tsx": () => import("../components/mockups/tactile-arcade/TactileArcade.tsx"),
   "./components/mockups/templates/MissionControlBentoDashboard--urtw3/Dashboard.tsx": () => import("../components/mockups/templates/MissionControlBentoDashboard--urtw3/Dashboard.tsx"),
   "./components/mockups/templates/MissionControlBentoDashboard-bYWdOB/Dashboard.tsx": () => import("../components/mockups/templates/MissionControlBentoDashboard-bYWdOB/Dashboard.tsx")
