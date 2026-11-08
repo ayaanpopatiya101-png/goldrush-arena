@@ -11,6 +11,22 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /multiplayer/competition:
+    get:
+      operationId: getCompetition
+      responses:
+        "200":
+          description: Authenticated skill record, separate from local XP
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [current, history]
+                properties:
+                  current: { $ref: "#/components/schemas/CompetitiveSeason" }
+                  history:
+                    type: array
+                    items: { $ref: "#/components/schemas/CompetitiveSeason" }
   /multiplayer/session:
     post:
       operationId: createPlayerSession
@@ -77,6 +93,19 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    CompetitiveSeason:
+      type: object
+      required: [season, rating, games, wins, peak, lastDelta, division, placed, endsAt]
+      properties:
+        season: { type: string }
+        rating: { type: integer }
+        games: { type: integer }
+        wins: { type: integer }
+        peak: { type: integer }
+        lastDelta: { type: integer }
+        division: { type: string }
+        placed: { type: boolean }
+        endsAt: { type: string }
     PlayerSession:
       type: object
       required: [playerId, token]
@@ -90,7 +119,7 @@ components:
         name: { type: string, minLength: 1, maxLength: 24 }
         color: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
         mode: { type: string, enum: [ranked, casual] }
-        variant: { type: string, enum: [classic, blitz, chaos, survival, sudden_death, turbo, pinball, duos] }
+        variant: { type: string, enum: [classic, blitz, chaos, survival, sudden_death, turbo, pinball, duos, rally_race] }
         latency: { type: number, minimum: 0, maximum: 2000 }
         partyCode: { type: string, pattern: "^[A-Z2-9]{6}$" }
     LivePlayer:

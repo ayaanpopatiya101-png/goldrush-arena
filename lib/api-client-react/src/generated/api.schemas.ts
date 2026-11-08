@@ -5,6 +5,18 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface CompetitiveSeason {
+  season: string;
+  rating: number;
+  games: number;
+  wins: number;
+  peak: number;
+  lastDelta: number;
+  division: string;
+  placed: boolean;
+  endsAt: string;
+}
+
 export interface PlayerSession {
   playerId: string;
   token: string;
@@ -30,6 +42,7 @@ export const QueueInputVariant = {
   turbo: 'turbo',
   pinball: 'pinball',
   duos: 'duos',
+  rally_race: 'rally_race',
 } as const;
 
 export interface QueueInput {
@@ -133,4 +146,9 @@ export interface LiveResult {
 export interface HealthStatus {
   status: string;
 }
+
+export type GetCompetition200 = {
+  current: CompetitiveSeason;
+  history: CompetitiveSeason[];
+};
 

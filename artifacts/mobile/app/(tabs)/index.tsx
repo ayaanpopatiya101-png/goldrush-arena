@@ -44,7 +44,7 @@ interface ModeDef {
 }
 
 const MODES: ModeDef[] = [
-  { key: 'ranked', kind: 'ranked', name: 'Ranked', sub: '4 seats · 5 lives', desc: 'Last paddle standing. Earns account XP and moves your competitive level.', group: 'MATCH', partyLaunch: true },
+  { key: 'ranked', kind: 'ranked', name: 'Ranked', sub: '4 seats · 5 lives', desc: 'Last paddle standing. Earn XP and build your separate seasonal skill rating. Five placement games.', group: 'MATCH', partyLaunch: true },
   { key: 'casual', kind: 'casual', name: 'Casual', sub: '4 seats · level unchanged', desc: 'Earns account XP, which still counts toward your XP rank. Competitive level does not change.', group: 'MATCH', partyLaunch: true },
   { key: 'practice', kind: 'practice', name: 'Practice', sub: 'Safe controls · no rewards', desc: 'Test paddle sensitivity against easy local bots. No progression or bank lives.', group: 'SOLO', partyLaunch: false },
   { key: 'arcade', kind: 'arcade', name: 'Survival Run', sub: 'Solo · arcade', desc: 'Deflect as long as you can. Speed ramps up.', group: 'SOLO', partyLaunch: false },
@@ -200,7 +200,8 @@ export default function HomeScreen() {
   const isLocked = (m: ModeDef) => m.lockIdx != null && playerRankIdx < m.lockIdx;
   const waitingOnLeader = isInParty && !isLeader;
   const selectedLocked = isLocked(selected);
-  const partyBlocks = waitingOnLeader && (selected.kind === 'ranked' || selected.kind === 'casual' || selected.kind === 'variant' || selected.kind === 'elite');
+  const localOnly = selected.kind === 'elite' || selected.variant === 'six_player';
+  const partyBlocks = waitingOnLeader && selected.partyLaunch && !localOnly;
 
   function baseConfig() {
     return {
@@ -211,9 +212,9 @@ export default function HomeScreen() {
   }
 
   async function launchMatch(matchType: MatchType, variant: GameVariant) {
-    if (waitingOnLeader) return;
+    if (waitingOnLeader && !localOnly) return;
     setGameConfig({ ...baseConfig(), matchType, variant });
-    if (isInParty && isLeader && !await launchParty({ matchType, variant })) {
+    if (isInParty && isLeader && !localOnly && !await launchParty({ matchType, variant })) {
       setChallengeError('The party could not launch. Check your connection and choose an online four-seat mode.');
       return;
     }
@@ -326,7 +327,7 @@ export default function HomeScreen() {
     ? `Locked · ${selected.lockLabel}`
     : partyBlocks ? 'Leader picks the mode'
     : selected.kind === 'challenge' && challengeLoading ? 'Loading challenge'
-    : isInParty && isLeader && selected.partyLaunch ? `Play ${selected.name} with party`
+    : isInParty && isLeader && selected.partyLaunch && !localOnly ? `Play ${selected.name} with party`
     : `Play ${selected.name}`;
 
   function renderMode(m: ModeDef) {
@@ -421,7 +422,7 @@ export default function HomeScreen() {
                 <Text style={s.selectedDesc}>{selected.desc}</Text>
                 <View style={s.ruleRow}>
                   <Text style={s.paperRule}>{selected.sub} · {opponentLabel(selected)}</Text>
-                  <Text style={s.paperRule}>{selected.kind === 'ranked' ? 'Competitive level changes' : 'Competitive level unchanged'}</Text>
+                  <Text style={s.paperRule}>{selected.kind === 'ranked' ? 'Season skill rating changes' : 'Season skill rating unchanged'}</Text>
                 </View>
               </View>
               {selectedLocked ? <Chip label={`Requires ${selected.lockLabel ?? 'higher rank'}`} tone="clay" /> : null}
@@ -443,7 +444,7 @@ export default function HomeScreen() {
               </View>
             ) : null}
             {partyBlocks ? <Text style={s.note}>You are in a party. The leader picks the mode and launches for everyone. Solo modes stay available.</Text> : null}
-            {isInParty && isLeader && !selected.partyLaunch ? <Text style={s.note}>This mode starts for you only. Party members stay on their home screen.</Text> : null}
+            {isInParty && (!selected.partyLaunch || localOnly) ? <Text style={s.note}>This mode starts for you only. Party members stay on their home screen.</Text> : null}
 
             {/* Compact initial choices */}
             <View style={s.modeGrid} accessibilityRole="radiogroup">

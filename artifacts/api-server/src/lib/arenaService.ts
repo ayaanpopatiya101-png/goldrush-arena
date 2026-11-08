@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { advanceSeason, initialSeason, seasonKey } from "./competition.js";
 import { db, arenaPlayers, arenaResults } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import type { LiveResult, QueueInput } from "@workspace/api-zod";
@@ -67,26 +68,29 @@ export async function persistResults(room: ArenaRoom) {
   room.saving = true;
   try {
     await db.transaction(async tx => {
-      for (const p of room.players.filter(p => !p.isBot)) {
+      for (const p of room.players.filter(p => !p.isBot).sort((a, b) => a.id.localeCompare(b.id))) {
         // A forfeited player's next match may finish first. Lock current rating
         // rather than overwriting it with the old room's start-of-match value.
         const [stored] = await tx.select().from(arenaPlayers).where(eq(arenaPlayers.id, p.id)).for("update");
-        const ratingBefore = stored!.rating;
+        const season = seasonKey(room.createdAt);
+        const state = stored!.competitive[season] ?? initialSeason();
+        const ratingBefore = state.rating;
         const humans = room.players.filter(p => !p.isBot).length;
         const ranked = room.mode === "ranked" && humans === 4;
-        const delta = ranked ? Math.round((2.5 - p.place) * 12) : 0;
+        const next = ranked ? advanceSeason(state, p.place, room.players.filter(v => v.id !== p.id).map(v => v.rating), room.variant === "duos") : state;
         const result: LiveResult = {
           matchId: room.id, playerId: p.id, won: p.place === 1, position: p.place,
           deflections: p.hits, goalsAgainst: p.goals,
           xpEarned: (p.place === 1 ? 150 : 50) + Math.min(p.hits, 100),
           coinsEarned: p.place === 1 ? 40 : 10,
           matchType: ranked ? "ranked" : "casual", humanCount: humans,
-          ratingBefore, ratingAfter: Math.max(100, ratingBefore + delta),
+          ratingBefore, ratingAfter: next.rating,
         };
         const inserted = await tx.insert(arenaResults).values({ id: `${room.id}:${p.id}`,
           matchId: room.id, playerId: p.id, receipt: result }).onConflictDoNothing().returning();
         if (inserted.length) await tx.update(arenaPlayers).set({
           rating: result.ratingAfter,
+          competitive: ranked ? { ...stored!.competitive, [season]: next } : stored!.competitive,
           earnedCoins: sql`${arenaPlayers.earnedCoins} + ${result.coinsEarned}`,
           earnedXP: sql`${arenaPlayers.earnedXP} + ${result.xpEarned}`,
         }).where(eq(arenaPlayers.id, p.id));

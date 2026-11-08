@@ -72,6 +72,9 @@ async function waitFor(fn, limit=15000) {
     const repeat=await request('/multiplayer/result/'+roomIds[0],sessions[3].token);
     assert.equal(first.status,200); assert.equal(first.data.won,true); assert.equal(first.data.humanCount,4);
     assert.deepEqual(first.data,repeat.data);
+    const skill=await request('/multiplayer/competition',sessions[3].token);
+    assert.equal(skill.status,200);assert.equal(skill.data.current.games,1);assert.equal(skill.data.current.placed,false);
+    assert.equal((await request('/multiplayer/competition',sessions[3].token)).data.current.games,1);
     const forfeited=await request('/multiplayer/result/'+roomIds[0],sessions[0].token);
     assert.equal(forfeited.status,200);
     assert.equal(forfeited.data.position,4);
@@ -84,7 +87,7 @@ async function waitFor(fn, limit=15000) {
     for(const c of clients)c.close();
     clients.length=0;
     const ranked=await request('/multiplayer/queue',sessions[0].token,'POST',{name:'Ranked probe',color:'#F36B3F',mode:'ranked',variant:'classic',latency:50});
-    const casual=await request('/multiplayer/queue',sessions[1].token,'POST',{name:'Casual probe',color:'#EDBA3C',mode:'casual',variant:'classic',latency:50});
+    const casual=await request('/multiplayer/queue',sessions[1].token,'POST',{name:'Casual probe',color:'#EDBA3C',mode:'casual',variant:'rally_race',latency:50});
     assert.notEqual(ranked.data.id,casual.data.id);
     clients.push(await client(sessions[0]),await client(sessions[1]));
     await waitFor(()=>clients[1].state.room?.phase==='playing',20000);
@@ -92,6 +95,11 @@ async function waitFor(fn, limit=15000) {
     assert.equal(clients[0].state.room.players.length,1);
     assert.equal(clients[1].state.room.players.filter(p=>p.isBot).length,3);
     console.log('PASS: ranked remains human-only; casual waits before adding three disclosed AI seats');
+    if(process.argv.includes('--rally-check')) {
+      await waitFor(()=>['finished','void'].includes(clients[1].state.room?.phase),75000);
+      assert.equal((await request('/multiplayer/competition',sessions[1].token)).data.current.games,1);
+      console.log('PASS: live 60-second Rally Race resolves without advancing competitive placements');
+    }
     if(process.argv.includes('--restart-check')) {
       console.log('READY_FOR_RESTART: waiting for a deliberate test-server restart');
       let interrupted=false;

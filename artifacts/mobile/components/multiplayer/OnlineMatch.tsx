@@ -10,10 +10,10 @@ import { getGameConfig, updateGameConfig } from "@/store/gameSession";
 import { getArenaSession, arenaRequestOptions, arenaTimeout } from "@/utils/arenaSession";
 import { apiUrl } from "@/utils/api";
 
-export const onlineVariants = ["classic", "duos", "blitz", "chaos", "survival", "sudden_death", "turbo", "pinball"];
+export const onlineVariants = ["classic", "duos", "blitz", "chaos", "survival", "sudden_death", "turbo", "pinball", "rally_race"];
 export function isOnlineMode() {
   const c = getGameConfig();
-  return !c.practice && !c.challengeSeed && ["ranked", "casual"].includes(c.matchType) && onlineVariants.includes(c.variant);
+  return !c.practice && !c.challengeSeed && !c.featuredModeId && ["ranked", "casual"].includes(c.matchType) && onlineVariants.includes(c.variant);
 }
 export default function OnlineMatch() {
   const { profile, currentUsername, addMatchResult } = usePlayer();
@@ -213,6 +213,7 @@ export default function OnlineMatch() {
     } catch { setError("Could not confirm leaving. Retry; the online match cannot pause."); }
   }
   async function again(casual = false) {
+    if (casual && partyCode) { setError("Party mode changes must be made together: cancel the queue, then ask the leader to choose Casual on Home."); return; }
     if (latest.current?.phase === "saving" || (latest.current?.phase === "finished" && !saved)) {
       setError("Save the verified result before starting another match."); return;
     }
@@ -230,7 +231,8 @@ export default function OnlineMatch() {
       lastInput.current = Date.now();
       if (socket.current?.readyState === WebSocket.OPEN) socket.current.send(JSON.stringify({ type: "input", position, seq: ++sequence.current }));
     }}
-    onLeave={() => void leave()} onCasual={() => void again(true)} onAgain={() => void again()}
+    ratingChange={saved && receipt.current?.matchType === "ranked" ? `${receipt.current.ratingBefore} to ${receipt.current.ratingAfter} (${receipt.current.ratingAfter - receipt.current.ratingBefore >= 0 ? "+" : ""}${receipt.current.ratingAfter - receipt.current.ratingBefore})` : undefined}
+    onLeave={() => void leave()} onCasual={partyCode ? undefined : () => void again(true)} onAgain={() => void again()}
     onRetry={() => { setError(null); if (latest.current?.phase === "finished") void saveResult(latest.current.id); else setAttempt(v => v+1); }}
     onResults={() => { if (saved && receipt.current) router.replace("/postgame"); }} />;
 }

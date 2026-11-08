@@ -167,7 +167,7 @@ router.patch('/party/:code/launch', (req, res) => {
   };
 
   const leader = party.members.find(m => m.isLeader);
-  if (!["casual", "ranked"].includes(matchType) || !["classic","duos","blitz","chaos","survival","sudden_death","turbo","pinball"].includes(variant)) {
+  if (!["casual", "ranked"].includes(matchType) || !["classic","duos","blitz","chaos","survival","sudden_death","turbo","pinball","rally_race"].includes(variant) || (matchType === "ranked" && variant === "rally_race")) {
     res.status(400).json({ error: "This party mode is not supported online." }); return;
   }
   if (!leader || leader.playerId !== playerId) {

@@ -1,6 +1,7 @@
 export type MatchType   = 'ranked' | 'casual' | 'gauntlet' | 'arcade';
 export type GameVariant =
   | 'classic'
+  | 'rally_race'
   | 'duos'
   | 'blitz'
   | 'chaos'

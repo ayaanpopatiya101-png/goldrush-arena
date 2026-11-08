@@ -8,6 +8,32 @@
 import * as zod from 'zod';
 
 
+export const GetCompetitionResponse = zod.object({
+  "current": zod.object({
+  "season": zod.string(),
+  "rating": zod.number(),
+  "games": zod.number(),
+  "wins": zod.number(),
+  "peak": zod.number(),
+  "lastDelta": zod.number(),
+  "division": zod.string(),
+  "placed": zod.boolean(),
+  "endsAt": zod.string()
+}),
+  "history": zod.array(zod.object({
+  "season": zod.string(),
+  "rating": zod.number(),
+  "games": zod.number(),
+  "wins": zod.number(),
+  "peak": zod.number(),
+  "lastDelta": zod.number(),
+  "division": zod.string(),
+  "placed": zod.boolean(),
+  "endsAt": zod.string()
+}))
+})
+
+
 export const CreatePlayerSessionResponse = zod.object({
   "playerId": zod.string(),
   "token": zod.string()
@@ -27,7 +53,7 @@ export const JoinLiveQueueBody = zod.object({
   "name": zod.string().min(1).max(joinLiveQueueBodyNameMax),
   "color": zod.string().regex(joinLiveQueueBodyColorRegExp),
   "mode": zod.enum(['ranked', 'casual']),
-  "variant": zod.enum(['classic', 'blitz', 'chaos', 'survival', 'sudden_death', 'turbo', 'pinball', 'duos']),
+  "variant": zod.enum(['classic', 'blitz', 'chaos', 'survival', 'sudden_death', 'turbo', 'pinball', 'duos', 'rally_race']),
   "latency": zod.number().min(joinLiveQueueBodyLatencyMin).max(joinLiveQueueBodyLatencyMax),
   "partyCode": zod.string().regex(joinLiveQueueBodyPartyCodeRegExp).optional()
 })

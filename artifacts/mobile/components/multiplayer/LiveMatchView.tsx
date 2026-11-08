@@ -17,10 +17,11 @@ export type LiveMatchViewProps = {
   connection: string;
   error: string | null;
   saved: boolean;
+  ratingChange?: string;
   onMove: (position: number) => void;
   onLeave: () => void;
   onRetry: () => void;
-  onCasual: () => void;
+  onCasual?: () => void;
   onResults: () => void;
   onAgain: () => void;
 };
@@ -56,7 +57,7 @@ function paddleRect(p: LivePlayer, s: number) {
   }
 }
 
-export function LiveMatchView({ room, playerId, connection, error, saved, onMove, onLeave, onRetry, onCasual, onResults, onAgain }: LiveMatchViewProps) {
+export function LiveMatchView({ room, playerId, connection, error, saved, ratingChange, onMove, onLeave, onRetry, onCasual, onResults, onAgain }: LiveMatchViewProps) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const isWeb = Platform.OS === 'web';
@@ -193,6 +194,7 @@ export function LiveMatchView({ room, playerId, connection, error, saved, onMove
         ) : null}
         <View style={s.panel}>
           {standings.map(p => <PlayerRow key={p.id} p={p} me={p.id === playerId} showPlace />)}
+          {ratingChange ? <Text style={s.body}>Verified skill: {ratingChange}. Placement and season history are in Ranks.</Text> : null}
         </View>
         {phase !== 'void' && !saved ? (
           <Text style={s.note}>{phase === 'saving' ? 'The server is confirming this result. Results open once it is saved.' : 'Waiting for save confirmation before showing rewards.'}</Text>
@@ -234,7 +236,7 @@ export function LiveMatchView({ room, playerId, connection, error, saved, onMove
         {room?.mode === 'ranked' && waitedMs >= CASUAL_OFFER_MS ? (
           <View style={s.panel}>
             <Text style={s.body}>Ranked queue is slow in {room.region}. Casual usually fills faster and does not change rating.</Text>
-            <Button testID="live-casual" label="Switch to Casual" variant="secondary" icon="shuffle" onPress={onCasual} style={{ marginTop: 10 }} />
+            {onCasual ? <Button testID="live-casual" label="Switch to Casual" variant="secondary" icon="shuffle" onPress={onCasual} style={{ marginTop: 10 }} /> : <Text style={s.note}>Party members must cancel and have their leader select Casual together on Home.</Text>}
           </View>
         ) : null}
         {confirm}
@@ -246,10 +248,12 @@ export function LiveMatchView({ room, playerId, connection, error, saved, onMove
   // ── Countdown / playing ──
   const ownStyle = me ? paddleRect({ ...me, paddle: me.paddle }, scale) : null;
   return (
-    <View style={[s.root, { paddingTop: topPad, paddingBottom: bottomPad, alignItems: 'center' }]}>
+    <ScrollView style={s.root} contentContainerStyle={{ paddingTop: topPad, paddingBottom: bottomPad, alignItems: 'center', flexGrow: 1 }} keyboardShouldPersistTaps="handled">
       <View style={{ width: size, gap: 8 }}>
         {header}
         {errorBand}
+        {confirm}
+        {leaveBtn}
         <View style={s.board}>
           {[0, 1, 2, 3].map(i => {
             const p = room.players.find(pl => pl.seat === i);
@@ -257,7 +261,7 @@ export function LiveMatchView({ room, playerId, connection, error, saved, onMove
             return (
               <View key={i} style={[s.cell, mine && { backgroundColor: palette.gold }, i === 3 && { borderRightWidth: 0 }]} accessibilityLabel={`${SEAT_NAMES[i]} ${p ? p.name : 'empty'}${p?.isBot ? ' AI' : ''}, ${p?.lives ?? 0} lives`}>
                 <Text style={s.cellSeat} numberOfLines={1}>{mine ? 'YOU' : p?.isBot ? 'AI' : SEAT_NAMES[i]}{p && !p.connected && !p.isBot ? ' · LOST' : ''}</Text>
-                <Text style={s.cellLives}>{p ? (p.lives > 0 ? p.lives : 'OUT') : '-'}</Text>
+                <Text style={s.cellLives}>{p ? (p.lives > 0 ? (room.variant === 'rally_race' ? `${p.hits - 2*p.goals}pt` : p.lives) : 'OUT') : '-'}</Text>
               </View>
             );
           })}
@@ -302,11 +306,10 @@ export function LiveMatchView({ room, playerId, connection, error, saved, onMove
             <Feather name={horizontal ? 'arrow-right' : 'arrow-down'} size={20} color={palette.charcoal} />
           </Pressable>
         </View>
+        {room.variant === 'rally_race' ? <View style={s.panel}><Text style={s.body}>Rally Race · {Math.max(0, 60 - Math.floor(room.tick / 60))}s left</Text><Text style={s.note}>Unlimited goal misses. Score = hits minus twice your misses. A tie gives no rewards. Disconnects and forfeits still eliminate.</Text>{room.players.map(p => <Text key={p.id} style={s.body}>{p.name}: {p.hits - 2*p.goals} points</Text>)}</View> : null}
         <Text style={s.note}>Online play cannot pause. {isWeb ? 'Drag inside the court or use arrow keys.' : 'Drag inside the court to move.'} {room.region} · {humans} human{humans === 1 ? '' : 's'}</Text>
-        {confirm}
-        {leaveBtn}
       </View>
-    </View>
+    </ScrollView>
   );
 }
 

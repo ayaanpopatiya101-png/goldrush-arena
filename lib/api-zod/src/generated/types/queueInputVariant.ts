@@ -18,4 +18,5 @@ export const QueueInputVariant = {
   turbo: 'turbo',
   pinball: 'pinball',
   duos: 'duos',
+  rally_race: 'rally_race',
 } as const;

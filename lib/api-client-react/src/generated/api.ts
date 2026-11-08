@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  GetCompetition200,
   HealthStatus,
   LiveResult,
   LiveRoom,
@@ -36,6 +37,77 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+export const getGetCompetitionUrl = () => {
+
+
+
+
+  return `/api/multiplayer/competition`
+}
+
+export const getCompetition = async ( options?: RequestInit): Promise<GetCompetition200> => {
+
+  return customFetch<GetCompetition200>(getGetCompetitionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCompetitionQueryKey = () => {
+    return [
+    `/api/multiplayer/competition`
+    ] as const;
+    }
+
+
+export const getGetCompetitionQueryOptions = <TData = Awaited<ReturnType<typeof getCompetition>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompetition>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCompetitionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCompetition>>> = ({ signal }) => getCompetition({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCompetition>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCompetitionQueryResult = NonNullable<Awaited<ReturnType<typeof getCompetition>>>
+export type GetCompetitionQueryError = ErrorType<unknown>
+
+
+
+export function useGetCompetition<TData = Awaited<ReturnType<typeof getCompetition>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompetition>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCompetitionQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
 
 
 

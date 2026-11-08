@@ -141,7 +141,7 @@ function OfflineGameScreen() {
     ...variantCfgRest,
     startSpeedMult:   isChallenge
                         ? (config.challengeStartSpeedMult ?? variantCfgRest.startSpeedMult ?? mapMods.startSpeedMult)
-                        : (variantCfgRest.startSpeedMult  ?? mapMods.startSpeedMult),
+                        : (variantCfgRest.startSpeedMult ?? mapMods.startSpeedMult ?? 0.55) * (config.featuredBallSpeedFactor ?? 1),
     rampRate:         isChallenge ? config.challengeRampRate : undefined,
     rngSeed:          isChallenge ? config.challengeSeedHash : undefined,
     ballSpawnFrames:  variantCfgRest.ballSpawnFrames ?? mapMods.ballSpawnFrames,

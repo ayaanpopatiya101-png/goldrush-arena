@@ -399,15 +399,13 @@ function PostGameContent() {
 
             <View style={styles.progRow}>
               <View style={styles.progHead}>
-                <Text style={styles.progName}>Competitive level</Text>
+                <Text style={styles.progName}>Historical level</Text>
                 <Text style={[styles.progVal, levelDelta > 0 && { color: palette.charcoal }, levelDelta < 0 && { color: palette.slate }]}>
                   {matchType === 'ranked' ? `${levelBefore} to ${levelAfter} / 50` : `${levelBefore} / 50`}
                 </Text>
               </View>
               <Text style={styles.progSub}>
-                {matchType === 'ranked'
-                  ? (levelDelta === 0 ? 'No change this match. Only ranked placement against your lobby moves it.' : `${levelDelta > 0 ? '+' : ''}${levelDelta} from your ranked placement against this lobby.`)
-                  : 'Unchanged. Only ranked matches move competitive level.'}
+                Preserved from the earlier progression system. Live competitive skill, placements and season changes are shown in Ranks.
               </Text>
             </View>
 

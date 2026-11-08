@@ -8,6 +8,7 @@ export type ArenaRoom = Omit<LiveRoom, "players" | "balls"> & {
 };
 export const RULES: Record<string, { lives: number; balls: number; speed: number; spawn: number }> = {
   classic: { lives: 5, balls: 1, speed: 300, spawn: 7 },
+  rally_race: { lives: 5, balls: 1, speed: 300, spawn: 15 },
   duos: { lives: 5, balls: 1, speed: 300, spawn: 7 },
   blitz: { lives: 1, balls: 2, speed: 450, spawn: 10 },
   chaos: { lives: 3, balls: 5, speed: 360, spawn: 5 },
@@ -78,7 +79,7 @@ export function stepArena(room: ArenaRoom, now: number, random = Math.random) {
         else { b.vy = tangent * speed; b.vx = (seat === 3 ? -1 : 1) * speed * Math.sqrt(1-tangent*tangent); }
       }
     } else {
-      p.goals++; p.lives--;
+      p.goals++; if (room.variant !== "rally_race") p.lives--;
       if (p.lives === 0) eliminate(room, p);
       const angle = random() * Math.PI * 2;
       const speed = RULES[room.variant]!.speed;
@@ -87,6 +88,15 @@ export function stepArena(room: ArenaRoom, now: number, random = Math.random) {
   }
   if (room.tick % (RULES[room.variant]!.spawn * 60) === 0 && room.balls.length < 8) spawnBall(room, random);
   finishIfNeeded(room);
+  if (room.variant === "rally_race" && room.tick >= 3600 && room.phase === "playing") {
+    const contenders = room.players.filter(p => !p.place).sort((a, b) => (b.hits - 2*b.goals) - (a.hits - 2*a.goals));
+    if (contenders.length < 2 || contenders[0]!.hits - 2*contenders[0]!.goals === contenders[1]!.hits - 2*contenders[1]!.goals) {
+      room.phase = "void"; room.reason = "Rally Race ended tied. No winner or rewards issued.";
+    } else {
+      contenders.forEach((p, i) => { p.place = i + 1; });
+      room.phase = "saving";
+    }
+  }
   // Never fabricate a winner for stalled/overlong games.
   if (room.tick >= 60 * 600 && room.phase === "playing") {
     room.phase = "void"; room.reason = "Time limit reached without a winner. No rewards issued.";

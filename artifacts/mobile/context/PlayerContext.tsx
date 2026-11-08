@@ -1214,7 +1214,9 @@ export function PlayerProvider({ username, onLogout, children }: {
     if (profile.rewardedMatchIds?.includes(id)) throw new Error('Match already awarded; receipt expired.');
     const matchType = result.matchType ?? 'casual';
     const opponentLevels = result.opponentLevels ?? [];
-    const levelDelta = calcTrueSkillDelta(result.position, profile.competitiveLevel, opponentLevels, matchType);
+    // Preserve the historical local level, but never present it as live competitive skill.
+    // New competitive skill is server-validated and shown separately in Ranks.
+    const levelDelta = 0;
     const newCompLevel = Math.max(1, Math.min(50, profile.competitiveLevel + levelDelta));
     // Apply featured mode multipliers (set when player opts in via Events tab)
     const { featuredCoinMult: _fcm = 1, featuredXpMult: _fxm = 1 } = onlineId ? {} : getGameConfig();

@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './competitiveSeason';
+export * from './getCompetition200';
 export * from './healthStatus';
 export * from './liveBall';
 export * from './livePlayer';

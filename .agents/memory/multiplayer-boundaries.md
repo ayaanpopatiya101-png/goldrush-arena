@@ -14,3 +14,9 @@ Live rooms currently require one authoritative process; database-backed identity
 **Why:** Independent workers would return missing rooms or different simulations for the same player. Interrupted games must be explicit and must never become fabricated local-bot wins.
 
 **How to apply:** Before multi-instance or multi-region deployment, implement room ownership and connection routing. Distinguish a four-client protocol test from four humans on physical devices.
+
+Keep legacy local competitive levels as historical accomplishments, not a seed for live competitive skill. Use an original, disclosed rating formula instead of claiming Halo's proprietary implementation.
+
+**Why:** Legacy levels included bot matches and editable local saves. Removing them would erase accomplishments; trusting them would undermine real-player placements.
+
+**How to apply:** Display service progression and verified seasonal competition separately, preserving historical records during future season changes.

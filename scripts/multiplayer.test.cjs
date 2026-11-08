@@ -7,6 +7,48 @@ const source = fs.readFileSync('artifacts/api-server/src/lib/arenaSimulation.ts'
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
 const mod = new Module('arenaSimulation'); mod._compile(compiled, 'arenaSimulation.cjs');
 const { stepArena, eliminate, finishIfNeeded } = mod.exports;
+const skillModule = new Module('competition');
+skillModule._compile(ts.transpileModule(fs.readFileSync('artifacts/api-server/src/lib/competition.ts','utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,'competition.cjs');
+const { initialSeason, advanceSeason, seasonKey, seasonView } = skillModule.exports;
+const eventModule = new Module('eventPrefs');
+eventModule.require = () => ({});
+eventModule._compile(ts.transpileModule(fs.readFileSync('artifacts/mobile/utils/eventPrefs.ts','utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,'eventPrefs.cjs');
+test('locked monthly and annual windows close after their next opening including December rollover',()=>{
+  for(let month=0;month<12;month++) {
+    for(const day of [1,27,28]) {
+      const now=new Date(2026,month,day);
+      const window=eventModule.exports.localChallengeWindow('monthly',0,now);
+      assert.equal(window.closes.getTime(),new Date(2026,month+1,1).getTime());
+      if(day<28) { assert.ok(window.opens>now);assert.ok(window.closes>window.opens); }
+      else assert.equal(window.opens,null);
+      const annual=eventModule.exports.localChallengeWindow('annual',0,now);
+      assert.equal(annual.closes.getTime(),new Date(2027,0,1).getTime());
+      if(annual.opens)assert.ok(annual.closes>annual.opens);
+    }
+  }
+});
+test('five placements, opponent strength and UTC seasons stay separate from legacy XP',()=>{
+  let state=initialSeason();
+  assert.equal(seasonView('2026-12',state).placed,false);
+  assert.equal(seasonView('2026-12',state).endsAt,'2027-01-01T00:00:00.000Z');
+  for(let i=0;i<5;i++)state=advanceSeason(state,1,[1000,1000,1000]);
+  assert.equal(seasonView('2026-12',state).placed,true);
+  assert.ok(advanceSeason(initialSeason(),1,[1400,1400,1400]).rating > advanceSeason(initialSeason(),1,[600,600,600]).rating);
+  assert.ok(advanceSeason(state,4,[1000,1000,1000]).rating<state.rating);
+  assert.equal(seasonKey(Date.parse('2027-01-01T00:00:00Z')),'2027-01');
+  assert.equal(initialSeason().games,0);
+});
+test('Rally Race uses score instead of elimination and resolves timed winners and ties',()=>{
+  const r=room();r.variant='rally_race';
+  r.balls=[{id:0,x:800,y:949,vx:0,vy:100}];
+  stepArena(r,1000,()=>.4);
+  assert.equal(r.players[0].lives,5);assert.equal(r.players[0].goals,1);
+  r.players[1].hits=12;r.players[2].hits=7;r.tick=3599;r.balls=[];
+  stepArena(r,1000,()=>.4);
+  assert.equal(r.phase,'saving');assert.equal(r.players[1].place,1);
+  const tied=room();tied.variant='rally_race';tied.tick=3599;
+  stepArena(tied,1000,()=>.4);assert.equal(tied.phase,'void');
+});
 function room() {
   return { id:'test', phase:'playing', mode:'ranked', variant:'classic', tick:0, nextBall:1, balls:[],
     players: Array.from({length:4}, (_,seat)=>({id:String(seat), seat, isBot:false, connected:true,
