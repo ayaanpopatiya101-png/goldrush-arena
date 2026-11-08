@@ -24,3 +24,12 @@ Removing an advisory by forcing the newest major can break those tool paths.
 **How to apply:** Scope overrides to the Node tooling parents and exercise their
 real ID-generation APIs, not just the package's version number. Keep this
 separate from native application dependency decisions.
+
+Allow a multi-minute post-merge setup budget for this workspace.
+
+**Why:** Even an unchanged frozen-lockfile install plus a no-op schema check took
+about 51 seconds under normal concurrent dev services. The previous 20-second
+limit killed valid setup, not a hung dependency command.
+
+**How to apply:** Keep bounded setup timeouts with headroom for the monorepo;
+inspect logs before treating slow installation as a failure or bypassing it.
