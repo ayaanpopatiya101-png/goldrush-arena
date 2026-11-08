@@ -5,6 +5,8 @@ import { readCredential, writeCredential, removeCredential } from "./arenaCreden
 
 const pending = new Map<string, Promise<PlayerSession>>();
 const retiring = new Set<string>();
+const profileEpochs=new Map<string,number>();
+export const arenaProfileEpoch=(username:string)=>profileEpochs.get(username)??0;
 const keyFor=(user:string)=>"arena_session_" + Array.from(user).map(c => c.codePointAt(0)!.toString(16)).join("_");
 export async function retireArenaProfile(username:string) {
   const key=keyFor(username);
@@ -19,6 +21,7 @@ export async function retireArenaProfile(username:string) {
     }
     await removeCredential(key);
     pending.delete(key);
+    profileEpochs.set(username,arenaProfileEpoch(username)+1);
   } finally { retiring.delete(key); }
 }
 export function arenaTimeout(ms = 12000) {

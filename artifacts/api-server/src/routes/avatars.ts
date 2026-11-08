@@ -158,7 +158,7 @@ router.post("/multiplayer/avatar/retire", async(_req,res)=>{
   const p=res.locals.arenaPlayer;
   const previous=await db.transaction(async tx=>{
     const [current]=await tx.select().from(arenaPlayers).where(eq(arenaPlayers.id,p.id)).for("update");
-    await tx.update(arenaPlayers).set({avatarId:null,avatarShared:false,tokenHash:randomUUID()}).where(eq(arenaPlayers.id,p.id));
+    await tx.update(arenaPlayers).set({avatarId:null,avatarShared:false,cosmetics:{},tokenHash:randomUUID()}).where(eq(arenaPlayers.id,p.id));
     // Keep original staging timestamps: legacy signed URLs must expire before
     // the independent janitor removes their tracked objects.
     return current!.avatarId;

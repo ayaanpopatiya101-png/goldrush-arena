@@ -11,6 +11,10 @@ import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Primitives';
 import { palette, tactile } from '@/constants/colors';
 import { fonts, textScale } from '@/constants/typography';
+import {useEquippedCosmetics} from '@/hooks/useEquippedCosmetics';
+import {PaddleArt} from '@/components/cosmetics/PaddleArt';
+import {THEME_FINISHES,STRIKE_FINISHES} from '@workspace/goldrush-catalog/cosmetics';
+import {useReducedMotion} from '@/hooks/useReducedMotion';
 
 export type LiveMatchViewProps = {
   room: LiveRoom | null;
@@ -60,6 +64,12 @@ function paddleRect(p: LivePlayer, s: number) {
 
 export function LiveMatchView({ room, playerId, connection, error, saved, ratingChange, onMove, onLeave, onRetry, onCasual, onResults, onAgain }: LiveMatchViewProps) {
   const insets = useSafeAreaInsets();
+  const appearance=useEquippedCosmetics();
+  const theme=THEME_FINISHES.find(t=>t.id===appearance.arenaTheme)??THEME_FINISHES[0];
+  const strike=STRIKE_FINISHES.find(t=>t.id===appearance.strikeEffect)??STRIKE_FINISHES[0];
+  const reduced=useReducedMotion();
+  const [impact,setImpact]=useState(false);
+  const previousScore=useRef<number|null>(null);
   const { width, height } = useWindowDimensions();
   const isWeb = Platform.OS === 'web';
   const topPad = (isWeb ? 67 : insets.top) + 8;
@@ -68,6 +78,14 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
 
   const phase = room?.phase;
   const me = room?.players.find(p => p.id === playerId) ?? null;
+  useEffect(()=>{
+    const score=(me?.hits??0)+(me?.goals??0);
+    const changed=previousScore.current!==null && score>previousScore.current;
+    previousScore.current=score;
+    if(!changed||reduced)return;
+    setImpact(true);const timer=setTimeout(()=>setImpact(false),450);
+    return ()=>{clearTimeout(timer);setImpact(false);};
+  },[me?.hits,me?.goals,reduced]);
   const humans = room?.players.filter(p => !p.isBot).length ?? 0;
   const live = phase === 'countdown' || phase === 'playing';
 
@@ -268,7 +286,10 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
           })}
         </View>
         <View testID="live-court" {...pan.panHandlers} accessibilityLabel={`Court. You defend the ${SEAT_NAMES[seat]} edge. Drag ${horizontal ? 'left and right' : 'up and down'} to move.`}
-          style={[s.court, { width: size, height: size }]}>
+          style={[s.court, { width: size, height: size,backgroundColor:theme.floor }]}>
+          {theme.motif==='rings'?[0.3,0.5,0.7].map(n=><View key={n} pointerEvents="none" style={{position:'absolute',width:size*n,height:size*n,top:size*(1-n)/2,left:size*(1-n)/2,borderRadius:999,borderWidth:1,borderColor:theme.line,opacity:0.15}}/>):null}
+          {theme.motif==='lines'?[1,2,3,4,5,6,7].map(n=><View key={n} pointerEvents="none" style={{position:'absolute',left:0,right:0,top:size*n/8,height:1,backgroundColor:theme.line,opacity:0.15}}/>):null}
+          {impact?<View pointerEvents="none" style={{position:'absolute',inset:4,borderWidth:strike.motif==='rings'?4:2,borderColor:strike.color}}/>:null}
           {/* walls */}
           <View pointerEvents="none" style={[s.wall, { left: WALL_MIN * scale, top: WALL_MIN * scale, width: (WALL_MAX - WALL_MIN) * scale, height: (WALL_MAX - WALL_MIN) * scale }]} />
           {/* own edge highlight */}
@@ -279,7 +300,7 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
           ) : null}
           {room.players.filter(p => p.lives > 0).map(p => {
             const r = paddleRect(p, scale);
-            return <View key={p.id} pointerEvents="none" style={[s.paddle, r, { backgroundColor: p.color, opacity: p.connected || p.isBot ? 1 : 0.5 }, p.id === playerId && { borderColor: palette.gold, borderWidth: 3 }]} />;
+            return <View key={p.id} pointerEvents="none" style={[s.paddle, r, { backgroundColor: p.color, opacity: p.connected || p.isBot ? 1 : 0.5,overflow:'hidden' }]}>{p.id===playerId?<PaddleArt design={appearance.artwork} width={r.width} height={r.height}/>:null}</View>;
           })}
           {ownStyle ? (
             <Text pointerEvents="none" style={[s.youTag, seat === 0 ? { top: ownStyle.top - 22, left: ownStyle.left + ownStyle.width / 2 - 18 } : seat === 1 ? { top: ownStyle.top + ownStyle.height + 4, left: ownStyle.left + ownStyle.width / 2 - 18 } : seat === 2 ? { left: ownStyle.left + ownStyle.width + 4, top: ownStyle.top + ownStyle.height / 2 - 9 } : { left: ownStyle.left - 40, top: ownStyle.top + ownStyle.height / 2 - 9 }]}>YOU</Text>

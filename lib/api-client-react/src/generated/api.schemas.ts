@@ -5,6 +5,114 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type PaddleDesignMotif = typeof PaddleDesignMotif[keyof typeof PaddleDesignMotif];
+
+
+export const PaddleDesignMotif = {
+  chevron: 'chevron',
+  circuit: 'circuit',
+  checker: 'checker',
+  sunburst: 'sunburst',
+  wave: 'wave',
+  facets: 'facets',
+  racing: 'racing',
+  crosshatch: 'crosshatch',
+} as const;
+
+export type PaddleDesignTexture = typeof PaddleDesignTexture[keyof typeof PaddleDesignTexture];
+
+
+export const PaddleDesignTexture = {
+  none: 'none',
+  etched: 'etched',
+  grain: 'grain',
+} as const;
+
+export interface PaddleDesign {
+  /** @pattern ^custom_[a-f0-9-]{36}$ */
+  id: string;
+  /**
+     * @minLength 1
+     * @maxLength 32
+     */
+  name: string;
+  motif: PaddleDesignMotif;
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  base: string;
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  ink: string;
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  accent: string;
+  /**
+     * @minimum 2
+     * @maximum 8
+     */
+  density: number;
+  texture: PaddleDesignTexture;
+}
+
+export interface CosmeticState {
+  balance: number;
+  owned: string[];
+  designs: PaddleDesign[];
+  equippedSkin: string;
+  equippedTheme: string;
+  equippedStrike: string;
+  offerAvailable: boolean;
+  offerDismissed: boolean;
+  offerLastShown: number;
+}
+
+export type CosmeticEquipInputKind = typeof CosmeticEquipInputKind[keyof typeof CosmeticEquipInputKind];
+
+
+export const CosmeticEquipInputKind = {
+  skin: 'skin',
+  theme: 'theme',
+  strike: 'strike',
+} as const;
+
+export interface CosmeticEquipInput {
+  kind: CosmeticEquipInputKind;
+  /** @maxLength 80 */
+  id: string;
+}
+
+export interface CosmeticPurchaseInput {
+  /** @maxLength 80 */
+  id: string;
+  /** @pattern ^[a-f0-9-]{36}$ */
+  requestId: string;
+}
+
+export type CosmeticOfferInputAction = typeof CosmeticOfferInputAction[keyof typeof CosmeticOfferInputAction];
+
+
+export const CosmeticOfferInputAction = {
+  shown: 'shown',
+  dismissed: 'dismissed',
+} as const;
+
+export interface CosmeticOfferInput {
+  action: CosmeticOfferInputAction;
+}
+
+export interface DesignAssistInput {
+  /**
+     * @minLength 3
+     * @maxLength 600
+     */
+  prompt: string;
+  current: PaddleDesign;
+}
+
+export interface DesignAssistResult {
+  design: PaddleDesign;
+  /** @maxLength 300 */
+  explanation: string;
+  remaining: number;
+}
+
 export interface AvatarSharingInput {
   shared: boolean;
 }

@@ -11,6 +11,7 @@ import { Button, IconButton } from '@/components/ui/Primitives';
 import { palette, tactile } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { SKINS, usePlayer } from '@/context/PlayerContext';
+import { useEquippedCosmetics } from '@/hooks/useEquippedCosmetics';
 import { useSettings } from '@/hooks/useSettings';
 import { setCompletedMatch } from '@/store/completedMatch';
 import { setGameConfig } from '@/store/gameSession';
@@ -21,6 +22,7 @@ export default function ArcadeScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { profile, currentUsername } = usePlayer();
+  const appearance=useEquippedCosmetics();
   const { settings } = useSettings();
   const music = useBackgroundMusic();
 
@@ -114,6 +116,7 @@ export default function ArcadeScreen() {
         <View style={[s.frame, { width: arenaSize, height: arenaSize }]}>
           {!gameOver && (
             <GameArena
+              {...appearance}
               arenaSize={arenaSize - 2}
               courtStyle="tactile"
               playerName={profile.name}

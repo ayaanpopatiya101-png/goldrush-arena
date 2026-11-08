@@ -51,6 +51,7 @@ function RootLayoutNav() {
       <Stack.Screen name="onboarding-flow" options={{ headerShown: false, animation: 'fade', presentation: 'fullScreenModal' }} />
       <Stack.Screen name="challenge"       options={{ headerShown: false, animation: 'fade' }} />
       <Stack.Screen name="warmup"          options={{ headerShown: false, animation: 'fade' }} />
+      <Stack.Screen name="paddle-studio" options={{headerShown:false,animation:'slide_from_right'}} />
     </Stack>
   );
 }

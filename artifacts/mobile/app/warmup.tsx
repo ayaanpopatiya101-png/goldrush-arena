@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   AppState,
   Pressable,
@@ -7,7 +7,10 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { PADDLE_FINISHES, THEME_FINISHES, STRIKE_FINISHES, artworkFor, type Artwork } from "@workspace/goldrush-catalog/cosmetics";
+import { useCosmetics } from "@/hooks/useCosmetics";
+import { sanitizeArtwork } from "@/components/cosmetics/PaddleArt";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { Text } from "@/components/ui/Text";
@@ -15,6 +18,7 @@ import { GameArena, type GameResult } from "@/components/GameArena";
 import { usePlayer } from "@/context/PlayerContext";
 import { useSettings } from "@/hooks/useSettings";
 import { palette } from "@/constants/colors";
+import {useEquippedCosmetics} from '@/hooks/useEquippedCosmetics';
 
 /** Uses the production physics and input loop, with no reward or inventory side effects. */
 export default function Warmup() {
@@ -26,6 +30,28 @@ export default function Warmup() {
   const [paused, setPaused] = useState(false);
   const [result, setResult] = useState<GameResult | null>(null);
   const [lives, setLives] = useState(5);
+  // Trial: preview an item on court without equipping or granting it. Leaving unmounts it.
+  const params = useLocalSearchParams<{ kind?: string; id?: string; design?: string }>();
+  const cos = useCosmetics();
+  const equipped=useEquippedCosmetics();
+  const trial = useMemo(() => {
+    const kind = typeof params.kind === "string" ? params.kind : undefined;
+    const id = typeof params.id === "string" ? params.id : undefined;
+    const designId = typeof params.design === "string" ? params.design : undefined;
+    if (designId) {
+      const d = cos.state?.designs.find((x) => x.id === designId);
+      if (!d) return { label: "", missing: cos.loading ? "Loading your design" : "That design was not found", artwork: undefined as Artwork | undefined, theme: undefined as string | undefined, strike: undefined as string | undefined, kind: "skin" };
+      return { label: d.name, missing: "", artwork: sanitizeArtwork(d as unknown as Artwork), theme: undefined, strike: undefined, kind: "skin" };
+    }
+    if (kind === "skin" && id && PADDLE_FINISHES.some((p) => p.id === id))
+      return { label: PADDLE_FINISHES.find((p) => p.id === id)!.name, missing: "", artwork: artworkFor(id), theme: undefined, strike: undefined, kind };
+    if (kind === "theme" && id && THEME_FINISHES.some((t) => t.id === id))
+      return { label: THEME_FINISHES.find((t) => t.id === id)!.name, missing: "", artwork: undefined, theme: id, strike: undefined, kind };
+    if (kind === "strike" && id && STRIKE_FINISHES.some((t) => t.id === id))
+      return { label: STRIKE_FINISHES.find((t) => t.id === id)!.name, missing: "", artwork: undefined, theme: undefined, strike: id, kind };
+    if (kind || id) return { label: "", missing: "That item is not in the catalog", artwork: undefined, theme: undefined, strike: undefined, kind: "skin" };
+    return null;
+  }, [params.kind, params.id, params.design, cos.state, cos.loading]);
   useEffect(() => {
     const sub = AppState.addEventListener("change", (state) => {
       if (state !== "active") setPaused(true);
@@ -56,9 +82,25 @@ export default function Warmup() {
         >
           <Feather name="x" size={22} color={palette.charcoal} />
         </Pressable>
-        <Text style={s.heading}>Warm-up court</Text>
+        <Text style={s.heading}>{trial?.label ? "Try on court" : "Warm-up court"}</Text>
         <Text style={s.offline}>Offline</Text>
       </View>
+      {trial && (
+        <View style={s.trial} accessibilityLiveRegion="polite">
+          <Text style={s.trialKicker}>Trial · ownership and equipped items unchanged</Text>
+          <Text style={s.trialName}>{trial.missing || trial.label}</Text>
+          {!trial.missing && (
+            <Text style={s.trialBody}>
+              {trial.kind === "strike"
+                ? "Goal: block 3 shots. The hit mark appears on every paddle contact and when a goal lands."
+                : trial.kind === "theme"
+                  ? "Goal: hold the court for one rally. Only floor and markings change."
+                  : "Goal: block 3 shots with this finish on your bottom paddle."}{" "}
+              Size, speed and scoring are identical. Leave to return to your own setup.
+            </Text>
+          )}
+        </View>
+      )}
       <View style={s.scoreboard}>
         <View>
           <Text style={s.label}>Your lives</Text>
@@ -74,7 +116,10 @@ export default function Warmup() {
           key={round}
           arenaSize={Math.min(width - 32, 480)}
           playerName={profile.name}
-          playerColor={palette.orange}
+          playerColor={trial?.artwork?.base ?? palette.orange}
+          artwork={trial?.artwork??equipped.artwork}
+          arenaTheme={trial?.theme??equipped.arenaTheme}
+          strikeEffect={trial?.strike??equipped.strikeEffect}
           playerGlowColor="transparent"
           botNames={["North", "West", "East"]}
           botRanks={["Bronze 1", "Bronze 1", "Bronze 1"]}
@@ -141,6 +186,10 @@ export default function Warmup() {
   );
 }
 const s = StyleSheet.create({
+  trial: { width: "100%", maxWidth: 480, marginTop: 12, marginHorizontal: 16, padding: 12, gap: 4, backgroundColor: palette.navy, borderWidth: 2, borderColor: palette.charcoal },
+  trialKicker: { fontFamily: "SourceSans3_700Bold", fontSize: 12, letterSpacing: 1.4, color: palette.gold, textTransform: "uppercase" },
+  trialName: { fontFamily: "BarlowCondensed_700Bold", fontSize: 26, color: palette.stone, textTransform: "uppercase" },
+  trialBody: { fontFamily: "SourceSans3_400Regular", fontSize: 14, lineHeight: 19, color: palette.stone },
   page: { flex: 1, backgroundColor: palette.stone },
   header: {
     width: "100%",

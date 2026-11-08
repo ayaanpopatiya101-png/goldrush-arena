@@ -7,6 +7,7 @@ import Reanimated, { SlideInRight, SlideOutRight } from 'react-native-reanimated
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameArena, type GameMode, type GameResult } from '@/components/GameArena';
+import { useEquippedCosmetics } from '@/hooks/useEquippedCosmetics';
 import { BackgroundMusicButton, useBackgroundMusic } from '@/components/BackgroundMusic';
 import { usePlayer, getMap, getRankIndex, MAX_RANK_INDEX, RANKS, MAPS, getStreakMultiplier, getDifficultyMultiplier, levelFromRank } from '@/context/PlayerContext';
 import { getGameConfig, hasGameConfig, updateGameConfig, getActiveEvent, clearActiveEvent, getQualifierContext, clearQualifierContext } from '@/store/gameSession';
@@ -71,6 +72,7 @@ function OfflineGameScreen() {
   const { width, height } = useWindowDimensions();
   const insets   = useSafeAreaInsets();
   const { addMatchResult, profile, consumeExtraLives } = usePlayer();
+  const cosmetics=useEquippedCosmetics();
   const config   = getGameConfig();
   const countdownComplete = useRef(Boolean(config.countdownComplete)).current;
   const startedRef = useRef(false);
@@ -525,6 +527,7 @@ function OfflineGameScreen() {
             /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
             <View ref={arenaWrapRef as any} style={{ alignSelf: 'stretch' }}>
             <GameArena
+              {...cosmetics}
               arenaSize={arenaSize}
               courtStyle={map?.id === MAPS[0]?.id ? 'tactile' : 'classic'}
               playerName={config.playerName}

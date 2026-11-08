@@ -8,6 +8,310 @@
 import * as zod from 'zod';
 
 
+export const getCosmeticsResponseDesignsItemIdRegExp = new RegExp('^custom_[a-f0-9-]{36}$');
+export const getCosmeticsResponseDesignsItemNameMax = 32;
+
+export const getCosmeticsResponseDesignsItemBaseRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const getCosmeticsResponseDesignsItemInkRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const getCosmeticsResponseDesignsItemAccentRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const getCosmeticsResponseDesignsItemDensityMin = 2;
+export const getCosmeticsResponseDesignsItemDensityMax = 8;
+
+
+
+export const GetCosmeticsResponse = zod.object({
+  "balance": zod.number(),
+  "owned": zod.array(zod.string()),
+  "designs": zod.array(zod.object({
+  "id": zod.string().regex(getCosmeticsResponseDesignsItemIdRegExp),
+  "name": zod.string().min(1).max(getCosmeticsResponseDesignsItemNameMax),
+  "motif": zod.enum(['chevron', 'circuit', 'checker', 'sunburst', 'wave', 'facets', 'racing', 'crosshatch']),
+  "base": zod.string().regex(getCosmeticsResponseDesignsItemBaseRegExp),
+  "ink": zod.string().regex(getCosmeticsResponseDesignsItemInkRegExp),
+  "accent": zod.string().regex(getCosmeticsResponseDesignsItemAccentRegExp),
+  "density": zod.number().min(getCosmeticsResponseDesignsItemDensityMin).max(getCosmeticsResponseDesignsItemDensityMax),
+  "texture": zod.enum(['none', 'etched', 'grain'])
+})),
+  "equippedSkin": zod.string(),
+  "equippedTheme": zod.string(),
+  "equippedStrike": zod.string(),
+  "offerAvailable": zod.boolean(),
+  "offerDismissed": zod.boolean(),
+  "offerLastShown": zod.number()
+})
+
+
+export const savePaddleDesignBodyIdRegExp = new RegExp('^custom_[a-f0-9-]{36}$');
+export const savePaddleDesignBodyNameMax = 32;
+
+export const savePaddleDesignBodyBaseRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const savePaddleDesignBodyInkRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const savePaddleDesignBodyAccentRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const savePaddleDesignBodyDensityMin = 2;
+export const savePaddleDesignBodyDensityMax = 8;
+
+
+
+export const SavePaddleDesignBody = zod.object({
+  "id": zod.string().regex(savePaddleDesignBodyIdRegExp),
+  "name": zod.string().min(1).max(savePaddleDesignBodyNameMax),
+  "motif": zod.enum(['chevron', 'circuit', 'checker', 'sunburst', 'wave', 'facets', 'racing', 'crosshatch']),
+  "base": zod.string().regex(savePaddleDesignBodyBaseRegExp),
+  "ink": zod.string().regex(savePaddleDesignBodyInkRegExp),
+  "accent": zod.string().regex(savePaddleDesignBodyAccentRegExp),
+  "density": zod.number().min(savePaddleDesignBodyDensityMin).max(savePaddleDesignBodyDensityMax),
+  "texture": zod.enum(['none', 'etched', 'grain'])
+})
+
+export const savePaddleDesignResponseDesignsItemIdRegExp = new RegExp('^custom_[a-f0-9-]{36}$');
+export const savePaddleDesignResponseDesignsItemNameMax = 32;
+
+export const savePaddleDesignResponseDesignsItemBaseRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const savePaddleDesignResponseDesignsItemInkRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const savePaddleDesignResponseDesignsItemAccentRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const savePaddleDesignResponseDesignsItemDensityMin = 2;
+export const savePaddleDesignResponseDesignsItemDensityMax = 8;
+
+
+
+export const SavePaddleDesignResponse = zod.object({
+  "balance": zod.number(),
+  "owned": zod.array(zod.string()),
+  "designs": zod.array(zod.object({
+  "id": zod.string().regex(savePaddleDesignResponseDesignsItemIdRegExp),
+  "name": zod.string().min(1).max(savePaddleDesignResponseDesignsItemNameMax),
+  "motif": zod.enum(['chevron', 'circuit', 'checker', 'sunburst', 'wave', 'facets', 'racing', 'crosshatch']),
+  "base": zod.string().regex(savePaddleDesignResponseDesignsItemBaseRegExp),
+  "ink": zod.string().regex(savePaddleDesignResponseDesignsItemInkRegExp),
+  "accent": zod.string().regex(savePaddleDesignResponseDesignsItemAccentRegExp),
+  "density": zod.number().min(savePaddleDesignResponseDesignsItemDensityMin).max(savePaddleDesignResponseDesignsItemDensityMax),
+  "texture": zod.enum(['none', 'etched', 'grain'])
+})),
+  "equippedSkin": zod.string(),
+  "equippedTheme": zod.string(),
+  "equippedStrike": zod.string(),
+  "offerAvailable": zod.boolean(),
+  "offerDismissed": zod.boolean(),
+  "offerLastShown": zod.number()
+})
+
+
+export const DeletePaddleDesignParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const deletePaddleDesignResponseDesignsItemIdRegExp = new RegExp('^custom_[a-f0-9-]{36}$');
+export const deletePaddleDesignResponseDesignsItemNameMax = 32;
+
+export const deletePaddleDesignResponseDesignsItemBaseRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const deletePaddleDesignResponseDesignsItemInkRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const deletePaddleDesignResponseDesignsItemAccentRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const deletePaddleDesignResponseDesignsItemDensityMin = 2;
+export const deletePaddleDesignResponseDesignsItemDensityMax = 8;
+
+
+
+export const DeletePaddleDesignResponse = zod.object({
+  "balance": zod.number(),
+  "owned": zod.array(zod.string()),
+  "designs": zod.array(zod.object({
+  "id": zod.string().regex(deletePaddleDesignResponseDesignsItemIdRegExp),
+  "name": zod.string().min(1).max(deletePaddleDesignResponseDesignsItemNameMax),
+  "motif": zod.enum(['chevron', 'circuit', 'checker', 'sunburst', 'wave', 'facets', 'racing', 'crosshatch']),
+  "base": zod.string().regex(deletePaddleDesignResponseDesignsItemBaseRegExp),
+  "ink": zod.string().regex(deletePaddleDesignResponseDesignsItemInkRegExp),
+  "accent": zod.string().regex(deletePaddleDesignResponseDesignsItemAccentRegExp),
+  "density": zod.number().min(deletePaddleDesignResponseDesignsItemDensityMin).max(deletePaddleDesignResponseDesignsItemDensityMax),
+  "texture": zod.enum(['none', 'etched', 'grain'])
+})),
+  "equippedSkin": zod.string(),
+  "equippedTheme": zod.string(),
+  "equippedStrike": zod.string(),
+  "offerAvailable": zod.boolean(),
+  "offerDismissed": zod.boolean(),
+  "offerLastShown": zod.number()
+})
+
+
+export const equipCosmeticBodyIdMax = 80;
+
+
+
+export const EquipCosmeticBody = zod.object({
+  "kind": zod.enum(['skin', 'theme', 'strike']),
+  "id": zod.string().max(equipCosmeticBodyIdMax)
+})
+
+export const equipCosmeticResponseDesignsItemIdRegExp = new RegExp('^custom_[a-f0-9-]{36}$');
+export const equipCosmeticResponseDesignsItemNameMax = 32;
+
+export const equipCosmeticResponseDesignsItemBaseRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const equipCosmeticResponseDesignsItemInkRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const equipCosmeticResponseDesignsItemAccentRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const equipCosmeticResponseDesignsItemDensityMin = 2;
+export const equipCosmeticResponseDesignsItemDensityMax = 8;
+
+
+
+export const EquipCosmeticResponse = zod.object({
+  "balance": zod.number(),
+  "owned": zod.array(zod.string()),
+  "designs": zod.array(zod.object({
+  "id": zod.string().regex(equipCosmeticResponseDesignsItemIdRegExp),
+  "name": zod.string().min(1).max(equipCosmeticResponseDesignsItemNameMax),
+  "motif": zod.enum(['chevron', 'circuit', 'checker', 'sunburst', 'wave', 'facets', 'racing', 'crosshatch']),
+  "base": zod.string().regex(equipCosmeticResponseDesignsItemBaseRegExp),
+  "ink": zod.string().regex(equipCosmeticResponseDesignsItemInkRegExp),
+  "accent": zod.string().regex(equipCosmeticResponseDesignsItemAccentRegExp),
+  "density": zod.number().min(equipCosmeticResponseDesignsItemDensityMin).max(equipCosmeticResponseDesignsItemDensityMax),
+  "texture": zod.enum(['none', 'etched', 'grain'])
+})),
+  "equippedSkin": zod.string(),
+  "equippedTheme": zod.string(),
+  "equippedStrike": zod.string(),
+  "offerAvailable": zod.boolean(),
+  "offerDismissed": zod.boolean(),
+  "offerLastShown": zod.number()
+})
+
+
+export const purchaseCosmeticBodyIdMax = 80;
+
+export const purchaseCosmeticBodyRequestIdRegExp = new RegExp('^[a-f0-9-]{36}$');
+
+
+export const PurchaseCosmeticBody = zod.object({
+  "id": zod.string().max(purchaseCosmeticBodyIdMax),
+  "requestId": zod.string().regex(purchaseCosmeticBodyRequestIdRegExp)
+})
+
+export const purchaseCosmeticResponseDesignsItemIdRegExp = new RegExp('^custom_[a-f0-9-]{36}$');
+export const purchaseCosmeticResponseDesignsItemNameMax = 32;
+
+export const purchaseCosmeticResponseDesignsItemBaseRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const purchaseCosmeticResponseDesignsItemInkRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const purchaseCosmeticResponseDesignsItemAccentRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const purchaseCosmeticResponseDesignsItemDensityMin = 2;
+export const purchaseCosmeticResponseDesignsItemDensityMax = 8;
+
+
+
+export const PurchaseCosmeticResponse = zod.object({
+  "balance": zod.number(),
+  "owned": zod.array(zod.string()),
+  "designs": zod.array(zod.object({
+  "id": zod.string().regex(purchaseCosmeticResponseDesignsItemIdRegExp),
+  "name": zod.string().min(1).max(purchaseCosmeticResponseDesignsItemNameMax),
+  "motif": zod.enum(['chevron', 'circuit', 'checker', 'sunburst', 'wave', 'facets', 'racing', 'crosshatch']),
+  "base": zod.string().regex(purchaseCosmeticResponseDesignsItemBaseRegExp),
+  "ink": zod.string().regex(purchaseCosmeticResponseDesignsItemInkRegExp),
+  "accent": zod.string().regex(purchaseCosmeticResponseDesignsItemAccentRegExp),
+  "density": zod.number().min(purchaseCosmeticResponseDesignsItemDensityMin).max(purchaseCosmeticResponseDesignsItemDensityMax),
+  "texture": zod.enum(['none', 'etched', 'grain'])
+})),
+  "equippedSkin": zod.string(),
+  "equippedTheme": zod.string(),
+  "equippedStrike": zod.string(),
+  "offerAvailable": zod.boolean(),
+  "offerDismissed": zod.boolean(),
+  "offerLastShown": zod.number()
+})
+
+
+export const RespondCosmeticOfferBody = zod.object({
+  "action": zod.enum(['shown', 'dismissed'])
+})
+
+export const respondCosmeticOfferResponseDesignsItemIdRegExp = new RegExp('^custom_[a-f0-9-]{36}$');
+export const respondCosmeticOfferResponseDesignsItemNameMax = 32;
+
+export const respondCosmeticOfferResponseDesignsItemBaseRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const respondCosmeticOfferResponseDesignsItemInkRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const respondCosmeticOfferResponseDesignsItemAccentRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const respondCosmeticOfferResponseDesignsItemDensityMin = 2;
+export const respondCosmeticOfferResponseDesignsItemDensityMax = 8;
+
+
+
+export const RespondCosmeticOfferResponse = zod.object({
+  "balance": zod.number(),
+  "owned": zod.array(zod.string()),
+  "designs": zod.array(zod.object({
+  "id": zod.string().regex(respondCosmeticOfferResponseDesignsItemIdRegExp),
+  "name": zod.string().min(1).max(respondCosmeticOfferResponseDesignsItemNameMax),
+  "motif": zod.enum(['chevron', 'circuit', 'checker', 'sunburst', 'wave', 'facets', 'racing', 'crosshatch']),
+  "base": zod.string().regex(respondCosmeticOfferResponseDesignsItemBaseRegExp),
+  "ink": zod.string().regex(respondCosmeticOfferResponseDesignsItemInkRegExp),
+  "accent": zod.string().regex(respondCosmeticOfferResponseDesignsItemAccentRegExp),
+  "density": zod.number().min(respondCosmeticOfferResponseDesignsItemDensityMin).max(respondCosmeticOfferResponseDesignsItemDensityMax),
+  "texture": zod.enum(['none', 'etched', 'grain'])
+})),
+  "equippedSkin": zod.string(),
+  "equippedTheme": zod.string(),
+  "equippedStrike": zod.string(),
+  "offerAvailable": zod.boolean(),
+  "offerDismissed": zod.boolean(),
+  "offerLastShown": zod.number()
+})
+
+
+export const assistPaddleDesignBodyPromptMin = 3;
+export const assistPaddleDesignBodyPromptMax = 600;
+
+export const assistPaddleDesignBodyCurrentIdRegExp = new RegExp('^custom_[a-f0-9-]{36}$');
+export const assistPaddleDesignBodyCurrentNameMax = 32;
+
+export const assistPaddleDesignBodyCurrentBaseRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistPaddleDesignBodyCurrentInkRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistPaddleDesignBodyCurrentAccentRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistPaddleDesignBodyCurrentDensityMin = 2;
+export const assistPaddleDesignBodyCurrentDensityMax = 8;
+
+
+
+export const AssistPaddleDesignBody = zod.object({
+  "prompt": zod.string().min(assistPaddleDesignBodyPromptMin).max(assistPaddleDesignBodyPromptMax),
+  "current": zod.object({
+  "id": zod.string().regex(assistPaddleDesignBodyCurrentIdRegExp),
+  "name": zod.string().min(1).max(assistPaddleDesignBodyCurrentNameMax),
+  "motif": zod.enum(['chevron', 'circuit', 'checker', 'sunburst', 'wave', 'facets', 'racing', 'crosshatch']),
+  "base": zod.string().regex(assistPaddleDesignBodyCurrentBaseRegExp),
+  "ink": zod.string().regex(assistPaddleDesignBodyCurrentInkRegExp),
+  "accent": zod.string().regex(assistPaddleDesignBodyCurrentAccentRegExp),
+  "density": zod.number().min(assistPaddleDesignBodyCurrentDensityMin).max(assistPaddleDesignBodyCurrentDensityMax),
+  "texture": zod.enum(['none', 'etched', 'grain'])
+})
+})
+
+export const assistPaddleDesignResponseDesignIdRegExp = new RegExp('^custom_[a-f0-9-]{36}$');
+export const assistPaddleDesignResponseDesignNameMax = 32;
+
+export const assistPaddleDesignResponseDesignBaseRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistPaddleDesignResponseDesignInkRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistPaddleDesignResponseDesignAccentRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistPaddleDesignResponseDesignDensityMin = 2;
+export const assistPaddleDesignResponseDesignDensityMax = 8;
+
+export const assistPaddleDesignResponseExplanationMax = 300;
+
+
+
+export const AssistPaddleDesignResponse = zod.object({
+  "design": zod.object({
+  "id": zod.string().regex(assistPaddleDesignResponseDesignIdRegExp),
+  "name": zod.string().min(1).max(assistPaddleDesignResponseDesignNameMax),
+  "motif": zod.enum(['chevron', 'circuit', 'checker', 'sunburst', 'wave', 'facets', 'racing', 'crosshatch']),
+  "base": zod.string().regex(assistPaddleDesignResponseDesignBaseRegExp),
+  "ink": zod.string().regex(assistPaddleDesignResponseDesignInkRegExp),
+  "accent": zod.string().regex(assistPaddleDesignResponseDesignAccentRegExp),
+  "density": zod.number().min(assistPaddleDesignResponseDesignDensityMin).max(assistPaddleDesignResponseDesignDensityMax),
+  "texture": zod.enum(['none', 'etched', 'grain'])
+}),
+  "explanation": zod.string().max(assistPaddleDesignResponseExplanationMax),
+  "remaining": zod.number()
+})
+
+
 export const PutAvatarBytesParams = zod.object({
   "id": zod.coerce.string()
 })

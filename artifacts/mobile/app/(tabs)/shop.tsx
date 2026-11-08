@@ -3,16 +3,15 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { Button, ScreenTitle, Shell, gridItemWidth, paperText } from '@/components/ui/Primitives';
+import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScreenTitle, Shell, paperText } from '@/components/ui/Primitives';
 import { tactile } from '@/constants/colors';
-import { SkinComparison } from '@/components/SkinComparison';
-import { CosmeticPreview } from '@/components/CosmeticPreview';
+import { ShopCatalogPanel } from '@/components/cosmetics/ShopCatalog';
 import { useBlockingOverlay } from '@/context/OverlayQueue';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
-import { SKINS, getRankIndex, usePlayer } from '@/context/PlayerContext';
+import { usePlayer } from '@/context/PlayerContext';
 import { RedeemCodeModal } from '@/components/RedeemCodeModal';
 import { useColors } from '@/hooks/useColors';
 import { FloatingOrbs, ORBS_GOLD, GlowText, HolographicShimmer, ShimmerCard, PulseRing, GlowBorder } from '@/components/effects';
@@ -58,43 +57,17 @@ const STORE_BATTLE_PASS = {
   usd: '$4.99',
 };
 
-const POWERUP_BUNDLES = [
-  { id: 'shield3', name: 'Shield Pack', desc: '3x Shield Power-ups', icon: 'shield', price: 80, color: '#EFBD3C' },
-  { id: 'speed3', name: 'Speed Pack', desc: '3x Speed Boosts', icon: 'zap', price: 80, color: '#9BB77A' },
-  { id: 'mixed5', name: 'Mixed Bundle', desc: '5x Random Power-ups', icon: 'gift', price: 100, color: '#EDE3CC' },
-];
 
-const EXTRA_LIVES = [
-  { id: 'life1', name: '1 Extra Life', desc: 'Start with 4 lives', icon: 'heart', price: 60, color: '#CE7863' },
-  { id: 'life2', name: '2 Extra Lives', desc: 'Start with 5 lives', icon: 'heart', price: 100, color: '#CE7863' },
-];
 
-const BALL_TRAILS = [
-  { id: 'trail_fire', name: 'Fire Trail', desc: 'Balls leave fire trails', price: 200, color: '#CE7863' },
-  { id: 'trail_ice',  name: 'Ice Trail',  desc: 'Balls leave ice trails', price: 200, color: '#EDE3CC' },
-  { id: 'trail_neon', name: 'Neon Trail', desc: 'Rainbow neon trails',   price: 300, color: '#EDE3CC' },
-];
 
-const ARENA_THEMES = [
-  { id: 'default',   name: 'Dark Void',       desc: 'Classic deep-space arena',     price: 0,   color: '#EDE3CC', preview: ['#294C44','#1E4A3F'] },
-  { id: 'solar',     name: 'Solar Flare',      desc: 'Scorching red-orange arena',   price: 300, color: '#CE7863', preview: ['#294C44','#1E4A3F'] },
-  { id: 'arctic',    name: 'Arctic Ice',       desc: 'Cool blue frost arena',        price: 300, color: '#EDE3CC', preview: ['#213D39','#1E4A3F'] },
-  { id: 'toxic',     name: 'Toxic Wasteland',  desc: 'Neon green hazard zone',       price: 350, color: '#9BB77A', preview: ['#213D39','#213D39'] },
-  { id: 'cosmic',    name: 'Cosmic Dream',     desc: 'Purple nebula atmosphere',     price: 400, color: '#EDE3CC', preview: ['#213D39','#1E4A3F'] },
-  { id: 'golden',    name: 'Gold Rush',        desc: 'Prestige golden arena',        price: 500, color: '#EFBD3C', preview: ['#213D39','#213D39'] },
-];
 
 export default function ShopScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { width: winW } = useWindowDimensions();
-  const cardW = gridItemWidth(Math.min(winW, 1160) - 36, 150, 10);
-  const { profile, purchaseSkin, equipSkin, spendCoins, applyStorePurchases } = usePlayer();
+  const { profile, applyStorePurchases } = usePlayer();
   const revenueCat = useRevenueCat();
-  const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'powerups' | 'extras' | 'forge' | 'store'>('skins');
-  const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'extras' | 'store'>('skins');
   const [redeemVisible, setRedeemVisible] = useState(false);
-  const [compareSkinId, setCompareSkinId] = useState<string | null>(null);
   const focusStyle = useFocusAnimation();
 
   // Store: product price ID cache (keyed by product name)
@@ -226,47 +199,6 @@ export default function ShopScreen() {
     Alert.alert(title, msg, [{ text: 'Cancel', style: 'cancel' }, { text: yesLabel, onPress: onYes }]);
   }
 
-  async function handleBuySkin(skinId: string, price: number, skinName: string) {
-    if (profile.ownedSkins.includes(skinId)) {
-      await equipSkin(skinId);
-      if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      return;
-    }
-    const skin = SKINS.find(s => s.id === skinId);
-    if (skin && 'exclusive' in skin && skin.exclusive) {
-      xAlert('Locked', 'Earn this exclusive skin from its Premium Battle Pass tier.');
-      return;
-    }
-    if (profile.coins < price) {
-      xAlert('Not enough coins', `You need ${price - profile.coins} more coins.`);
-      return;
-    }
-    xConfirm(`Buy ${skinName}?`, `Cost: ${price} coins`, async () => {
-      setPurchasing(skinId);
-      try {
-        const ok = await purchaseSkin(skinId);
-        if (ok) {
-          if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          xAlert('Purchased!', `${skinName} equipped.`);
-        } else {
-          xAlert('Purchase unavailable', 'This item is locked, already owned, or your balance changed. No new item was purchased.');
-        }
-      } catch {
-        xAlert('Could not save purchase', 'Check device storage and retry. No purchase success was recorded.');
-      } finally {
-        setPurchasing(null);
-      }
-    }, 'Buy');
-  }
-
-  async function handleBuyBundle(item: { id: string; name: string; price: number }) {
-    xAlert('Unavailable', `${item.name} cannot be equipped in this build. No coins have been spent.`);
-  }
-
-  function handleExtraLife(item: { id: string; name: string; price: number }) {
-    xAlert(item.name, `In-app purchases coming soon!`);
-  }
-
   return (
     <Reanimated.View style={[styles.root, { backgroundColor: colors.background }, focusStyle]}>
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.7} />
@@ -288,7 +220,7 @@ export default function ShopScreen() {
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
           <View style={[styles.coinDisplay, { backgroundColor: tactile.brass, borderColor: tactile.brassEdge, borderWidth: 2, borderRadius: 0 }]}>
             <Feather name="circle" size={14} color={paperText.ink} />
-            <Text style={[styles.coinAmount, { color: paperText.ink }]}>{profile.coins}</Text>
+            <Text style={[styles.coinAmount, { color: paperText.ink }]} accessibilityLabel={`${profile.coins} device coins`}>{profile.coins} device</Text>
           </View>
           <Pressable
             onPress={() => setRedeemVisible(true)}
@@ -304,15 +236,15 @@ export default function ShopScreen() {
 
       {/* Tabs */}
       <View accessibilityRole="tablist" style={[styles.tabRow, { borderBottomColor: colors.border }]}>
-        {(['skins', 'themes', 'powerups', 'extras', 'store'] as const).map(t => (
-          <Pressable key={t} accessibilityRole="tab" accessibilityState={{ selected: activeTab === t }} aria-selected={activeTab === t} accessibilityLabel={t === 'powerups' ? 'Power-ups' : t.charAt(0).toUpperCase() + t.slice(1)} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { backgroundColor: colors.primary, borderBottomColor: tactile.brassEdge }]}>
+        {(['skins', 'themes', 'extras', 'store'] as const).map(t => (
+          <Pressable key={t} accessibilityRole="tab" accessibilityState={{ selected: activeTab === t }} aria-selected={activeTab === t} accessibilityLabel={t === 'themes' ? 'Court themes and hit effects' : t.charAt(0).toUpperCase() + t.slice(1)} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { backgroundColor: colors.primary, borderBottomColor: tactile.brassEdge }]}>
             {activeTab === t ? (
               <Text style={[styles.tabText, { color: paperText.ink }]}>
-                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'store' ? 'STORE' : 'EXTRAS'}
+                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'COURT & HITS' : t === 'store' ? 'STORE' : 'EXTRAS'}
               </Text>
             ) : (
               <Text style={[styles.tabText, { color: colors.mutedForeground }]}>
-                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'THEMES' : t === 'powerups' ? 'POWER-UPS' : t === 'store' ? 'STORE' : 'EXTRAS'}
+                {t === 'skins' ? 'SKINS' : t === 'themes' ? 'COURT & HITS' : t === 'store' ? 'STORE' : 'EXTRAS'}
               </Text>
             )}
           </Pressable>
@@ -321,184 +253,8 @@ export default function ShopScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 14, paddingBottom: insets.bottom + 80 }}>
         <Shell style={{ gap: 10 }}>
-        {activeTab === 'skins' && (
-          <>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#252A2B' }}>PADDLE SKINS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#575D5C', letterSpacing: 1 }}>TAP OWNED TO EQUIP · COSMETIC ONLY</Text>
-            </View>
-            <View style={styles.skinGrid}>
-              {SKINS.map((skin, idx) => {
-                const owned = profile.ownedSkins.includes(skin.id);
-                const equipped = profile.currentSkin === skin.id;
-                return (
-                  <Reanimated.View
-                    key={skin.id}
-                    style={[styles.skinCard, { width: cardW,
-                      backgroundColor: equipped ? skin.color + '22' : colors.card,
-                      borderColor: equipped ? skin.color : owned ? skin.color + '55' : colors.border,
-                    }]}
-                  >
-                  <Pressable
-                    onPress={() => handleBuySkin(skin.id, skin.price, skin.name)}
-                    disabled={purchasing === skin.id}
-                    accessibilityRole="button"
-                    accessibilityLabel={equipped ? `${skin.name}, equipped` : owned ? `Equip ${skin.name}` : 'exclusive' in skin && skin.exclusive ? `${skin.name}, locked, earned from a Premium pass tier` : `Buy ${skin.name} for ${skin.price} coins`}
-                    accessibilityState={{ selected: equipped, disabled: purchasing === skin.id, busy: purchasing === skin.id }}
-                    aria-pressed={equipped}
-                    aria-disabled={purchasing === skin.id}
-                    aria-busy={purchasing === skin.id}
-                    style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1, width: '100%' }]}
-                  >
-                    <View style={[styles.skinPreview, { paddingVertical: 10, height: undefined }]}>
-                      <CosmeticPreview skin={skin} size={Math.min(cardW - 28, 132)} />
-                      {owned && !equipped && (
-                        <View style={[styles.ownedBadge, { backgroundColor: '#EDBA3C' }]}>
-                          <Text style={[styles.ownedText, { color: '#252A2B' }]}>OWNED</Text>
-                        </View>
-                      )}
-                      {equipped && (
-                        <View style={[styles.equippedBadge, { backgroundColor: '#EDBA3C' }]}>
-                          <Text style={styles.equippedText}>ON</Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={styles.skinInfo}>
-                      <Text style={[styles.skinName, { color: colors.foreground }]}>{skin.name}</Text>
-                      {!owned ? (
-                        <View style={styles.priceRow}>
-                          <Feather name="circle" size={10} color="#EDBA3C" />
-                          <Text style={styles.priceText}>{'exclusive' in skin && skin.exclusive ? 'Locked · Premium pass tier' : skin.price}</Text>
-                        </View>
-                      ) : (
-                        <Text style={[styles.ownedLabel, { color: colors.mutedForeground }]}>
-                          {equipped ? 'Equipped' : 'Owned · tap to equip'}
-                        </Text>
-                      )}
-                    </View>
-                  </Pressable>
-                  <Button label="Compare on court" size="sm" variant="ghost" accessibilityHint={`Previews ${skin.name} in a practice court without buying or equipping`} onPress={() => setCompareSkinId(skin.id)} style={{ alignSelf: 'stretch', margin: 8 }} />
-                  </Reanimated.View>
-                );
-              })}
-            </View>
-
-            {/* Ball Trails */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
-              <Text style={[styles.subsectionTitle, { color: colors.foreground, marginBottom: 0 }]}>BALL TRAILS</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#575D5C', letterSpacing: 1 }}>COMING SOON</Text>
-            </View>
-            {BALL_TRAILS.map(trail => (
-              <Pressable
-                key={trail.id}
-                onPress={() => Alert.alert('Coming Soon', 'Ball trails are coming in a future update!')}
-                style={[styles.itemRow, { backgroundColor: colors.card, borderColor: colors.border }]}
-              >
-                <View style={[styles.trailDot, { backgroundColor: trail.color, shadowColor: trail.color }]} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.itemName, { color: colors.foreground }]}>{trail.name}</Text>
-                  <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{trail.desc}</Text>
-                </View>
-                <View style={styles.priceRow}>
-                  <Feather name="circle" size={12} color="#EDBA3C" />
-                  <Text style={styles.priceText}>{trail.price}</Text>
-                </View>
-              </Pressable>
-            ))}
-          </>
-        )}
-
-        {activeTab === 'themes' && (
-          <>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#252A2B' }}>ARENA THEMES</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#575D5C', letterSpacing: 1 }}>UNAVAILABLE IN THIS BUILD</Text>
-            </View>
-            {ARENA_THEMES.map((theme, idx) => {
-              const owned = (profile.ownedThemes ?? ['default']).includes(theme.id);
-              const equipped = (profile.currentArenaTheme ?? 'default') === theme.id;
-              return (
-                <Reanimated.View key={theme.id}>
-                <Pressable
-                  onPress={async () => {
-                    xAlert('Unavailable', 'Arena theme purchases and equipping are unavailable in this build. Your saved ownership is preserved. No coins have been spent.');
-                  }}
-                  style={({ pressed }) => [styles.bundleCard, {
-                    backgroundColor: equipped ? theme.color + '22' : colors.card,
-                    borderColor: equipped ? theme.color : owned ? theme.color + '55' : colors.border,
-                    opacity: pressed ? 0.8 : 1,
-                  }]}
-                >
-                  <LinearGradient colors={theme.preview as [string,string]} style={styles.themePreview}>
-                    <View style={[styles.themeArena, { borderColor: theme.color + '66' }]}>
-                      <View style={[styles.themePaddle, { backgroundColor: theme.color }]} />
-                    </View>
-                  </LinearGradient>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.itemName, { color: colors.foreground }]}>{theme.name}</Text>
-                    <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>Unavailable · saved ownership preserved</Text>
-                    {owned && <Text style={[styles.ownedLabel, { color: colors.mutedForeground }]}>OWNED · PREVIEW ONLY</Text>}
-                  </View>
-                  {false && !owned && theme.price > 0 && (
-                    <View style={[styles.buyBtn, { backgroundColor: theme.color + '22', borderColor: theme.color + '55' }]}>
-                      <Feather name="circle" size={10} color="#EFBD3C" />
-                      <Text style={[styles.buyBtnText, { color: '#252A2B' }]}>{theme.price}</Text>
-                    </View>
-                  )}
-                  {!owned && theme.price === 0 && (
-                    <View style={[styles.buyBtn, { backgroundColor: '#EDBA3C', borderColor: '#252A2B' }]}>
-                      <Text style={[styles.buyBtnText, { color: '#252A2B' }]}>FREE</Text>
-                    </View>
-                  )}
-                </Pressable>
-                </Reanimated.View>
-              );
-            })}
-          </>
-        )}
-
-        {activeTab === 'powerups' && (
-          <>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: '#252A2B' }}>POWER-UP BUNDLES</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
-            </View>
-            {POWERUP_BUNDLES.map(bundle => (
-              <Pressable
-                key={bundle.id}
-                onPress={() => handleBuyBundle(bundle)}
-                style={({ pressed }) => [styles.bundleCard, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.8 : 1 }]}
-              >
-                <LinearGradient colors={[bundle.color + '22', bundle.color + '08']} style={StyleSheet.absoluteFill} />
-                <View style={[styles.bundleIcon, { backgroundColor: bundle.color + '22', borderColor: bundle.color + '44' }]}>
-                  <Feather name={bundle.icon as never} size={22} color={bundle.color} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.itemName, { color: colors.foreground }]}>{bundle.name}</Text>
-                  <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{bundle.desc}</Text>
-                </View>
-                <View style={[styles.buyBtn, { backgroundColor: '#EDBA3C', borderColor: '#252A2B' }]}>
-                  <Feather name="circle" size={10} color="#252A2B" />
-                  <Text style={[styles.buyBtnText, { color: '#252A2B' }]}>{bundle.price}</Text>
-                </View>
-              </Pressable>
-            ))}
-
-            {/* Earn coins section */}
-            <View style={[styles.earnCard, { backgroundColor: colors.card, borderColor: '#EDBA3C' }]}>
-              <Feather name="star" size={18} color="#EDBA3C" />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.earnTitle, { color: colors.foreground }]}>Earn Coins</Text>
-                <Text style={[styles.earnDesc, { color: colors.mutedForeground }]}>
-                  Win matches to earn coins. Victories pay 60 coins, losses pay 15 coins.
-                </Text>
-              </View>
-            </View>
-          </>
-        )}
+        {activeTab === 'skins' && <ShopCatalogPanel section="skins" />}
+        {activeTab === 'themes' && <ShopCatalogPanel section="court" />}
 
         {activeTab === 'extras' && (
           <>
@@ -777,7 +533,6 @@ export default function ShopScreen() {
       </ScrollView>
 
       <RedeemCodeModal visible={redeemVisible} onClose={() => setRedeemVisible(false)} />
-      {compareSkinId && <SkinComparison key={compareSkinId} skinId={compareSkinId} onClose={() => setCompareSkinId(null)} />}
       <Modal visible={nativeConfirmationVisible} transparent animationType="fade" onRequestClose={() => setPendingNativeProduct(null)}>
         <View style={storeStyles.confirmBackdrop}>
           <View style={[storeStyles.confirmCard, { backgroundColor: colors.card }]}>

@@ -1,46 +1,47 @@
-// Static court preview for paddle cosmetics. Uses only existing catalog fields
-// (id, color, exclusive) plus the four-sided court semantics from matches:
-// your paddle sits on the south wall, three bot seats on the other walls.
+// Static court preview for paddle cosmetics. Renders the real catalog artwork
+// on the south wall (your seat), three bot seats on the other walls.
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { artworkFor, type Artwork } from '@workspace/goldrush-catalog/cosmetics';
 
 import { PLAYER_COLORS, tactile } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { PaddleArt, MOTIF_LABEL, TEXTURE_LABEL } from '@/components/cosmetics/PaddleArt';
 
-type SkinLike = { id: string; name: string; color: string; exclusive?: boolean };
+type SkinLike = { id: string; name: string; color?: string; exclusive?: boolean };
 
-function Paddle({ color, w, h }: { color: string; w: number; h: number }) {
-  return (
-    <View style={{ width: w, height: h, backgroundColor: color, borderWidth: 1.5, borderColor: tactile.courtInk }} />
-  );
-}
-
-/** Still colour preview, not a promise of materials or shapes absent from gameplay. */
-export function CosmeticPreview({ skin, size = 120, showLabel = true }: { skin: SkinLike; size?: number; showLabel?: boolean }) {
+/** Artwork preview at the real paddle proportions used in matches. Cosmetic only. */
+export function CosmeticPreview({ skin, artwork, size = 120, showLabel = true }: { skin: SkinLike; artwork?: Artwork; size?: number; showLabel?: boolean }) {
+  const design = artwork ?? artworkFor(skin.id);
   const pw = Math.round(size * 0.42);
-  const ph = Math.max(8, Math.round(size * 0.09));
+  // Match in-game ratio: 88 x 14.
+  const ph = Math.max(8, Math.round(pw * 14 / 88));
   const bot = Math.round(size * 0.24);
+  const label = `${MOTIF_LABEL[design.motif] ?? 'Artwork'}, ${(TEXTURE_LABEL[design.texture] ?? 'Flat print').toLowerCase()}`;
   return (
     <View
       accessible
-      accessibilityLabel={`${skin.name} colour preview, shown on the south wall of the court. Cosmetic only.`}
+      accessibilityLabel={`${skin.name} paddle artwork: ${label}. Shown on the south wall of the court. Cosmetic only, no gameplay effect.`}
       style={{ alignItems: 'center', gap: 6 }}
     >
       <View style={[c.frame, { width: size, height: size }]}>
         <View style={c.court}>
-          <View style={[c.midH]} />
+          <View style={c.midH} />
           <View style={[c.circle, { width: size * 0.3, height: size * 0.3, marginLeft: -size * 0.15, marginTop: -size * 0.15 }]} />
-          {/* bot seats: north, west, east */}
           <View style={[c.botN, { width: bot, backgroundColor: PLAYER_COLORS[1] }]} />
           <View style={[c.botW, { height: bot, backgroundColor: PLAYER_COLORS[2] }]} />
           <View style={[c.botE, { height: bot, backgroundColor: PLAYER_COLORS[3] }]} />
           <View style={[c.ball, { left: size * 0.56, top: size * 0.58 }]} />
           <View style={[c.south, { bottom: 6 }]}>
-            <Paddle color={skin.color} w={pw} h={ph} />
+            <PaddleArt design={design} width={pw} height={ph} />
           </View>
         </View>
       </View>
-      {showLabel ? <Text style={c.material} numberOfLines={1}>{skin.exclusive ? 'Exclusive cosmetic' : 'Colour preview'}</Text> : null}
+      {showLabel ? (
+        <Text style={c.material} numberOfLines={1}>
+          {skin.exclusive ? `Exclusive · ${label}` : label}
+        </Text>
+      ) : null}
     </View>
   );
 }

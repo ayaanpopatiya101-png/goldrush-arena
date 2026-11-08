@@ -24,10 +24,17 @@ import type {
   AvatarInfo,
   AvatarSharingInput,
   AvatarUploadInput,
+  CosmeticEquipInput,
+  CosmeticOfferInput,
+  CosmeticPurchaseInput,
+  CosmeticState,
+  DesignAssistInput,
+  DesignAssistResult,
   GetCompetition200,
   HealthStatus,
   LiveResult,
   LiveRoom,
+  PaddleDesign,
   PlayerSession,
   QueueInput,
   RequestAvatarUpload200
@@ -44,6 +51,466 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
+
+export const getGetCosmeticsUrl = () => {
+
+
+
+
+  return `/api/cosmetics`
+}
+
+export const getCosmetics = async ( options?: RequestInit): Promise<CosmeticState> => {
+
+  return customFetch<CosmeticState>(getGetCosmeticsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCosmeticsQueryKey = () => {
+    return [
+    `/api/cosmetics`
+    ] as const;
+    }
+
+
+export const getGetCosmeticsQueryOptions = <TData = Awaited<ReturnType<typeof getCosmetics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCosmetics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCosmeticsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCosmetics>>> = ({ signal }) => getCosmetics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCosmetics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCosmeticsQueryResult = NonNullable<Awaited<ReturnType<typeof getCosmetics>>>
+export type GetCosmeticsQueryError = ErrorType<unknown>
+
+
+
+export function useGetCosmetics<TData = Awaited<ReturnType<typeof getCosmetics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCosmetics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCosmeticsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSavePaddleDesignUrl = () => {
+
+
+
+
+  return `/api/cosmetics/designs`
+}
+
+export const savePaddleDesign = async (paddleDesign: PaddleDesign, options?: RequestInit): Promise<CosmeticState> => {
+
+  return customFetch<CosmeticState>(getSavePaddleDesignUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      paddleDesign,)
+  }
+);}
+
+
+
+
+export const getSavePaddleDesignMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof savePaddleDesign>>, TError,{data: BodyType<PaddleDesign>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof savePaddleDesign>>, TError,{data: BodyType<PaddleDesign>}, TContext> => {
+
+const mutationKey = ['savePaddleDesign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof savePaddleDesign>>, {data: BodyType<PaddleDesign>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  savePaddleDesign(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SavePaddleDesignMutationResult = NonNullable<Awaited<ReturnType<typeof savePaddleDesign>>>
+    export type SavePaddleDesignMutationBody = BodyType<PaddleDesign>
+    export type SavePaddleDesignMutationError = ErrorType<unknown>
+
+    export const useSavePaddleDesign = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof savePaddleDesign>>, TError,{data: BodyType<PaddleDesign>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof savePaddleDesign>>,
+        TError,
+        {data: BodyType<PaddleDesign>},
+        TContext
+      > => {
+      return useMutation(getSavePaddleDesignMutationOptions(options));
+    }
+
+export const getDeletePaddleDesignUrl = (id: string,) => {
+
+
+
+
+  return `/api/cosmetics/designs/${id}`
+}
+
+export const deletePaddleDesign = async (id: string, options?: RequestInit): Promise<CosmeticState> => {
+
+  return customFetch<CosmeticState>(getDeletePaddleDesignUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeletePaddleDesignMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePaddleDesign>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deletePaddleDesign>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deletePaddleDesign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePaddleDesign>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deletePaddleDesign(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeletePaddleDesignMutationResult = NonNullable<Awaited<ReturnType<typeof deletePaddleDesign>>>
+
+    export type DeletePaddleDesignMutationError = ErrorType<unknown>
+
+    export const useDeletePaddleDesign = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePaddleDesign>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deletePaddleDesign>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeletePaddleDesignMutationOptions(options));
+    }
+
+export const getEquipCosmeticUrl = () => {
+
+
+
+
+  return `/api/cosmetics/equip`
+}
+
+export const equipCosmetic = async (cosmeticEquipInput: CosmeticEquipInput, options?: RequestInit): Promise<CosmeticState> => {
+
+  return customFetch<CosmeticState>(getEquipCosmeticUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      cosmeticEquipInput,)
+  }
+);}
+
+
+
+
+export const getEquipCosmeticMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof equipCosmetic>>, TError,{data: BodyType<CosmeticEquipInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof equipCosmetic>>, TError,{data: BodyType<CosmeticEquipInput>}, TContext> => {
+
+const mutationKey = ['equipCosmetic'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof equipCosmetic>>, {data: BodyType<CosmeticEquipInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  equipCosmetic(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EquipCosmeticMutationResult = NonNullable<Awaited<ReturnType<typeof equipCosmetic>>>
+    export type EquipCosmeticMutationBody = BodyType<CosmeticEquipInput>
+    export type EquipCosmeticMutationError = ErrorType<unknown>
+
+    export const useEquipCosmetic = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof equipCosmetic>>, TError,{data: BodyType<CosmeticEquipInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof equipCosmetic>>,
+        TError,
+        {data: BodyType<CosmeticEquipInput>},
+        TContext
+      > => {
+      return useMutation(getEquipCosmeticMutationOptions(options));
+    }
+
+export const getPurchaseCosmeticUrl = () => {
+
+
+
+
+  return `/api/cosmetics/purchase`
+}
+
+export const purchaseCosmetic = async (cosmeticPurchaseInput: CosmeticPurchaseInput, options?: RequestInit): Promise<CosmeticState> => {
+
+  return customFetch<CosmeticState>(getPurchaseCosmeticUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      cosmeticPurchaseInput,)
+  }
+);}
+
+
+
+
+export const getPurchaseCosmeticMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof purchaseCosmetic>>, TError,{data: BodyType<CosmeticPurchaseInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof purchaseCosmetic>>, TError,{data: BodyType<CosmeticPurchaseInput>}, TContext> => {
+
+const mutationKey = ['purchaseCosmetic'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof purchaseCosmetic>>, {data: BodyType<CosmeticPurchaseInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  purchaseCosmetic(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PurchaseCosmeticMutationResult = NonNullable<Awaited<ReturnType<typeof purchaseCosmetic>>>
+    export type PurchaseCosmeticMutationBody = BodyType<CosmeticPurchaseInput>
+    export type PurchaseCosmeticMutationError = ErrorType<unknown>
+
+    export const usePurchaseCosmetic = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof purchaseCosmetic>>, TError,{data: BodyType<CosmeticPurchaseInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof purchaseCosmetic>>,
+        TError,
+        {data: BodyType<CosmeticPurchaseInput>},
+        TContext
+      > => {
+      return useMutation(getPurchaseCosmeticMutationOptions(options));
+    }
+
+export const getRespondCosmeticOfferUrl = () => {
+
+
+
+
+  return `/api/cosmetics/offer`
+}
+
+export const respondCosmeticOffer = async (cosmeticOfferInput: CosmeticOfferInput, options?: RequestInit): Promise<CosmeticState> => {
+
+  return customFetch<CosmeticState>(getRespondCosmeticOfferUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      cosmeticOfferInput,)
+  }
+);}
+
+
+
+
+export const getRespondCosmeticOfferMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof respondCosmeticOffer>>, TError,{data: BodyType<CosmeticOfferInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof respondCosmeticOffer>>, TError,{data: BodyType<CosmeticOfferInput>}, TContext> => {
+
+const mutationKey = ['respondCosmeticOffer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof respondCosmeticOffer>>, {data: BodyType<CosmeticOfferInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  respondCosmeticOffer(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RespondCosmeticOfferMutationResult = NonNullable<Awaited<ReturnType<typeof respondCosmeticOffer>>>
+    export type RespondCosmeticOfferMutationBody = BodyType<CosmeticOfferInput>
+    export type RespondCosmeticOfferMutationError = ErrorType<unknown>
+
+    export const useRespondCosmeticOffer = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof respondCosmeticOffer>>, TError,{data: BodyType<CosmeticOfferInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof respondCosmeticOffer>>,
+        TError,
+        {data: BodyType<CosmeticOfferInput>},
+        TContext
+      > => {
+      return useMutation(getRespondCosmeticOfferMutationOptions(options));
+    }
+
+export const getAssistPaddleDesignUrl = () => {
+
+
+
+
+  return `/api/openai/paddle-design`
+}
+
+export const assistPaddleDesign = async (designAssistInput: DesignAssistInput, options?: RequestInit): Promise<DesignAssistResult> => {
+
+  return customFetch<DesignAssistResult>(getAssistPaddleDesignUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      designAssistInput,)
+  }
+);}
+
+
+
+
+export const getAssistPaddleDesignMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assistPaddleDesign>>, TError,{data: BodyType<DesignAssistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof assistPaddleDesign>>, TError,{data: BodyType<DesignAssistInput>}, TContext> => {
+
+const mutationKey = ['assistPaddleDesign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assistPaddleDesign>>, {data: BodyType<DesignAssistInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  assistPaddleDesign(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AssistPaddleDesignMutationResult = NonNullable<Awaited<ReturnType<typeof assistPaddleDesign>>>
+    export type AssistPaddleDesignMutationBody = BodyType<DesignAssistInput>
+    export type AssistPaddleDesignMutationError = ErrorType<unknown>
+
+    export const useAssistPaddleDesign = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assistPaddleDesign>>, TError,{data: BodyType<DesignAssistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof assistPaddleDesign>>,
+        TError,
+        {data: BodyType<DesignAssistInput>},
+        TContext
+      > => {
+      return useMutation(getAssistPaddleDesignMutationOptions(options));
+    }
 
 export const getRetireAvatarIdentityUrl = () => {
 

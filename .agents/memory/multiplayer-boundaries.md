@@ -20,3 +20,9 @@ Keep legacy local competitive levels as historical accomplishments, not a seed f
 **Why:** Legacy levels included bot matches and editable local saves. Removing them would erase accomplishments; trusting them would undermine real-player placements.
 
 **How to apply:** Display service progression and verified seasonal competition separately, preserving historical records during future season changes.
+
+Cosmetic purchases must use verified online earnings, not imported device coin balances. Preserve legacy owned items through local visual selection, not by converting them into trusted server grants.
+
+**Why:** Existing cash entitlements and local progress must survive upgrades, but editable device balances cannot become spendable server currency. A visual legacy selection does not prove server ownership.
+
+**How to apply:** Label the two balances clearly; keep new purchases atomic and server priced, and never debit both wallets or charge again for a previously owned local item.

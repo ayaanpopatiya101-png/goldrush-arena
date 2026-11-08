@@ -5,6 +5,8 @@ import { Button, ui } from '@/components/ui/Primitives';
 import { SKINS, usePlayer } from '@/context/PlayerContext';
 import { useBlockingOverlay } from '@/context/OverlayQueue';
 import { fonts } from '@/constants/typography';
+import { artworkFor } from '@workspace/goldrush-catalog/cosmetics';
+import { PaddleArt } from '@/components/cosmetics/PaddleArt';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /** Uses the same paddle renderer as matches, without touching ownership or balances. */
@@ -31,8 +33,9 @@ export function SkinComparison({ skinId, onClose }: { skinId: string; onClose: (
         {profile.ownedSkins.includes(candidate.id) ? 'Owned' : 'exclusive' in candidate && candidate.exclusive ? 'Locked to its pass reward' : `${candidate.price} coins`}
         {' · Cosmetic only. Comparing never buys or equips.'}
       </Text>
+      <PaddleArt design={artworkFor(item.id)} width={Math.min(size, 220)} height={26} />
       {visible && <View style={{ width: size, height: size }}>
-        <GameArena key={`${item.id}-${run}`} arenaSize={size} playerName="You" playerColor={item.color} playerGlowColor={item.glowColor}
+        <GameArena key={`${item.id}-${run}`} arenaSize={size} playerName="You" playerColor={item.color} playerGlowColor={item.glowColor} artwork={artworkFor(item.id)}
           botNames={['North bot', 'West bot', 'East bot']} botRanks={['Bronze 1', 'Bronze 1', 'Bronze 1']}
           practice paused={!running} soundEnabled={false} botDifficulty="easy" botSkill={0}
           onGameOver={() => setRun(value => value + 1)} />
