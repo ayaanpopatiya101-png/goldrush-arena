@@ -21,6 +21,7 @@ import { trackEvent } from '@/utils/analytics';
 import { clearCompletedMatch } from '@/store/completedMatch';
 import { Button } from '@/components/ui/Primitives';
 import { palette, tactile } from '@/constants/colors';
+import OnlineMatch from '@/components/multiplayer/OnlineMatch';
 
 const BOT_NAMES  = ['Blaze_99', 'IceQueen', 'Venom_X', 'ShadowFox', 'CyberWolf'];
 const BOT_RANKS  = ['Gold', 'Platinum', 'Diamond', 'Master 1', 'Master 2'];
@@ -63,6 +64,10 @@ function fmtTime(secs: number) {
 }
 
 export default function GameScreen() {
+  if (getGameConfig().onlineMatchId) return <OnlineMatch />;
+  return <OfflineGameScreen />;
+}
+function OfflineGameScreen() {
   const { width, height } = useWindowDimensions();
   const insets   = useSafeAreaInsets();
   const { addMatchResult, profile, consumeExtraLives } = usePlayer();
@@ -336,7 +341,7 @@ export default function GameScreen() {
         await addMatchResult({
           won: result.won, xpEarned: finalXP, coinsEarned: finalCoins,
           deflections: result.deflections, goalsAgainst: result.goalsAgainst,
-          position: result.position, matchType: 'ranked', opponentLevels,
+          position: result.position, matchType: 'casual', opponentLevels,
         });
       } catch {
         setCompletionError('Saving this round could not be confirmed. Check device storage and your Profile before playing again. Results are unavailable to avoid showing unconfirmed rewards.');
@@ -358,7 +363,8 @@ export default function GameScreen() {
     }
 
     // ── Normal match completion ───────────────────────────────────────────────
-    const mt   = matchType as 'ranked' | 'casual';
+    // Local bots and offline variants never change competitive human-match rating.
+    const mt = 'casual' as const;
     const ev   = getActiveEvent();
     clearActiveEvent();
     const qCtx = getQualifierContext();

@@ -12,7 +12,7 @@ Record the exact commit, signed build and device for every asset. Capture:
 4. Collection comparison with an actually owned/equipped paddle.
 5. Practice controls and accessibility settings.
 
-Use genuine gameplay and entitlements, not fabricated placement, live opponents, global standings or purchases. Do not imply online synchronized PvP. Preserve the icon and licensed fonts until a creator-approved replacement exists.
+Use genuine gameplay and entitlements, not fabricated placement, opponents, global standings or purchases. Online PvP now has automated protocol evidence, but capture it on signed physical devices before using it in store screenshots. Preserve the icon and licensed fonts until a creator-approved replacement exists.
 
 ## Listing copy candidate
 

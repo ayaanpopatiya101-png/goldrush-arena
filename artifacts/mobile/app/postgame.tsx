@@ -53,10 +53,10 @@ function EmoteButton({ emoji, selected, onPress }: { emoji: string; selected: bo
 }
 
 export default function PostGameScreen() {
-  const rawParams = useLocalSearchParams();
   const { currentUsername } = usePlayer();
   const receipt = getCompletedMatch();
-  if ((!rawParams.won && !rawParams.xpEarned) || !receipt || receipt.username !== currentUsername) {
+  // A saved, profile-owned receipt is the authority, not optional URL display parameters.
+  if (!receipt || receipt.username !== currentUsername) {
     return (
       <View style={{ flex: 1, backgroundColor: palette.ink, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <View style={{ width: '100%', maxWidth: 520, gap: 16 }}>

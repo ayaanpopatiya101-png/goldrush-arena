@@ -11,6 +11,57 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /multiplayer/session:
+    post:
+      operationId: createPlayerSession
+      responses:
+        "200":
+          description: Server-issued device identity
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlayerSession" }
+  /multiplayer/queue:
+    post:
+      operationId: joinLiveQueue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/QueueInput" }
+      responses:
+        "200":
+          description: Authorized room
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiveRoom" }
+    delete:
+      operationId: leaveLiveQueue
+      responses:
+        "204":
+          description: Left queue or forfeited live match
+  /multiplayer/current:
+    get:
+      operationId: getLiveRoom
+      responses:
+        "200":
+          description: Current authorized room
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiveRoom" }
+  /multiplayer/result/{matchId}:
+    get:
+      operationId: getLiveResult
+      parameters:
+        - in: path
+          name: matchId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Immutable server-validated reward receipt belonging to this player
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiveResult" }
   /healthz:
     get:
       operationId: healthCheck
@@ -26,6 +77,81 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    PlayerSession:
+      type: object
+      required: [playerId, token]
+      properties:
+        playerId: { type: string }
+        token: { type: string }
+    QueueInput:
+      type: object
+      required: [name, color, mode, variant, latency]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 24 }
+        color: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+        mode: { type: string, enum: [ranked, casual] }
+        variant: { type: string, enum: [classic, blitz, chaos, survival, sudden_death, turbo, pinball, duos] }
+        latency: { type: number, minimum: 0, maximum: 2000 }
+        partyCode: { type: string, pattern: "^[A-Z2-9]{6}$" }
+    LivePlayer:
+      type: object
+      required: [id, name, color, seat, isBot, connected, paddle, lives, hits, goals, place, rating]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        color: { type: string }
+        seat: { type: integer }
+        isBot: { type: boolean }
+        connected: { type: boolean }
+        paddle: { type: number }
+        lives: { type: integer }
+        hits: { type: integer }
+        goals: { type: integer }
+        place: { type: integer }
+        rating: { type: integer }
+    LiveBall:
+      type: object
+      required: [id, x, y]
+      properties:
+        id: { type: integer }
+        x: { type: number }
+        y: { type: number }
+    LiveRoom:
+      type: object
+      required: [id, phase, mode, variant, region, players, balls, tick, serverTime, startAt, createdAt, reason]
+      properties:
+        id: { type: string }
+        phase: { type: string, enum: [waiting, countdown, playing, saving, finished, void] }
+        mode: { type: string, enum: [ranked, casual] }
+        variant: { type: string }
+        region: { type: string }
+        players:
+          type: array
+          items: { $ref: "#/components/schemas/LivePlayer" }
+        balls:
+          type: array
+          items: { $ref: "#/components/schemas/LiveBall" }
+        tick: { type: integer }
+        serverTime: { type: number }
+        startAt: { type: number }
+        createdAt: { type: number }
+        reason: { type: string }
+    LiveResult:
+      type: object
+      required: [matchId, playerId, won, position, deflections, goalsAgainst, xpEarned, coinsEarned, matchType, humanCount, ratingBefore, ratingAfter]
+      properties:
+        matchId: { type: string }
+        playerId: { type: string }
+        won: { type: boolean }
+        position: { type: integer }
+        deflections: { type: integer }
+        goalsAgainst: { type: integer }
+        xpEarned: { type: integer }
+        coinsEarned: { type: integer }
+        matchType: { type: string, enum: [ranked, casual] }
+        humanCount: { type: integer }
+        ratingBefore: { type: integer }
+        ratingAfter: { type: integer }
     HealthStatus:
       type: object
       properties:

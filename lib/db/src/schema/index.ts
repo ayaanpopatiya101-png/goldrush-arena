@@ -1,4 +1,5 @@
 import { pgTable, text, boolean, timestamp } from "drizzle-orm/pg-core";
+export * from "./multiplayer";
 
 export const purchaseCodes = pgTable("purchase_codes", {
   code:       text("code").primaryKey(),

@@ -41,6 +41,7 @@ import { useSoundFX } from '@/hooks/useSoundFX';
 import { apiUrl } from '@/utils/api';
 import { Glyph } from '@/components/ui/Glyph';
 import { staticLoop } from '@/components/ui/motion';
+import OnlineMatch, { isOnlineMode } from '@/components/multiplayer/OnlineMatch';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface MatchPlayer {
@@ -222,6 +223,11 @@ function CountdownOverlay({ countdown }: { countdown: number }) {
 
 // ─── Screen ────────────────────────────────────────────────────────────────────
 export default function LobbyScreen() {
+  if (hasGameConfig() && isOnlineMode()) return <OnlineMatch />;
+  return <OfflineLobbyScreen />;
+}
+
+function OfflineLobbyScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { profile } = usePlayer();

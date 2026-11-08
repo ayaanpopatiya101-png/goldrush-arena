@@ -10,3 +10,4 @@
 - [Expo accessibility](expo-accessibility.md) — native state props need explicit ARIA equivalents in the browser build; verify actual state changes, not only roles.
 - [Theme migration checks](theme-migration-checks.md) — semantic-token contrast tests do not catch per-page legacy colours or translucent text.
 - [Toolchain security](toolchain-security.md) — align Vite optional peers across aliases; legacy Expo Node tooling needs CommonJS-compatible UUID patches.
+- [Multiplayer boundaries](multiplayer-boundaries.md) — server awards stay separate from untrusted local balances; live rooms need one authoritative process.

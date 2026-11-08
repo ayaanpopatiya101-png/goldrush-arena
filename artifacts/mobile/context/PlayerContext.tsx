@@ -7,6 +7,8 @@ import { setCompletedMatch, type CompletedMatch } from '@/store/completedMatch';
 import { trackEvent } from '@/utils/analytics';
 import { rankIndexForName } from '@/utils/rankIndex';
 import { canClaimSeasonTier, seasonSkinForMilestone } from '@/utils/seasonRewards';
+import { getLiveResult } from '@workspace/api-client-react';
+import { arenaRequestOptions } from '@/utils/arenaSession';
 
 // ─── Ranks & Skins ────────────────────────────────────────────────────────────
 // 20 ranks: Bronze/Silver/Gold/Diamond/Master (×3 each) + Champion (×5, top-100 leaderboard)
@@ -919,6 +921,8 @@ export interface PlayerProfile {
 }
 
 export interface MatchResult {
+  /** Explicit server receipt, also used to recover a completed forfeited match. */
+  serverMatchId?: string;
   receipt?: CompletedMatch;
   transactionId?: string;
   id: string; won: boolean; xpEarned: number; coinsEarned: number;
@@ -1194,6 +1198,11 @@ export function PlayerProvider({ username, onLogout, children }: {
   }, [profile, save]);
 
   const addMatchResult = useCallback(async (result: Omit<MatchResult, 'id'|'timestamp'> & { eventBonus?: { xp: number; coins: number; credits: number } }) => {
+    const onlineId = result.serverMatchId ?? getGameConfig().onlineMatchId;
+    if (onlineId) {
+      const verified = await getLiveResult(onlineId, await arenaRequestOptions(username));
+      result = { ...verified, transactionId: verified.matchId, eventBonus: { xp: 0, coins: 0, credits: 0 } };
+    }
     const id = result.transactionId ?? getGameConfig().matchId;
     if (!id) throw new Error('No match identity; reward was not applied.');
     const pending = matchSaves.current.get(id);
@@ -1208,7 +1217,7 @@ export function PlayerProvider({ username, onLogout, children }: {
     const levelDelta = calcTrueSkillDelta(result.position, profile.competitiveLevel, opponentLevels, matchType);
     const newCompLevel = Math.max(1, Math.min(50, profile.competitiveLevel + levelDelta));
     // Apply featured mode multipliers (set when player opts in via Events tab)
-    const { featuredCoinMult: _fcm = 1, featuredXpMult: _fxm = 1 } = getGameConfig();
+    const { featuredCoinMult: _fcm = 1, featuredXpMult: _fxm = 1 } = onlineId ? {} : getGameConfig();
     const finalXpEarned    = _fxm !== 1 ? Math.round(result.xpEarned   * _fxm) : result.xpEarned;
     const finalCoinsEarned = _fcm !== 1 ? Math.round(result.coinsEarned * _fcm) : result.coinsEarned;
     const eventBonus = result.eventBonus ?? { xp: 0, coins: 0, credits: 0 };

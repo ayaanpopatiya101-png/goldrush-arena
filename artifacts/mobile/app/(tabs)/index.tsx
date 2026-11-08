@@ -66,6 +66,8 @@ const MODES: ModeDef[] = [
 function opponentLabel(m: ModeDef): string {
   if (m.kind === 'arcade' || m.kind === 'challenge') return 'Solo, no opponents';
   if (m.kind === 'gauntlet') return 'Local bots, multi-round';
+  if (m.kind === 'ranked') return 'Four real players';
+  if (m.kind === 'casual' || (m.kind === 'variant' && m.variant !== 'six_player')) return 'Online, labeled AI fallback';
   return 'Local bots';
 }
 
@@ -208,10 +210,13 @@ export default function HomeScreen() {
     };
   }
 
-  function launchMatch(matchType: MatchType, variant: GameVariant) {
+  async function launchMatch(matchType: MatchType, variant: GameVariant) {
     if (waitingOnLeader) return;
     setGameConfig({ ...baseConfig(), matchType, variant });
-    if (isInParty && isLeader) launchParty({ matchType, variant });
+    if (isInParty && isLeader && !await launchParty({ matchType, variant })) {
+      setChallengeError('The party could not launch. Check your connection and choose an online four-seat mode.');
+      return;
+    }
     router.push('/lobby');
   }
 
@@ -416,7 +421,7 @@ export default function HomeScreen() {
                 <Text style={s.selectedDesc}>{selected.desc}</Text>
                 <View style={s.ruleRow}>
                   <Text style={s.paperRule}>{selected.sub} · {opponentLabel(selected)}</Text>
-                  <Text style={s.paperRule}>{selected.kind === 'ranked' || selected.kind === 'elite' ? 'Competitive level changes' : 'Competitive level unchanged'}</Text>
+                  <Text style={s.paperRule}>{selected.kind === 'ranked' ? 'Competitive level changes' : 'Competitive level unchanged'}</Text>
                 </View>
               </View>
               {selectedLocked ? <Chip label={`Requires ${selected.lockLabel ?? 'higher rank'}`} tone="clay" /> : null}
@@ -431,7 +436,7 @@ export default function HomeScreen() {
               onPress={handlePlay}
               style={s.playButton}
             />
-            {challengeError && selected.kind === 'challenge' ? (
+            {challengeError ? (
               <View style={s.errorRow}>
                 <Text style={s.errorText}>{challengeError}</Text>
                 <Button label="Retry" size="sm" variant="ghost" onPress={startChallenge} />
@@ -520,8 +525,8 @@ export default function HomeScreen() {
               ))}
               <Text style={[s.note, { paddingHorizontal: 12, paddingBottom: 12 }]}>
                 {isLeader
-                  ? 'You lead. Pick a four-seat mode and press Play to send the party to the lobby. In the arena, seats not filled by you are played by local bots.'
-                  : 'Waiting for the leader to launch. In the arena, seats not filled by you are played by local bots.'}
+                  ? 'You lead. Choose an online four-seat mode and press Play. Ranked waits for humans; Casual may fill empty seats with labeled AI.'
+                  : 'Waiting for the leader to launch a shared online match.'}
               </Text>
             </Panel>
           )}

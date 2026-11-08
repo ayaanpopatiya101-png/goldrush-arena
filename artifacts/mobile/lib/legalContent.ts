@@ -1,5 +1,5 @@
 // Product disclosures, not a legal opinion. Owner review is a release gate.
-export const PRIVACY_POLICY = `Updated 6 November 2026 · Pre-release disclosure
+export const PRIVACY_POLICY = `Updated 8 November 2026 · Pre-release disclosure
 
 This describes the current GoldRush Arena build. The publisher must confirm its legal identity, support contact, retention rules and public policy URL before public release. This text is not a claim of legal compliance.
 
@@ -7,7 +7,7 @@ This describes the current GoldRush Arena build. The publisher must confirm its 
 Your chosen player name, avatar selection, progress, inventory, purchase fulfillment records, settings and saved match clips are stored locally. These are device profiles, not authenticated cloud accounts. Signing out does not delete a profile. Removing app data can erase progress and locally saved clips. There is no general cloud-save recovery.
 
 2. Online features
-Party and matchmaking requests send player identifiers, chosen names, rank, appearance and party membership to the game server. Referral codes and rewards, daily challenges and score submissions also use the server. Avoid using personal information in your player name. Party/matchmaking and referral state may be lost on a server restart. Party membership does not mean that a match is synchronized human multiplayer: the current arena runs local bot opponents.
+Party and matchmaking requests send a server-issued guest identifier, chosen name, appearance, party membership and latency information to the game server. Supported online matches send paddle inputs and receive synchronized state. The server stores guest credential hashes, skill values, earned online totals and completed match receipts. Native guest credentials use secure device storage; browser credentials use local origin storage. These identities are not verified email accounts or general cloud saves. Referral codes and rewards, daily challenges and score submissions also use the server. Avoid personal information in player names. Active rooms and party state can be lost on a server restart; completed online receipts persist. Casual fallback opponents are labeled AI, while Ranked waits for humans.
 
 3. Purchases
 Web purchases use Stripe-hosted checkout. Native digital purchases use the device app store through RevenueCat when configured. These providers process transaction and device/customer identifiers under their own policies. The game uses transaction identifiers or redemption codes to fulfill virtual goods and prevent duplicate grants. The game does not ask you to enter payment-card details inside its own screens. Consumable coins and lives are not a general cloud backup; restore cannot guarantee recovery of spent or device-local consumables.
@@ -29,7 +29,7 @@ export const TERMS_OF_SERVICE = `Updated 6 November 2026 · Pre-release terms
 These product terms require publisher and legal review before public release. They do not remove any mandatory consumer rights.
 
 1. Playing the game
-GoldRush Arena is an arcade paddle game. Current arena matches run on the device against bots. Online parties and matchmaking coordinate entry but are not an authoritative, synchronized four-human game. Network features may be unavailable, reset or change during pre-release testing.
+GoldRush Arena is an arcade paddle game. Supported Ranked and Casual modes use synchronized server-controlled matches. Ranked waits for four humans; Casual may fill empty seats with labeled AI. Practice and unsupported online variants remain local bot modes. Online play cannot pause and disconnecting can eliminate your paddle. Active rooms may be interrupted during server restarts without fabricated rewards. Network features may be unavailable or change during pre-release testing.
 
 2. Device profiles
 Names and avatars identify local profiles, not verified identities. You are responsible for keeping your device and purchase codes secure. Local progress and clips may be lost if app data is removed. No general cloud recovery is promised.

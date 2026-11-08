@@ -14,6 +14,8 @@ export type GameVariant =
   | 'warlord';
 
 export interface GameSessionConfig {
+  /** Server authority; never interpreted as a locally simulated ranked match. */
+  onlineMatchId?: string;
   /** Stable award identity, generated for each newly configured match. */
   matchId?: string;
   playerName:      string;
@@ -80,6 +82,7 @@ export function startRematch() {
   if (!_configured) throw new Error('Choose a mode before starting another match.');
   setGameConfig({
     ..._config,
+    onlineMatchId: undefined,
     countdownComplete: false,
     bankLivesUsed: 0,
     opponentNames: undefined,
