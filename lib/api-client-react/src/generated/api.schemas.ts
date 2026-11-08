@@ -5,6 +5,39 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface AvatarSharingInput {
+  shared: boolean;
+}
+
+export type AvatarUploadInputContentType = typeof AvatarUploadInputContentType[keyof typeof AvatarUploadInputContentType];
+
+
+export const AvatarUploadInputContentType = {
+  'image/jpeg': 'image/jpeg',
+  'image/png': 'image/png',
+  'image/webp': 'image/webp',
+} as const;
+
+export interface AvatarUploadInput {
+  /**
+     * @minimum 1
+     * @maximum 5242880
+     */
+  size: number;
+  contentType: AvatarUploadInputContentType;
+}
+
+export interface AvatarCommitInput {
+  uploadId: string;
+  shared: boolean;
+}
+
+export interface AvatarInfo {
+  /** @nullable */
+  id: string | null;
+  shared: boolean;
+}
+
 export interface CompetitiveSeason {
   season: string;
   rating: number;
@@ -65,6 +98,8 @@ export interface QueueInput {
 }
 
 export interface LivePlayer {
+  /** @nullable */
+  avatarUrl?: string | null;
   id: string;
   name: string;
   color: string;
@@ -146,6 +181,11 @@ export interface LiveResult {
 export interface HealthStatus {
   status: string;
 }
+
+export type RequestAvatarUpload200 = {
+  id: string;
+  uploadUrl: string;
+};
 
 export type GetCompetition200 = {
   current: CompetitiveSeason;

@@ -11,3 +11,4 @@
 - [Theme migration checks](theme-migration-checks.md) — semantic-token contrast tests do not catch per-page legacy colours or translucent text.
 - [Toolchain security](toolchain-security.md) — align Vite optional peers across aliases; legacy Expo Node tooling needs CommonJS-compatible UUID patches.
 - [Multiplayer boundaries](multiplayer-boundaries.md) — server awards stay separate from untrusted local balances; live rooms need one authoritative process.
+- [Avatar privacy](avatar-ownership.md) — optional private photos use guest ownership; publication is explicit and separate from local appearance.

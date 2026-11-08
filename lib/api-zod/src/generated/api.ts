@@ -8,6 +8,53 @@
 import * as zod from 'zod';
 
 
+export const PutAvatarBytesParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+
+export const GetAvatarResponse = zod.object({
+  "id": zod.string().nullable(),
+  "shared": zod.boolean()
+})
+
+
+export const ShareAvatarBody = zod.object({
+  "shared": zod.boolean()
+})
+
+export const ShareAvatarResponse = zod.object({
+  "id": zod.string().nullable(),
+  "shared": zod.boolean()
+})
+
+
+export const requestAvatarUploadBodySizeMax = 5242880;
+
+
+
+export const RequestAvatarUploadBody = zod.object({
+  "size": zod.number().min(1).max(requestAvatarUploadBodySizeMax),
+  "contentType": zod.enum(['image/jpeg', 'image/png', 'image/webp'])
+})
+
+export const RequestAvatarUploadResponse = zod.object({
+  "id": zod.string(),
+  "uploadUrl": zod.string()
+})
+
+
+export const CommitAvatarBody = zod.object({
+  "uploadId": zod.string(),
+  "shared": zod.boolean()
+})
+
+export const CommitAvatarResponse = zod.object({
+  "id": zod.string().nullable(),
+  "shared": zod.boolean()
+})
+
+
 export const GetCompetitionResponse = zod.object({
   "current": zod.object({
   "season": zod.string(),
@@ -65,6 +112,7 @@ export const JoinLiveQueueResponse = zod.object({
   "variant": zod.string(),
   "region": zod.string(),
   "players": zod.array(zod.object({
+  "avatarUrl": zod.string().nullish(),
   "id": zod.string(),
   "name": zod.string(),
   "color": zod.string(),
@@ -98,6 +146,7 @@ export const GetLiveRoomResponse = zod.object({
   "variant": zod.string(),
   "region": zod.string(),
   "players": zod.array(zod.object({
+  "avatarUrl": zod.string().nullish(),
   "id": zod.string(),
   "name": zod.string(),
   "color": zod.string(),

@@ -28,7 +28,7 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
   async function del(name: string) {
     setDeleting(true); setDelError('');
     try { await onDelete(name); setConfirm(null); }
-    catch { setDelError(`${name} could not be deleted completely. Try again.`); }
+    catch { setDelError(`${name} could not be deleted completely. Connect to the internet to remove its server photo and online access, then retry.`); }
     finally { setDeleting(false); }
   }
   function openByName() {
@@ -62,7 +62,7 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
             <View key={a.username} style={s.row}>
               {confirm === a.username ? (
                 <View style={s.confirm}>
-                  <Text style={s.confirmText}>Delete {a.username} and all of its progress from this device? This cannot be undone.</Text>
+                   <Text style={s.confirmText}>Delete {a.username}, its saved photo and all local progress? This cannot be undone. Online players need a connection to revoke their photo and online access safely.</Text>
                   {delError ? <Text style={k.error} accessibilityRole="alert">{delError}</Text> : null}
                   <View style={{ flexDirection: 'row', gap: 8 }}>
                     <View style={{ flex: 1 }}><Button testID={`entry-saved-keep-${a.username}`} label="Keep" variant="secondary" size="sm" onPress={() => { setConfirm(null); setDelError(''); }} /></View>

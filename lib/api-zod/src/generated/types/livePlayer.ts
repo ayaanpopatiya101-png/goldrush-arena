@@ -7,6 +7,8 @@
  */
 
 export interface LivePlayer {
+  /** @nullable */
+  avatarUrl?: string | null;
   id: string;
   name: string;
   color: string;

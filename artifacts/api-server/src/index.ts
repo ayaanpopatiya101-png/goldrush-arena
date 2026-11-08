@@ -2,6 +2,7 @@ import app from "./app.js";
 import { logger } from "./lib/logger.js";
 import { getUncachableStripeClient } from "./stripeClient.js";
 import { installArenaSocket } from "./lib/arenaSocket.js";
+import { startAvatarCleanup } from "./routes/avatars.js";
 
 async function initStripe() {
   try {
@@ -24,3 +25,4 @@ const server = app.listen(port, (err) => {
   logger.info({ port }, "Server listening");
 });
 installArenaSocket(server);
+startAvatarCleanup();

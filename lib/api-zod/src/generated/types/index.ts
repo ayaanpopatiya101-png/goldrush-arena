@@ -6,6 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './avatarCommitInput';
+export * from './avatarInfo';
+export * from './avatarSharingInput';
+export * from './avatarUploadInput';
+export * from './avatarUploadInputContentType';
 export * from './competitiveSeason';
 export * from './getCompetition200';
 export * from './healthStatus';
@@ -20,3 +25,4 @@ export * from './playerSession';
 export * from './queueInput';
 export * from './queueInputMode';
 export * from './queueInputVariant';
+export * from './requestAvatarUpload200';

@@ -11,6 +11,86 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /multiplayer/avatar/retire:
+    post:
+      operationId: retireAvatarIdentity
+      responses:
+        "204": { description: Photo removed and guest credential revoked }
+  /multiplayer/avatar/upload/{id}:
+    put:
+      operationId: putAvatarBytes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          image/jpeg:
+            schema: { type: string, format: binary }
+      responses:
+        "204": { description: Authenticated image stored with hard 5 MB limit }
+        "413": { description: Rejected before writing any object }
+  /multiplayer/avatar:
+    get:
+      operationId: getAvatar
+      responses:
+        "200":
+          description: Own avatar metadata
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AvatarInfo" }
+    patch:
+      operationId: shareAvatar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AvatarSharingInput" }
+      responses:
+        "200":
+          description: Sharing preference saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AvatarInfo" }
+    delete:
+      operationId: removeAvatar
+      responses:
+        "204": { description: Avatar removed }
+  /multiplayer/avatar/upload:
+    post:
+      operationId: requestAvatarUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AvatarUploadInput" }
+      responses:
+        "200":
+          description: Owned staging upload
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, uploadUrl]
+                properties:
+                  id: { type: string }
+                  uploadUrl: { type: string }
+  /multiplayer/avatar/commit:
+    post:
+      operationId: commitAvatar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AvatarCommitInput" }
+      responses:
+        "200":
+          description: Validated and saved avatar
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AvatarInfo" }
   /multiplayer/competition:
     get:
       operationId: getCompetition
@@ -93,6 +173,29 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    AvatarSharingInput:
+      type: object
+      required: [shared]
+      properties:
+        shared: { type: boolean }
+    AvatarUploadInput:
+      type: object
+      required: [size, contentType]
+      properties:
+        size: { type: integer, minimum: 1, maximum: 5242880 }
+        contentType: { type: string, enum: [image/jpeg, image/png, image/webp] }
+    AvatarCommitInput:
+      type: object
+      required: [uploadId, shared]
+      properties:
+        uploadId: { type: string }
+        shared: { type: boolean }
+    AvatarInfo:
+      type: object
+      required: [id, shared]
+      properties:
+        id: { type: [string, "null"] }
+        shared: { type: boolean }
     CompetitiveSeason:
       type: object
       required: [season, rating, games, wins, peak, lastDelta, division, placed, endsAt]
@@ -126,6 +229,7 @@ components:
       type: object
       required: [id, name, color, seat, isBot, connected, paddle, lives, hits, goals, place, rating]
       properties:
+        avatarUrl: { type: [string, "null"] }
         id: { type: string }
         name: { type: string }
         color: { type: string }

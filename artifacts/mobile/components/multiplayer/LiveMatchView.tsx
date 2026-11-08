@@ -2,7 +2,8 @@
 // Renders server snapshots only. No physics, no networking, no routing.
 import { Feather } from '@expo/vector-icons';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { PanResponder, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Image, PanResponder, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { getApiBase } from '@/utils/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { LivePlayer, LiveRoom } from '@workspace/api-client-react';
 
@@ -327,6 +328,7 @@ function PlayerRow({ p, me, showPlace }: { p: LivePlayer; me: boolean; showPlace
     <View style={[s.pRow, me && { backgroundColor: palette.gold }]}>
       {showPlace ? <Text style={s.place}>{p.place > 0 ? p.place : '-'}</Text> : null}
       <View style={[s.swatch, { backgroundColor: p.color }]} />
+      {p.avatarUrl && /^\/api\/avatars\/[a-f0-9-]{36}$/.test(p.avatarUrl) ? <Image source={{uri: `${getApiBase()}${p.avatarUrl}`}} style={{width:32,height:32}} accessibilityLabel={`${p.name}'s shared avatar`} /> : null}
       <Text style={s.pName} numberOfLines={1}>{p.name}{me ? ' (you)' : ''}</Text>
       {p.isBot ? <View style={s.aiBadge}><Text style={s.aiText}>AI</Text></View> : null}
       {!p.isBot && !p.connected ? <Text style={s.metaLabel}>Reconnecting</Text> : null}

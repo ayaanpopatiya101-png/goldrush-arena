@@ -27,7 +27,7 @@ const COPY: Record<TutorialStep, { kicker: string; title: string; body: string }
   miss: { kicker: 'Step 3 of 4 · Miss', title: 'Now let one through', body: 'Place your paddle, then watch. This ball is aimed away from you on purpose so you can see what a miss looks like.' },
   missDone: { kicker: 'Step 3 of 4 · Miss', title: 'That cost a life', body: 'A ball that crosses your bottom edge removes one life. Lose them all and you are out. Here it was free. Next, a gentle match against three local bots.' },
   match: { kicker: 'Step 4 of 4 · Intro match', title: 'Last paddle standing', body: 'Slow ball, no power-ups, extra lives. Protect the bottom edge. Nothing here affects rank or history.' },
-  progress: { kicker: 'Debrief', title: 'How you climb', body: 'Account XP unlocks XP ranks and cosmetics. Only Ranked changes competitive level. Quest claims earn pass points separately. Practice and this tutorial award nothing.' },
+  progress: { kicker: 'Debrief', title: 'How you climb', body: 'Account XP unlocks service ranks and cosmetics. Only real-player Ranked changes seasonal skill. Quest claims earn pass points separately. Practice and this tutorial award nothing.' },
 };
 
 /** First-run and Settings replay share this flow and the profile completion flag. */
@@ -105,7 +105,7 @@ export function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
 
         {step === 'progress' && (
           <Panel style={s.debrief}>
-            {[['Account XP', 'Casual and Ranked earn XP toward cosmetic unlocks.'], ['Competitive level', 'Ranked placement changes your level. Casual does not.'], ['Pass points', 'Claim completed quests to advance the pass.'], ['Ownership', 'Owned cosmetics stay in Collection.']].map(([k, v]) => (
+            {[['Account XP', 'Casual and Ranked earn XP toward cosmetic unlocks.'], ['Season skill', 'Five real-player Ranked placements reveal your division. Casual does not affect skill.'], ['Pass points', 'Claim completed quests to advance the pass.'], ['Ownership', 'Owned cosmetics stay in Collection.']].map(([k, v]) => (
               <View key={k} style={s.row}><Text style={s.rowKey}>{k}</Text><Text style={s.rowVal}>{v}</Text></View>
             ))}
           </Panel>

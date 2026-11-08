@@ -7,6 +7,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DailyStreakModal } from '@/components/DailyStreakModal';
+import { AvatarPhoto } from '@/components/appearance/PhotoAvatarEditor';
 import { GameArena } from '@/components/GameArena';
 import { LiveEventBanner } from '@/components/LiveEventBanner';
 import { Glyph } from '@/components/ui/Glyph';
@@ -165,7 +166,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const {
-    profile, isLoaded, showStreakModal, dismissStreakModal,
+    profile, currentUsername, isLoaded, showStreakModal, dismissStreakModal,
     claimDailyStreak, claimSeasonTier, setSelectedSuper,
   } = usePlayer();
   const { partyCode, members: partyMembers, isInParty, isLeader, createParty, joinParty, leaveParty, launchParty } = useParty();
@@ -375,7 +376,7 @@ export default function HomeScreen() {
             style={s.identity}
           >
             <View style={[s.avatar, { borderColor: profile.avatarFrameColor }]}>
-              <Glyph value={profile.avatarEmoji} size={22} color={ui.ochreInk} />
+              <AvatarPhoto username={currentUsername} size={32}><Glyph value={profile.avatarEmoji} size={22} color={ui.ochreInk} /></AvatarPhoto>
             </View>
             <View style={{ flexShrink: 1 }}>
               <Text style={s.name} numberOfLines={1}>{profile.name}</Text>

@@ -8,7 +8,8 @@ import { trackEvent } from '@/utils/analytics';
 import { rankIndexForName } from '@/utils/rankIndex';
 import { canClaimSeasonTier, seasonSkinForMilestone } from '@/utils/seasonRewards';
 import { getLiveResult } from '@workspace/api-client-react';
-import { arenaRequestOptions } from '@/utils/arenaSession';
+import { arenaRequestOptions, retireArenaProfile } from '@/utils/arenaSession';
+import { clearAvatarState } from '@/hooks/useAvatar';
 
 // ─── Ranks & Skins ────────────────────────────────────────────────────────────
 // 20 ranks: Bronze/Silver/Gold/Diamond/Master (×3 each) + Champion (×5, top-100 leaderboard)
@@ -822,6 +823,8 @@ export async function logoutAccount(): Promise<void> {
 }
 
 export async function deleteAccount(username: string): Promise<void> {
+  await retireArenaProfile(username);
+  clearAvatarState(username);
   const accounts = await getSavedAccounts();
   const filtered = accounts.filter(a => a.username !== username);
   await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(filtered));

@@ -54,7 +54,12 @@
           "microphonePermission": false
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      ["expo-image-picker", {
+        "photosPermission": "Choose a photo to use as your GoldRush Arena avatar.",
+        "cameraPermission": "Take a photo for your GoldRush Arena avatar.",
+        "microphonePermission": false
+      }]
     ],
     "experiments": {
       "typedRoutes": true,

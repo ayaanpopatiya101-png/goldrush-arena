@@ -15,13 +15,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
 import { FloatingOrbs, GlowBorder, GlowText, PulseRing, ShimmerCard } from '@/components/effects';
 import {
-  ACHIEVEMENTS, AVATAR_COLORS, AVATAR_EMOJIS, RANKS, SKINS,
+  ACHIEVEMENTS, AVATAR_EMOJIS, RANKS, SKINS,
   getChallengeCode, getRankIndex, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
 import { apiUrl } from '@/utils/api';
 import { useColors } from '@/hooks/useColors';
 import { Glyph } from '@/components/ui/Glyph';
 import { staticLoop } from '@/components/ui/motion';
+import { ColorPicker } from '@/components/appearance/ColorPicker';
+import { AvatarPhoto, PhotoAvatarEditor } from '@/components/appearance/PhotoAvatarEditor';
 
 // ─── AI-generated achievement artwork, replaces generic award icon ──────────
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -44,7 +46,7 @@ export default function ProfileScreen() {
   const colors    = useColors();
   const insets    = useSafeAreaInsets();
   const {
-    profile, logout, setAvatar, claimReferralReward,
+    profile, logout, setAvatar, claimReferralReward, currentUsername,
   } = usePlayer();
 
   // ── Referral system state ──
@@ -122,6 +124,7 @@ export default function ProfileScreen() {
   }
 
   const [avatarEditing, setAvatarEditing] = useState(false);
+  const [avatarSaveError, setAvatarSaveError] = useState('');
   const [tempEmoji, setTempEmoji]         = useState(profile.avatarEmoji);
   const [tempColor, setTempColor]         = useState(profile.avatarFrameColor);
 
@@ -150,8 +153,11 @@ export default function ProfileScreen() {
   const focusStyle = useFocusAnimation();
 
   async function handleSaveAvatar() {
-    await setAvatar(tempEmoji, tempColor);
-    setAvatarEditing(false);
+    setAvatarSaveError('');
+    try {
+      await setAvatar(tempEmoji, tempColor);
+      setAvatarEditing(false);
+    } catch { setAvatarSaveError('Your appearance could not be saved on this device. Retry or cancel; your previous look is kept.'); }
   }
 
   async function handleShare() {
@@ -227,7 +233,11 @@ export default function ProfileScreen() {
               transform: [{ scale: avatarScale }],
               overflow: 'visible',
             }]}>
-              <Glyph style={styles.bigAvatarEmoji} value={profile.avatarEmoji} />
+              <View style={{ width: 71, height: 71, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+                <AvatarPhoto username={currentUsername} size={71}>
+                  <Glyph style={styles.bigAvatarEmoji} value={profile.avatarEmoji} />
+                </AvatarPhoto>
+              </View>
               <View style={styles.editBadge}>
                 <Feather name="edit-2" size={9} color="#252A2B" />
               </View>
@@ -262,6 +272,7 @@ export default function ProfileScreen() {
         {/* ── Avatar picker (expanded when editing) ── */}
         {avatarEditing && (
           <View style={[styles.section, { borderColor: tempColor + '55', backgroundColor: tempColor + '08' }]}>
+            {avatarSaveError ? <Text accessibilityRole="alert">{avatarSaveError}</Text> : null}
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>CUSTOMIZE AVATAR</Text>
             </View>
@@ -279,19 +290,19 @@ export default function ProfileScreen() {
 
             {/* Color row */}
             <Text style={[styles.pickerLabel, { color: colors.mutedForeground }]}>PICK YOUR COLOR</Text>
-            <View style={styles.colorGrid}>
-              {(AVATAR_COLORS.includes(tempColor) ? AVATAR_COLORS : [tempColor, ...AVATAR_COLORS]).map(c => (
-                <Pressable key={c} onPress={() => setTempColor(c)} hitSlop={8} accessibilityRole="radio" accessibilityState={{ selected: tempColor === c }} accessibilityLabel={`Frame color ${c}`}
-                  style={[styles.colorDot, { backgroundColor: c, borderColor: tempColor === c ? '#EEE9DE' : 'transparent', transform: [{ scale: tempColor === c ? 1.25 : 1 }] }]}>
-                  {tempColor === c && <Feather name="check" size={10} color='#252A2B' />}
-                </Pressable>
-              ))}
-            </View>
+            <ColorPicker testID="profile-color-picker" value={tempColor} onChange={setTempColor} />
+
+            <Text style={[styles.pickerLabel, { color: colors.mutedForeground }]}>PHOTO</Text>
+            {currentUsername ? <PhotoAvatarEditor testID="profile-photo" username={currentUsername} frameColor={tempColor} /> : null}
 
             {/* Preview */}
             <View style={styles.avatarPreview}>
               <View style={[styles.previewCircle, { borderColor: tempColor, backgroundColor: tempColor + '33' }]}>
-                <Glyph style={styles.previewEmoji} value={tempEmoji} />
+                <View style={{ width: 48, height: 48, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+                  <AvatarPhoto username={currentUsername} size={48}>
+                    <Glyph style={styles.previewEmoji} value={tempEmoji} />
+                  </AvatarPhoto>
+                </View>
               </View>
               <Text style={[styles.previewName, { color: '#252A2B' }]}>{profile.name}</Text>
             </View>

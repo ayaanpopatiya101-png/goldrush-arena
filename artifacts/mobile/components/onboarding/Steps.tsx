@@ -8,8 +8,10 @@ import { Glyph } from '@/components/ui/Glyph';
 import { Button } from '@/components/ui/Primitives';
 import { palette, tactile } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { ColorPicker } from '@/components/appearance/ColorPicker';
+import { AvatarPhoto, PhotoAvatarEditor } from '@/components/appearance/PhotoAvatarEditor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { COLORS, ChoiceTile, CourtPlate, EMBLEMS, Heading, StepFrame, k, useEntryInsets } from './kit';
+import { ChoiceTile, CourtPlate, EMBLEMS, Heading, StepFrame, k, useEntryInsets } from './kit';
 
 const TOTAL = 3;
 
@@ -158,6 +160,8 @@ interface StyleProps {
   onBack: () => void; onCreate: () => void; loading: boolean; error: string; onLegal: (d: 'terms' | 'privacy') => void;
 }
 export function StyleStep({ name, emoji, color, onEmoji, onColor, onBack, onCreate, loading, error, onLegal }: StyleProps) {
+  const [defaultColor] = useState(color);
+  const [custom, setCustom] = useState(false);
   return (
     <StepFrame testID="entry-style-step" onBack={onBack} progress={{ step: 3, total: TOTAL, label: 'Look' }}
       footer={
@@ -168,8 +172,10 @@ export function StyleStep({ name, emoji, color, onEmoji, onColor, onBack, onCrea
       }>
       <Heading kicker="Emblem and frame colour" title="Mark your seat" />
       <View style={w.card} accessibilityLabel={`Preview: ${name}`}>
-        <View style={[w.cardAvatar, { borderColor: color }]}>
-          <Glyph value={emoji} size={34} color={palette.paper} />
+        <View style={[w.cardAvatar, { borderColor: color, overflow: 'hidden' }]}>
+          <AvatarPhoto username={name} size={60}>
+            <Glyph value={emoji} size={34} color={palette.paper} />
+          </AvatarPhoto>
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={w.cardName} numberOfLines={1}>{name}</Text>
@@ -189,15 +195,21 @@ export function StyleStep({ name, emoji, color, onEmoji, onColor, onBack, onCrea
       </View>
       <View style={{ gap: 8 }}>
         <Text style={k.label}>Frame colour</Text>
-        <View style={w.choices} accessibilityRole="radiogroup" accessibilityLabel="Paddle colour">
-          {COLORS.map(c => (
-            <ChoiceTile key={c.value} testID={`entry-color-${c.name.toLowerCase().replace(' ', '-')}`} label={c.name} selected={color === c.value} onPress={() => onColor(c.value)}>
-              <View style={[w.swatch, { backgroundColor: c.value }]} />
-            </ChoiceTile>
-          ))}
+        <Text style={k.help}>{custom ? 'Pick any colour. Your choice shows in the preview right away.' : 'Optional. The default frame colour is already set.'}</Text>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Button testID="entry-color-default" label="Use default" size="sm" variant={custom ? 'ghost' : 'secondary'}
+            onPress={() => { setCustom(false); onColor(defaultColor); }} />
+          <Button testID="entry-color-create" label="Create my colour" size="sm" variant={custom ? 'secondary' : 'ghost'}
+            onPress={() => setCustom(true)} />
         </View>
+        {custom ? <ColorPicker testID="entry-color-picker" value={color} onChange={onColor} /> : null}
       </View>
-      <Text style={k.help}>Saved on this device only. No cloud account, and progress cannot be recovered if app data is removed.</Text>
+      <View style={{ gap: 8 }}>
+        <Text style={k.label}>Photo (optional)</Text>
+        <Text style={k.help}>Skip this and your emblem is used. You can add or change a photo later in Profile.</Text>
+        <PhotoAvatarEditor testID="entry-photo" username={name} frameColor={color} />
+      </View>
+      <Text style={k.help}>Progress stays on this device and cannot be recovered if app data is removed. Optional saved photos use cloud storage under your guest identity; they stay private unless you publish them.</Text>
       <LegalLinks onOpen={onLegal} />
     </StepFrame>
   );
@@ -225,5 +237,4 @@ const w = StyleSheet.create({
   cardMeta: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: tactile.paperMuted },
   cardPaddle: { marginTop: 8, width: 64, height: 8, borderWidth: 1, borderColor: tactile.paperInk },
   choices: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  swatch: { width: 30, height: 30, borderWidth: 1, borderColor: tactile.paperInk },
 });

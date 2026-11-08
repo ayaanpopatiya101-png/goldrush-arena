@@ -37,6 +37,7 @@ export function joinRoom(identity: ArenaIdentity, input: QueueInput, reservedIds
     rooms.set(room.id, room);
   }
   const p: SimPlayer = { id: identity.id, name: input.name.trim() || "Player", color: input.color,
+    avatarUrl: identity.avatarShared && identity.avatarId ? `/api/avatars/${identity.avatarId}` : null,
     seat: room.players.length, isBot: false, connected: false, paddle: 500,
     lives: RULES[room.variant]!.lives, hits: 0, goals: 0, place: 0,
     rating: identity.rating, target: 500, seen: now, nextThink: 0, seq: -1 };

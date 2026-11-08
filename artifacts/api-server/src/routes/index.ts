@@ -5,10 +5,12 @@ import stripeRouter from "./stripe.js";
 import referralRouter from "./referral.js";
 import challengeRouter from "./challenge.js";
 import multiplayerRouter from "./multiplayer.js";
+import avatarsRouter from "./avatars.js";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(avatarsRouter);
 router.use(multiplayerRouter);
 router.use("/matchmaking", (_req, res) => {
   res.status(410).json({ error: "Legacy local matchmaking retired. Use authenticated multiplayer queue." });
