@@ -50,7 +50,6 @@ export default function ArcadeScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => { music.setMuted(!settings.musicEnabled); }, [settings.musicEnabled]);
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', next => { if (next !== 'active' && !gameOver) setPaused(true); });

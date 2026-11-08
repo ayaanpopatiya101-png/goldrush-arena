@@ -15,6 +15,12 @@ Live rooms currently require one authoritative process; database-backed identity
 
 **How to apply:** Before multi-instance or multi-region deployment, implement room ownership and connection routing. Distinguish a four-client protocol test from four humans on physical devices.
 
+Do not infer party readiness from membership or leader status when extending automatic rematches.
+
+**Why:** Party membership has no per-match readiness consent. Reusing it as consent could launch teammates who are still reading results or using dialogs.
+
+**How to apply:** Keep automatic rematches solo-only until a fresh, authoritative readiness handshake exists. Online results must not silently become local rematches, and paid resources always need a new explicit choice.
+
 Keep legacy local competitive levels as historical accomplishments, not a seed for live competitive skill. Use an original, disclosed rating formula instead of claiming Halo's proprietary implementation.
 
 **Why:** Legacy levels included bot matches and editable local saves. Removing them would erase accomplishments; trusting them would undermine real-player placements.

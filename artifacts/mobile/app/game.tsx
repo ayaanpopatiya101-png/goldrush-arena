@@ -180,9 +180,6 @@ function OfflineGameScreen() {
   // Training period always forces easy bots; after that matchType decides.
   const botDifficulty: 'easy' | 'normal' = isTraining || config.matchType === 'casual' ? 'easy' : 'normal';
 
-  useEffect(() => {
-    music.setMuted(!settings.musicEnabled);
-  }, [settings.musicEnabled]);
 
   // Pause automatically when the player switches away from the app.
   useEffect(() => {

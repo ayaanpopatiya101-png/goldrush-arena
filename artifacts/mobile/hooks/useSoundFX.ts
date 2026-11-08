@@ -43,8 +43,14 @@ function getNativeToneUri(freq: number, dur: number): string {
   return file.uri;
 }
 
-async function nativeTone(freq: number, dur: number): Promise<void> {
-  if (!getSettings().soundEnabled) return;
+type SoundChannel = 'game' | 'celebration';
+export function soundAllowed(channel: SoundChannel): boolean {
+  const settings = getSettings();
+  return settings.soundEnabled && (channel === 'game' ? settings.gameSoundEnabled : settings.celebrationSoundEnabled);
+}
+
+async function nativeTone(freq: number, dur: number, channel: SoundChannel = 'game'): Promise<void> {
+  if (!soundAllowed(channel)) return;
   try {
     const uri = getNativeToneUri(freq, dur);
     const player = createAudioPlayer(uri);
@@ -58,10 +64,10 @@ async function nativeTone(freq: number, dur: number): Promise<void> {
   } catch { /* ignore */ }
 }
 
-async function nativeSeq(notes: Array<{ f: number; d: number }>, gap: number): Promise<void> {
+async function nativeSeq(notes: Array<{ f: number; d: number }>, gap: number, channel: SoundChannel = 'game'): Promise<void> {
   for (let i = 0; i < notes.length; i++) {
     const n = notes[i]!;
-    setTimeout(() => nativeTone(n.f, n.d).catch(() => {}), i * gap * 1000);
+    setTimeout(() => nativeTone(n.f, n.d, channel).catch(() => {}), i * gap * 1000);
   }
 }
 
@@ -94,7 +100,9 @@ function tone(
   type: OscillatorType = 'square',
   vol = 0.1,
   startAt = 0,
+  channel: SoundChannel = 'game',
 ) {
+  if (!soundAllowed(channel)) return;
   if (Platform.OS !== 'web') return;
   if (typeof AudioContext === 'undefined' &&
       !(window as never as { webkitAudioContext: typeof AudioContext }).webkitAudioContext) return;
@@ -117,8 +125,8 @@ function tone(
   } catch { /* unsupported */ }
 }
 
-function seq(notes: Array<{ f: number; d: number; v?: number; t?: OscillatorType }>, gap = 0.08) {
-  notes.forEach((n, i) => tone(n.f, n.d, n.t ?? 'square', n.v ?? 0.09, i * gap));
+function seq(notes: Array<{ f: number; d: number; v?: number; t?: OscillatorType }>, gap = 0.08, channel: SoundChannel = 'game') {
+  notes.forEach((n, i) => setTimeout(() => tone(n.f, n.d, n.t ?? 'square', n.v ?? 0.09, 0, channel), i * gap * 1000));
 }
 
 // ─── Public interface ──────────────────────────────────────────────────────────
@@ -147,7 +155,7 @@ export function useSoundFX(enabled: boolean): SoundFX {
       lifeGained:       fire(() => nativeSeq([{ f: 523, d: 0.1 }, { f: 784, d: 0.14 }], 0.08)),
       playerEliminated: fire(() => nativeSeq([{ f: 280, d: 0.16 }, { f: 200, d: 0.16 }, { f: 140, d: 0.2 }], 0.14)),
       matchStart:       fire(() => nativeSeq([{ f: 261, d: 0.12 }, { f: 329, d: 0.12 }, { f: 392, d: 0.12 }, { f: 523, d: 0.22 }], 0.11)),
-      matchEnd:         fire(() => nativeSeq([{ f: 523, d: 0.14 }, { f: 659, d: 0.14 }, { f: 784, d: 0.14 }, { f: 1047, d: 0.28 }], 0.13)),
+      matchEnd:         fire(() => nativeSeq([{ f: 523, d: 0.14 }, { f: 659, d: 0.14 }, { f: 784, d: 0.14 }, { f: 1047, d: 0.28 }], 0.13, 'celebration')),
       powerUp:          fire(() => nativeSeq([{ f: 660, d: 0.07 }, { f: 880, d: 0.1 }], 0.07)),
       countdown:        fire(() => nativeTone(523, 0.1)),
       // Short ascending ping — 660 Hz pop followed by a 1047 Hz chime
@@ -156,7 +164,7 @@ export function useSoundFX(enabled: boolean): SoundFX {
       rankUp:           fire(() => nativeSeq([
         { f: 523, d: 0.1 }, { f: 659, d: 0.1 }, { f: 784, d: 0.1 },
         { f: 1047, d: 0.18 }, { f: 1319, d: 0.32 },
-      ], 0.1)),
+      ], 0.1, 'celebration')),
     };
   }
 
@@ -168,7 +176,7 @@ export function useSoundFX(enabled: boolean): SoundFX {
     lifeGained:       g(() => seq([{ f: 523, d: 0.1 }, { f: 784, d: 0.14 }], 0.08)),
     playerEliminated: g(() => seq([{ f: 280, d: 0.16, t: 'sawtooth' }, { f: 200, d: 0.16, t: 'sawtooth' }, { f: 140, d: 0.2, t: 'sawtooth' }], 0.14)),
     matchStart:       g(() => seq([{ f: 261, d: 0.12 }, { f: 329, d: 0.12 }, { f: 392, d: 0.12 }, { f: 523, d: 0.22 }], 0.11)),
-    matchEnd:         g(() => seq([{ f: 523, d: 0.14 }, { f: 659, d: 0.14 }, { f: 784, d: 0.14 }, { f: 1047, d: 0.28 }], 0.13)),
+    matchEnd:         g(() => seq([{ f: 523, d: 0.14 }, { f: 659, d: 0.14 }, { f: 784, d: 0.14 }, { f: 1047, d: 0.28 }], 0.13, 'celebration')),
     powerUp:          g(() => seq([{ f: 660, d: 0.07 }, { f: 880, d: 0.1 }], 0.07)),
     countdown:        g(() => tone(523, 0.1, 'square', 0.1)),
     // Short ascending ping — sine wave feels cleaner for a lobby UI event
@@ -180,6 +188,6 @@ export function useSoundFX(enabled: boolean): SoundFX {
       { f: 784, d: 0.1, t: 'triangle', v: 0.12 },
       { f: 1047, d: 0.18, t: 'triangle', v: 0.13 },
       { f: 1319, d: 0.32, t: 'triangle', v: 0.14 },
-    ], 0.1)),
+    ], 0.1, 'celebration')),
   };
 }

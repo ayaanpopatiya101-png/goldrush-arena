@@ -8,6 +8,7 @@ import { canMovePaddle, clampPaddle, clampPaddleRange } from '../utils/courtInpu
 import { idleAnimation } from '../components/ui/idleAnimation.ts';
 import { rankIndexForName } from '../utils/rankIndex.ts';
 import { canClaimSeasonTier, seasonSkinForMilestone } from '../utils/seasonRewards.ts';
+import { createRematchController } from '../store/rematch.ts';
 
 const ts = createRequire(import.meta.url)('typescript');
 const source = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
@@ -345,7 +346,7 @@ test('failed profile storage preserves balances and permits one safe retry', asy
   assert.equal(JSON.parse(h.storage.get(h.profileKey)).totalGames, 1);
 });
 
-test('Play Again commits a second distinct receipt while each match retry still awards once', async () => {
+for (const automatic of [false, true]) test(`${automatic ? 'Automatic rematch' : 'Play Again'} commits a second distinct receipt while each match retry still awards once`, async () => {
   const session = {};
   vm.runInNewContext(compile(await source('store/gameSession.ts')), { exports: session, Date, Math });
   session.setGameConfig({
@@ -355,6 +356,7 @@ test('Play Again commits a second distinct receipt while each match retry still 
   });
   const firstId = session.getGameConfig().matchId;
   const h = await playerHarness(new Map(), () => false, session);
+  h.render().profile.extraLivesInventory = 5;
   const save = h.render().addMatchResult;
   const ranked = { ...award, matchType: 'ranked' };
   await save(ranked);
@@ -372,7 +374,10 @@ test('Play Again commits a second distinct receipt while each match retry still 
     exports: press, startingRematchRef: { current: false }, isArcade: false,
     startRematch: session.startRematch, router: { replace: path => routes.push(path) },
   });
-  press.press();
+  if (automatic) {
+    const countdown = createRematchController();
+    for (let i = 0; i < 15; i++) if (countdown.tick(true) === 0) press.press();
+  } else press.press();
   const secondId = session.getGameConfig().matchId;
   press.press(); // rapid double press must not rotate a second time
   assert.notEqual(secondId, firstId);
@@ -395,10 +400,12 @@ test('Play Again commits a second distinct receipt while each match retry still 
   assert.equal(p.coins, 260);
   assert.equal(p.competitiveLevel, reloaded.receipt().levelAfter);
   assert.equal(reloaded.receipt().levelBefore, firstReceipt.levelAfter);
-  assert.ok(p.competitiveLevel > firstReceipt.levelAfter);
+  // Historical local levels are frozen; live competitive skill is server-owned.
+  assert.equal(p.competitiveLevel, firstReceipt.levelAfter);
   assert.equal(p.matchHistory[0].receipt.id, secondId);
   assert.equal(p.matchHistory[1].receipt.id, firstId);
   assert.equal(firstReceipt.xpAfter, 230);
   assert.equal(reloaded.receipt().id, secondId);
   assert.equal(reloaded.receipt().xpAfter, 460);
+  assert.equal(p.extraLivesInventory, 5);
 });

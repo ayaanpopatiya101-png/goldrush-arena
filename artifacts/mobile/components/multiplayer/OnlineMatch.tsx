@@ -61,7 +61,11 @@ export default function OnlineMatch() {
       await saveRef.current({ ...verified, transactionId: matchId });
       await AsyncStorage.removeItem(pendingKey);
       receipt.current = verified;
-      if (!cancelled.current) { setSaved(true); setError(null); socket.current?.close(); }
+      if (!cancelled.current) {
+        setSaved(true); setError(null); socket.current?.close();
+        // Use the shared, saved receipt screen for readable results and cancellable rematches.
+        router.replace("/postgame");
+      }
     } catch {
       if (!cancelled.current) setError("Could not confirm all result-saving steps. Retry before playing again; rewards are checked for duplicates.");
     } finally { saving.current = false; }

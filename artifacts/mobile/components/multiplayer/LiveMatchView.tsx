@@ -15,6 +15,8 @@ import {useEquippedCosmetics} from '@/hooks/useEquippedCosmetics';
 import {PaddleArt} from '@/components/cosmetics/PaddleArt';
 import {THEME_FINISHES,STRIKE_FINISHES} from '@workspace/goldrush-catalog/cosmetics';
 import {useReducedMotion} from '@/hooks/useReducedMotion';
+import { getSettings } from '@/hooks/useSettings';
+import { paddleInput } from '@/utils/arenaGeometry';
 
 export type LiveMatchViewProps = {
   room: LiveRoom | null;
@@ -121,16 +123,16 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
     onPanResponderGrant: e => {
       const { horizontal: h, scale: s } = ctrlRef.current;
       const v = (h ? e.nativeEvent.locationX : e.nativeEvent.locationY) / s;
-      startRef.current = v; send(v);
+      startRef.current = v; send(paddleInput(v, COURT, PADDLE_LEN, getSettings().sensitivity));
     },
     onPanResponderMove: (_e, g) => {
       const { horizontal: h, scale: s } = ctrlRef.current;
-      send(startRef.current + (h ? g.dx : g.dy) / s);
+      send(paddleInput(startRef.current + (h ? g.dx : g.dy) / s, COURT, PADDLE_LEN, getSettings().sensitivity));
     },
     onPanResponderTerminationRequest: () => false,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
-  const nudge = (dir: -1 | 1) => { if (ctrlRef.current.enabled) send(posRef.current + dir * KEY_STEP); };
+  const nudge = (dir: -1 | 1) => { if (ctrlRef.current.enabled) send(posRef.current + dir * KEY_STEP * getSettings().sensitivity); };
 
   useEffect(() => {
     if (!isWeb || typeof window === 'undefined') return;
@@ -139,7 +141,7 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
       const h = ctrlRef.current.horizontal;
       const neg = h ? e.key === 'ArrowLeft' : e.key === 'ArrowUp';
       const pos = h ? e.key === 'ArrowRight' : e.key === 'ArrowDown';
-      if (neg || pos) { e.preventDefault(); send(posRef.current + (neg ? -KEY_STEP : KEY_STEP)); }
+      if (neg || pos) { e.preventDefault(); send(posRef.current + (neg ? -KEY_STEP : KEY_STEP) * getSettings().sensitivity); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

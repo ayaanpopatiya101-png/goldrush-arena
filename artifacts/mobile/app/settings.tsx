@@ -16,6 +16,8 @@ import { usePlayer } from '@/context/PlayerContext';
 import { FloatingOrbs, GlowBorder } from '@/components/effects';
 import { Glyph } from '@/components/ui/Glyph';
 import { SupportHelp } from '@/components/SupportHelp';
+import { cancelAutomaticRematch } from '@/store/rematch';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const SENSITIVITY_OPTIONS = [
   { value: 0.6,  label: 'Slow',   desc: 'Easier to control' },
@@ -41,7 +43,8 @@ function SettingRow({ icon, title, subtitle, right }: {
 }
 
 export default function SettingsScreen() {
-  const { settings, updateSetting, error } = useSettings();
+  const { settings, updateSetting, resetSettings, error } = useSettings();
+  const reducedMotion = useReducedMotion();
   const [practiceOpen, setPracticeOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [practiceKey, setPracticeKey] = useState(0);
@@ -62,8 +65,19 @@ export default function SettingsScreen() {
     ]);
   }
 
+  function handleReset() {
+    cancelAutomaticRematch();
+    const message = 'Reset comfort and sound settings? Progress, purchases and bank lives will not change.';
+    if (Platform.OS === 'web') {
+      if (window.confirm(message)) void resetSettings();
+    } else Alert.alert('Reset settings?', message, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Reset settings', onPress: () => { void resetSettings(); } },
+    ]);
+  }
+
   return (
-    <Reanimated.View entering={FadeIn.duration(350)} style={{ flex: 1 }}>
+    <Reanimated.View entering={reducedMotion ? undefined : FadeIn.duration(350)} style={{ flex: 1 }}>
       <LinearGradient colors={['#EEE9DE', '#E3DFD3', '#EEE9DE']} style={StyleSheet.absoluteFill} />
       <FloatingOrbs opacity={0.4} />
       <LinearGradient
@@ -133,6 +147,12 @@ export default function SettingsScreen() {
             <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
           </View>
           <View style={s.card}>
+            <SettingRow icon="volume-x" title="Mute all audio" subtitle="Overrides game, music and celebration sounds"
+              right={<Switch accessibilityLabel="Mute all audio" value={!settings.soundEnabled}
+                onValueChange={v => updateSetting('soundEnabled', !v)} />} />
+            <SettingRow icon="award" title="Celebration sounds" subtitle="Match results and rank-up fanfares"
+              right={<Switch accessibilityLabel="Celebration sounds" value={settings.celebrationSoundEnabled}
+                onValueChange={v => updateSetting('celebrationSoundEnabled', v)} />} />
             <SettingRow
               icon="music"
               title="Background Music"
@@ -155,10 +175,10 @@ export default function SettingsScreen() {
               right={
                 <Switch
                   accessibilityLabel="Game sound effects"
-                  value={settings.soundEnabled}
-                  onValueChange={v => updateSetting('soundEnabled', v)}
+                  value={settings.gameSoundEnabled}
+                  onValueChange={v => updateSetting('gameSoundEnabled', v)}
                   trackColor={{ false: '#575D5C66', true: '#F36B3F' }}
-                  thumbColor={settings.soundEnabled ? '#252A2B' : '#575D5C'}
+                  thumbColor={settings.gameSoundEnabled ? '#252A2B' : '#575D5C'}
                 />
               }
             />
@@ -231,7 +251,7 @@ export default function SettingsScreen() {
                     onGameOver={() => setPracticeKey(key => key + 1)} />
                 </View>
               </>}
-              <SettingRow icon="eye" title="Reduced effects" subtitle="Reduce decorative motion. OS Reduce Motion also applies."
+              <SettingRow icon="eye" title="Reduced motion" subtitle="Reduce decorative motion. OS Reduce Motion also applies."
                 right={<Switch accessibilityLabel="Reduced effects" value={settings.reducedEffects} onValueChange={value => updateSetting('reducedEffects', value)} />} />
             </View>
           </View>
@@ -240,6 +260,9 @@ export default function SettingsScreen() {
         {/* ── Controls (continued): match preferences ── */}
         <View style={s.section}>
           <View style={s.card}>
+            <SettingRow icon="repeat" title="Automatic next match" subtitle="15 seconds to read results. Cancel anytime. Solo play only; no bank lives selected."
+              right={<Switch accessibilityLabel="Automatic next match" value={settings.autoRematch}
+                onValueChange={v => { cancelAutomaticRematch(); void updateSetting('autoRematch', v); }} />} />
             <SettingRow
               icon="smartphone"
               title="Haptic Feedback"
@@ -270,6 +293,7 @@ export default function SettingsScreen() {
               }
             />
           </View>
+          <Button label="Reset settings to defaults" variant="secondary" onPress={handleReset} />
         </View>
 
         {/* ── Legal & Support: app information ── */}

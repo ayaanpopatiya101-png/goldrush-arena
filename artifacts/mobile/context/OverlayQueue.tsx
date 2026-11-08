@@ -27,3 +27,7 @@ export function useBlockingOverlay(wanted: boolean): boolean {
   }, [id, wanted, request]);
   return wanted && queue?.first === id;
 }
+
+export function useHasBlockingOverlay(): boolean {
+  return Boolean(useContext(OverlayContext)?.first);
+}

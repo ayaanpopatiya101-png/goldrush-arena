@@ -2,6 +2,11 @@ import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import { getCompletedMatch, updateCompletedMatch } from '@/store/completedMatch';
 import { startRematch } from '@/store/gameSession';
+import { useAutomaticRematch } from '@/hooks/useAutomaticRematch';
+import { useHasBlockingOverlay } from '@/context/OverlayQueue';
+import { useParty } from '@/context/PartyContext';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { cancelAutomaticRematch } from '@/store/rematch';
 import * as Haptics from '@/utils/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -27,11 +32,12 @@ import { Glyph } from '@/components/ui/Glyph';
 const EMOTES = ['🔥', '👏', '😤', '💀', '🤝', '👑'] as const;
 
 function EmoteButton({ emoji, selected, onPress }: { emoji: string; selected: boolean; onPress: () => void }) {
+  const reducedMotion = useReducedMotion();
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   function handlePress() {
-    scale.value = withSpring(1.45, { damping: 5, stiffness: 320 }, () => {
+    if (!reducedMotion) scale.value = withSpring(1.45, { damping: 5, stiffness: 320 }, () => {
       scale.value = withSpring(1, { damping: 8, stiffness: 200 });
     });
     onPress();
@@ -74,7 +80,10 @@ export default function PostGameScreen() {
 
 function PostGameContent() {
   const insets = useSafeAreaInsets();
-  const { settings } = useSettings();
+  const { settings, loaded, updateSetting } = useSettings();
+  const { isInParty } = useParty();
+  const blockingOverlay = useHasBlockingOverlay();
+  const reducedMotion = useReducedMotion();
   const sfx = useSoundFX(settings.soundEnabled);
   const startingRematchRef = useRef(false);
 
@@ -196,10 +205,14 @@ function PostGameContent() {
 
   // Ceremony overlay, initialized after `promoted` is computed
   const [showCeremony, setShowCeremony] = useState(promoted && !completed?.ceremonySeen);
+  const rematchBlocked = blockingOverlay || showCeremony || showShareCard || !!activeLuckyBlock ||
+    isInParty || isQualifier || isChallengeRun;
+  const automatic = useAutomaticRematch(loaded && settings.autoRematch, rematchBlocked, handlePlayAgain);
 
   const topPad = insets.top;
 
   async function handleShare() {
+    automatic.cancel();
     const posLabel = (['', '1st', '2nd', '3rd', '4th'])[position] ?? '4th';
     const msg = won
       ? `VICTORY! I won a match in GoldRush Arena with ${deflections} deflections and earned +${xpEarned} XP. Think you can beat me?`
@@ -208,13 +221,17 @@ function PostGameContent() {
   }
 
   useEffect(() => {
-    Animated.parallel([
+    if (reducedMotion) {
+      [fadeAnim, scaleAnim, card1Anim, card2Anim, card3Anim].forEach(anim => anim.setValue(1));
+    } else {
+      Animated.parallel([
       Animated.spring(scaleAnim, { toValue: 1, friction: 5, tension: 60, useNativeDriver: true }),
       Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
     ]).start();
     [card1Anim, card2Anim, card3Anim].forEach((anim, i) => {
       Animated.timing(anim, { toValue: 1, duration: 380, delay: 350 + i * 150, useNativeDriver: true }).start();
     });
+    }
 
     if (Platform.OS !== 'web') {
       if (won) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -231,7 +248,7 @@ function PostGameContent() {
       const prevProgress = rankInfo.progress;
       Animated.timing(xpBarAnim, { toValue: prevProgress, duration: 0, useNativeDriver: false }).start(() => {
         const newProgress = xpForNextRank(newXP).progress;
-        Animated.timing(xpBarAnim, { toValue: newProgress, duration: 1200, useNativeDriver: false }).start();
+        Animated.timing(xpBarAnim, { toValue: newProgress, duration: reducedMotion ? 0 : 1200, useNativeDriver: false }).start();
       });
     }, 600);
 
@@ -299,7 +316,7 @@ function PostGameContent() {
       ];
 
   return (
-    <Reanimated.View entering={FadeIn.duration(250)} exiting={FadeOutDown.duration(200)} style={[styles.root, { backgroundColor: palette.ink }]}>
+    <Reanimated.View entering={reducedMotion ? undefined : FadeIn.duration(250)} exiting={reducedMotion ? undefined : FadeOutDown.duration(200)} style={[styles.root, { backgroundColor: palette.ink }]}>
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -307,6 +324,22 @@ function PostGameContent() {
         >
         <View style={styles.column}>
         <ScreenTitle title="Match receipt" kicker="GoldRush Arena" />
+        <View style={styles.card}>
+          <Text accessibilityLiveRegion="polite" style={styles.cardTitle}>
+            {automatic.remaining !== null ? `Next match in ${automatic.remaining}s` :
+              isInParty ? 'Party rematches need a new leader launch' : 'Automatic next match stopped'}
+          </Text>
+          <Text style={styles.progSub}>No bank lives or money will be spent automatically.</Text>
+          {automatic.remaining !== null && <Pressable accessibilityRole="button" onPress={automatic.cancel} style={styles.secondaryBtn}>
+            <Text style={styles.secondaryText}>Cancel next match</Text>
+          </Pressable>}
+          <Pressable accessibilityRole="button" onPress={() => {
+            cancelAutomaticRematch();
+            void updateSetting('autoRematch', !settings.autoRematch);
+          }} style={styles.linkBtn}>
+            <Text style={styles.linkText}>{settings.autoRematch ? 'Turn off automatic matches' : 'Enable for future matches'}</Text>
+          </Pressable>
+        </View>
         {/* ── Result header: outcome, stats, next actions (above the fold) ── */}
         <Animated.View style={[styles.resultCard, { transform: [{ scale: scaleAnim }] }, won && !isArcade && { borderColor: palette.ochre }]}>
           <Text style={[styles.kicker, { color: tactile.paperMuted }]}>{modeLabel}</Text>
@@ -390,7 +423,7 @@ function PostGameContent() {
                 Account level {xpToLevel(previousXP)} to {xpToLevel(newXP)} · {newXP} XP total · XP rank {promoted ? `${previousRank.name} to ${newRank.name}` : newRank.name}. Casual and ranked matches both earn account XP, which also moves your XP rank.
               </Text>
               {promoted && (
-                <Reanimated.View entering={ZoomIn.duration(300).delay(600)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Reanimated.View entering={reducedMotion ? undefined : ZoomIn.duration(300).delay(600)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <RankBadge rank={newRank.name} size="sm" showLabel={false} />
                   <Text style={[styles.progName, { color: palette.charcoal }]}>Promoted to {newRank.name}</Text>
                 </Reanimated.View>

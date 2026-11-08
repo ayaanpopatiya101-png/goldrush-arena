@@ -473,43 +473,15 @@ export function GameArena({
     return () => loop.stop();
   }, [colorBoard]);
 
-  // ── Sound effects (Web Audio API, web-only) ─────────────────────────────────
+  // All platforms use the same preference-aware sound channels.
   function playSFX(type: 'hit' | 'goal' | 'start' | 'elim' | 'powerup') {
-    if (!getSettings().soundEnabled) return;
-    if (Platform.OS !== 'web') {
-      const sounds = sfxRef.current;
-      if (!soundEnabled) return;
-      if (type === 'hit') sounds.paddleHit();
-      else if (type === 'goal') sounds.goalScored();
-      else if (type === 'start') sounds.matchStart();
-      else if (type === 'elim') sounds.playerEliminated();
-      else sounds.powerUp();
-      return;
-    }
     if (!soundEnabled) return;
-    if (Platform.OS !== 'web') return;
-    if (typeof AudioContext === 'undefined' &&
-        !(window as never as {webkitAudioContext: typeof AudioContext}).webkitAudioContext) return;
-    try {
-      const Ctx = AudioContext ??
-        (window as never as {webkitAudioContext: typeof AudioContext}).webkitAudioContext;
-      const ctx = new Ctx();
-      const play = (freq: number, dur: number, oType: OscillatorType, vol: number, delay = 0) => {
-        const osc = ctx.createOscillator(); const g = ctx.createGain();
-        osc.connect(g); g.connect(ctx.destination);
-        osc.type = oType; const t = ctx.currentTime + delay;
-        osc.frequency.setValueAtTime(freq, t);
-        g.gain.setValueAtTime(vol, t);
-        g.gain.setTargetAtTime(0.0001, t + dur * 0.7, dur * 0.1);
-        osc.start(t); osc.stop(t + dur + 0.05);
-      };
-      if (type === 'hit')     { play(380, 0.04, 'square', 0.07); }
-      if (type === 'goal')    { play(440, 0.1, 'square', 0.09); play(330, 0.1, 'sawtooth', 0.08, 0.1); play(220, 0.18, 'sawtooth', 0.09, 0.2); }
-      if (type === 'start')   { [261,329,392,523].forEach((f,i) => play(f, 0.13, 'square', 0.09, i * 0.11)); }
-      if (type === 'elim')    { [300,220,160,110].forEach((f,i) => play(f, 0.17, 'sawtooth', 0.1, i * 0.13)); }
-      if (type === 'powerup') { play(660, 0.07, 'square', 0.07); play(880, 0.1, 'square', 0.07, 0.07); }
-      setTimeout(() => { try { ctx.close(); } catch {} }, 1200);
-    } catch { /* unsupported */ }
+    const sounds = sfxRef.current;
+    if (type === 'hit') sounds.paddleHit();
+    else if (type === 'goal') sounds.goalScored();
+    else if (type === 'start') sounds.matchStart();
+    else if (type === 'elim') sounds.playerEliminated();
+    else sounds.powerUp();
   }
 
   // ── Grant extra life from parent ──
@@ -1340,7 +1312,7 @@ export function GameArena({
           // Visual feedback: spark burst at pickup position + mild screen shake
           const puColor = POWERUP_COLORS[pu.type];
           sparkBurstRef.current?.burst(pu.x, pu.y, puColor);
-          if (!practice) screenShakeRef.current?.shake(0.4);
+          if (!practice && getSettings().screenShake) screenShakeRef.current?.shake(0.4);
         }
       }
     }
