@@ -1,3 +1,4 @@
+import { Text } from '@/components/ui/Text';
 /**
  * Match Highlights, full-screen reel of auto-detected exciting moments.
  *
@@ -18,10 +19,7 @@ import * as Sharing    from 'expo-sharing';
 import { LinearGradient } from '@/components/ui/Flat';
 import { router }           from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator, Alert, Image, Platform, Pressable,
-  ScrollView, StyleSheet, Text, View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Image, Platform, Pressable, ScrollView, StyleSheet, View,  } from 'react-native';
 import Reanimated, {
   FadeIn, FadeInDown, ZoomIn,
   useAnimatedStyle, useSharedValue, withSpring,

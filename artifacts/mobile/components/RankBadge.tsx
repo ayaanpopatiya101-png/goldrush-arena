@@ -1,5 +1,6 @@
+import { Text } from '@/components/ui/Text';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { RANKS } from '@/context/PlayerContext';
 import { PulseRing, GlowBorder } from '@/components/effects';
 import { Glyph } from '@/components/ui/Glyph';

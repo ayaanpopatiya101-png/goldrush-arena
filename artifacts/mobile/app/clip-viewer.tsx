@@ -1,3 +1,4 @@
+import { Text } from '@/components/ui/Text';
 /**
  * Full-screen clip viewer, editor, and share screen.
  *
@@ -19,7 +20,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, Animated,
   Dimensions, InteractionManager, Keyboard,
-  Platform, Pressable, ScrollView, StyleSheet, Text,
+  Platform, Pressable, ScrollView, StyleSheet,
   TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { Image } from 'expo-image';

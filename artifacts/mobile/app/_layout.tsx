@@ -50,6 +50,7 @@ function RootLayoutNav() {
       <Stack.Screen name="legal"          options={{ headerShown: false, animation: 'slide_from_right' }} />
       <Stack.Screen name="onboarding-flow" options={{ headerShown: false, animation: 'fade', presentation: 'fullScreenModal' }} />
       <Stack.Screen name="challenge"       options={{ headerShown: false, animation: 'fade' }} />
+      <Stack.Screen name="warmup"          options={{ headerShown: false, animation: 'fade' }} />
     </Stack>
   );
 }
@@ -84,7 +85,7 @@ export default function RootLayout() {
         const accounts = await getSavedAccounts();
         if (!active) return;
         const acct     = accounts.find(a => a.username === username);
-        setAuthUser({ username, emoji: acct?.avatarEmoji ?? '🎮', color: acct?.avatarColor ?? '#FFD700' });
+        setAuthUser({ username, emoji: acct?.avatarEmoji ?? '🎮', color: acct?.avatarColor ?? '#D0AF66' });
         setAuthState('in');
       } else {
         if (active) setAuthState('out');

@@ -28,11 +28,11 @@ export interface ClipTier {
 }
 
 export const CLIP_TIERS: ClipTier[] = [
-  { minScore: 200, label: 'GOD MODE',  emoji: '🔱', coins: 500, xp: 600, color: '#FFD700' },
-  { minScore: 150, label: 'LEGENDARY', emoji: '🔥', coins: 200, xp: 250, color: '#FF4757' },
-  { minScore: 100, label: 'EPIC',      emoji: '⚡', coins: 90,  xp: 120, color: '#9B59B6' },
-  { minScore: 50,  label: 'NICE',      emoji: '🎯', coins: 40,  xp: 60,  color: '#3498DB' },
-  { minScore: 0,   label: 'BASIC',     emoji: '🎬', coins: 15,  xp: 25,  color: '#95A5A6' },
+  { minScore: 200, label: 'GOD MODE',  emoji: '🔱', coins: 500, xp: 600, color: '#D0AF66' },
+  { minScore: 150, label: 'LEGENDARY', emoji: '🔥', coins: 200, xp: 250, color: '#BB7865' },
+  { minScore: 100, label: 'EPIC',      emoji: '⚡', coins: 90,  xp: 120, color: '#A6AEA7' },
+  { minScore: 50,  label: 'NICE',      emoji: '🎯', coins: 40,  xp: 60,  color: '#A6AEA7' },
+  { minScore: 0,   label: 'BASIC',     emoji: '🎬', coins: 15,  xp: 25,  color: '#B9BDAF' },
 ];
 
 export const MAX_DAILY_REWARDS = 5;  // bumped from 3 → 5 to accommodate multi-clip matches
@@ -55,11 +55,11 @@ export interface ClipGrade {
 }
 
 export function getClipGrade(clipScore: number): ClipGrade {
-  if (clipScore >= 200) return { letter: 'S+', label: 'GOD MODE',  color: '#FFD700', stars: 5 };
-  if (clipScore >= 150) return { letter: 'S',  label: 'LEGENDARY', color: '#FF4757', stars: 4 };
-  if (clipScore >= 100) return { letter: 'A',  label: 'EPIC',      color: '#9B59B6', stars: 3 };
-  if (clipScore >= 50)  return { letter: 'B',  label: 'NICE',      color: '#3498DB', stars: 2 };
-  return                       { letter: 'C',  label: 'BASIC',     color: '#95A5A6', stars: 1 };
+  if (clipScore >= 200) return { letter: 'S+', label: 'GOD MODE',  color: '#D0AF66', stars: 5 };
+  if (clipScore >= 150) return { letter: 'S',  label: 'LEGENDARY', color: '#BB7865', stars: 4 };
+  if (clipScore >= 100) return { letter: 'A',  label: 'EPIC',      color: '#A6AEA7', stars: 3 };
+  if (clipScore >= 50)  return { letter: 'B',  label: 'NICE',      color: '#A6AEA7', stars: 2 };
+  return                       { letter: 'C',  label: 'BASIC',     color: '#B9BDAF', stars: 1 };
 }
 
 // ── Score formula ─────────────────────────────────────────────────────────────

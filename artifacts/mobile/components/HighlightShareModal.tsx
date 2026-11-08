@@ -1,3 +1,4 @@
+import { Text } from '@/components/ui/Text';
 /**
  * HighlightShareModal
  *
@@ -19,7 +20,6 @@ import {
   Modal,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   capDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: 2,
   },
   capText: {
     fontFamily: 'SourceSans3_400Regular',

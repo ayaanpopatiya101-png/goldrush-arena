@@ -1,3 +1,4 @@
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import { Panel, ScreenTitle, Shell, paperText } from '@/components/ui/Primitives';
 import { tactile } from '@/constants/colors';
@@ -5,9 +6,7 @@ import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import {
-  Platform, Pressable, ScrollView, StyleSheet, Text, View,
-} from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, View,  } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -748,7 +747,7 @@ const s = StyleSheet.create({
   dot:             { width: 10, height: 10, borderRadius: 3 },
   playsRemaining:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
 
-  divider:         { height: 1, borderRadius: 1 },
+  divider:         { height: 1, borderRadius: 2 },
 
   rewardRow:       { flexDirection: 'row', gap: 8 },
   rewardPill:      { flex: 1, alignItems: 'center', gap: 2 },

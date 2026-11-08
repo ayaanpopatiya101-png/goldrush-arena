@@ -1,9 +1,11 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text, AnimatedText } from '@/components/ui/Text';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Panel, ScreenTitle, paperText } from '@/components/ui/Primitives';
 import { tactile } from '@/constants/colors';
 import {
   Animated, Dimensions, Pressable,
-  ScrollView, StyleSheet, Text, View,
+  ScrollView, StyleSheet, View,
 } from 'react-native';
 import Reanimated, {
   FadeInDown, FadeInUp, ZoomIn,
@@ -177,9 +179,9 @@ function ZoneBanner({ zone, zoneIdx, scrollY }: { zone: RoadZone; zoneIdx: numbe
               ])).start();
             }, []);
             return (
-              <Animated.Text key={i} style={{ fontSize: 20 - i * 2, opacity: 0.85 - i * 0.15, transform: [{ translateY: fl }] }}>
+              <AnimatedText key={i} style={{ fontSize: 20 - i * 2, opacity: 0.85 - i * 0.15, transform: [{ translateY: fl }] }}>
                 {e}
-              </Animated.Text>
+              </AnimatedText>
             );
           })}
         </View>

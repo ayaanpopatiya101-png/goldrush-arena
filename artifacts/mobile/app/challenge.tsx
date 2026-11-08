@@ -1,3 +1,5 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text } from '@/components/ui/Text';
 /**
  * Incoming challenge (deep link): goldrush://challenge?seed=YYYYMMDD&score=47&player=Alex
  * Validates the link, checks it against today's server seed, and never silently
@@ -6,7 +8,7 @@
 import * as Haptics from '@/utils/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandMark } from '@/components/ui/BrandMark';

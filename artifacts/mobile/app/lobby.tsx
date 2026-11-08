@@ -1,3 +1,5 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
@@ -12,7 +14,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import Reanimated, {

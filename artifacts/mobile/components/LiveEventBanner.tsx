@@ -1,3 +1,5 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text, AnimatedText } from '@/components/ui/Text';
 /**
  * LiveEventBanner
  *
@@ -9,7 +11,7 @@ import { CURRENT_SEASON } from '@/constants/season';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import { GlowText } from '@/components/effects';
 import { useFeaturedModeCountdown } from '@/utils/featuredModes';
 import { Glyph } from '@/components/ui/Glyph';
@@ -45,9 +47,9 @@ function NewsTicker() {
         <View style={tk.liveDot} />
         <Text style={tk.liveText}>LIVE</Text>
       </View>
-      <Animated.Text style={[tk.news, { opacity: fadeAnim }]} numberOfLines={1}>
+      <AnimatedText style={[tk.news, { opacity: fadeAnim }]} numberOfLines={1}>
         {NEWS_ITEMS[index]}
-      </Animated.Text>
+      </AnimatedText>
     </View>
   );
 }

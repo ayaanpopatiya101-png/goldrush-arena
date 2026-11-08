@@ -1,9 +1,11 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text, AnimatedText } from '@/components/ui/Text';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScreenTitle, paperText } from '@/components/ui/Primitives';
 import { tactile } from '@/constants/colors';
 import {
   Animated, Dimensions, Pressable, ScrollView,
-  StyleSheet, Text, View,
+  StyleSheet, View,
 } from 'react-native';
 import Reanimated, { FadeInRight } from 'react-native-reanimated';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
@@ -440,7 +442,7 @@ function ZoneDecor({ emojis, color }: { emojis: string[]; color: string }) {
   return (
     <View style={{ position: 'absolute', right: 10, top: 0, bottom: 0, width: 120, overflow: 'hidden' }}>
       {floats.map(({ e, anim, x }, i) => (
-        <Animated.Text key={i}
+        <AnimatedText key={i}
           style={{
             position: 'absolute',
             fontSize: i === 0 ? 28 : i === 1 ? 20 : 14,
@@ -449,7 +451,7 @@ function ZoneDecor({ emojis, color }: { emojis: string[]; color: string }) {
             transform: [{ translateY: anim }],
             opacity: 1 - i * 0.15,
           }}
-        >{e}</Animated.Text>
+        >{e}</AnimatedText>
       ))}
     </View>
   );
@@ -604,7 +606,7 @@ function TrophyRoadTab({
           <LinearGradient
             colors={['#EDBA3C', '#EDBA3C']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={{ height: 5, width: `${(done / total) * 100}%` as any, borderRadius: 3 }}
+            style={{ height: 5, width: `${(done / total) * 100}%` as any, borderRadius: 2 }}
           />
         </View>
       </View>

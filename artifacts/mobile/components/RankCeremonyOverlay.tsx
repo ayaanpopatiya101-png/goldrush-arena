@@ -1,3 +1,5 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text } from '@/components/ui/Text';
 /**
  * RankCeremonyOverlay, full-screen cinematic rank promotion sequence.
  *
@@ -8,17 +10,7 @@
  */
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Animated, Dimensions, Easing, Modal, Platform, Pressable, StyleSheet, View,  } from 'react-native';
 import Reanimated, {
   useAnimatedStyle,
   useSharedValue,

@@ -1,10 +1,9 @@
 import * as Haptics from '@/utils/haptics';
+import { Text, AnimatedText } from '@/components/ui/Text';
 import { useBlockingOverlay } from '@/context/OverlayQueue';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Animated, Modal, Platform, Pressable, StyleSheet, Text, View,
-} from 'react-native';
+import { Animated, Modal, Platform, Pressable, StyleSheet, View,  } from 'react-native';
 import {
   GOLD_STRIKE_NAME, LUCKY_BLOCK_META, LuckyBlock, LuckyBlockReward, LuckyBlockTier,
   generateLuckyBlockReward, rollLuckyBlockUpgrade, usePlayer,
@@ -209,13 +208,13 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
         {phase !== 'revealed' ? (
           <View style={s.center}>
             {/* Category label */}
-            <Animated.Text style={[s.categoryLabel, { opacity: blockOp }]}>
+            <AnimatedText style={[s.categoryLabel, { opacity: blockOp }]}>
               {GOLD_STRIKE_NAME.toUpperCase()}
-            </Animated.Text>
+            </AnimatedText>
             {/* Tier title */}
-            <Animated.Text style={[s.tierLabel, { color: meta.color, opacity: blockOp }]}>
+            <AnimatedText style={[s.tierLabel, { color: meta.color, opacity: blockOp }]}>
               {meta.name}
-            </Animated.Text>
+            </AnimatedText>
 
             {/* Tap pip counter (filled = already tapped) */}
             <View style={s.pips}>

@@ -1,0 +1,10 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; background: #EEE9DE; color: #252A2B; }
+body { margin: 0; }
+main { width: min(48rem, calc(100% - 3rem)); margin: 3rem auto; line-height: 1.65; }
+nav { display: flex; flex-wrap: wrap; gap: 1.2rem; margin-bottom: 2rem; }
+a { color: #23344B; text-underline-offset: .2em; overflow-wrap: anywhere; }
+a:focus-visible { outline: 3px solid #F36B3F; outline-offset: 4px; }
+h1, h2 { line-height: 1.2; }
+h1 { font-size: clamp(2rem, 6vw, 3rem); }
+h2 { margin-top: 2rem; }
+.notice { background: #E3DFD3; padding: 1.2rem; border: 1px solid #575D5C; }

@@ -1,8 +1,9 @@
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Button, ScreenTitle, Shell, gridItemWidth, paperText } from '@/components/ui/Primitives';
 import { tactile } from '@/constants/colors';
 import { SkinComparison } from '@/components/SkinComparison';

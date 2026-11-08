@@ -1,4 +1,6 @@
 import * as Haptics from '@/utils/haptics';
+import { canMovePaddle, clampPaddle, clampPaddleRange } from '@/utils/courtInput';
+import { idleAnimation } from '@/components/ui/idleAnimation';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Line, Polygon, Rect, Text as SvgText } from 'react-native-svg';
@@ -195,12 +197,6 @@ const PLAYER_GLOW: string[] = PLAYER_COLORS.map(c => c + '88');
 const GOAL_EMOJIS   = ['💥','🎯','⚡','🔥','😱','💫','🚀'];
 const COMBO_COLORS  = ['#EDBA3C','#EDBA3C','#F36B3F','#EEE9DE'];
 
-function clampPaddle(v: number, len: number, sz: number) {
-  return Math.max(len/2+2, Math.min(sz-len/2-2, v));
-}
-function clampPaddleRange(v: number, len: number, minX: number, maxX: number) {
-  return Math.max(minX + len/2 + 2, Math.min(maxX - len/2 - 2, v));
-}
 function getPaddleLen(p: PlayerRef) {
   const mult = Math.min(p.paddleLenMult ?? 1, 1.25);
   return (p.shrunkFrames > 0 ? PADDLE_LENGTH * 0.52 : PADDLE_LENGTH) * mult;
@@ -262,6 +258,7 @@ export function GameArena({
   szRef.current = arenaSize;
 
   const pausedRef = useRef(paused);
+  const gameOverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => { pausedRef.current = paused; }, [paused]);
 
   const ballSpawnFramesRef   = useRef(ballSpawnFrames   ?? BALL_SPAWN_FRAMES);
@@ -397,7 +394,7 @@ export function GameArena({
   // ── Paddle glow pulse ────────────────────────────────────────────────────────
   useEffect(() => {
     const loops = paddleGlowAnims.map((anim, i) =>
-      Animated.loop(Animated.sequence([
+      idleAnimation(Animated.sequence([
         Animated.timing(anim, {toValue:1,   duration:850+i*130, useNativeDriver:true}),
         Animated.timing(anim, {toValue:0.45, duration:850+i*130, useNativeDriver:true}),
       ]))
@@ -408,7 +405,7 @@ export function GameArena({
 
   // ── Arena border pulse ───────────────────────────────────────────────────────
   useEffect(() => {
-    const loop = Animated.loop(Animated.sequence([
+    const loop = idleAnimation(Animated.sequence([
       Animated.timing(borderPulseAnim, {toValue:1, duration:2200, useNativeDriver:true}),
       Animated.timing(borderPulseAnim, {toValue:0, duration:2200, useNativeDriver:true}),
     ]));
@@ -439,7 +436,7 @@ export function GameArena({
   const colorPhaseAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (!colorBoard) return;
-    const loop = Animated.loop(
+    const loop = idleAnimation(
       Animated.timing(colorPhaseAnim, {
         toValue: COLOR_BOARD_COLORS.length - 1,
         duration: (COLOR_BOARD_COLORS.length - 1) * 8000,
@@ -654,6 +651,7 @@ export function GameArena({
     setDuelSecondsLeft(DUEL_TIME_LIMIT);
     let elapsed = 0;
     duelTimerInterval.current = setInterval(() => {
+      if (pausedRef.current) return;
       elapsed++;
       setDuelSecondsLeft(DUEL_TIME_LIMIT - elapsed);
       if (elapsed >= DUEL_TIME_LIMIT) {
@@ -843,6 +841,7 @@ export function GameArena({
 
   // ── Super ability activation ──
   function activateSuper() {
+    if (!canMovePaddle(pausedRef.current, gsRef.current.players[BOTTOM].isEliminated, gsRef.current.phase)) return;
     if (superChargeRef.current < SUPER_MAX_CHARGE) return;
     if (superActiveFramesRef.current > 0) return;
     superChargeRef.current = 0;
@@ -1029,7 +1028,7 @@ export function GameArena({
               setGamePhase('gameover');
               showAnnouncer('GAME OVER!');
               if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-              setTimeout(() => {
+              gameOverTimer.current = setTimeout(() => {
                 onGameOverRef.current({ won: false, position: 1, deflections: deflectionsRef.current, goalsAgainst: 1, xpEarned: 0, coinsEarned: 0 });
               }, 1200);
             }
@@ -1330,7 +1329,7 @@ export function GameArena({
         const x   = evt.nativeEvent.locationX;
         const gs  = gsRef.current;
         const p0  = gs.players[BOTTOM];
-        if (p0.isEliminated || gs.phase !== 'playing') return;
+        if (!canMovePaddle(pausedRef.current, p0.isEliminated, gs.phase)) return;
         p0.prevPaddleCenter = p0.paddleCenter;
         const sz = szRef.current;
         const raw = paddleInput(x, sz, getPaddleLen(p0), sensitivityRef.current * p0.paddleSpeedMult);
@@ -1344,7 +1343,7 @@ export function GameArena({
         const x   = evt.nativeEvent.locationX;
         const gs  = gsRef.current;
         const p0  = gs.players[BOTTOM];
-        if (p0.isEliminated || gs.phase !== 'playing') return;
+        if (!canMovePaddle(pausedRef.current, p0.isEliminated, gs.phase)) return;
         p0.prevPaddleCenter = p0.paddleCenter;
         const sz = szRef.current;
         const raw = paddleInput(x, sz, getPaddleLen(p0), sensitivityRef.current * p0.paddleSpeedMult);
@@ -1400,6 +1399,7 @@ export function GameArena({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (announcerTimer.current) clearTimeout(announcerTimer.current);
       if (comboTimer.current)     clearTimeout(comboTimer.current);
+      if (gameOverTimer.current) clearTimeout(gameOverTimer.current);
     };
   }, []);
 
@@ -1599,7 +1599,7 @@ export function GameArena({
         {/* Spark burst particles */}
         {sparks.map(sp => (
           <Animated.View key={sp.id} pointerEvents="none" style={{
-            position:'absolute', width:7, height:7, borderRadius:3.5,
+            position:'absolute', width:7, height:7, borderRadius:2,
             backgroundColor:sp.color, opacity:sp.anim,
             left:sp.x - 3.5, top:sp.y - 3.5,
             shadowColor:sp.color, shadowOpacity: 0, shadowRadius: 0, shadowOffset:{width:0,height:0},
@@ -1839,7 +1839,7 @@ export function GameArena({
           <View style={{ flexDirection: 'row', gap: 3 }}>
             {Array.from({ length: SUPER_MAX_CHARGE }).map((_, i) => (
               <View key={i} style={{
-                flex: 1, height: 6, borderRadius: 3,
+                flex: 1, height: 6, borderRadius: 2,
                 backgroundColor: i < superChargeUI
                   ? (superActiveUI ? '#F36B3F' : '#EDBA3C')
                   : '#EEE9DE1A',

@@ -4,7 +4,7 @@
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/scorecard-icon.png",
     "scheme": "goldrush",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -15,6 +15,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.goldrush.arena",
+      "appleTeamId": "K592NV82VP",
       "supportsTablet": false,
       "buildNumber": "1",
       "infoPlist": {
@@ -32,12 +33,27 @@
       "permissions": []
     },
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/scorecard-icon.png"
     },
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-web-browser"
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/scorecard-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#EEE9DE"
+        }
+      ],
+      "expo-web-browser",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

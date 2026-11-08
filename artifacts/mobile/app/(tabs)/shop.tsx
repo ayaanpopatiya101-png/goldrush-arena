@@ -162,8 +162,7 @@ export default function ShopScreen() {
     trackEvent('store_checkout_started', { product: productName, provider: 'revenuecat' });
     try {
       const result = await revenueCat.purchase(pkg);
-      const transactionIdentifier = (result as any).transaction?.transactionIdentifier
-        ?? (result as any).transaction?.transactionId;
+      const transactionIdentifier = result.transaction.transactionIdentifier;
       if (!transactionIdentifier) throw new Error('The app store did not return a transaction receipt.');
       const fulfilled = await applyStorePurchases([{
         productIdentifier: result.productIdentifier,

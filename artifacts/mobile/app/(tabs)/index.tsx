@@ -153,6 +153,7 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
           <Button label="Stop" size="sm" variant="ghost" icon="square" onPress={() => setStarted(false)} />
         ) : null}
       </View>
+      <Button label="Full-screen warm-up" variant="secondary" onPress={() => router.push('/warmup')} />
     </View>
   );
 }

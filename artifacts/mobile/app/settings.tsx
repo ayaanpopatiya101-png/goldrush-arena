@@ -1,3 +1,4 @@
+import { Text } from '@/components/ui/Text';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
 import { Button, Shell, ScreenTitle } from '@/components/ui/Primitives';
@@ -7,7 +8,7 @@ import { LinearGradient } from '@/components/ui/Flat';
 import { router } from 'expo-router';
 import * as StoreReview from 'expo-store-review';
 import React, { useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, View, useWindowDimensions } from 'react-native';
 import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettings } from '@/hooks/useSettings';

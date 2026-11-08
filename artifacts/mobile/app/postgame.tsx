@@ -1,10 +1,11 @@
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import { getCompletedMatch, updateCompletedMatch } from '@/store/completedMatch';
 import { startRematch } from '@/store/gameSession';
 import * as Haptics from '@/utils/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import Reanimated, { FadeIn, FadeOutDown, ZoomIn, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';

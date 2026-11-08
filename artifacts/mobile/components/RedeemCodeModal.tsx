@@ -1,10 +1,8 @@
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useRef, useState } from 'react';
-import {
-  Animated, KeyboardAvoidingView, Modal, Platform,
-  Pressable, StyleSheet, Text, TextInput, View,
-} from 'react-native';
+import { Animated, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, TextInput, View,  } from 'react-native';
 import { usePlayer } from '@/context/PlayerContext';
 import { useBlockingOverlay } from '@/context/OverlayQueue';
 

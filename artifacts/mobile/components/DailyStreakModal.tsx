@@ -1,5 +1,7 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text, AnimatedText } from '@/components/ui/Text';
 import React, { useEffect, useRef } from 'react';
-import { Animated, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from '@/components/ui/Flat';
 import { getStreakReward } from '@/context/PlayerContext';
 import { Glyph } from '@/components/ui/Glyph';

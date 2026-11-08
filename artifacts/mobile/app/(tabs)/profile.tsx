@@ -1,10 +1,12 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Button, Panel, ScreenTitle, Shell, paperText } from '@/components/ui/Primitives';
 import { tactile } from '@/constants/colors';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Easing, Image, Platform, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Animated, Easing, Image, Platform, Pressable, ScrollView, Share, StyleSheet, TextInput, View } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import Svg, { Circle } from 'react-native-svg';

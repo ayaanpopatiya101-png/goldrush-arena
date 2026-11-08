@@ -1,5 +1,6 @@
+import { Text } from '@/components/ui/Text';
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from '@/components/ui/Flat';
 import Reanimated, {
   useAnimatedStyle,
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
   },
   botBadge: {
     borderWidth: 1,
-    borderRadius: 4,
+    borderRadius: 2,
     paddingHorizontal: 4,
     paddingVertical: 1,
   },

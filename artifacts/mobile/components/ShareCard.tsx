@@ -1,3 +1,4 @@
+import { Text } from '@/components/ui/Text';
 /**
  * ShareCard, viral post-game share overlay.
  *
@@ -11,9 +12,7 @@ import * as Haptics from '@/utils/haptics';
 import { useBlockingOverlay } from '@/context/OverlayQueue';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef } from 'react';
-import {
-  Animated, Modal, Platform, Pressable, Share, StyleSheet, Text, View,
-} from 'react-native';
+import { Animated, Modal, Platform, Pressable, Share, StyleSheet, View,  } from 'react-native';
 import Reanimated, { FadeIn, FadeOut, ZoomIn } from 'react-native-reanimated';
 import { GlowText } from '@/components/effects';
 import { buildChallengeLink } from '@/utils/dailyChallenge';

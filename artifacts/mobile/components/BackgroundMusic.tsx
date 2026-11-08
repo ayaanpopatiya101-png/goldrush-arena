@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { File, Paths } from 'expo-file-system';
-import { Audio } from 'expo-av';
+import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 
 // ─── Shared note / melody data ─────────────────────────────────────────────────
 
@@ -139,7 +139,7 @@ function useWebBackgroundMusic() {
   return { muted, setMuted, start, stop };
 }
 
-// ─── Native (expo-av) implementation ──────────────────────────────────────────
+// ─── Native (expo-audio) implementation ───────────────────────────────────────
 
 function makeWavBytes(freq: number, duration: number, sampleRate = 22050): Uint8Array {
   const numSamples = Math.floor(sampleRate * duration);
@@ -196,12 +196,14 @@ function useNativeBackgroundMusic() {
       if (freq) {
         try {
           const uri = getNoteUri(freq, durSecs);
-          Audio.Sound.createAsync({ uri }).then(({ sound }) => {
-            sound.playAsync().catch(() => {});
-            sound.setOnPlaybackStatusUpdate(s => {
-              if (s.isLoaded && s.didJustFinish) sound.unloadAsync().catch(() => {});
-            });
-          }).catch(() => {});
+          const player = createAudioPlayer(uri);
+          const subscription = player.addListener('playbackStatusUpdate', status => {
+            if (status.didJustFinish) {
+              subscription.remove();
+              player.remove();
+            }
+          });
+          player.play();
         } catch { /* ignore */ }
       }
     }
@@ -214,7 +216,7 @@ function useNativeBackgroundMusic() {
     if (startedRef.current) return;
     startedRef.current = true;
     indexRef.current   = 0;
-    Audio.setAudioModeAsync({ playsInSilentModeIOS: true, staysActiveInBackground: false }).catch(() => {});
+    setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: false }).catch(() => {});
     // Pre-cache all melody note WAVs synchronously, then begin playing.
     try {
       for (const name of [...new Set(MELODY.map(n => n.n))]) {

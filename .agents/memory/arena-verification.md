@@ -14,3 +14,9 @@ Validate Codespaces base-image availability with a registry manifest GET that ac
 **Why:** The registry returned 404 to HEAD requests advertising only a Docker manifest, even for listed, available tags. A GET accepting OCI indexes returned the actual multi-platform manifest successfully.
 
 **How to apply:** Confirm the image exists when updating the external launch configuration. Separate launcher/configuration checks from an actual Codespaces boot; creating a billed cloud workspace requires the user's choice.
+
+Imported native project files and CocoaPods locks must match the app's active Expo and React Native versions.
+
+**Why:** A parallel branch contained a generated native tree for a different Expo generation. Its source and lock could merge cleanly while the JavaScript app still used an older supported SDK.
+
+**How to apply:** Compare native dependency versions with the active app before accepting a native-tree import. Regenerate compatible generated sources rather than silently upgrading the SDK or keeping an incompatible lock. Distinguish source generation from a real CocoaPods/Xcode build.
