@@ -21,6 +21,8 @@ export function nextTutorialStep(step: TutorialStep, event: StageEvent | 'startM
   return step;
 }
 
+const TRACK: Record<TutorialStep, number> = { move: 20, block: 40, miss: 55, missDone: 65, match: 82, progress: 100 };
+
 const COPY: Record<TutorialStep, { kicker: string; title: string; body: string }> = {
   move: { kicker: 'Step 1 of 4 · Move', title: 'Slide your paddle', body: 'Your paddle sits on the bottom edge, nearest you. Drag along the court. On desktop, click and drag. The ball waits until you move.' },
   block: { kicker: 'Step 2 of 4 · Block', title: 'Meet the slow ball', body: 'A slow ball is heading for your edge. Put your paddle in its path to send it back.' },
@@ -79,6 +81,10 @@ export function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
           <Text style={s.kicker}>{copy.kicker}</Text>
           <Button testID="tutorial-skip" label="Skip" size="sm" variant="ghost" onPress={finish} disabled={busy} />
         </View>
+        {/* Lesson track: one continuous bar like the entry flow */}
+        <View style={s.track} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <View style={[s.trackFill, { width: `${TRACK[step]}%` as never }]} />
+        </View>
         <Text accessibilityRole="header" style={s.title}>{copy.title}</Text>
         <Text style={s.body} accessibilityLiveRegion="polite">{copy.body}</Text>
 
@@ -125,14 +131,16 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.ink },
   content: { width: '100%', maxWidth: 720, alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 8, gap: 12 },
   heading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  kicker: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.4, color: palette.charcoal, textTransform: 'uppercase', flexShrink: 1 },
-  title: { fontFamily: fonts.display, fontSize: 30, color: palette.paper },
+  track: { height: 14, borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.sandstone, padding: 2 },
+  trackFill: { height: '100%', backgroundColor: palette.gold },
+  kicker: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.4, color: palette.slate, textTransform: 'uppercase', flexShrink: 1 },
+  title: { fontFamily: fonts.display, fontSize: 32, lineHeight: 34, color: palette.charcoal, textTransform: 'uppercase', marginTop: 4 },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22, color: palette.paperDim },
-  court: { alignSelf: 'center' },
+  court: { alignSelf: 'center', backgroundColor: palette.navy },
   legend: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap' },
   debrief: { padding: 4 },
   row: { flexDirection: 'row', gap: 12, paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: palette.line },
-  rowKey: { fontFamily: fonts.display, fontSize: 17, color: palette.paper, width: 90, textTransform: 'uppercase', letterSpacing: 1 },
+  rowKey: { fontFamily: fonts.display, fontSize: 17, color: palette.charcoal, width: 90, textTransform: 'uppercase', letterSpacing: 1 },
   rowVal: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.paperDim, flex: 1 },
   note: { fontFamily: fonts.body, fontSize: 13, color: palette.muted, textAlign: 'center' },
 });

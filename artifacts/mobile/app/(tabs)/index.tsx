@@ -342,7 +342,7 @@ export default function HomeScreen() {
         accessibilityState={{ checked: on }}
         aria-checked={on}
         accessibilityLabel={`${m.name}, ${m.sub}${locked ? `, requires ${m.lockLabel}` : ''}`}
-        style={({ pressed }) => [s.modeCell, { width: modeCellW }, on && s.modeCellOn, pressed && { backgroundColor: ui.graphite2 }]}
+        style={({ pressed }) => [s.modeCell, { width: modeCellW }, on && s.modeCellOn, pressed && { borderBottomWidth: 2, transform: [{ translateY: 2 }] }]}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           {locked ? <Feather name="lock" size={12} color={ui.paperDim} /> : null}
@@ -418,7 +418,7 @@ export default function HomeScreen() {
           <View style={[s.playPanel, wide && { flex: 1, maxWidth: 460 }]}>
             <Panel style={s.selectedPanel}>
               <View style={{ flex: 1, gap: 2 }}>
-                <Text style={s.kicker}>Selected mode</Text>
+                <Text style={[s.kicker, { color: tactile.brass }]}>Selected mode</Text>
                 <Text style={s.selectedName}>{selected.name}</Text>
                 <Text style={s.selectedDesc}>{selected.desc}</Text>
                 <View style={s.ruleRow}>
@@ -457,7 +457,7 @@ export default function HomeScreen() {
               accessibilityRole="button"
               accessibilityState={{ expanded: showAllModes }}
               aria-expanded={showAllModes}
-              style={({ pressed }) => [s.expandRow, pressed && { backgroundColor: ui.graphite2 }]}
+              style={({ pressed }) => [s.expandRow, pressed && { borderBottomWidth: 2, transform: [{ translateY: 2 }] }]}
             >
               <Text style={s.expandText}>{showAllModes ? 'Hide more modes' : `More modes (${MODES.filter(m => !PRIMARY_MODE_KINDS.includes(m.kind)).length})`}</Text>
               <Feather name={showAllModes ? 'chevron-up' : 'chevron-down'} size={18} color={ui.paperDim} />
@@ -542,7 +542,7 @@ export default function HomeScreen() {
             accessibilityState={{ expanded: showMore }}
             aria-expanded={showMore}
             accessibilityLabel={showMore ? 'Hide ability, record, season pass and shortcuts' : 'Show ability, record, season pass and shortcuts'}
-            style={({ pressed }) => [s.expandRow, pressed && { backgroundColor: ui.graphite2 }]}
+            style={({ pressed }) => [s.expandRow, pressed && { borderBottomWidth: 2, transform: [{ translateY: 2 }] }]}
           >
             <View style={{ flex: 1 }}>
               <Text style={s.expandText}>{showMore ? 'Hide loadout and progress' : 'Loadout and progress'}</Text>
@@ -616,7 +616,7 @@ export default function HomeScreen() {
 
         {/* Shortcuts */}
         <View style={[s.block, { gap: 8 }]}>
-          <Pressable onPress={() => router.push('/my-clips')} accessibilityRole="button" style={({ pressed }) => [s.linkRow, pressed && { backgroundColor: ui.graphite2 }]}>
+          <Pressable onPress={() => router.push('/my-clips')} accessibilityRole="button" style={({ pressed }) => [s.linkRow, pressed && { borderBottomWidth: 2, transform: [{ translateY: 2 }] }]}>
             <Feather name="film" size={18} color={ui.paperDim} />
             <View style={{ flex: 1 }}>
               <Text style={s.modeName}>My clips</Text>
@@ -673,52 +673,52 @@ const s = StyleSheet.create({
   name: { fontFamily: fonts.display, fontSize: 22, color: ui.paper, letterSpacing: 0.5 },
   meta: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: ui.muted },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  wallet: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: ui.line, borderRadius: 2, paddingHorizontal: 8, height: 38, backgroundColor: ui.graphite2 },
-  headerIcon: { borderWidth: 1, borderColor: ui.lineStrong, borderRadius: 2 },
+  wallet: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 2, borderColor: ui.charcoal, borderRadius: 0, paddingHorizontal: 8, height: 40, backgroundColor: ui.gold },
+  headerIcon: { borderRadius: 0 },
   walletText: { fontFamily: fonts.display, fontSize: 17, color: ui.paper, fontVariant: ['tabular-nums'] },
   xpWrap: { paddingHorizontal: 18, marginTop: 12, gap: 4 },
-  xpTrack: { height: 8, padding: 1, borderWidth: 1, borderColor: ui.lineStrong, backgroundColor: ui.ink },
-  xpFill: { height: 4, backgroundColor: ui.ochre },
-  xpText: { fontFamily: fonts.body, fontSize: 12, color: ui.muted },
+  xpTrack: { height: 14, padding: 2, borderWidth: 2, borderColor: ui.charcoal, backgroundColor: ui.sandstone },
+  xpFill: { height: 6, backgroundColor: ui.gold },
+  xpText: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: ui.charcoal },
   block: { paddingHorizontal: 18, marginTop: 18 },
   playArea: { paddingHorizontal: 18, marginTop: 14, flexDirection: 'column', gap: 24 },
   playAreaWide: { flexDirection: 'row', alignItems: 'flex-start', gap: 24 },
   playPanel: {},
   ruleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
-  expandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, paddingHorizontal: 12, marginTop: 6, borderWidth: 1, borderColor: ui.line, borderRadius: 3 },
+  expandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48, paddingHorizontal: 12, marginTop: 8, borderWidth: 2, borderBottomWidth: 4, borderColor: ui.slate, borderRadius: 0, backgroundColor: ui.sandstone },
   expandText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: ui.paper },
-  selectedPanel: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10, backgroundColor: tactile.paperPanel, borderWidth: 2, borderColor: ui.lineStrong, borderRadius: 0 },
-  kicker: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1.2, color: tactile.paperMuted, textTransform: 'uppercase' },
-  selectedName: { fontFamily: fonts.display, fontSize: 30, color: tactile.paperInk, letterSpacing: 0.5, textTransform: 'uppercase' },
-  selectedDesc: { fontFamily: fonts.body, fontSize: 14, color: tactile.paperMuted },
-  paperRule: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: tactile.paperMuted },
-  playButton: { marginTop: 10, borderRadius: 0, borderWidth: 2, borderColor: ui.paperDim, minHeight: 60 },
+  selectedPanel: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 10, backgroundColor: tactile.court, borderWidth: 2, borderBottomWidth: 5, borderColor: ui.charcoal, borderRadius: 0 },
+  kicker: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1.2, color: ui.slate, textTransform: 'uppercase' },
+  selectedName: { fontFamily: fonts.display, fontSize: 32, color: tactile.courtText, letterSpacing: 0.5, textTransform: 'uppercase' },
+  selectedDesc: { fontFamily: fonts.body, fontSize: 15, lineHeight: 20, color: tactile.courtText },
+  paperRule: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: tactile.courtText, borderWidth: 1, borderColor: ui.gold, paddingHorizontal: 6, paddingVertical: 2 },
+  playButton: { marginTop: 12, borderRadius: 0, minHeight: 64 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, marginTop: 26, marginBottom: 4 },
   brandMark: { transform: [{ rotate: '-4deg' }] },
   wordmark: { fontFamily: fonts.display, fontSize: 36, color: ui.paper, letterSpacing: -1, lineHeight: 40 },
   brandCaption: { fontFamily: fonts.body, fontSize: 12, color: ui.muted, letterSpacing: 1 },
-  seasonStamp: { minWidth: 44, minHeight: 48, padding: 4, alignItems: 'center', justifyContent: 'center', gap: 2, borderWidth: 2, borderColor: ui.paperDim, backgroundColor: tactile.coral, transform: [{ rotate: '3deg' }] },
+  seasonStamp: { minWidth: 44, minHeight: 48, padding: 4, alignItems: 'center', justifyContent: 'center', gap: 2, borderWidth: 2, borderBottomWidth: 4, borderColor: ui.charcoal, backgroundColor: tactile.coral, transform: [{ rotate: '3deg' }] },
   stampText: { fontFamily: fonts.body, color: ui.ochreInk, fontSize: 13 },
   stampLabel: { fontFamily: fonts.bodyBold, color: ui.ochreInk, fontSize: 12, letterSpacing: 0.7 },
   note: { fontFamily: fonts.body, fontSize: 13, color: ui.muted, marginTop: 8, lineHeight: 18 },
   errorRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   errorText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 13, color: ui.clay },
   modeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
-  modeCell: { borderWidth: 1, borderColor: ui.line, borderRadius: 3, paddingHorizontal: 10, paddingVertical: 9, backgroundColor: ui.graphite, minHeight: 52 },
-  modeCellOn: { borderColor: ui.orange, borderWidth: 2, paddingHorizontal: 9, paddingVertical: 8 },
+  modeCell: { borderWidth: 2, borderBottomWidth: 4, borderColor: ui.slate, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 9, backgroundColor: ui.stone, minHeight: 56 },
+  modeCellOn: { borderColor: ui.charcoal, backgroundColor: ui.gold },
   modeName: { fontFamily: fonts.display, fontSize: 17, color: ui.paper, letterSpacing: 0.5, textTransform: 'uppercase' },
   modeSub: { fontFamily: fonts.body, fontSize: 12, color: ui.muted },
-  superCell: { minHeight: 44, flexBasis: '31%', flexGrow: 1, borderWidth: 1, borderColor: ui.line, borderRadius: 3, padding: 10, gap: 2, backgroundColor: ui.graphite },
+  superCell: { minHeight: 44, flexBasis: '31%', flexGrow: 1, borderWidth: 2, borderBottomWidth: 4, borderColor: ui.slate, borderRadius: 0, padding: 10, gap: 2, backgroundColor: ui.stone },
   body: { fontFamily: fonts.body, fontSize: 14, color: ui.paperDim, lineHeight: 19 },
-  codeInput: { flex: 1, height: 44, borderWidth: 1, borderColor: ui.line, borderRadius: 3, backgroundColor: ui.graphite2, color: ui.paper, fontFamily: fonts.display, fontSize: 20, letterSpacing: 4, paddingHorizontal: 12 },
+  codeInput: { flex: 1, height: 48, borderWidth: 2, borderColor: ui.charcoal, borderRadius: 0, backgroundColor: ui.graphite2, color: ui.paper, fontFamily: fonts.display, fontSize: 20, letterSpacing: 4, paddingHorizontal: 12 },
   codeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderBottomWidth: 1, borderBottomColor: ui.line },
   partyCode: { fontFamily: fonts.display, fontSize: 30, letterSpacing: 6, color: ui.charcoal },
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 10 },
   memberAvatar: { width: 32, height: 32, borderRadius: 3, borderWidth: 1, borderColor: ui.line, alignItems: 'center', justifyContent: 'center' },
   memberName: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: ui.paper },
   memberMeta: { fontFamily: fonts.body, fontSize: 12, color: ui.muted },
-  tier: { width: 132, borderWidth: 1, borderColor: ui.line, borderRadius: 3, padding: 10, gap: 4, backgroundColor: ui.graphite },
+  tier: { width: 132, borderWidth: 2, borderBottomWidth: 4, borderColor: ui.slate, borderRadius: 0, padding: 10, gap: 4, backgroundColor: ui.graphite },
   tierReward: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: ui.paperDim, minHeight: 32 },
-  linkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: ui.line, borderRadius: 3, padding: 12, backgroundColor: ui.graphite },
+  linkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: ui.slate, borderRadius: 0, padding: 12, backgroundColor: ui.graphite },
   streakCell: { width: 18, height: 6, borderWidth: 1, borderColor: ui.line },
 });

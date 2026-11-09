@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Glyph } from '@/components/ui/Glyph';
 import { Button } from '@/components/ui/Primitives';
-import { palette, tactile } from '@/constants/colors';
+import { palette } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { SavedAccountMeta } from '@/context/PlayerContext';
 import { findSavedPlayer } from '@/utils/onboarding';
@@ -79,7 +79,7 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
                     accessibilityLabel={`Continue as ${a.username}, ${a.rank}`}
                     accessibilityState={{ disabled: !!busyName, busy: busyName === a.username }}
                     aria-disabled={!!busyName}
-                    style={({ pressed }) => [s.main, pressed && { backgroundColor: palette.graphite2 }]}
+                    style={({ pressed }) => [s.main, pressed && { backgroundColor: palette.gold }]}
                   >
                     <View style={[s.avatar, { borderColor: a.avatarColor }]}>
                       <Glyph value={a.avatarEmoji} size={22} color={palette.paper} />
@@ -134,14 +134,14 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
 }
 
 const s = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'stretch', borderWidth: 2, borderColor: tactile.brass, backgroundColor: palette.graphite, borderRadius: 2, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'stretch', borderWidth: 2, borderBottomWidth: 5, borderColor: palette.charcoal, backgroundColor: palette.stone, borderRadius: 0, overflow: 'hidden' },
   main: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, minHeight: 64 },
-  avatar: { width: 44, height: 44, borderWidth: 3, borderRadius: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.ink },
+  avatar: { width: 44, height: 44, borderWidth: 3, borderRadius: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.ink },
   name: { fontFamily: fonts.display, fontSize: 22, color: palette.paper, textTransform: 'uppercase' },
   cont: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.charcoal },
-  del: { width: 52, alignItems: 'center', justifyContent: 'center', borderLeftWidth: 2, borderLeftColor: tactile.brass },
+  del: { width: 52, alignItems: 'center', justifyContent: 'center', borderLeftWidth: 2, borderLeftColor: palette.charcoal, backgroundColor: palette.sandstone },
   confirm: { flex: 1, padding: 12, gap: 10 },
   confirmText: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.paper },
-  empty: { gap: 10, alignItems: 'flex-start', padding: 16, borderWidth: 2, borderColor: palette.line, borderStyle: 'dashed' },
-  input: { flex: 1, minHeight: 48, borderWidth: 2, borderColor: palette.lineStrong, borderRadius: 2, backgroundColor: palette.ink, color: palette.paper, fontFamily: fonts.body, fontSize: 17, paddingHorizontal: 12 },
+  empty: { gap: 10, alignItems: 'flex-start', padding: 16, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.slate, backgroundColor: palette.sandstone },
+  input: { flex: 1, minHeight: 48, borderWidth: 2, borderColor: palette.charcoal, borderRadius: 0, backgroundColor: palette.stone, color: palette.paper, fontFamily: fonts.body, fontSize: 17, paddingHorizontal: 12 },
 });

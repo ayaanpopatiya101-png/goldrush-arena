@@ -226,9 +226,9 @@ export default function ShopScreen() {
             onPress={() => setRedeemVisible(true)}
             accessibilityRole="button"
             accessibilityLabel="Redeem a code"
-            style={({ pressed }) => [styles.redeemCodeBtn, { opacity: pressed ? 0.75 : 1 }]}
+            style={({ pressed }) => [styles.redeemCodeBtn, pressed && { borderBottomWidth: 2, transform: [{ translateY: 2 }] }]}
           >
-            <Feather name="gift" size={13} color="#EDBA3C" />
+            <Feather name="gift" size={13} color="#252A2B" />
             <Text style={styles.redeemCodeTxt}>REDEEM</Text>
           </Pressable>
         </View>
@@ -237,7 +237,7 @@ export default function ShopScreen() {
       {/* Tabs */}
       <View accessibilityRole="tablist" style={[styles.tabRow, { borderBottomColor: colors.border }]}>
         {(['skins', 'themes', 'extras', 'store'] as const).map(t => (
-          <Pressable key={t} accessibilityRole="tab" accessibilityState={{ selected: activeTab === t }} aria-selected={activeTab === t} accessibilityLabel={t === 'themes' ? 'Court themes and hit effects' : t.charAt(0).toUpperCase() + t.slice(1)} onPress={() => setActiveTab(t)} style={[styles.tab, activeTab === t && { backgroundColor: colors.primary, borderBottomColor: tactile.brassEdge }]}>
+          <Pressable key={t} accessibilityRole="tab" accessibilityState={{ selected: activeTab === t }} aria-selected={activeTab === t} accessibilityLabel={t === 'themes' ? 'Court themes and hit effects' : t.charAt(0).toUpperCase() + t.slice(1)} onPress={() => setActiveTab(t)} style={({ pressed }) => [styles.tab, activeTab === t && styles.tabOn, pressed && { transform: [{ translateY: 2 }] }]}>
             {activeTab === t ? (
               <Text style={[styles.tabText, { color: paperText.ink }]}>
                 {t === 'skins' ? 'SKINS' : t === 'themes' ? 'COURT & HITS' : t === 'store' ? 'STORE' : 'EXTRAS'}
@@ -288,7 +288,7 @@ export default function ShopScreen() {
                 onPress={() => handleBuyFromStore(item.storeKey)}
                 disabled={checkingOut === item.storeKey}
                 style={({ pressed }) => [styles.bundleCard, {
-                  backgroundColor: colors.card, borderColor: '#575D5C', opacity: pressed ? 0.8 : 1,
+                  backgroundColor: colors.card, borderColor: '#575D5C', borderBottomWidth: pressed ? 2 : 5, transform: [{ translateY: pressed ? 3 : 0 }],
                 }]}
               >
                 <LinearGradient colors={['#F36B3F12', '#E3DFD308']} style={StyleSheet.absoluteFill} />
@@ -422,8 +422,8 @@ export default function ShopScreen() {
                       )}
                     </View>
                     {!profile.seasonPassPurchased && (
-                      <View style={storeStyles.usdBtn}>
-                        <Text style={storeStyles.usdBtnText}>Unavailable</Text>
+                      <View style={[storeStyles.usdBtn, { backgroundColor: '#E3DFD3', borderColor: '#575D5C', borderBottomWidth: 2 }]}>
+                        <Text style={[storeStyles.usdBtnText, { color: '#575D5C' }]}>Unavailable</Text>
                       </View>
                     )}
                   </Pressable>
@@ -565,13 +565,14 @@ const styles = StyleSheet.create({
   headerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 20, letterSpacing: 2 },
   coinDisplay: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#EDBA3C', borderRadius: 3, borderWidth: 2, borderColor: '#252A2B', paddingHorizontal: 9, paddingVertical: 4 },
   coinAmount: { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
-  tabRow: { flexDirection: 'row', gap: 4, flexShrink: 0, minHeight: 48, borderBottomWidth: 2, paddingHorizontal: 16, marginBottom: 4 },
-  tab: { flex: 1, minHeight: 46, minWidth: 0, paddingHorizontal: 3, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 14, letterSpacing: 0.4 },
+  tabRow: { flexDirection: 'row', gap: 6, flexShrink: 0, minHeight: 48, borderBottomWidth: 2, paddingHorizontal: 16, paddingBottom: 12, marginBottom: 4 },
+  tab: { flex: 1, minHeight: 46, minWidth: 0, paddingHorizontal: 3, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
+  tabOn: { backgroundColor: '#F36B3F', borderColor: '#252A2B' },
+  tabText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, letterSpacing: 0.6 },
   sectionInfo: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18 },
-  subsectionTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.8, marginTop: 8, marginBottom: 2, color: '#575D5C', borderLeftWidth: 2, borderLeftColor: '#EDBA3C', paddingLeft: 8 },
+  subsectionTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, letterSpacing: 1.4, marginTop: 14, marginBottom: 4, color: '#252A2B', textTransform: 'uppercase' },
   skinGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  skinCard: { borderRadius: 0, borderWidth: 2, overflow: 'hidden' },
+  skinCard: { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, overflow: 'hidden' },
   skinPreview: { height: 88, alignItems: 'center', justifyContent: 'center' },
   paddlePreview: { width: 72, height: 13, borderRadius: 3, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
   ownedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 0, paddingHorizontal: 5, paddingVertical: 2 },
@@ -583,49 +584,49 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   priceText: { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   ownedLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5 },
-  itemRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, padding: 14, gap: 12 },
+  itemRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, padding: 14, gap: 12 },
   trailDot: { width: 26, height: 26, borderRadius: 3, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
   itemName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
   itemDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 1 },
-  bundleCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, padding: 14, gap: 12, overflow: 'hidden' },
-  bundleIcon: { width: 44, height: 44, borderRadius: 3, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 0, borderWidth: 2, paddingHorizontal: 10, paddingVertical: 6, minHeight: 44 },
+  bundleCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, padding: 14, gap: 12, overflow: 'hidden' },
+  bundleIcon: { width: 48, height: 48, borderRadius: 0, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, paddingHorizontal: 10, paddingVertical: 6, minHeight: 44 },
   buyBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   iapBtn: { borderRadius: 0, borderWidth: 2, paddingHorizontal: 10, paddingVertical: 7 },
   iapText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12 },
-  earnCard: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 0, borderWidth: 2, padding: 14, gap: 10 },
+  earnCard: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, padding: 14, gap: 10 },
   earnTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
   earnDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18, marginTop: 2 },
   themePreview: { width: 64, height: 64, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
   themeArena: { width: 50, height: 50, borderRadius: 3, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
   themePaddle: { width: 30, height: 5, borderRadius: 3, opacity: 0.9 },
-  redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#EDBA3C', borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', paddingHorizontal: 10, paddingVertical: 6 },
+  redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#EDBA3C', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, minHeight: 44, borderColor: '#252A2B', paddingHorizontal: 10, paddingVertical: 6 },
   redeemCodeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5, color: '#252A2B' },
 });
 
 const storeStyles = StyleSheet.create({
-  banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 3, borderWidth: 1, padding: 14, overflow: 'hidden' },
+  banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, padding: 14, overflow: 'hidden' },
   bannerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, letterSpacing: 2, color: '#252A2B' },
   bannerSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 16, marginTop: 2 },
   errorBox: { alignItems: 'center', borderRadius: 0, borderWidth: 2, padding: 16 },
-  passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 0, borderWidth: 2, padding: 16, overflow: 'hidden' },
-  passName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: '#252A2B', letterSpacing: 0.5 },
+  passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 0, borderWidth: 2, borderBottomWidth: 6, padding: 18, overflow: 'hidden' },
+  passName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: '#252A2B', letterSpacing: 0.5, textTransform: 'uppercase' },
   passDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 17, marginTop: 2 },
-  storeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, padding: 14, gap: 10, overflow: 'hidden' },
+  storeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, padding: 14, gap: 10, overflow: 'hidden' },
   storeName: { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
   storeDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 1 },
-  usdBtn: { backgroundColor: '#E3DFD3', borderRadius: 0, borderWidth: 2, borderColor: '#575D5C', paddingHorizontal: 12, paddingVertical: 7 },
+  usdBtn: { backgroundColor: '#F36B3F', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, borderColor: '#252A2B', minHeight: 44, justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 7 },
   usdBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#252A2B' },
-  howItWorks: { backgroundColor: '#E3DFD3', borderRadius: 3, borderWidth: 1, padding: 14, gap: 6 },
+  howItWorks: { backgroundColor: '#E3DFD3', borderRadius: 0, borderWidth: 2, padding: 14, gap: 6 },
   howTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, marginBottom: 4 },
   howStep: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18 },
   restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', backgroundColor: '#EDBA3C', paddingHorizontal: 12, paddingVertical: 8 },
   restoreText: { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
   confirmBackdrop: { flex: 1, backgroundColor: '#252A2BCC', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  confirmCard: { width: '100%', maxWidth: 360, borderRadius: 0, borderWidth: 2, borderColor: '#575D5C', padding: 20 },
-  confirmTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 18, letterSpacing: 1 },
+  confirmCard: { width: '100%', maxWidth: 360, borderRadius: 0, borderWidth: 2, borderBottomWidth: 6, borderColor: '#252A2B', padding: 20 },
+  confirmTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, letterSpacing: 0.5, textTransform: 'uppercase' },
   confirmText: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 21, marginTop: 8 },
   confirmActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 20 },
-  confirmCancel: { borderRadius: 3, borderWidth: 1, borderColor: '#575D5C', paddingHorizontal: 14, paddingVertical: 10 },
-  confirmBuy: { borderRadius: 3, backgroundColor: '#EDBA3C', paddingHorizontal: 14, paddingVertical: 10 },
+  confirmCancel: { borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, borderColor: '#575D5C', paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },
+  confirmBuy: { borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, borderColor: '#252A2B', backgroundColor: '#F36B3F', paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },
 });

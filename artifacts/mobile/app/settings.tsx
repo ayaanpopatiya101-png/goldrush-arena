@@ -229,7 +229,7 @@ export default function SettingsScreen() {
                   accessibilityState={{ checked: settings.sensitivity === opt.value }}
                   aria-checked={settings.sensitivity === opt.value}
                   onPress={() => updateSetting('sensitivity', opt.value)}
-                  style={[s.sensBtn, settings.sensitivity === opt.value && s.sensBtnActive]}
+                  style={({ pressed }) => [s.sensBtn, settings.sensitivity === opt.value && s.sensBtnActive, pressed && { borderBottomWidth: 2, transform: [{ translateY: 3 }] }]}
                 >
                   <Text style={[s.sensBtnLabel, settings.sensitivity === opt.value && { color: palette.ochreInk }]}>
                     {opt.label}
@@ -407,29 +407,29 @@ export default function SettingsScreen() {
 
 const s = StyleSheet.create({
   header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 16 },
-  back:      { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: palette.lineStrong },
+  back:      { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: palette.charcoal, backgroundColor: palette.stone },
   title:     { fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 2, color: palette.charcoal },
-  section:   { gap: 10 },
-  sectionTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, letterSpacing: 1.5, color: palette.paperDim, paddingLeft: 4 },
-  card:      { borderRadius: 0, borderWidth: 2, borderColor: palette.line, backgroundColor: palette.graphite, overflow: 'hidden' },
-  divider:   { height: 1, backgroundColor: '#575D5C44', marginHorizontal: 14 },
-  row:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 14, gap: 12 },
-  rowIcon:   { width: 32, height: 32, borderRadius: 3, backgroundColor: '#E3DFD3', alignItems: 'center', justifyContent: 'center' },
+  section:   { gap: 8 },
+  sectionTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, letterSpacing: 1.6, color: palette.slate, textTransform: 'uppercase' },
+  card:      { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.charcoal, backgroundColor: palette.sandstone, overflow: 'hidden' },
+  divider:   { height: 2, backgroundColor: palette.stone },
+  row:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 14, minHeight: 60, gap: 14 },
+  rowIcon:   { width: 36, height: 36, borderRadius: 0, borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.stone, alignItems: 'center', justifyContent: 'center' },
   rowTitle:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 16, color: palette.charcoal },
   rowSub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.muted, marginTop: 2 },
-  accountCard: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12, backgroundColor: tactile.paperPanel },
-  accountAvatar: { width: 44, height: 44, borderRadius: 3, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  accountCard: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12, backgroundColor: tactile.paperPanel, borderTopWidth: 6, borderTopColor: palette.navy },
+  accountAvatar: { width: 52, height: 52, borderRadius: 0, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
   accountEmoji: { fontSize: 22 },
-  accountName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 23, color: tactile.paperInk },
+  accountName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, textTransform: 'uppercase', color: tactile.paperInk },
   accountSub:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: tactile.paperMuted, marginTop: 2 },
   accountStats: { alignItems: 'center', gap: 2, minWidth: 38 },
   accountStatVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: tactile.paperInk },
   accountStatLbl: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: tactile.paperMuted, letterSpacing: 0.5 },
   sensitivityRow: { flexDirection: 'row', padding: 12, gap: 8 },
-  sensBtn:   { flex: 1, borderRadius: 0, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.ink, padding: 10, alignItems: 'center', gap: 3 },
-  sensBtnActive: { borderColor: palette.paper, backgroundColor: palette.ochre },
-  sensBtnLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.paper },
-  sensBtnDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.paperDim, textAlign: 'center' },
+  sensBtn:   { flex: 1, minHeight: 64, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.slate, backgroundColor: palette.stone, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  sensBtnActive: { borderColor: palette.charcoal, backgroundColor: palette.gold },
+  sensBtnLabel: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: palette.charcoal },
+  sensBtnDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.charcoal, textAlign: 'center' },
   aboutRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },
   aboutLabel:{ fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: palette.muted },
   aboutValue:{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.charcoal },

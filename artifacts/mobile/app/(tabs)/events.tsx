@@ -176,6 +176,10 @@ export default function EventsScreen() {
             <View style={{ gap: 8 }}>
               <SectionLabel title="Featured now" right={<Chip label={`Closes in ${timeStr}`} tone="ochre" />} />
               <Panel style={s.featured}>
+                <View style={s.band}>
+                  <Feather name="clock" size={14} color={C.gold} />
+                  <Text style={s.bandText}>Featured mode · closes in {timeStr}</Text>
+                </View>
                 <View style={[s.pad, { gap: 12 }]}>
                   <View style={s.rowWrap}>
                     <Chip label="Casual" />
@@ -336,7 +340,7 @@ function Toggle({ on, icon, onLabel, offLabel, onPress, disabled }: {
       accessibilityRole="switch"
       accessibilityState={{ checked: on, disabled }}
       accessibilityLabel={offLabel}
-      style={({ pressed }) => [s.toggle, on && { backgroundColor: C.charcoal, borderColor: C.charcoal }, pressed && { transform: [{ translateY: 1 }] }, disabled && { opacity: 0.5 }]}
+      style={({ pressed }) => [s.toggle, on && { backgroundColor: C.charcoal, borderColor: C.charcoal }, pressed && { borderBottomWidth: 2, transform: [{ translateY: 2 }] }, disabled && { opacity: 0.5 }]}
     >
       <Feather name={on ? 'check' : icon} size={14} color={on ? C.stone : C.charcoal} />
       <Text style={[s.toggleText, { color: on ? C.stone : C.charcoal }]}>{on ? onLabel : offLabel}</Text>
@@ -376,10 +380,12 @@ function LocalChallenge({ ev, hasRank, inParty, busy, playsLeft, qs, followed, r
 
   return (
     <Panel style={{ overflow: 'hidden' }}>
-      <View style={[s.pad, { gap: 8 }]}>
+      <View style={[s.band, ev.isLocked && { backgroundColor: C.slate }]}>
+        <Text style={[s.bandText, { flex: 1 }]}>{kind} · vs bots</Text>
+      </View>
+      <View style={[s.pad, { gap: 10 }]}>
         <View style={s.rowBetween}>
           <View style={{ flex: 1 }}>
-            <Text style={s.kicker}>{kind} · vs bots</Text>
             <Text style={s.h2}>{ev.name}</Text>
             <Text style={s.meta}>{MODE_NAME[ev.mode] ?? ev.mode} · {state}</Text>
           </View>
@@ -438,7 +444,9 @@ const s = StyleSheet.create({
   sub: { fontFamily: fonts.body, fontSize: textScale.caption, color: C.slate },
   pad: { padding: 14 },
   partyBar: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
-  featured: { borderWidth: 3, borderColor: C.charcoal },
+  featured: { borderWidth: 3, borderBottomWidth: 6, borderColor: C.charcoal, overflow: 'hidden' },
+  band: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 9, backgroundColor: C.navy },
+  bandText: { fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', color: C.stone },
   hero: { fontFamily: fonts.display, fontSize: 40, color: C.charcoal, textTransform: 'uppercase', letterSpacing: -0.5 },
   h2: { fontFamily: fonts.display, fontSize: 24, color: C.charcoal, textTransform: 'uppercase' },
   h3: { fontFamily: fonts.display, fontSize: 19, color: C.charcoal, textTransform: 'uppercase', letterSpacing: 0.5 },
@@ -453,11 +461,11 @@ const s = StyleSheet.create({
   ruleGrid: { flexDirection: 'row', borderWidth: 2, borderColor: C.charcoal },
   rule: { flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: C.slate, backgroundColor: C.stone },
   ruleK: { fontFamily: fonts.display, fontSize: 26, color: C.charcoal, fontVariant: ['tabular-nums'] },
-  toggle: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 12, borderWidth: 2, borderColor: C.slate, backgroundColor: C.stone },
+  toggle: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: C.slate, backgroundColor: C.stone },
   toggleText: { fontFamily: fonts.bodyBold, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.6 },
   toast: { position: 'absolute', zIndex: 10, left: 18, right: 18, bottom: 110, flexDirection: 'row', gap: 10, alignItems: 'center', padding: 12, backgroundColor: C.gold, borderWidth: 2, borderColor: C.charcoal },
   toastText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 14, color: C.charcoal },
-  track: { height: 8, backgroundColor: C.stone, borderWidth: 1, borderColor: C.slate },
-  fill: { height: '100%', backgroundColor: C.orange },
+  track: { height: 16, padding: 2, backgroundColor: C.stone, borderWidth: 2, borderColor: C.charcoal },
+  fill: { height: '100%', backgroundColor: C.gold },
   detail: { borderTopWidth: 2, borderTopColor: C.slate, backgroundColor: C.stone, padding: 14, gap: 10 },
 });

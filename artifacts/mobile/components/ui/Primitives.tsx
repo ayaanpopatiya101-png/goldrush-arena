@@ -65,12 +65,12 @@ export function Button({ label, onPress, variant = 'primary', icon, disabled, lo
         p.btn,
         size === 'lg' && p.btnLg,
         size === 'sm' && p.btnSm,
-        variant === 'primary' && { backgroundColor: palette.orange, borderColor: palette.orange, borderWidth: 2 },
-        pressed && variant === 'primary' && { borderColor: palette.charcoal },
-        variant === 'secondary' && { backgroundColor: pressed ? palette.stone : palette.graphite2, borderColor: palette.line },
-        variant === 'ghost' && { backgroundColor: pressed ? palette.graphite2 : 'transparent', borderColor: palette.line },
-        variant === 'danger' && { backgroundColor: pressed ? palette.graphite2 : 'transparent', borderColor: palette.clay },
-        (disabled && !loading) && { backgroundColor: palette.graphite, borderColor: palette.line },
+        variant === 'primary' && { backgroundColor: palette.orange, borderColor: palette.charcoal },
+        pressed && !(disabled || loading) && p.btnPressed,
+        variant === 'secondary' && { backgroundColor: palette.gold, borderColor: palette.charcoal },
+        variant === 'ghost' && { backgroundColor: pressed ? palette.sandstone : palette.stone, borderColor: palette.slate },
+        variant === 'danger' && { backgroundColor: pressed ? palette.sandstone : palette.stone, borderColor: palette.orange },
+        (disabled && !loading) && { backgroundColor: palette.sandstone, borderColor: palette.slate, borderBottomWidth: 2 },
         style,
       ]}
     >
@@ -105,30 +105,32 @@ export function IconButton({ icon, onPress, label, style }: { icon: React.Compon
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={0}
-      style={({ pressed }) => [p.iconBtn, pressed && { backgroundColor: palette.graphite2 }, style]}
+      style={({ pressed }) => [p.iconBtn, pressed && { backgroundColor: palette.sandstone, borderBottomWidth: 2, transform: [{ translateY: 2 }] }, style]}
     >
-      <Feather name={icon} size={18} color={palette.paperDim} />
+      <Feather name={icon} size={18} color={palette.charcoal} />
     </Pressable>
   );
 }
 
 const p = StyleSheet.create({
-  panel: { backgroundColor: palette.sandstone, borderWidth: 2, borderColor: palette.slate, borderRadius: R },
+  panel: { backgroundColor: palette.sandstone, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.charcoal, borderRadius: R },
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sectionTitle: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.6, color: palette.paperDim, textTransform: 'uppercase' },
+  sectionTitle: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.4, color: palette.charcoal, textTransform: 'uppercase' },
   sectionRule: { flex: 1, height: 1, backgroundColor: palette.line },
-  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderRadius: R, minHeight: 44, paddingHorizontal: 16 },
+  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 2, borderBottomWidth: 5, borderRadius: R, minHeight: 48, paddingHorizontal: 16 },
+  // Instant press feedback, without an animated transition.
+  btnPressed: { borderBottomWidth: 2, transform: [{ translateY: 3 }] },
   btnLg: { minHeight: 60, paddingHorizontal: 20 },
   btnSm: { minHeight: 44, paddingHorizontal: 10 },
   btnText: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.2, textTransform: 'uppercase' },
   btnTextLg: { fontSize: 26, letterSpacing: 2 },
   btnTextSm: { fontSize: 14, letterSpacing: 1 },
-  chip: { borderWidth: 1, borderRadius: 2, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start' },
+  chip: { borderWidth: 2, borderRadius: 0, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start' },
   chipText: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, letterSpacing: 0.8, textTransform: 'uppercase' },
   stat: { flex: 1, paddingVertical: 10, paddingHorizontal: 12, borderRightWidth: 1, borderRightColor: palette.line },
-  statValue: { fontFamily: fonts.display, fontSize: 26, color: palette.paper, fontVariant: ['tabular-nums'] },
+  statValue: { fontFamily: fonts.display, fontSize: 28, color: palette.charcoal, fontVariant: ['tabular-nums'] },
   statLabel: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.muted, textTransform: 'uppercase' },
-  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: R, borderWidth: 1, borderColor: palette.line },
+  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: R, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.charcoal, backgroundColor: palette.stone },
 });
 
 // Responsive shell: centers content at 1160 (wide) or 720 (prose) with 16-20 phone gutters.
@@ -155,7 +157,7 @@ export function ScreenTitle({ title, kicker, right, style }: { title: string; ki
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         {kicker ? <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.muted, textTransform: 'uppercase' }}>{kicker}</Text> : null}
-        <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 34, letterSpacing: -0.5, color: palette.paper, textTransform: 'uppercase' }}>{title}</Text>
+        <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 34, letterSpacing: -0.5, color: palette.charcoal, textTransform: 'uppercase' }}>{title}</Text>
       </View>
       {right}
     </View>

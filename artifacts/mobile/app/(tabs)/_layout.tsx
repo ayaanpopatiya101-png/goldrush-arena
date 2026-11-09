@@ -16,7 +16,9 @@ function TabIcon({ name, label, focused, wide }: { name: IconName; label: string
   const c = focused ? palette.charcoal : palette.slate;
   return (
     <View style={wide ? styles.tabItemWide : styles.tabItem}>
-      <Feather name={name} size={wide ? 18 : 20} color={c} />
+      <View style={[styles.iconPlate, focused && styles.iconPlateOn]}>
+        <Feather name={name} size={wide ? 18 : 20} color={c} />
+      </View>
       <Text style={[wide ? styles.tabLabelWide : styles.tabLabel, { color: c, fontFamily: focused ? fonts.bodyBold : fonts.body }]} numberOfLines={2}>
         {label}
       </Text>
@@ -46,8 +48,8 @@ export default function TabLayout() {
         tabBarPosition: wide ? 'top' : 'bottom',
         tabBarStyle: wide ? {
           backgroundColor: palette.ink,
-          borderBottomWidth: 1,
-          borderBottomColor: palette.line,
+          borderBottomWidth: 2,
+          borderBottomColor: palette.charcoal,
           borderTopWidth: 0,
           elevation: 0,
           height: 60 + insets.top,
@@ -57,7 +59,7 @@ export default function TabLayout() {
           position: 'absolute',
           backgroundColor: palette.ink,
            borderTopWidth: 2,
-           borderTopColor: palette.lineStrong,
+           borderTopColor: palette.charcoal,
           elevation: 0,
           height: isWeb ? 84 : 60 + insets.bottom,
           paddingBottom: isWeb ? 0 : insets.bottom,
@@ -86,5 +88,7 @@ const styles = StyleSheet.create({
   tabLabel: { fontSize: 13, textAlign: 'center' },
   tabItemWide: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 12 },
   tabLabelWide: { fontSize: 16 },
-  pip: { width: 18, height: 2, borderRadius: 1, marginTop: 2 },
+  pip: { width: 18, height: 3, marginTop: 1 },
+  iconPlate: { width: 36, height: 28, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
+  iconPlateOn: { backgroundColor: palette.gold, borderColor: palette.charcoal },
 });

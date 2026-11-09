@@ -216,14 +216,10 @@ export default function ProfileScreen() {
           <Button label="Season pass" icon="gift" variant="secondary" style={{ flex: 1 }} onPress={() => router.push('/trophyroad')} />
         </View>
         {/* ── Profile card ── */}
-        <View style={[styles.profileCard, { borderColor: rankData.color + '44' }]}>
+        <View style={[styles.profileCard, { borderColor: '#252A2B', backgroundColor: '#E3DFD3' }]}>
           {/* Rank-colored top band, the visual signal that this is a player card */}
-          <LinearGradient
-            colors={[rankData.color + '60', rankData.color + '28', 'transparent']}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 100 }}
-            pointerEvents="none"
-          />
-          <LinearGradient colors={[rankData.color + '18', rankData.color + '06']} style={StyleSheet.absoluteFill} />
+          {/* Solid court-navy identity band with a gold rule, the avatar overlaps its edge */}
+          <View style={styles.identityBand} pointerEvents="none" />
 
           {/* Avatar, centered, tappable to edit */}
           <Pressable accessibilityRole="button" accessibilityLabel="Edit avatar" hitSlop={8} onPress={() => { setTempEmoji(profile.avatarEmoji); setTempColor(profile.avatarFrameColor); setAvatarEditing(true); }}>
@@ -328,7 +324,7 @@ export default function ProfileScreen() {
             )}
           </View>
           <View style={[styles.xpTrack, { backgroundColor: tactile.frame, borderRadius: 0 }]}>
-            <ShimmerCard active={true} borderRadius={3} duration={2200} shimmerColor="rgba(255,255,255,0.3)" style={[styles.xpFill, { width: `${rankInfo.progress * 100}%` as never, backgroundColor: rankData.color }]}>
+            <ShimmerCard active={true} borderRadius={3} duration={2200} shimmerColor="rgba(255,255,255,0.3)" style={[styles.xpFill, { width: `${rankInfo.progress * 100}%` as never, backgroundColor: '#EDBA3C' }]}>
               <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: '#F5E7C428', borderRadius: 4 }} />
             </ShimmerCard>
           </View>
@@ -596,21 +592,22 @@ export default function ProfileScreen() {
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  profileCard:    { borderRadius: 0, borderWidth: 2, paddingTop: 28, paddingBottom: 22, paddingHorizontal: 20, alignItems: 'center', gap: 14, overflow: 'hidden' },
-  bigAvatar:      { width: 76, height: 76, borderRadius: 3, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  identityBand:   { position: 'absolute', top: 0, left: 0, right: 0, height: 66, backgroundColor: '#23344B', borderBottomWidth: 4, borderBottomColor: '#EDBA3C' },
+  profileCard:    { borderRadius: 0, borderWidth: 2, borderBottomWidth: 6, paddingTop: 26, paddingBottom: 22, paddingHorizontal: 20, alignItems: 'center', gap: 14, overflow: 'hidden' },
+  bigAvatar:      { width: 76, height: 76, borderRadius: 0, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
   bigAvatarEmoji: { fontSize: 36 },
-  editBadge:      { position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, borderRadius: 0, backgroundColor: '#EDBA3C', alignItems: 'center', justifyContent: 'center' },
+  editBadge:      { position: 'absolute', bottom: -4, right: -4, width: 24, height: 24, borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', backgroundColor: '#EDBA3C', alignItems: 'center', justifyContent: 'center' },
   profileInfo:    { gap: 5 },
-  profileName:    { fontFamily: 'SourceSans3_700Bold', fontSize: 22 },
+  profileName:    { fontFamily: 'BarlowCondensed_700Bold', fontSize: 34, textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'center' },
   levelBadge:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, letterSpacing: 0.5 },
   loginStreakRow:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
   streakIcon:     { fontSize: 12 },
   streakText:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
 
   // Avatar editor
-  section:      { borderRadius: 0, borderWidth: 2, padding: 16, gap: 12 },
+  section:      { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, padding: 16, gap: 12 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionTitle:  { fontFamily: 'SourceSans3_700Bold', fontSize: 14, letterSpacing: 1, flex: 1 },
+  sectionTitle:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 1.2, flex: 1, textTransform: 'uppercase' },
   sectionCount:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
   pickerLabel:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 1.5 },
   emojiGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -629,16 +626,16 @@ const styles = StyleSheet.create({
   cancelBtnText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
 
   // XP
-  xpSection: { borderRadius: 0, borderWidth: 2, padding: 14, gap: 8 },
+  xpSection: { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, padding: 14, gap: 8 },
   xpHeader:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  xpTitle:   { fontFamily: 'SourceSans3_700Bold', fontSize: 14, flex: 1 },
+  xpTitle:   { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 0.8, textTransform: 'uppercase', flex: 1 },
   xpTotal:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
   xpRemaining: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
-  xpTrack:   { height: 8, borderRadius: 4, overflow: 'hidden' },
-  xpFill:    { height: '100%', borderRadius: 4 },
+  xpTrack:   { height: 16, borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', padding: 2, overflow: 'hidden' },
+  xpFill:    { height: '100%', borderRadius: 0 },
 
   // Share card
-  shareCard:  { borderRadius: 0, borderWidth: 2, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  shareCard:  { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   shareLeft:  { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   shareTitle: { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
   shareSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 2 },
@@ -647,7 +644,7 @@ const styles = StyleSheet.create({
   shareMiniWins: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
 
   // Challenge code
-  codeSection: { borderRadius: 0, borderWidth: 2, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  codeSection: { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
   codeLabel:   { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5 },
   codeSub:     { color: '#575D5C', fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 2 },
   codeBox:     { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#E3DFD3', borderRadius: 0, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 2, borderColor: '#575D5C' },
@@ -655,21 +652,21 @@ const styles = StyleSheet.create({
 
   // Stats
   statsGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  statCard:   { width: '30%', flex: 1, minWidth: 90, alignItems: 'center', paddingVertical: 12, paddingHorizontal: 6, borderRadius: 0, borderWidth: 2, gap: 4 },
-  statValue:  { fontFamily: 'SourceSans3_700Bold', fontSize: 20 },
-  statLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
+  statCard:   { width: '30%', flex: 1, minWidth: 90, alignItems: 'flex-start', paddingVertical: 12, paddingHorizontal: 12, borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, gap: 2 },
+  statValue:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 30, fontVariant: ['tabular-nums'] },
+  statLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2 },
 
   // Achievements
   sectionWrap: { gap: 10 },
   achieveGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  achCard:     { width: '47%', flex: 1, minWidth: 140, borderRadius: 0, borderWidth: 2, padding: 10, gap: 4 },
+  achCard:     { width: '47%', flex: 1, minWidth: 140, borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, padding: 10, gap: 4 },
   achName:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
   achDesc:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 14 },
 
   // History
   historyList: { gap: 6 },
   historyRow:  { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, padding: 10, gap: 10 },
-  histResult:  { width: 28, height: 28, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
+  histResult:  { width: 32, height: 32, borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', alignItems: 'center', justifyContent: 'center' },
   histResultText: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   histMain:    { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
   histSub:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
@@ -677,7 +674,7 @@ const styles = StyleSheet.create({
   histTime:    { fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
 
   // Logout
-  logoutBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 0, borderWidth: 2, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
+  logoutBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, minHeight: 48, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
   logoutText: { color: '#252A2B', fontFamily: 'SourceSans3_600SemiBold', fontSize: 14 },
   footer:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, textAlign: 'center' },
 });

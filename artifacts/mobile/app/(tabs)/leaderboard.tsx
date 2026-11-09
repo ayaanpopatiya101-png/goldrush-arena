@@ -73,7 +73,7 @@ export default function LeaderboardScreen() {
           {/* Service rank */}
           <View style={{ gap: 10 }}>
             <SectionLabel title="Service rank" />
-            <Panel style={[s.pad, { flexDirection: 'row', alignItems: 'center', gap: 14 }]}>
+            <Panel style={[s.pad, s.youRow]}>
               <RankBadge rank={profile.rank} size="md" showLabel={false} />
               <View style={{ flex: 1, gap: 6 }}>
                 <Text style={s.h}>{profile.rank}</Text>
@@ -124,7 +124,7 @@ export default function LeaderboardScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.stone },
-  header: { paddingHorizontal: 18, paddingBottom: 12, borderBottomWidth: 2, borderBottomColor: palette.charcoal, marginBottom: 16 },
+  header: { paddingHorizontal: 18, paddingBottom: 14, borderBottomWidth: 3, borderBottomColor: palette.charcoal, marginBottom: 18, backgroundColor: palette.gold },
   pad: { padding: 14 },
   h: { fontFamily: fonts.display, fontSize: 22, color: palette.charcoal, textTransform: 'uppercase' },
   body: { fontFamily: fonts.body, fontSize: textScale.body, lineHeight: 22, color: palette.charcoal },
@@ -132,12 +132,13 @@ const s = StyleSheet.create({
   fine: { fontFamily: fonts.body, fontSize: 13, color: palette.slate, borderTopWidth: 1, borderTopColor: palette.slate, paddingTop: 10 },
   loading: { backgroundColor: palette.navy, borderWidth: 3, borderColor: palette.charcoal, padding: 28, alignItems: 'center', gap: 10, minHeight: 200, justifyContent: 'center' },
   loadingText: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.stone },
-  track: { height: 10, borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.stone },
-  fill: { height: '100%', backgroundColor: palette.gold },
-  legacyCell: { flex: 1, borderWidth: 1, borderColor: palette.slate, padding: 10 },
+  track: { height: 14, padding: 2, borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.stone },
+  youRow: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: palette.gold, borderColor: palette.charcoal },
+  fill: { height: '100%', backgroundColor: palette.orange },
+  legacyCell: { flex: 1, borderWidth: 2, borderColor: palette.slate, padding: 10, backgroundColor: palette.sandstone },
   legacyV: { fontFamily: fonts.display, fontSize: 30, color: palette.slate, fontVariant: ['tabular-nums'] },
   legacyL: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: palette.slate },
-  ladder: { borderWidth: 2, borderColor: palette.charcoal, borderStyle: 'dashed', padding: 16, gap: 6 },
-  ladderTitle: { fontFamily: fonts.display, fontSize: 22, letterSpacing: 1, color: palette.charcoal },
-  ladderBody: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.slate },
+  ladder: { borderWidth: 2, borderBottomWidth: 5, borderColor: palette.charcoal, backgroundColor: palette.navy, padding: 18, gap: 6 },
+  ladderTitle: { fontFamily: fonts.display, fontSize: 22, letterSpacing: 1, color: palette.gold },
+  ladderBody: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.courtText },
 });

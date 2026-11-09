@@ -188,7 +188,7 @@ export function StyleStep({ name, emoji, color, onEmoji, onColor, onBack, onCrea
         <View style={w.choices} accessibilityRole="radiogroup" accessibilityLabel="Emblem">
           {EMBLEMS.map(e => (
             <ChoiceTile key={e.value} testID={`entry-emblem-${e.name.toLowerCase()}`} label={`${e.name} emblem`} selected={emoji === e.value} onPress={() => onEmoji(e.value)}>
-              <Glyph value={e.value} size={26} color={emoji === e.value ? palette.ochre : palette.paperDim} />
+              <Glyph value={e.value} size={26} color={emoji === e.value ? palette.charcoal : palette.paperDim} />
             </ChoiceTile>
           ))}
         </View>
@@ -218,20 +218,20 @@ const w = StyleSheet.create({
   welcomeScroll: { flex: 1, width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 20, justifyContent: 'space-between', gap: 16 },
   marquee: { alignItems: 'center', gap: 10, paddingTop: 8 },
   brand: { fontFamily: fonts.display, fontSize: 52, lineHeight: 50, color: palette.paper, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 1 },
-  tag: { fontFamily: fonts.bodySemiBold, fontSize: 17, lineHeight: 23, color: tactile.coral, textAlign: 'center' },
+  tag: { fontFamily: fonts.bodySemiBold, fontSize: 17, lineHeight: 23, color: palette.slate, textAlign: 'center' },
   actions: { gap: 10 },
   legalRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
   legalLink: { minHeight: 44, justifyContent: 'center' },
   legalText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.paperDim, textDecorationLine: 'underline' },
-  rules: { borderTopWidth: 2, borderTopColor: tactile.brass },
-  rule: { flexDirection: 'row', gap: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: palette.line, alignItems: 'baseline' },
-  ruleNum: { fontFamily: fonts.display, fontSize: 22, color: palette.charcoal, width: 30 },
-  ruleText: { fontFamily: fonts.body, fontSize: 17, lineHeight: 24, color: palette.paper, flex: 1 },
-  demoFrame: { borderWidth: 2, borderColor: tactile.brass, backgroundColor: palette.ink, overflow: 'hidden' },
-  input: { minHeight: 60, borderWidth: 2, borderColor: tactile.brass, backgroundColor: tactile.paperPanel, color: tactile.paperInk, fontFamily: fonts.display, fontSize: 28, paddingHorizontal: 16, borderRadius: 2 },
-  inputErr: { borderColor: tactile.coral, borderWidth: 3 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 16, backgroundColor: tactile.paperPanel, borderWidth: 3, borderColor: tactile.brass, borderBottomWidth: 6 },
-  cardAvatar: { width: 68, height: 68, borderWidth: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: tactile.paperInk, borderRadius: 2 },
+  rules: { gap: 10 },
+  rule: { flexDirection: 'row', gap: 14, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.slate, backgroundColor: palette.stone, alignItems: 'center' },
+  ruleNum: { fontFamily: fonts.display, fontSize: 22, color: palette.charcoal, width: 34, height: 34, textAlign: 'center', lineHeight: 30, borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.gold },
+  ruleText: { fontFamily: fonts.bodySemiBold, fontSize: 17, lineHeight: 23, color: palette.charcoal, flex: 1 },
+  demoFrame: { borderWidth: 2, borderBottomWidth: 5, borderColor: palette.charcoal, backgroundColor: palette.ink, overflow: 'hidden' },
+  input: { minHeight: 60, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.charcoal, backgroundColor: tactile.paperPanel, color: tactile.paperInk, fontFamily: fonts.display, fontSize: 28, paddingHorizontal: 16, borderRadius: 0 },
+  inputErr: { borderColor: tactile.coral, borderWidth: 3, borderBottomWidth: 5 },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 16, backgroundColor: tactile.paperPanel, borderWidth: 2, borderColor: palette.charcoal, borderBottomWidth: 6 },
+  cardAvatar: { width: 68, height: 68, borderWidth: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: tactile.paperInk, borderRadius: 0 },
   cardName: { fontFamily: fonts.display, fontSize: 30, color: tactile.paperInk, textTransform: 'uppercase' },
   cardMeta: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: tactile.paperMuted },
   cardPaddle: { marginTop: 8, width: 64, height: 8, borderWidth: 1, borderColor: tactile.paperInk },

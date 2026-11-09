@@ -1,6 +1,5 @@
 import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from '@/components/ui/Flat';
 import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { ScreenTitle, Shell, gridItemWidth, paperText } from '@/components/ui/Primitives';
@@ -13,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SKINS, RANKS, getRankIndex, usePlayer, LUCKY_BLOCK_META, GOLD_STRIKE_NAME, type LuckyBlock } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 import { useColors } from '@/hooks/useColors';
-import { FloatingOrbs, ORBS_ARCANE, GlowText } from '@/components/effects';
+import { GlowText } from '@/components/effects';
 import { Glyph } from '@/components/ui/Glyph';
 
 const ARENA_THEMES = [
@@ -51,19 +50,6 @@ export default function InventoryScreen() {
 
   return (
     <Reanimated.View style={[{ flex: 1, backgroundColor: colors.background }, focusStyle]}>
-      <FloatingOrbs orbs={ORBS_ARCANE} opacity={0.7} />
-      <LinearGradient colors={['#EEE9DE', '#EEE9DE', '#EEE9DE']} style={StyleSheet.absoluteFill} />
-      <LinearGradient
-        colors={['#EDBA3C18', '#EDBA3C08', 'transparent']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 380 }}
-        pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['transparent', '#EEE9DE88']}
-        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 }}
-        pointerEvents="none"
-      />
-
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
         <ScreenTitle kicker="Owned items" title="Collection" style={{ flex: 1 }} />
@@ -89,7 +75,7 @@ export default function InventoryScreen() {
               accessibilityState={{ selected: isActive }}
               aria-selected={isActive}
               accessibilityLabel={label.toLowerCase()}
-              style={[s.tab, isActive && { backgroundColor: colors.primary, borderBottomColor: tactile.brassEdge, borderBottomWidth: 2 }]}
+              style={({ pressed }) => [s.tab, isActive && s.tabOn, pressed && { transform: [{ translateY: 2 }] }]}
             >
               {tab === 'strikes' && pendingBlocks.length > 0 && (
                 <View style={s.strikeBadge}>
@@ -163,10 +149,6 @@ export default function InventoryScreen() {
                               backgroundColor: meta.color + (pressed ? '22' : '10'),
                             }]}
                           >
-                            <LinearGradient
-                              colors={[meta.color + '40', meta.color + '10']}
-                              style={StyleSheet.absoluteFill}
-                            />
                             <Glyph style={{ fontSize: 36 }} value={meta.emoji} />
                             <Text style={[s.strikeCardNum, { color: meta.color }]}>#{i + 1}</Text>
                             <View style={[s.openChip, { backgroundColor: meta.color }]}>
@@ -211,8 +193,9 @@ const s = StyleSheet.create({
   title:       { fontFamily: 'SourceSans3_700Bold', fontSize: 20, letterSpacing: 2 },
   countBadge:  { backgroundColor: '#EDBA3C', borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', paddingHorizontal: 8, paddingVertical: 4 },
   countText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#252A2B', letterSpacing: 0.5 },
-  tabRow:      { flexDirection: 'row', borderBottomWidth: 1, paddingHorizontal: 16 },
-  tab:         { flex: 1, minHeight: 44, justifyContent: 'center', paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tabRow:      { flexDirection: 'row', gap: 6, borderBottomWidth: 2, paddingHorizontal: 16, paddingBottom: 12 },
+  tab:         { flex: 1, minHeight: 44, justifyContent: 'center', paddingVertical: 10, alignItems: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
+  tabOn:       { backgroundColor: '#EDBA3C', borderColor: '#252A2B' },
   tabText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2 },
 
   // Skin grid
@@ -238,9 +221,9 @@ const s = StyleSheet.create({
   hintText:    { fontFamily: 'SourceSans3_400Regular', fontSize: 12, flex: 1 },
 
 
-  emptyState:  { alignItems: 'center', paddingVertical: 60, gap: 10 },
+  emptyState:  { alignItems: 'center', paddingVertical: 40, paddingHorizontal: 20, gap: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
   emptyTitle:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#252A2B' },
-  featureCard: { borderWidth: 2, borderColor: '#575D5C', backgroundColor: '#E3DFD3', padding: 18, gap: 20, alignItems: 'center' },
+  featureCard: { borderWidth: 2, borderBottomWidth: 5, borderColor: '#252A2B', backgroundColor: '#E3DFD3', padding: 18, gap: 20, alignItems: 'center' },
   featureKicker: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2, color: '#575D5C', textTransform: 'uppercase' },
   featureName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 36, color: '#252A2B', textTransform: 'uppercase' },
   featureBody: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: '#575D5C' },
@@ -251,8 +234,8 @@ const s = StyleSheet.create({
   strikeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#252A2B', letterSpacing: 0 },
   strikesInfoRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#E3DFD3', borderRadius: 0, borderWidth: 2, borderColor: '#575D5C', paddingHorizontal: 12, paddingVertical: 9, marginBottom: 4 },
   strikesInfo:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, flex: 1 },
-  strikeCard:      { aspectRatio: 0.85, borderRadius: 0, borderWidth: 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  strikeCard:      { aspectRatio: 0.85, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 4 },
   strikeCardNum:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 0.5 },
-  openChip:        { borderRadius: 3, paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
+  openChip:        { borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
   openChipText:    { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#252A2B', letterSpacing: 1 },
 });

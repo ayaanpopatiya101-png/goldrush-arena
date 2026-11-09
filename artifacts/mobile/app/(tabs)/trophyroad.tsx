@@ -2,7 +2,6 @@ import { idleAnimation } from "@/components/ui/idleAnimation";
 import { Text, AnimatedText } from '@/components/ui/Text';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScreenTitle, paperText } from '@/components/ui/Primitives';
-import { tactile } from '@/constants/colors';
 import {
   Animated, Dimensions, Pressable, ScrollView,
   StyleSheet, View,
@@ -762,10 +761,10 @@ export default function BattlePassScreen() {
         </View>
 
         {/* ── Points progress bar ── */}
-        <View style={[s.progressCard, { backgroundColor: tactile.brass, borderColor: tactile.brassEdge, borderWidth: 2, borderRadius: 0 }]}>
+        <View style={s.progressCard}>
           <View style={s.progressRow}>
-            <Text style={[s.progressLbl, { color: paperText.ink }]}>Tier {Math.min(currentTierIdx + 1, 50)} / 50</Text>
-            <Text style={[s.progressLbl, { color: paperText.ink }]}>
+            <Text style={s.progressLbl}>Tier {Math.min(currentTierIdx + 1, 50)} / 50</Text>
+            <Text style={s.progressLbl}>
               {bpp % BATTLE_PASS_POINTS_PER_TIER} / {BATTLE_PASS_POINTS_PER_TIER} pts to next
             </Text>
           </View>
@@ -919,95 +918,95 @@ const s = StyleSheet.create({
 
   // Header
   header: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 18, marginBottom: 10, gap: 12 },
-  seasonLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 9, letterSpacing: 2.5, color: '#575D5C', marginBottom: 2 },
-  headerSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#575D5C', letterSpacing: 0.3, marginTop: 4 },
+  seasonLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5, color: '#575D5C', marginBottom: 2 },
+  headerSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, lineHeight: 18, color: '#575D5C', marginTop: 4 },
 
   // BPP badge
   bppBadge: { borderRadius: 0, overflow: 'hidden', shadowColor: '#EDE3CC', shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 } },
-  bppGrad:  { paddingHorizontal: 12, paddingVertical: 6, alignItems: 'center', borderRadius: 3 },
-  bppVal:   { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 18, lineHeight: 22 },
-  bppLabel: { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 7, letterSpacing: 2 },
+  bppGrad:  { paddingHorizontal: 12, paddingVertical: 6, alignItems: 'center', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, borderColor: '#252A2B' },
+  bppVal:   { color: '#252A2B', fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, lineHeight: 28, fontVariant: ['tabular-nums'] },
+  bppLabel: { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
 
   // Progress
-  progressCard: { marginHorizontal: 18, marginBottom: 10, backgroundColor: '#EDBA3C', borderRadius: 0, padding: 10, borderWidth: 2, borderColor: '#252A2B' },
+  progressCard: { marginHorizontal: 18, marginBottom: 14, backgroundColor: '#23344B', borderRadius: 0, padding: 14, borderWidth: 2, borderBottomWidth: 5, borderColor: '#252A2B' },
   progressRow:  { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 7 },
-  progressLbl:  { color: '#252A2B', fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, letterSpacing: 0.3 },
-  barBg:   { height: 8, borderRadius: 4, backgroundColor: '#575D5C66', overflow: 'hidden' },
-  barFill: { height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: '#F36B3F' },
-  barShine:{ position: 'absolute', top: 1, left: '5%', width: '60%', height: 3, borderRadius: 2, backgroundColor: '#EEE9DE77' },
+  progressLbl:  { color: '#EEE9DE', fontFamily: 'SourceSans3_700Bold', fontSize: 13, letterSpacing: 0.3 },
+  barBg:   { height: 18, borderRadius: 0, borderWidth: 2, borderColor: '#EEE9DE', padding: 2, backgroundColor: '#23344B', overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 0, overflow: 'hidden', backgroundColor: '#EDBA3C' },
+  barShine:{ display: 'none' },
 
   // Buy Premium button
-  buyPremBtn: { marginHorizontal: 18, marginBottom: 10, borderRadius: 0, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 10 },
-  buyPremTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: '#252A2B', letterSpacing: 0.3 },
-  buyPremSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#575D5C', marginTop: 2 },
-  buyPremPrice: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#252A2B', backgroundColor: '#EEE9DE', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 3 },
+  buyPremBtn: { marginHorizontal: 18, marginBottom: 12, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, borderColor: '#252A2B', overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, minHeight: 56, gap: 10 },
+  buyPremTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 20, textTransform: 'uppercase', color: '#252A2B', letterSpacing: 0.3 },
+  buyPremSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#575D5C', marginTop: 2 },
+  buyPremPrice: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#252A2B', backgroundColor: '#EEE9DE', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 0, borderWidth: 2, borderColor: '#252A2B' },
   premOwnedBadge: { marginHorizontal: 18, marginBottom: 10, borderRadius: 0, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, gap: 8, borderWidth: 2, borderColor: '#575D5C' },
-  premOwnedTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#252A2B', letterSpacing: 1 },
+  premOwnedTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#252A2B', letterSpacing: 1 },
 
   // Inner tabs
-  tabBar: { flexDirection: 'row', marginHorizontal: 18, marginBottom: 10, backgroundColor: '#E3DFD3', borderRadius: 3, overflow: 'hidden', borderWidth: 1, borderColor: '#575D5C' },
-  tabBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9 },
-  tabBtnActive: { backgroundColor: '#F36B3F', borderBottomWidth: 2, borderBottomColor: '#252A2B' },
-  tabBtnTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 1.5, color: '#575D5C' },
+  tabBar: { flexDirection: 'row', marginHorizontal: 18, marginBottom: 14, gap: 6 },
+  tabBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 46, borderWidth: 2, borderBottomWidth: 4, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
+  tabBtnActive: { backgroundColor: '#EDBA3C', borderColor: '#252A2B' },
+  tabBtnTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 16, letterSpacing: 1, color: '#252A2B' },
 
   // Track labels above the pass
   trackLabelRow: { flexDirection: 'row', justifyContent: 'flex-start', gap: 10, paddingHorizontal: 18, marginBottom: 6 },
-  trackTag: { borderWidth: 1, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 3 },
-  trackTagTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 1.5 },
+  trackTag: { borderWidth: 2, borderRadius: 0, paddingHorizontal: 8, paddingVertical: 3 },
+  trackTagTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5 },
 
   // Slot card
   slotWrap: {
-    width: 112, borderRadius: 3, overflow: 'hidden',
-    backgroundColor: '#E3DFD3', borderWidth: 1, borderColor: '#575D5C66',
+    width: 116, borderRadius: 0, overflow: 'hidden',
+    backgroundColor: '#E3DFD3', borderWidth: 2, borderBottomWidth: 5, borderColor: '#575D5C',
   },
-  slotMilestone: { borderColor: '#EDBA3C' },
-  milestoneGlow: { borderWidth: 1.5, borderRadius: 3 },
-  slotNum: { alignItems: 'center', paddingVertical: 6, backgroundColor: '#EEE9DE', borderBottomWidth: 1, borderColor: '#575D5C66' },
+  slotMilestone: { borderColor: '#252A2B' },
+  milestoneGlow: { borderWidth: 2, borderRadius: 0 },
+  slotNum: { alignItems: 'center', paddingVertical: 6, backgroundColor: '#EEE9DE', borderBottomWidth: 2, borderColor: '#575D5C' },
   slotNumUnlocked: { backgroundColor: '#EDBA3C' },
   slotNumMilestone: { backgroundColor: '#F36B3F' },
-  slotNumTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, color: '#252A2B', letterSpacing: 0.5 },
+  slotNumTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 16, color: '#252A2B', letterSpacing: 0.5 },
   rewardBlock: { padding: 8, alignItems: 'center', borderWidth: 0, minHeight: 82, justifyContent: 'center' },
-  freeBlock: { borderBottomWidth: 1, borderBottomColor: '#575D5C66' },
+  freeBlock: { borderBottomWidth: 2, borderBottomColor: '#575D5C' },
   premBlock: {},
   rewardEmoji: { fontSize: 20, marginBottom: 3 },
-  rewardLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8, letterSpacing: 0.3, textAlign: 'center', lineHeight: 11 },
-  trackLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 7, letterSpacing: 1.5, marginTop: 3 },
-  lockLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 7, color: '#575D5C', letterSpacing: 1, marginTop: 3 },
+  rewardLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, textAlign: 'center', lineHeight: 15 },
+  trackLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.8, marginTop: 3 },
+  lockLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#575D5C', letterSpacing: 0.8, marginTop: 3 },
 
   // Quest section
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, overflow: 'hidden', borderRadius: 0, borderWidth: 2, paddingHorizontal: 12, paddingVertical: 9, marginBottom: 6 },
-  sectionTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, flex: 1 },
-  sectionCount: { borderRadius: 0, paddingHorizontal: 7, paddingVertical: 2, backgroundColor: '#EDBA3C' },
-  sectionCountTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 0.5 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, overflow: 'hidden', borderRadius: 0, borderWidth: 0, paddingHorizontal: 0, paddingVertical: 6, marginTop: 8, marginBottom: 8 },
+  sectionTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 1.2, flex: 1, color: '#252A2B' },
+  sectionCount: { borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', paddingHorizontal: 7, paddingVertical: 2, backgroundColor: '#EDBA3C' },
+  sectionCountTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5 },
 
   // Quest row
-  questRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, overflow: 'hidden', borderRadius: 0, borderWidth: 2, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 6 },
+  questRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, overflow: 'hidden', borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, paddingHorizontal: 14, paddingVertical: 14, marginBottom: 10 },
   questEmoji: { fontSize: 18, marginTop: 2 },
-  questTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.3 },
-  questDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 10, lineHeight: 14 },
-  questBarBg:   { height: 5, borderRadius: 0, backgroundColor: '#575D5C66', overflow: 'hidden' },
-  questBarFill: { height: 5, borderRadius: 0, overflow: 'hidden' },
-  questBarShine:{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#EEE9DE77', borderRadius: 0 },
-  questProg: { fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#575D5C', letterSpacing: 0.3 },
+  questTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 16 },
+  questDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 13, lineHeight: 18 },
+  questBarBg:   { height: 16, borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', padding: 2, backgroundColor: '#EEE9DE', overflow: 'hidden' },
+  questBarFill: { height: '100%', borderRadius: 0, overflow: 'hidden' },
+  questBarShine:{ display: 'none' },
+  questProg: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#252A2B', fontVariant: ['tabular-nums'] },
   premBadge:    { borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', backgroundColor: '#EDBA3C', paddingHorizontal: 5, paddingVertical: 1 },
-  premBadgeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 7, color: '#252A2B', letterSpacing: 1 },
-  bppChip:    { flexDirection: 'row', alignItems: 'center', gap: 2, borderRadius: 3, borderWidth: 1, paddingHorizontal: 7, paddingVertical: 3 },
-  bppChipTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 11 },
-  bppChipLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 8, letterSpacing: 1 },
-  claimBtn:    { borderRadius: 0, borderWidth: 2, paddingHorizontal: 9, paddingVertical: 4 },
-  claimBtnTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 1.5 },
+  premBadgeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#252A2B', letterSpacing: 1 },
+  bppChip:    { flexDirection: 'row', alignItems: 'center', gap: 2, borderRadius: 0, borderWidth: 2, paddingHorizontal: 7, paddingVertical: 3 },
+  bppChipTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
+  bppChipLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.6 },
+  claimBtn:    { borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, paddingHorizontal: 12, minHeight: 44, justifyContent: 'center' },
+  claimBtnTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 16, letterSpacing: 1 },
 
   // Legend
   legend:     { flexDirection: 'row', justifyContent: 'center', gap: 16, paddingHorizontal: 20, paddingTop: 8 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  legendTxt:  { color: '#575D5C', fontFamily: 'SourceSans3_400Regular', fontSize: 9 },
+  legendTxt:  { color: '#575D5C', fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
 });
 
 // ─── Trophy Road Styles ───────────────────────────────────────────────────────
 const tr = StyleSheet.create({
   nodeRow:    { paddingHorizontal: 28, marginVertical: 0 },
   nodeCard:   {
-    width: 128, borderRadius: 0, borderWidth: 2,
+    width: 136, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5,
     backgroundColor: '#E3DFD3',
     overflow: 'hidden', alignItems: 'center',
     paddingVertical: 12, paddingHorizontal: 10,
@@ -1017,23 +1016,23 @@ const tr = StyleSheet.create({
     borderRadius: 0, borderWidth: 2,
     paddingHorizontal: 8, paddingVertical: 2, marginBottom: 2,
   },
-  numTxt:     { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
+  numTxt:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, letterSpacing: 0.5 },
   rewardTxt:  {
-    fontFamily: 'SourceSans3_700Bold', fontSize: 11,
-    textAlign: 'center', letterSpacing: 0.3, lineHeight: 14,
+    fontFamily: 'SourceSans3_700Bold', fontSize: 13,
+    textAlign: 'center', lineHeight: 17,
   },
-  xpTxt:      { fontFamily: 'SourceSans3_600SemiBold', fontSize: 8, color: '#575D5C', letterSpacing: 0.3, marginTop: 3 },
+  xpTxt:      { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#575D5C', letterSpacing: 0.3, marginTop: 3 },
   chip:       {
-    borderRadius: 3, borderWidth: 1,
+    borderRadius: 0, borderWidth: 2,
     paddingHorizontal: 7, paddingVertical: 3, marginTop: 7,
   },
-  chipTxt:    { fontFamily: 'SourceSans3_700Bold', fontSize: 7, letterSpacing: 1 },
+  chipTxt:    { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.6 },
 
   // Toast
   toast: {
     position: 'absolute', bottom: 120, alignSelf: 'center',
     flexDirection: 'row', alignItems: 'center', gap: 8,
-     backgroundColor: '#23344B', borderWidth: 1.5, borderRadius: 3,
+     backgroundColor: '#23344B', borderWidth: 2, borderRadius: 0, borderColor: '#EDBA3C',
     paddingHorizontal: 18, paddingVertical: 10,
     shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 },
   },
