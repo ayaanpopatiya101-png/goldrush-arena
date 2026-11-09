@@ -6,6 +6,7 @@
 - [Visual constraints](design-constraints.md) — explicit user avoidance list supersedes older Inter and glow-heavy styling preferences.
 - [Page design references](page-design-references.md) — user-selected game references for each screen; Duolingo now leads onboarding.
 - [Browser and native releases](browser-release.md) — the main domain should open the playable game while native Expo access remains separate.
+- [GitHub sync instruction](github-sync.md) — sync code updates to this project's GitHub repository and report failures.
 - [Standalone shop boundary](standalone-shop-boundary.md) — local save copies are not player linking; keep charges and redeem-code consumption unavailable without safe delivery.
 - [Arena verification boundaries](arena-verification.md) — isolate platform exports from browser testing; native and human evidence must be recorded separately.
 - [Reward lifecycle verification](reward-lifecycle-tests.md) — deduplication tests must also complete two games through Play Again, not merely retry one award.
