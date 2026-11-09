@@ -21,7 +21,6 @@ import {
 import { FEATURED_MODES, useFeaturedModeCountdown, type FeaturedMode } from '@/utils/featuredModes';
 import { deviceTimeZone, fmtLocal, fmtSpan, localChallengeWindow, scheduleWindow, useEventPrefs } from '@/utils/eventPrefs';
 
-const C = palette;
 const MIN_RANK = RANKS[EVENT_MIN_RANK_INDEX];
 const MIN_RANK_NAME = MIN_RANK?.name ?? 'Master 1';
 const MODE_NAME: Record<string, string> = {
@@ -123,7 +122,7 @@ export default function EventsScreen() {
   const localEvents = [events.weekly, events.monthly, events.annual];
 
   return (
-    <View style={[s.root, { backgroundColor: C.stone }]}>
+    <View style={[s.root, { backgroundColor: palette.background }]}>
       <View style={[s.header, { paddingTop: topPad + 6 }]}>
         <ScreenTitle kicker="GoldRush Arena" title="Events" />
         <Text style={s.sub}>All times shown in your device time ({tz}).</Text>
@@ -131,7 +130,7 @@ export default function EventsScreen() {
 
       {notice && (
         <View style={s.toast} accessibilityLiveRegion="polite">
-          <Feather name="check-square" size={16} color={C.charcoal} />
+          <Feather name="check-square" size={16} color={palette.foreground} />
           <Text style={s.toastText}>{notice}</Text>
         </View>
       )}
@@ -140,7 +139,7 @@ export default function EventsScreen() {
         <Shell style={{ gap: 18 }}>
           {isInParty && (
             <Panel style={[s.pad, s.partyBar]}>
-              <Feather name="users" size={20} color={C.charcoal} />
+              <Feather name="users" size={20} color={palette.foreground} />
               <View style={{ flex: 1, gap: 2 }}>
                 <Text style={s.h3}>You are in a party</Text>
                 <Text style={s.body}>Events on this screen are solo. Leave the party to play them, or launch modes for everyone from Play.</Text>
@@ -151,7 +150,7 @@ export default function EventsScreen() {
 
           {status === 'error' && (
             <Panel style={[s.pad, s.partyBar]}>
-              <Feather name="alert-triangle" size={18} color={C.charcoal} />
+              <Feather name="alert-triangle" size={18} color={palette.foreground} />
               <Text style={[s.body, { flex: 1 }]}>Saved follows and reminders could not be read from this device.</Text>
               <Button size="sm" variant="ghost" label="Retry" onPress={reload} />
             </Panel>
@@ -159,15 +158,15 @@ export default function EventsScreen() {
 
           {liveReminders.map(m => (
             <Panel key={m.id} tone="brass" style={[s.pad, s.partyBar]}>
-              <Feather name="bell" size={18} color={C.charcoal} />
-              <Text style={[s.body, { flex: 1, color: C.charcoal }]}>Reminder: {m.name} is open now. Closes in {timeStr}.</Text>
+              <Feather name="bell" size={18} color={palette.onAccent} />
+              <Text style={[s.body, { flex: 1, color: palette.onAccent }]}>Reminder: {m.name} is open now. Closes in {timeStr}.</Text>
             </Panel>
           ))}
 
           {liveLocalReminders.map(ev => (
             <Panel key={ev.id} tone="brass" style={[s.pad, s.partyBar]}>
-              <Feather name="bell" size={18} color={C.charcoal} />
-              <Text style={[s.body, { flex: 1, color: C.charcoal }]}>Reminder: local challenge {ev.name} is open. Closes {fmtLocal(localChallengeWindow(ev.type, ev.endsIn).closes)}.</Text>
+              <Feather name="bell" size={18} color={palette.onAccent} />
+              <Text style={[s.body, { flex: 1, color: palette.onAccent }]}>Reminder: local challenge {ev.name} is open. Closes {fmtLocal(localChallengeWindow(ev.type, ev.endsIn).closes)}.</Text>
             </Panel>
           ))}
 
@@ -177,7 +176,7 @@ export default function EventsScreen() {
               <SectionLabel title="Featured now" right={<Chip label={`Closes in ${timeStr}`} tone="ochre" />} />
               <Panel style={s.featured}>
                 <View style={s.band}>
-                  <Feather name="clock" size={14} color={C.gold} />
+                  <Feather name="clock" size={14} color={palette.gold} />
                   <Text style={s.bandText}>Featured mode · closes in {timeStr}</Text>
                 </View>
                 <View style={[s.pad, { gap: 12 }]}>
@@ -212,7 +211,7 @@ export default function EventsScreen() {
           {/* Rally Race */}
           <View style={{ gap: 8 }}>
             <SectionLabel title="Always on" right={<Chip label="Casual online" />} />
-            <Panel tone="raised" style={[s.pad, { gap: 10, borderWidth: 3, borderColor: C.charcoal }]}>
+            <Panel tone="raised" style={[s.pad, { gap: 10, borderWidth: 3, borderColor: palette.edge }]}>
               <Text style={s.h2}>Rally Race</Text>
               <Text style={s.body}>Sixty seconds. Keep the ball alive and stack points.</Text>
               <View style={s.ruleGrid}>
@@ -239,7 +238,7 @@ export default function EventsScreen() {
               const w = scheduleWindow(m.startDay, m.endDay);
               const live = m.id === liveMode?.id;
               return (
-                <Panel key={m.id} style={[s.pad, { gap: 8 }, live && { borderColor: C.orange, borderWidth: 3 }]}>
+                <Panel key={m.id} style={[s.pad, { gap: 8 }, live && { borderColor: palette.primary, borderWidth: 3 }]}>
                   <View style={s.rowBetween}>
                     <View style={{ flex: 1 }}>
                       <Text style={s.h3}>{m.name}</Text>
@@ -340,10 +339,10 @@ function Toggle({ on, icon, onLabel, offLabel, onPress, disabled }: {
       accessibilityRole="switch"
       accessibilityState={{ checked: on, disabled }}
       accessibilityLabel={offLabel}
-      style={({ pressed }) => [s.toggle, on && { backgroundColor: C.charcoal, borderColor: C.charcoal }, pressed && { borderBottomWidth: 2, transform: [{ translateY: 2 }] }, disabled && { opacity: 0.5 }]}
+      style={({ pressed }) => [s.toggle, on && { backgroundColor: palette.primary, borderColor: palette.edge }, pressed && { borderBottomWidth: 2, transform: [{ translateY: 2 }] }, disabled && { opacity: 0.5 }]}
     >
-      <Feather name={on ? 'check' : icon} size={14} color={on ? C.stone : C.charcoal} />
-      <Text style={[s.toggleText, { color: on ? C.stone : C.charcoal }]}>{on ? onLabel : offLabel}</Text>
+      <Feather name={on ? 'check' : icon} size={14} color={on ? palette.onAccent : palette.foreground} />
+      <Text style={[s.toggleText, { color: on ? palette.onAccent : palette.foreground }]}>{on ? onLabel : offLabel}</Text>
     </Pressable>
   );
 }
@@ -380,7 +379,7 @@ function LocalChallenge({ ev, hasRank, inParty, busy, playsLeft, qs, followed, r
 
   return (
     <Panel style={{ overflow: 'hidden' }}>
-      <View style={[s.band, ev.isLocked && { backgroundColor: C.slate }]}>
+      <View style={[s.band, ev.isLocked && { backgroundColor: palette.raised }]}>
         <Text style={[s.bandText, { flex: 1 }]}>{kind} · vs bots</Text>
       </View>
       <View style={[s.pad, { gap: 10 }]}>
@@ -441,31 +440,31 @@ function Detail({ h, children }: { h: string; children: React.ReactNode }) {
 const s = StyleSheet.create({
   root: { flex: 1 },
   header: { paddingHorizontal: 18, paddingBottom: 10, gap: 4 },
-  sub: { fontFamily: fonts.body, fontSize: textScale.caption, color: C.slate },
+  sub: { fontFamily: fonts.body, fontSize: textScale.caption, color: palette.supporting },
   pad: { padding: 14 },
   partyBar: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
-  featured: { borderWidth: 3, borderBottomWidth: 6, borderColor: C.charcoal, overflow: 'hidden' },
-  band: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 9, backgroundColor: C.navy },
-  bandText: { fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', color: C.stone },
-  hero: { fontFamily: fonts.display, fontSize: 40, color: C.charcoal, textTransform: 'uppercase', letterSpacing: -0.5 },
-  h2: { fontFamily: fonts.display, fontSize: 24, color: C.charcoal, textTransform: 'uppercase' },
-  h3: { fontFamily: fonts.display, fontSize: 19, color: C.charcoal, textTransform: 'uppercase', letterSpacing: 0.5 },
-  kicker: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, color: C.slate, textTransform: 'uppercase', letterSpacing: 1 },
-  body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: C.charcoal },
-  meta: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: C.slate },
-  fine: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: C.slate },
+  featured: { borderWidth: 3, borderBottomWidth: 6, borderColor: palette.edge, overflow: 'hidden' },
+  band: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 9, backgroundColor: palette.inset },
+  bandText: { fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', color: palette.foreground },
+  hero: { fontFamily: fonts.display, fontSize: 40, color: palette.foreground, textTransform: 'uppercase', letterSpacing: -0.5 },
+  h2: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground, textTransform: 'uppercase' },
+  h3: { fontFamily: fonts.display, fontSize: 19, color: palette.foreground, textTransform: 'uppercase', letterSpacing: 0.5 },
+  kicker: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, color: palette.supporting, textTransform: 'uppercase', letterSpacing: 1 },
+  body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.foreground },
+  meta: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.supporting },
+  fine: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: palette.supporting },
   rowWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-  mod: { borderWidth: 2, borderColor: C.charcoal, backgroundColor: C.gold, paddingHorizontal: 8, paddingVertical: 3 },
-  modText: { fontFamily: fonts.bodyBold, fontSize: 13, color: C.charcoal },
-  ruleGrid: { flexDirection: 'row', borderWidth: 2, borderColor: C.charcoal },
-  rule: { flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: C.slate, backgroundColor: C.stone },
-  ruleK: { fontFamily: fonts.display, fontSize: 26, color: C.charcoal, fontVariant: ['tabular-nums'] },
-  toggle: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: C.slate, backgroundColor: C.stone },
+  mod: { borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold, paddingHorizontal: 8, paddingVertical: 3 },
+  modText: { fontFamily: fonts.bodyBold, fontSize: 13, color: palette.onAccent },
+  ruleGrid: { flexDirection: 'row', borderWidth: 2, borderColor: palette.edge },
+  rule: { flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: palette.border, backgroundColor: palette.background },
+  ruleK: { fontFamily: fonts.display, fontSize: 26, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  toggle: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.background },
   toggleText: { fontFamily: fonts.bodyBold, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.6 },
-  toast: { position: 'absolute', zIndex: 10, left: 18, right: 18, bottom: 110, flexDirection: 'row', gap: 10, alignItems: 'center', padding: 12, backgroundColor: C.gold, borderWidth: 2, borderColor: C.charcoal },
-  toastText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 14, color: C.charcoal },
-  track: { height: 16, padding: 2, backgroundColor: C.stone, borderWidth: 2, borderColor: C.charcoal },
-  fill: { height: '100%', backgroundColor: C.gold },
-  detail: { borderTopWidth: 2, borderTopColor: C.slate, backgroundColor: C.stone, padding: 14, gap: 10 },
+  toast: { position: 'absolute', zIndex: 10, left: 18, right: 18, bottom: 110, flexDirection: 'row', gap: 10, alignItems: 'center', padding: 12, backgroundColor: palette.gold, borderWidth: 2, borderColor: palette.edge },
+  toastText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.onAccent },
+  track: { height: 16, padding: 2, backgroundColor: palette.background, borderWidth: 2, borderColor: palette.edge },
+  fill: { height: '100%', backgroundColor: palette.gold },
+  detail: { borderTopWidth: 2, borderTopColor: palette.border, backgroundColor: palette.background, padding: 14, gap: 10 },
 });

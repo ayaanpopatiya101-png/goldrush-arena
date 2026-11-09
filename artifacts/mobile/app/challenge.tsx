@@ -135,14 +135,14 @@ function Row({ k, v, last }: { k: string; v: string; last?: boolean }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.ink },
-  kicker: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.paperDim },
-  title: { fontFamily: fonts.display, fontSize: 38, color: palette.paper },
-  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 23, color: palette.paperDim },
+  root: { flex: 1, backgroundColor: palette.background },
+  kicker: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.supporting },
+  title: { fontFamily: fonts.display, fontSize: 38, color: palette.foreground },
+  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 23, color: palette.supporting },
   rules: { paddingHorizontal: 14 },
   row: { paddingVertical: 10, gap: 2 },
-  rowLine: { borderBottomWidth: 1, borderBottomColor: palette.line },
-  k: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: tactile.paperMuted },
-  v: { fontFamily: fonts.body, fontSize: 16, color: tactile.paperInk, lineHeight: 22 },
-  error: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.clay, lineHeight: 21 },
+  rowLine: { borderBottomWidth: 1, borderBottomColor: palette.border },
+  k: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.supporting },
+  v: { fontFamily: fonts.body, fontSize: 16, color: palette.foreground, lineHeight: 22 },
+  error: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.supporting, lineHeight: 21 },
 });

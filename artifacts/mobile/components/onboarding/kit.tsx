@@ -69,7 +69,7 @@ export function StepFrame({ testID, onBack, backLabel = 'Back', progress, footer
         <View style={k.topInner}>
           {onBack ? (
             <Pressable testID={`${testID}-back`} onPress={onBack} style={k.back} accessibilityRole="button" accessibilityLabel={backLabel} hitSlop={6}>
-              <Feather name="chevron-left" size={22} color={palette.paper} />
+              <Feather name="chevron-left" size={22} color={palette.foreground} />
               <Text style={k.backText}>{backLabel}</Text>
             </Pressable>
           ) : <View style={{ height: 44 }} />}
@@ -143,35 +143,35 @@ export function ChoiceTile({ testID, label, selected, onPress, children, size = 
 }
 
 export const k = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.ink },
+  root: { flex: 1, backgroundColor: palette.background },
   top: { paddingBottom: 10 },
   topInner: { width: '100%', maxWidth: 560, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   back: { minHeight: 44, minWidth: 44, flexDirection: 'row', alignItems: 'center', gap: 2, paddingRight: 8 },
-  backText: { fontFamily: fonts.bodySemiBold, fontSize: 16, color: palette.paper },
+  backText: { fontFamily: fonts.bodySemiBold, fontSize: 16, color: palette.foreground },
   progress: { flex: 1, gap: 4, minWidth: 0 },
-  track: { height: 16, borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.sandstone, padding: 2, overflow: 'hidden' },
-  trackFill: { height: '100%', backgroundColor: palette.navy },
-  trackTick: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: palette.charcoal, opacity: 0.25 },
+  track: { height: 16, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, padding: 2, overflow: 'hidden' },
+  trackFill: { height: '100%', backgroundColor: palette.inset },
+  trackTick: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: palette.deepest, opacity: 0.25 },
   slots: { flexDirection: 'row', gap: 4 },
-  slot: { width: 22, height: 8, borderWidth: 1, borderColor: tactile.brass, backgroundColor: palette.ink },
+  slot: { width: 22, height: 8, borderWidth: 1, borderColor: tactile.brass, backgroundColor: palette.background },
   slotOn: { backgroundColor: palette.ochre, borderColor: palette.ochre },
-  stepText: { fontFamily: fonts.displayMedium, fontSize: 13, letterSpacing: 1.2, color: palette.slate, textTransform: 'uppercase' },
+  stepText: { fontFamily: fonts.displayMedium, fontSize: 13, letterSpacing: 1.2, color: palette.supporting, textTransform: 'uppercase' },
   body: { paddingTop: 24, paddingBottom: 24, flexGrow: 1 },
   inner: { width: '100%', maxWidth: 560, alignSelf: 'center', gap: 20 },
-  footer: { paddingTop: 14, borderTopWidth: 2, borderTopColor: palette.sandstone, backgroundColor: palette.ink },
-  kicker: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 2, color: palette.slate, textTransform: 'uppercase' },
-  title: { fontFamily: fonts.display, fontSize: 36, lineHeight: 38, color: palette.charcoal, textTransform: 'uppercase' },
-  lede: { fontFamily: fonts.body, fontSize: 17, lineHeight: 24, color: palette.paperDim },
-  plateOuter: { alignSelf: 'center', padding: 8, backgroundColor: palette.navy, borderWidth: 2, borderColor: tactile.brassEdge },
-  plate: { backgroundColor: tactile.court, borderWidth: 2, borderColor: tactile.courtLine, overflow: 'hidden' },
+  footer: { paddingTop: 14, borderTopWidth: 2, borderTopColor: palette.border, backgroundColor: palette.background },
+  kicker: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 2, color: palette.supporting, textTransform: 'uppercase' },
+  title: { fontFamily: fonts.display, fontSize: 36, lineHeight: 38, color: palette.foreground, textTransform: 'uppercase' },
+  lede: { fontFamily: fonts.body, fontSize: 17, lineHeight: 24, color: palette.supporting },
+  plateOuter: { alignSelf: 'center', padding: 8, backgroundColor: palette.inset, borderWidth: 2, borderColor: palette.edge },
+  plate: { backgroundColor: palette.inset, borderWidth: 2, borderColor: palette.border, overflow: 'hidden' },
   centerLine: { position: 'absolute', left: 0, right: 0, top: '50%', height: 2, backgroundColor: tactile.courtLine },
-  centerRing: { position: 'absolute', left: '50%', top: '50%', borderWidth: 2, borderColor: tactile.courtLine, borderRadius: 999 },
-  puck: { position: 'absolute', backgroundColor: tactile.courtInk, borderRadius: 999 },
+  centerRing: { position: 'absolute', left: '50%', top: '50%', borderWidth: 2, borderColor: palette.border, borderRadius: 999 },
+  puck: { position: 'absolute', backgroundColor: palette.foreground, borderRadius: 999 },
   pad: { position: 'absolute', borderRadius: 1 },
   youPad: { borderWidth: 2, borderColor: tactile.courtInk },
-  tile: { alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderBottomWidth: 5, borderColor: palette.slate, backgroundColor: palette.stone, borderRadius: 0 },
-  tileOn: { borderColor: palette.charcoal, backgroundColor: palette.orange },
-  error: { fontFamily: fonts.bodySemiBold, fontSize: 15, lineHeight: 21, color: palette.clay },
+  tile: { alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderBottomWidth: 5, borderColor: palette.border, backgroundColor: palette.background, borderRadius: 0 },
+  tileOn: { borderColor: palette.edge, backgroundColor: palette.primary },
+  error: { fontFamily: fonts.bodySemiBold, fontSize: 15, lineHeight: 21, color: palette.supporting },
   help: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: palette.muted, flexShrink: 1 },
-  label: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.paper },
+  label: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.foreground },
 });

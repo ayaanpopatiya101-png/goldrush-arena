@@ -35,16 +35,16 @@ export default function LeaderboardScreen() {
         <Shell variant="prose" style={{ gap: 22 }}>
           {/* Live season */}
           <View style={{ gap: 10 }}>
-            <SectionLabel title="This season" right={isRefetching ? <ActivityIndicator size="small" color={palette.slate} /> : null} />
+            <SectionLabel title="This season" right={isRefetching ? <ActivityIndicator size="small" color={palette.supporting} /> : null} />
             {!currentUsername ? (
               <Panel style={s.pad}><Text style={s.body}>Choose a local player profile to load your ranked season.</Text></Panel>
             ) : isLoading ? (
               <View style={s.loading} accessibilityLabel="Loading competitive season">
-                <ActivityIndicator color={palette.stone} />
+                <ActivityIndicator color={palette.foreground} />
                 <Text style={s.loadingText}>Reading your season from the arena server</Text>
               </View>
             ) : isError || !data ? (
-              <Panel style={[s.pad, { borderColor: palette.orange, gap: 10 }]}>
+              <Panel style={[s.pad, { borderColor: palette.primary, gap: 10 }]}>
                 <Text style={s.h}>Season unavailable</Text>
                 <Text style={s.body}>
                   The arena server did not return your season. {error?.message ? `(${error.message}) ` : ''}Your XP, rank and collection on this device are unchanged.
@@ -87,7 +87,7 @@ export default function LeaderboardScreen() {
           {/* Legacy */}
           <View style={{ gap: 10 }}>
             <SectionLabel title="Legacy record" />
-            <Panel style={[s.pad, { gap: 8, backgroundColor: palette.stone, borderStyle: 'dashed' }]}>
+            <Panel style={[s.pad, { gap: 8, backgroundColor: palette.background, borderStyle: 'dashed' }]}>
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <View style={s.legacyCell}><Text style={s.legacyV}>{profile.competitiveLevel ?? 1}</Text><Text style={s.legacyL}>LAST LEVEL</Text></View>
                 <View style={s.legacyCell}><Text style={s.legacyV}>{profile.highestLevel ?? 1}</Text><Text style={s.legacyL}>HIGHEST LEVEL</Text></View>
@@ -123,22 +123,22 @@ export default function LeaderboardScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.stone },
-  header: { paddingHorizontal: 18, paddingBottom: 14, borderBottomWidth: 3, borderBottomColor: palette.charcoal, marginBottom: 18, backgroundColor: palette.navy },
+  root: { flex: 1, backgroundColor: palette.background },
+  header: { paddingHorizontal: 18, paddingBottom: 14, borderBottomWidth: 3, borderBottomColor: palette.edge, marginBottom: 18, backgroundColor: palette.inset },
   pad: { padding: 14 },
-  h: { fontFamily: fonts.display, fontSize: 22, color: palette.charcoal, textTransform: 'uppercase' },
-  body: { fontFamily: fonts.body, fontSize: textScale.body, lineHeight: 22, color: palette.charcoal },
-  muted: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.slate },
-  fine: { fontFamily: fonts.body, fontSize: 13, color: palette.slate, borderTopWidth: 1, borderTopColor: palette.slate, paddingTop: 10 },
-  loading: { backgroundColor: palette.navy, borderWidth: 3, borderColor: palette.charcoal, padding: 28, alignItems: 'center', gap: 10, minHeight: 200, justifyContent: 'center' },
-  loadingText: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.stone },
-  track: { height: 14, padding: 2, borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.stone },
-  youRow: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: palette.stone, borderColor: palette.orange },
-  fill: { height: '100%', backgroundColor: palette.orange },
-  legacyCell: { flex: 1, borderWidth: 2, borderColor: palette.slate, padding: 10, backgroundColor: palette.sandstone },
-  legacyV: { fontFamily: fonts.display, fontSize: 30, color: palette.slate, fontVariant: ['tabular-nums'] },
-  legacyL: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: palette.slate },
-  ladder: { borderWidth: 2, borderBottomWidth: 5, borderColor: palette.charcoal, backgroundColor: palette.navy, padding: 18, gap: 6 },
+  h: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
+  body: { fontFamily: fonts.body, fontSize: textScale.body, lineHeight: 22, color: palette.foreground },
+  muted: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.supporting },
+  fine: { fontFamily: fonts.body, fontSize: 13, color: palette.supporting, borderTopWidth: 1, borderTopColor: palette.border, paddingTop: 10 },
+  loading: { backgroundColor: palette.inset, borderWidth: 3, borderColor: palette.edge, padding: 28, alignItems: 'center', gap: 10, minHeight: 200, justifyContent: 'center' },
+  loadingText: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.foreground },
+  track: { height: 14, padding: 2, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.background },
+  youRow: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: palette.background, borderColor: palette.primary },
+  fill: { height: '100%', backgroundColor: palette.primary },
+  legacyCell: { flex: 1, borderWidth: 2, borderColor: palette.border, padding: 10, backgroundColor: palette.surface },
+  legacyV: { fontFamily: fonts.display, fontSize: 30, color: palette.supporting, fontVariant: ['tabular-nums'] },
+  legacyL: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: palette.supporting },
+  ladder: { borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.inset, padding: 18, gap: 6 },
   ladderTitle: { fontFamily: fonts.display, fontSize: 22, letterSpacing: 1, color: palette.gold },
-  ladderBody: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.courtText },
+  ladderBody: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.foreground },
 });

@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PanResponder, Pressable, StyleSheet, Text, TextInput, View, type LayoutChangeEvent } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
-import { tactile } from '@/constants/colors';
+import { tactile, palette } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { AVATAR_COLORS } from '@/context/PlayerContext';
 import { clamp, hexToHsv, hsvToHex, inkOn, normalizeHex, type HSV } from '@/utils/color';
@@ -226,21 +226,21 @@ const s = StyleSheet.create({
   root: { gap: 14 },
   dim: { opacity: 0.5 },
   previewRow: { flexDirection: 'row' },
-  preview: { flex: 1, height: 52, borderWidth: 3, borderColor: tactile.paperInk, borderBottomWidth: 6, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 2 },
+  preview: { flex: 1, height: 52, borderWidth: 3, borderColor: palette.edge, borderBottomWidth: 6, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 2 },
   previewHex: { fontFamily: fonts.display, fontSize: 24, letterSpacing: 2 },
-  fieldLabel: { fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 1, color: tactile.paperInk, textTransform: 'uppercase' },
+  fieldLabel: { fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 1, color: palette.foreground, textTransform: 'uppercase' },
   presets: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  preset: { width: 44, height: 44, padding: 4, borderWidth: 2, borderColor: tactile.paperMuted, borderRadius: 2, backgroundColor: tactile.paperPanel },
-  presetOn: { borderColor: tactile.paperInk, borderWidth: 3, borderBottomWidth: 5 },
-  presetFill: { flex: 1, borderWidth: 1, borderColor: tactile.paperInk },
-  plane: { width: '100%', borderWidth: 2, borderColor: tactile.paperInk, overflow: 'hidden', backgroundColor: tactile.paperPanel },
-  knob: { position: 'absolute', width: 22, height: 22, borderRadius: 11, borderWidth: 3, borderColor: '#EEE9DE', outlineColor: tactile.paperInk } as object,
-  hueThumb: { position: 'absolute', top: -2, width: 10, height: STRIP_H, borderWidth: 2, borderColor: tactile.paperInk },
+  preset: { width: 44, height: 44, padding: 4, borderWidth: 2, borderColor: palette.border, borderRadius: 2, backgroundColor: palette.surface },
+  presetOn: { borderColor: palette.edge, borderWidth: 3, borderBottomWidth: 5 },
+  presetFill: { flex: 1, borderWidth: 1, borderColor: palette.edge },
+  plane: { width: '100%', borderWidth: 2, borderColor: palette.edge, overflow: 'hidden', backgroundColor: palette.surface },
+  knob: { position: 'absolute', width: 22, height: 22, borderRadius: 11, borderWidth: 3, borderColor: palette.border, outlineColor: tactile.paperInk } as object,
+  hueThumb: { position: 'absolute', top: -2, width: 10, height: STRIP_H, borderWidth: 2, borderColor: palette.edge },
   numRow: { flexDirection: 'row', gap: 10 },
   numWrap: { flex: 1, gap: 4 },
-  numInput: { minHeight: 48, borderWidth: 2, borderColor: tactile.paperMuted, backgroundColor: tactile.paperPanel, color: tactile.paperInk, fontFamily: fonts.display, fontSize: 22, paddingHorizontal: 10, borderRadius: 2 },
-  hexInput: { minHeight: 48, borderWidth: 2, borderColor: tactile.paperMuted, backgroundColor: tactile.paperPanel, color: tactile.paperInk, fontFamily: fonts.display, fontSize: 22, letterSpacing: 2, paddingHorizontal: 12, borderRadius: 2 },
-  inputErr: { borderColor: tactile.coral, borderWidth: 3 },
-  hint: { fontFamily: fonts.body, fontSize: 13, color: tactile.paperMuted },
-  errText: { color: tactile.paperInk, fontFamily: fonts.bodyBold, textDecorationLine: 'underline', textDecorationColor: tactile.coral },
+  numInput: { minHeight: 48, borderWidth: 2, borderColor: palette.border, backgroundColor: palette.surface, color: palette.foreground, fontFamily: fonts.display, fontSize: 22, paddingHorizontal: 10, borderRadius: 2 },
+  hexInput: { minHeight: 48, borderWidth: 2, borderColor: palette.border, backgroundColor: palette.surface, color: palette.foreground, fontFamily: fonts.display, fontSize: 22, letterSpacing: 2, paddingHorizontal: 12, borderRadius: 2 },
+  inputErr: { borderColor: palette.primary, borderWidth: 3 },
+  hint: { fontFamily: fonts.body, fontSize: 13, color: palette.supporting },
+  errText: { color: palette.foreground, fontFamily: fonts.bodyBold, textDecorationLine: 'underline', textDecorationColor: tactile.coral },
 });

@@ -40,7 +40,7 @@ export function SeasonScoreboard({ s }: { s: CompetitiveSeasonData }) {
           { l: 'LAST', v: s.games > 0 ? signed(s.lastDelta) : '--' },
         ].map((x, i) => (
           <View key={x.l} style={[c.boardStat, i > 0 && c.boardStatRule]}>
-            <Text style={[c.boardStatV, x.l === 'LAST' && s.lastDelta > 0 && s.games > 0 && { color: palette.gold }, x.l === 'LAST' && s.lastDelta < 0 && { color: palette.orange }]}>{x.v}</Text>
+            <Text style={[c.boardStatV, x.l === 'LAST' && s.lastDelta > 0 && s.games > 0 && { color: palette.gold }, x.l === 'LAST' && s.lastDelta < 0 && { color: palette.primary }]}>{x.v}</Text>
             <Text style={c.boardStatL}>{x.l}</Text>
           </View>
         ))}
@@ -62,7 +62,7 @@ export function PlacementTrack({ games, placed }: { games: number; placed: boole
       <View style={c.slots}>
         {Array.from({ length: PLACEMENT_GAMES }).map((_, i) => (
           <View key={i} style={[c.slot, i < done && c.slotDone]}>
-            <Text style={[c.slotText, i < done && { color: palette.charcoal }]}>{i + 1}</Text>
+            <Text style={[c.slotText, i < done && { color: palette.foreground }]}>{i + 1}</Text>
           </View>
         ))}
       </View>
@@ -78,14 +78,14 @@ export function PlacementTrack({ games, placed }: { games: number; placed: boole
 function Badge({ title, earned, detail, icon }: { title: string; earned: boolean; detail: string; icon: React.ComponentProps<typeof Feather>['name'] }) {
   return (
     <View style={[c.badge, earned && c.badgeEarned]} accessibilityLabel={`${title}, ${earned ? 'earned' : 'not earned yet'}. ${detail}`}>
-      <View style={[c.badgeIcon, earned && { backgroundColor: palette.charcoal }]}>
+      <View style={[c.badgeIcon, earned && { backgroundColor: palette.deepest }]}>
         <Feather name={icon} size={18} color={earned ? palette.gold : palette.slate} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={c.badgeTitle}>{title}</Text>
         <Text style={c.badgeDetail}>{detail}</Text>
       </View>
-      <Text style={[c.badgeState, earned && { color: palette.charcoal }]}>{earned ? 'EARNED' : 'OPEN'}</Text>
+      <Text style={[c.badgeState, earned && { color: palette.foreground }]}>{earned ? 'EARNED' : 'OPEN'}</Text>
     </View>
   );
 }
@@ -134,47 +134,47 @@ export function NumberedNote({ n, children }: { n: number; children: React.React
 }
 
 const c = StyleSheet.create({
-  board: { backgroundColor: palette.navy, borderWidth: 3, borderColor: palette.charcoal, padding: 16, gap: 14 },
+  board: { backgroundColor: palette.inset, borderWidth: 3, borderColor: palette.edge, padding: 16, gap: 14 },
   boardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  boardKicker: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, letterSpacing: 1.4, color: palette.stone, flex: 1 },
-  endTag: { backgroundColor: palette.gold, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 2, borderColor: palette.charcoal },
-  endTagText: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, color: palette.charcoal, letterSpacing: 1 },
+  boardKicker: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, letterSpacing: 1.4, color: palette.foreground, flex: 1 },
+  endTag: { backgroundColor: palette.gold, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 2, borderColor: palette.edge },
+  endTagText: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, color: palette.onAccent, letterSpacing: 1 },
   boardMain: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
-  rating: { fontFamily: fonts.display, fontSize: 72, lineHeight: 74, color: palette.stone, fontVariant: ['tabular-nums'], letterSpacing: -1 },
-  ratingLabel: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, color: palette.stone, letterSpacing: 1, opacity: 0.8 },
-  divisionPlate: { backgroundColor: palette.orange, borderWidth: 2, borderColor: palette.charcoal, paddingHorizontal: 12, paddingVertical: 8, minWidth: 110, maxWidth: 150, transform: [{ rotate: '-2deg' }] },
-  divisionKicker: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: palette.charcoal },
-  division: { fontFamily: fonts.display, fontSize: 24, color: palette.charcoal, textTransform: 'uppercase' },
-  boardStats: { flexDirection: 'row', borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#EEE9DE55' },
+  rating: { fontFamily: fonts.display, fontSize: 72, lineHeight: 74, color: palette.foreground, fontVariant: ['tabular-nums'], letterSpacing: -1 },
+  ratingLabel: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, color: palette.foreground, letterSpacing: 1, opacity: 0.8 },
+  divisionPlate: { backgroundColor: palette.primary, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 12, paddingVertical: 8, minWidth: 110, maxWidth: 150, transform: [{ rotate: '-2deg' }] },
+  divisionKicker: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: palette.foreground },
+  division: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground, textTransform: 'uppercase' },
+  boardStats: { flexDirection: 'row', borderTopWidth: 1, borderBottomWidth: 1, borderColor: palette.border },
   boardStat: { flex: 1, paddingVertical: 8, alignItems: 'center' },
-  boardStatRule: { borderLeftWidth: 1, borderLeftColor: '#EEE9DE55' },
-  boardStatV: { fontFamily: fonts.display, fontSize: 24, color: palette.stone, fontVariant: ['tabular-nums'] },
-  boardStatL: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: palette.stone, opacity: 0.8 },
-  endsLine: { fontFamily: fonts.body, fontSize: 14, color: palette.stone },
-  panel: { backgroundColor: palette.sandstone, borderWidth: 2, borderColor: palette.charcoal, padding: 14, gap: 12 },
+  boardStatRule: { borderLeftWidth: 1, borderLeftColor: palette.border },
+  boardStatV: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  boardStatL: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: palette.foreground, opacity: 0.8 },
+  endsLine: { fontFamily: fonts.body, fontSize: 14, color: palette.foreground },
+  panel: { backgroundColor: palette.surface, borderWidth: 2, borderColor: palette.edge, padding: 14, gap: 12 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  panelTitle: { fontFamily: fonts.display, fontSize: 20, letterSpacing: 1, color: palette.charcoal },
-  panelMeta: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, letterSpacing: 1.2, color: palette.slate },
+  panelTitle: { fontFamily: fonts.display, fontSize: 20, letterSpacing: 1, color: palette.foreground },
+  panelMeta: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, letterSpacing: 1.2, color: palette.supporting },
   slots: { flexDirection: 'row', gap: 6 },
-  slot: { flex: 1, height: 44, borderWidth: 2, borderColor: palette.slate, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: palette.stone },
-  slotDone: { backgroundColor: palette.gold, borderColor: palette.charcoal, borderStyle: 'solid' },
-  slotText: { fontFamily: fonts.display, fontSize: 20, color: palette.slate },
-  body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.charcoal },
-  fine: { fontFamily: fonts.body, fontSize: 13, color: palette.slate },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderWidth: 2, borderColor: palette.slate, backgroundColor: palette.stone },
-  badgeEarned: { backgroundColor: palette.gold, borderColor: palette.charcoal },
-  badgeIcon: { width: 40, height: 40, borderWidth: 2, borderColor: palette.charcoal, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '45deg' }] },
-  badgeTitle: { fontFamily: fonts.display, fontSize: 19, color: palette.charcoal, textTransform: 'uppercase' },
-  badgeDetail: { fontFamily: fonts.body, fontSize: 14, color: palette.charcoal },
-  badgeState: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, letterSpacing: 1.2, color: palette.slate },
-  histRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: palette.slate },
-  histSeason: { width: 54, paddingVertical: 4, backgroundColor: palette.navy, alignItems: 'center' },
-  histMonth: { fontFamily: fonts.display, fontSize: 18, color: palette.stone },
-  histYear: { fontFamily: fonts.bodySemiBold, fontSize: 11, color: palette.stone },
-  histDivision: { fontFamily: fonts.display, fontSize: 18, color: palette.charcoal, textTransform: 'uppercase' },
-  histMeta: { fontFamily: fonts.body, fontSize: 14, color: palette.slate },
-  histBadges: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, color: palette.orange },
-  histRating: { fontFamily: fonts.display, fontSize: 28, color: palette.charcoal, fontVariant: ['tabular-nums'] },
+  slot: { flex: 1, height: 44, borderWidth: 2, borderColor: palette.border, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: palette.background },
+  slotDone: { backgroundColor: palette.gold, borderColor: palette.edge, borderStyle: 'solid' },
+  slotText: { fontFamily: fonts.display, fontSize: 20, color: palette.supporting },
+  body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.foreground },
+  fine: { fontFamily: fonts.body, fontSize: 13, color: palette.supporting },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderWidth: 2, borderColor: palette.border, backgroundColor: palette.background },
+  badgeEarned: { backgroundColor: palette.gold, borderColor: palette.edge },
+  badgeIcon: { width: 40, height: 40, borderWidth: 2, borderColor: palette.edge, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '45deg' }] },
+  badgeTitle: { fontFamily: fonts.display, fontSize: 19, color: palette.foreground, textTransform: 'uppercase' },
+  badgeDetail: { fontFamily: fonts.body, fontSize: 14, color: palette.foreground },
+  badgeState: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, letterSpacing: 1.2, color: palette.supporting },
+  histRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: palette.border },
+  histSeason: { width: 54, paddingVertical: 4, backgroundColor: palette.inset, alignItems: 'center' },
+  histMonth: { fontFamily: fonts.display, fontSize: 18, color: palette.foreground },
+  histYear: { fontFamily: fonts.bodySemiBold, fontSize: 11, color: palette.foreground },
+  histDivision: { fontFamily: fonts.display, fontSize: 18, color: palette.foreground, textTransform: 'uppercase' },
+  histMeta: { fontFamily: fonts.body, fontSize: 14, color: palette.supporting },
+  histBadges: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, color: palette.primary },
+  histRating: { fontFamily: fonts.display, fontSize: 28, color: palette.foreground, fontVariant: ['tabular-nums'] },
   note: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
-  noteN: { fontFamily: fonts.display, fontSize: 18, color: palette.orange, width: 24 },
+  noteN: { fontFamily: fonts.display, fontSize: 18, color: palette.primary, width: 24 },
 });

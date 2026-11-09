@@ -45,7 +45,7 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
       <Heading kicker="This device" title="Saved players" body="Local saves, not online accounts. Pick up where you left off." />
 
       {!loaded ? (
-        <View style={[s.row, { height: 72, backgroundColor: palette.graphite2 }]} accessibilityLabel="Loading saved players" />
+        <View style={[s.row, { height: 72, backgroundColor: palette.raised }]} accessibilityLabel="Loading saved players" />
       ) : loadError ? (
         <View style={s.empty}>
           <Text style={k.error} accessibilityRole="alert">Saved players could not be read.</Text>
@@ -79,10 +79,10 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
                     accessibilityLabel={`Continue as ${a.username}, ${a.rank}`}
                     accessibilityState={{ disabled: !!busyName, busy: busyName === a.username }}
                     aria-disabled={!!busyName}
-                    style={({ pressed }) => [s.main, pressed && { backgroundColor: palette.gold }]}
+                    style={({ pressed }) => [s.main, pressed && { backgroundColor: palette.raised }]}
                   >
                     <View style={[s.avatar, { borderColor: a.avatarColor }]}>
-                      <Glyph value={a.avatarEmoji} size={22} color={palette.paper} />
+                      <Glyph value={a.avatarEmoji} size={22} color={palette.foreground} />
                     </View>
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <Text style={s.name} numberOfLines={1}>{a.username}</Text>
@@ -97,7 +97,7 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
                     accessibilityRole="button"
                     accessibilityLabel={`Delete ${a.username} from this device`}
                   >
-                    <Feather name="trash-2" size={18} color={palette.clay} />
+                    <Feather name="trash-2" size={18} color={palette.supporting} />
                   </Pressable>
                 </>
               )}
@@ -134,14 +134,14 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
 }
 
 const s = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'stretch', borderWidth: 2, borderBottomWidth: 5, borderColor: palette.charcoal, backgroundColor: palette.stone, borderRadius: 0, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'stretch', borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.background, borderRadius: 0, overflow: 'hidden' },
   main: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, minHeight: 64 },
-  avatar: { width: 44, height: 44, borderWidth: 3, borderRadius: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.ink },
-  name: { fontFamily: fonts.display, fontSize: 22, color: palette.paper, textTransform: 'uppercase' },
-  cont: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.charcoal },
-  del: { width: 52, alignItems: 'center', justifyContent: 'center', borderLeftWidth: 2, borderLeftColor: palette.charcoal, backgroundColor: palette.sandstone },
+  avatar: { width: 44, height: 44, borderWidth: 3, borderRadius: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.background },
+  name: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
+  cont: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.foreground },
+  del: { width: 52, alignItems: 'center', justifyContent: 'center', borderLeftWidth: 2, borderLeftColor: palette.edge, backgroundColor: palette.surface },
   confirm: { flex: 1, padding: 12, gap: 10 },
-  confirmText: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.paper },
-  empty: { gap: 10, alignItems: 'flex-start', padding: 16, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.slate, backgroundColor: palette.sandstone },
-  input: { flex: 1, minHeight: 48, borderWidth: 2, borderColor: palette.charcoal, borderRadius: 0, backgroundColor: palette.stone, color: palette.paper, fontFamily: fonts.body, fontSize: 17, paddingHorizontal: 12 },
+  confirmText: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.foreground },
+  empty: { gap: 10, alignItems: 'flex-start', padding: 16, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
+  input: { flex: 1, minHeight: 48, borderWidth: 2, borderColor: palette.edge, borderRadius: 0, backgroundColor: palette.background, color: palette.foreground, fontFamily: fonts.body, fontSize: 17, paddingHorizontal: 12 },
 });

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { palette } from '@/constants/colors';
 import { Platform, Pressable, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { File, Paths } from 'expo-file-system';
@@ -268,11 +269,11 @@ export function BackgroundMusicButton({ muted, onToggle }: Props) {
     <Pressable
       onPress={() => onToggle?.(!muted)}
       style={[styles.btn, {
-        backgroundColor: muted ? '#EEE7D711' : '#D7A83B22',
-        borderColor:     muted ? '#EEE7D733' : '#D7A83B55',
+        backgroundColor: muted ? palette.inset : palette.gold + '22',
+        borderColor:     muted ? palette.border : palette.gold + '55',
       }]}
     >
-      <Feather name={muted ? 'volume-x' : 'volume-2'} size={16} color={muted ? '#EEE7D766' : '#D7A83B'} />
+      <Feather name={muted ? 'volume-x' : 'volume-2'} size={16} color={muted ? palette.supporting : palette.gold} />
     </Pressable>
   );
 }

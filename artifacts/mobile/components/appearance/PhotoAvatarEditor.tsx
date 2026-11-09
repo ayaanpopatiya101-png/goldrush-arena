@@ -121,7 +121,7 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
         <View style={[st.thumb, { borderColor: frameColor }]}>
           {avatar.loading && !avatar.uri ? <View style={st.skeleton} /> :
             avatar.uri ? <Image source={{ uri: avatar.uri }} style={st.fill} accessibilityLabel="Your saved photo" /> :
-            <Feather name="camera" size={22} color={tactile.paperMuted} />}
+            <Feather name="camera" size={22} color={palette.supporting} />}
         </View>
         <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
           <Text style={st.title}>Photo avatar</Text>
@@ -225,7 +225,7 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
           <Pressable testID={`${testID}-share-draft`} onPress={() => setShareDraft(v => !v)} accessibilityRole="switch"
             accessibilityState={{ checked: shareDraft }} aria-checked={shareDraft}
             accessibilityLabel="Publish photo to opponents" style={st.switchRow}>
-            <View style={[st.switchTrack, shareDraft && { backgroundColor: palette.orange }]}>
+            <View style={[st.switchTrack, shareDraft && { backgroundColor: palette.primary }]}>
               <View style={[st.switchKnob, shareDraft && { alignSelf: 'flex-end' }]} />
             </View>
             <Text style={[st.help, { flex: 1 }]}>{shareDraft ? 'Published: opponents will see this photo.' : 'Private: only you see this photo.'}</Text>
@@ -248,8 +248,8 @@ function CtlBtn({ icon, label, onPress, disabled }: { icon: React.ComponentProps
   return (
     <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled }}
-      style={({ pressed }) => [st.ctl, pressed && { backgroundColor: palette.stone }, disabled && { opacity: 0.4 }]}>
-      <Feather name={icon} size={18} color={tactile.paperInk} />
+      style={({ pressed }) => [st.ctl, pressed && { backgroundColor: palette.background }, disabled && { opacity: 0.4 }]}>
+      <Feather name={icon} size={18} color={palette.foreground} />
     </Pressable>
   );
 }
@@ -262,25 +262,25 @@ export function AvatarPhoto({ username, size, children }: { username: string; si
 }
 
 const st = StyleSheet.create({
-  root: { gap: 10, padding: 14, backgroundColor: tactile.paperPanel, borderWidth: 2, borderColor: tactile.brass },
+  root: { gap: 10, padding: 14, backgroundColor: palette.surface, borderWidth: 2, borderColor: tactile.brass },
   headRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   wrapRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  thumb: { width: 56, height: 56, borderWidth: 3, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: palette.stone },
+  thumb: { width: 56, height: 56, borderWidth: 3, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: palette.background },
   fill: { width: '100%', height: '100%' },
-  skeleton: { width: '100%', height: '100%', backgroundColor: palette.sandstone },
-  title: { fontFamily: fonts.display, fontSize: 22, color: tactile.paperInk, textTransform: 'uppercase' },
-  label: { fontFamily: fonts.bodyBold, fontSize: 14, color: tactile.paperInk, letterSpacing: 1, textTransform: 'uppercase' },
-  meta: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: tactile.paperMuted },
-  help: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: tactile.paperInk },
-  error: { fontFamily: fonts.bodySemiBold, fontSize: 15, lineHeight: 21, color: tactile.paperInk, borderLeftWidth: 4, borderLeftColor: tactile.coral, paddingLeft: 10 },
-  confirm: { gap: 8, padding: 10, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.stone },
-  viewport: { width: VIEW, height: VIEW, overflow: 'hidden', borderWidth: 3, backgroundColor: tactile.court },
+  skeleton: { width: '100%', height: '100%', backgroundColor: palette.surface },
+  title: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
+  label: { fontFamily: fonts.bodyBold, fontSize: 14, color: palette.foreground, letterSpacing: 1, textTransform: 'uppercase' },
+  meta: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.supporting },
+  help: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.foreground },
+  error: { fontFamily: fonts.bodySemiBold, fontSize: 15, lineHeight: 21, color: palette.foreground, borderLeftWidth: 4, borderLeftColor: palette.primary, paddingLeft: 10 },
+  confirm: { gap: 8, padding: 10, borderWidth: 1, borderColor: palette.border, backgroundColor: palette.background },
+  viewport: { width: VIEW, height: VIEW, overflow: 'hidden', borderWidth: 3, backgroundColor: palette.inset },
   controls: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  ctl: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: tactile.brassEdge, backgroundColor: palette.sandstone },
-  readout: { fontFamily: fonts.display, fontSize: 20, color: tactile.paperInk, minWidth: 56, textAlign: 'center' },
+  ctl: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface },
+  readout: { fontFamily: fonts.display, fontSize: 20, color: palette.foreground, minWidth: 56, textAlign: 'center' },
   staged: { width: 96, height: 96, borderWidth: 3 },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44 },
-  switchTrack: { width: 52, height: 30, borderWidth: 2, borderColor: tactile.brassEdge, backgroundColor: palette.stone, padding: 2, justifyContent: 'center' },
-  switchKnob: { width: 22, height: 22, backgroundColor: tactile.paperInk },
+  switchTrack: { width: 52, height: 30, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.background, padding: 2, justifyContent: 'center' },
+  switchKnob: { width: 22, height: 22, backgroundColor: palette.deepest },
 });

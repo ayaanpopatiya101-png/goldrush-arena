@@ -1,4 +1,5 @@
 import React from "react";
+import { palette } from '@/constants/colors';
 import { StyleSheet, View } from "react-native";
 import { Text } from "./Text";
 
@@ -36,7 +37,7 @@ export function LoadingCourt() {
 const s = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: "#191B19",
+    backgroundColor: palette.deepest,
     padding: 24,
     paddingTop: 64,
     width: "100%",
@@ -46,24 +47,24 @@ const s = StyleSheet.create({
   masthead: {
     height: 24,
     width: "48%",
-    backgroundColor: "#34382F",
+    backgroundColor: palette.raised,
     marginBottom: 40,
   },
   court: {
     height: 204,
-    backgroundColor: "#222520",
+    backgroundColor: palette.raised,
     borderWidth: 1,
-    borderColor: "#34382F",
+    borderColor: palette.raised,
   },
   rows: { paddingVertical: 24, width: "100%" },
-  label: { fontSize: 14, color: "#B9BDAF", marginBottom: 12 },
+  label: { fontSize: 14, color: palette.supporting, marginBottom: 12 },
   row: {
     flexDirection: "row",
     minHeight: 56,
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderColor: "#34382F",
+    borderColor: palette.raised,
   },
-  line: { height: 12, backgroundColor: "#34382F" },
+  line: { height: 12, backgroundColor: palette.raised },
 });

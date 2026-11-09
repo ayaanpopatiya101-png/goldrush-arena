@@ -50,7 +50,7 @@ export const Text = forwardRef<NativeText, TextProps>(function Text(
       {...props}
       style={[
         {
-          color: palette.charcoal,
+          color: palette.foreground,
           fontFamily: "SourceSans3_400Regular",
         },
         style,

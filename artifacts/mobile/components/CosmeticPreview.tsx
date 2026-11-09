@@ -4,7 +4,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { artworkFor, type Artwork } from '@workspace/goldrush-catalog/cosmetics';
 
-import { PLAYER_COLORS, tactile } from '@/constants/colors';
+import { PLAYER_COLORS, tactile, palette } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { PaddleArt, MOTIF_LABEL, TEXTURE_LABEL } from '@/components/cosmetics/PaddleArt';
 
@@ -47,14 +47,14 @@ export function CosmeticPreview({ skin, artwork, size = 120, showLabel = true }:
 }
 
 const c = StyleSheet.create({
-  frame: { borderWidth: 3, borderColor: tactile.brassEdge, backgroundColor: tactile.brass, padding: 3 },
-  court: { flex: 1, backgroundColor: tactile.court, borderWidth: 1, borderColor: tactile.courtLine, overflow: 'hidden' },
+  frame: { borderWidth: 3, borderColor: palette.edge, backgroundColor: tactile.brass, padding: 3 },
+  court: { flex: 1, backgroundColor: palette.inset, borderWidth: 1, borderColor: palette.border, overflow: 'hidden' },
   midH: { position: 'absolute', left: 0, right: 0, top: '50%', height: 1, backgroundColor: tactile.courtLine },
-  circle: { position: 'absolute', left: '50%', top: '50%', borderWidth: 1, borderColor: tactile.courtLine, borderRadius: 999 },
+  circle: { position: 'absolute', left: '50%', top: '50%', borderWidth: 1, borderColor: palette.border, borderRadius: 999 },
   botN: { position: 'absolute', top: 4, alignSelf: 'center', height: 4, opacity: 0.7 },
   botW: { position: 'absolute', left: 4, top: '38%', width: 4, opacity: 0.7 },
   botE: { position: 'absolute', right: 4, top: '38%', width: 4, opacity: 0.7 },
-  ball: { position: 'absolute', width: 7, height: 7, borderRadius: 4, backgroundColor: tactile.courtInk },
+  ball: { position: 'absolute', width: 7, height: 7, borderRadius: 4, backgroundColor: palette.foreground },
   south: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  material: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: '#575D5C', letterSpacing: 0.4 },
+  material: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.supporting, letterSpacing: 0.4 },
 });

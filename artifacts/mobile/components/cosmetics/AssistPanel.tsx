@@ -62,7 +62,7 @@ export function AssistPanel({ draft, assist, onApply, onClose }: {
       <Text style={s.copy}>Describe a change. The helper revises your current draft using only the studio's motifs, colours, density and texture. You review it before anything changes.</Text>
 
       <TextInput testID="assist-prompt" value={prompt} onChangeText={setPrompt} multiline maxLength={600}
-        placeholder="Darker base, gold accent, tighter chevrons" placeholderTextColor={palette.slate}
+        placeholder="Darker base, gold accent, tighter chevrons" placeholderTextColor={palette.supporting}
         accessibilityLabel="Describe the change you want" editable={!busy} style={s.input} />
       <Text style={s.count}>{trimmed.length}/600{tooShort && trimmed.length > 0 ? '  At least 3 characters' : ''}</Text>
 
@@ -70,7 +70,7 @@ export function AssistPanel({ draft, assist, onApply, onClose }: {
         disabled={tooShort || outOfUses} testID="assist-run" />
       {busy ? (
         <View style={s.loading} accessibilityLiveRegion="polite">
-          <ActivityIndicator color={palette.charcoal} />
+          <ActivityIndicator color={palette.foreground} />
           <Text style={s.copy}>Revising your draft. This can take up to 90 seconds.</Text>
         </View>
       ) : null}
@@ -99,15 +99,15 @@ export function AssistPanel({ draft, assist, onApply, onClose }: {
 const s = StyleSheet.create({
   root: { gap: 12 },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  copy: { fontFamily: fonts.body, fontSize: 15, color: palette.slate, lineHeight: 21 },
-  input: { minHeight: 96, textAlignVertical: 'top', borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.stone, padding: 12, fontFamily: fonts.body, fontSize: 16, color: palette.charcoal, borderRadius: 3 },
-  count: { fontFamily: fonts.bodyMedium, fontSize: 12, color: palette.slate, alignSelf: 'flex-end' },
+  copy: { fontFamily: fonts.body, fontSize: 15, color: palette.supporting, lineHeight: 21 },
+  input: { minHeight: 96, textAlignVertical: 'top', borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.background, padding: 12, fontFamily: fonts.body, fontSize: 16, color: palette.foreground, borderRadius: 3 },
+  count: { fontFamily: fonts.bodyMedium, fontSize: 12, color: palette.supporting, alignSelf: 'flex-end' },
   loading: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  proposal: { gap: 10, padding: 12, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.charcoal, backgroundColor: palette.stone, borderRadius: 3 },
-  propTitle: { fontFamily: fonts.display, fontSize: 18, letterSpacing: 1.2, textTransform: 'uppercase', color: palette.charcoal },
-  compare: { flexDirection: 'row', gap: 12, justifyContent: 'space-around', backgroundColor: palette.navy, padding: 12 },
+  proposal: { gap: 10, padding: 12, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.background, borderRadius: 3 },
+  propTitle: { fontFamily: fonts.display, fontSize: 18, letterSpacing: 1.2, textTransform: 'uppercase', color: palette.foreground },
+  compare: { flexDirection: 'row', gap: 12, justifyContent: 'space-around', backgroundColor: palette.inset, padding: 12 },
   side: { alignItems: 'center', gap: 6 },
-  tag: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1, color: palette.stone, textTransform: 'uppercase' },
-  meta: { fontFamily: fonts.bodyBold, fontSize: 14, color: palette.charcoal },
+  tag: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1, color: palette.foreground, textTransform: 'uppercase' },
+  meta: { fontFamily: fonts.bodyBold, fontSize: 14, color: palette.foreground },
   actions: { flexDirection: 'row', gap: 8 },
 });

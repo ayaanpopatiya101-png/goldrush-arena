@@ -26,7 +26,7 @@ export function LegalDocument({ doc, onDocChange, onBack, backLabel = 'Back' }: 
     <View style={s.root}>
       <Shell variant="prose" style={[s.header, { paddingTop: topPad + 8 }]}>
         <Pressable onPress={onBack} style={s.back} accessibilityRole="button" accessibilityLabel={backLabel}>
-          <Feather name="arrow-left" size={20} color={palette.paper} />
+          <Feather name="arrow-left" size={20} color={palette.foreground} />
           <Text style={s.backText}>{backLabel}</Text>
         </Pressable>
         <View style={s.tabRow} accessibilityRole="tablist">
@@ -72,16 +72,16 @@ export default function LegalScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.ink },
-  header: { gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: palette.line },
+  root: { flex: 1, backgroundColor: palette.background },
+  header: { gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: palette.border },
   back: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, alignSelf: 'flex-start', paddingRight: 12 },
-  backText: { fontFamily: fonts.bodySemiBold, fontSize: 16, color: palette.paper },
+  backText: { fontFamily: fonts.bodySemiBold, fontSize: 16, color: palette.foreground },
   tabRow: { flexDirection: 'row', gap: 8 },
-  tab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: palette.line, borderRadius: 3 },
-  tabOn: { borderColor: tactile.brassEdge, backgroundColor: palette.ochre },
-  tabText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.paperDim },
-  tabTextOn: { color: tactile.paperInk },
-  title: { fontFamily: fonts.display, fontSize: 32, color: palette.paper },
-  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 25, color: palette.paper },
+  tab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: palette.border, borderRadius: 3 },
+  tabOn: { borderColor: palette.edge, backgroundColor: palette.ochre },
+  tabText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.supporting },
+  tabTextOn: { color: palette.foreground },
+  title: { fontFamily: fonts.display, fontSize: 32, color: palette.foreground },
+  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 25, color: palette.foreground },
   footer: { fontFamily: fonts.body, fontSize: 14, color: palette.muted, marginTop: 12 },
 });

@@ -3,7 +3,7 @@ import { Feather } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { ScreenTitle, Shell, gridItemWidth, paperText } from '@/components/ui/Primitives';
-import { tactile } from '@/constants/colors';
+import { tactile, palette } from '@/constants/colors';
 import { useCosmetics } from '@/hooks/useCosmetics';
 import { CollectionPanel } from '@/components/cosmetics/ShopCollection';
 import Reanimated from 'react-native-reanimated';
@@ -53,8 +53,8 @@ export default function InventoryScreen() {
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
         <ScreenTitle kicker="Owned items" title="Collection" style={{ flex: 1 }} />
-        <View style={[s.countBadge, { backgroundColor: tactile.brass, borderColor: tactile.brassEdge, borderWidth: 2, borderRadius: 0 }]}>
-          <Text style={[s.countText, { color: paperText.ink }]}>{totalOwned} items</Text>
+        <View style={[s.countBadge, { backgroundColor: tactile.brass, borderColor: palette.edge, borderWidth: 2, borderRadius: 0 }]}>
+          <Text style={[s.countText, { color: palette.onAccent }]}>{totalOwned} items</Text>
         </View>
       </View>
 
@@ -82,7 +82,7 @@ export default function InventoryScreen() {
                   <Text style={s.strikeBadgeText}>{pendingBlocks.length}</Text>
                 </View>
               )}
-              <Text style={[s.tabText, { color: isActive ? paperText.ink : colors.mutedForeground }]}>
+              <Text style={[s.tabText, { color: isActive ? palette.onAccent : colors.mutedForeground }]}>
                 {label}
               </Text>
             </Pressable>
@@ -103,11 +103,11 @@ export default function InventoryScreen() {
         {activeTab === 'strikes' && (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <GlowText intensity="medium" color='#252A2B' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>
+              <GlowText intensity="medium" color={palette.foreground} style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>
                 {GOLD_STRIKE_NAME.toUpperCase()}S
               </GlowText>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#575D5C', letterSpacing: 1 }}>
+              <View style={{ flex: 1, height: 1, backgroundColor: palette.border }} />
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.supporting, letterSpacing: 1 }}>
                 {pendingBlocks.length} PENDING
               </Text>
             </View>
@@ -117,7 +117,7 @@ export default function InventoryScreen() {
             ) : (
               <>
                 <View style={s.strikesInfoRow}>
-                  <Text style={[s.strikesInfo, { color: '#575D5C' }]}>
+                  <Text style={[s.strikesInfo, { color: palette.supporting }]}>
                     Tap any {GOLD_STRIKE_NAME} to open it and reveal your reward
                   </Text>
                 </View>
@@ -181,7 +181,7 @@ export default function InventoryScreen() {
 function EmptyState({ icon, message, sub }: { icon: string; message: string; sub: string }) {
   return (
     <View style={s.emptyState}>
-      <Feather name={icon as never} size={40} color="#575D5C" />
+      <Feather name={icon as never} size={40} color={palette.supporting} />
       <Text style={s.emptyTitle}>{message}</Text>
       <Text style={s.emptySub}>{sub}</Text>
     </View>
@@ -191,11 +191,11 @@ function EmptyState({ icon, message, sub }: { icon: string; message: string; sub
 const s = StyleSheet.create({
   header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12, gap: 10 },
   title:       { fontFamily: 'SourceSans3_700Bold', fontSize: 20, letterSpacing: 2 },
-  countBadge:  { backgroundColor: '#EDBA3C', borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', paddingHorizontal: 8, paddingVertical: 4 },
-  countText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#252A2B', letterSpacing: 0.5 },
+  countBadge:  { backgroundColor: palette.gold, borderRadius: 0, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 8, paddingVertical: 4 },
+  countText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.onAccent, letterSpacing: 0.5 },
   tabRow:      { flexDirection: 'row', gap: 6, borderBottomWidth: 2, paddingHorizontal: 16, paddingBottom: 12 },
-  tab:         { flex: 1, minHeight: 44, justifyContent: 'center', paddingVertical: 10, alignItems: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
-  tabOn:       { backgroundColor: '#F36B3F', borderColor: '#252A2B' },
+  tab:         { flex: 1, minHeight: 44, justifyContent: 'center', paddingVertical: 10, alignItems: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
+  tabOn:       { backgroundColor: palette.primary, borderColor: palette.edge },
   tabText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2 },
 
   // Skin grid
@@ -214,28 +214,28 @@ const s = StyleSheet.create({
 
   // Shared
   equippedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 5 },
-  equippedText:  { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#252A2B', letterSpacing: 0.5 },
+  equippedText:  { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.foreground, letterSpacing: 0.5 },
   equipBtn:    { borderWidth: 2, borderRadius: 0, paddingHorizontal: 16, minHeight: 44, justifyContent: 'center' },
   equipBtnText:{ fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
   hintCard:    { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 0, borderWidth: 2, padding: 12 },
   hintText:    { fontFamily: 'SourceSans3_400Regular', fontSize: 12, flex: 1 },
 
 
-  emptyState:  { alignItems: 'center', paddingVertical: 40, paddingHorizontal: 20, gap: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
-  emptyTitle:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: '#252A2B' },
-  featureCard: { borderWidth: 2, borderBottomWidth: 5, borderColor: '#252A2B', backgroundColor: '#E3DFD3', padding: 18, gap: 20, alignItems: 'center' },
-  featureKicker: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2, color: '#575D5C', textTransform: 'uppercase' },
-  featureName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 36, color: '#252A2B', textTransform: 'uppercase' },
-  featureBody: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: '#575D5C' },
-  emptySub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: '#575D5C', textAlign: 'center' },
+  emptyState:  { alignItems: 'center', paddingVertical: 40, paddingHorizontal: 20, gap: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
+  emptyTitle:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.foreground },
+  featureCard: { borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.surface, padding: 18, gap: 20, alignItems: 'center' },
+  featureKicker: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2, color: palette.supporting, textTransform: 'uppercase' },
+  featureName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 36, color: palette.foreground, textTransform: 'uppercase' },
+  featureBody: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.supporting },
+  emptySub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: palette.supporting, textAlign: 'center' },
 
   // Gold Strikes tab
-  strikeBadge:     { position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 0, backgroundColor: '#EFBD3C', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  strikeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#252A2B', letterSpacing: 0 },
-  strikesInfoRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#E3DFD3', borderRadius: 0, borderWidth: 2, borderColor: '#575D5C', paddingHorizontal: 12, paddingVertical: 9, marginBottom: 4 },
+  strikeBadge:     { position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 0, backgroundColor: palette.gold, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  strikeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.onAccent, letterSpacing: 0 },
+  strikesInfoRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: palette.surface, borderRadius: 0, borderWidth: 2, borderColor: palette.border, paddingHorizontal: 12, paddingVertical: 9, marginBottom: 4 },
   strikesInfo:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, flex: 1 },
   strikeCard:      { aspectRatio: 0.85, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 4 },
   strikeCardNum:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 0.5 },
-  openChip:        { borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
-  openChipText:    { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: '#252A2B', letterSpacing: 1 },
+  openChip:        { borderRadius: 0, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
+  openChipText:    { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.foreground, letterSpacing: 1 },
 });

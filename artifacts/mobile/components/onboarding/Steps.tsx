@@ -6,7 +6,7 @@ import { GameArena } from '@/components/GameArena';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { Glyph } from '@/components/ui/Glyph';
 import { Button } from '@/components/ui/Primitives';
-import { palette, tactile } from '@/constants/colors';
+import { palette, tactile , PLAYER_COLORS } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { ColorPicker } from '@/components/appearance/ColorPicker';
 import { AvatarPhoto } from '@/components/appearance/PhotoAvatarEditor';
@@ -73,7 +73,7 @@ function Demo({ size }: { size: number }) {
   return (
     <View style={{ gap: 8, alignItems: 'center' }}>
       <View style={[w.demoFrame, { width: size, height: size }]}>
-        <GameArena key={run} arenaSize={size - 4} playerName="You" playerColor={palette.orange} playerGlowColor={palette.orange}
+        <GameArena key={run} arenaSize={size - 4} playerName="You" playerColor={PLAYER_COLORS[0]} playerGlowColor={PLAYER_COLORS[0]}
           botNames={['Bot North', 'Bot West', 'Bot East']} botRanks={['Gold', 'Gold', 'Gold']}
           onGameOver={() => setRun(r => r + 1)} practice soundEnabled={false} colorBoard={false} botDifficulty="easy" paused={paused} />
       </View>
@@ -142,7 +142,7 @@ export function NameStep({ value, onChange, error, touched, onBlur, onBack, onNe
           aria-invalid={!!showErr}
         />
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
-          <Text style={[k.help, showErr ? { color: palette.clay } : null]} accessibilityLiveRegion="polite">
+          <Text style={[k.help, showErr ? { color: palette.supporting } : null]} accessibilityLiveRegion="polite">
             {touched && error ? error : duplicate ? `${trimmed} is already saved on this device.` : trimmed && !error ? 'Name is free.' : 'Letters, numbers and underscores.'}
           </Text>
           <Text style={k.help}>{value.length}/16</Text>
@@ -174,7 +174,7 @@ export function StyleStep({ name, emoji, color, onEmoji, onColor, onBack, onCrea
       <View style={w.card} accessibilityLabel={`Preview: ${name}`}>
         <View style={[w.cardAvatar, { borderColor: color, overflow: 'hidden' }]}>
           <AvatarPhoto username={name} size={60}>
-            <Glyph value={emoji} size={34} color={palette.paper} />
+            <Glyph value={emoji} size={34} color={palette.foreground} />
           </AvatarPhoto>
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -188,7 +188,7 @@ export function StyleStep({ name, emoji, color, onEmoji, onColor, onBack, onCrea
         <View style={w.choices} accessibilityRole="radiogroup" accessibilityLabel="Emblem">
           {EMBLEMS.map(e => (
             <ChoiceTile key={e.value} testID={`entry-emblem-${e.name.toLowerCase()}`} label={`${e.name} emblem`} selected={emoji === e.value} onPress={() => onEmoji(e.value)}>
-              <Glyph value={e.value} size={26} color={emoji === e.value ? palette.charcoal : palette.paperDim} />
+              <Glyph value={e.value} size={26} color={emoji === e.value ? palette.onAccent : palette.supporting} />
             </ChoiceTile>
           ))}
         </View>
@@ -217,23 +217,23 @@ export function StyleStep({ name, emoji, color, onEmoji, onColor, onBack, onCrea
 const w = StyleSheet.create({
   welcomeScroll: { flex: 1, width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 20, justifyContent: 'space-between', gap: 16 },
   marquee: { alignItems: 'center', gap: 10, paddingTop: 8 },
-  brand: { fontFamily: fonts.display, fontSize: 52, lineHeight: 50, color: palette.paper, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 1 },
-  tag: { fontFamily: fonts.bodySemiBold, fontSize: 17, lineHeight: 23, color: palette.slate, textAlign: 'center' },
+  brand: { fontFamily: fonts.display, fontSize: 52, lineHeight: 50, color: palette.foreground, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 1 },
+  tag: { fontFamily: fonts.bodySemiBold, fontSize: 17, lineHeight: 23, color: palette.supporting, textAlign: 'center' },
   actions: { gap: 10 },
   legalRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
   legalLink: { minHeight: 44, justifyContent: 'center' },
-  legalText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.paperDim, textDecorationLine: 'underline' },
+  legalText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.supporting, textDecorationLine: 'underline' },
   rules: { gap: 10 },
-  rule: { flexDirection: 'row', gap: 14, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.slate, backgroundColor: palette.stone, alignItems: 'center' },
-  ruleNum: { fontFamily: fonts.display, fontSize: 22, color: palette.charcoal, width: 34, height: 34, textAlign: 'center', lineHeight: 30, borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.gold },
-  ruleText: { fontFamily: fonts.bodySemiBold, fontSize: 17, lineHeight: 23, color: palette.charcoal, flex: 1 },
-  demoFrame: { borderWidth: 2, borderBottomWidth: 5, borderColor: palette.charcoal, backgroundColor: palette.ink, overflow: 'hidden' },
-  input: { minHeight: 60, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.charcoal, backgroundColor: tactile.paperPanel, color: tactile.paperInk, fontFamily: fonts.display, fontSize: 28, paddingHorizontal: 16, borderRadius: 0 },
-  inputErr: { borderColor: tactile.coral, borderWidth: 3, borderBottomWidth: 5 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 16, backgroundColor: tactile.paperPanel, borderWidth: 2, borderColor: palette.charcoal, borderBottomWidth: 6 },
-  cardAvatar: { width: 68, height: 68, borderWidth: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: tactile.paperInk, borderRadius: 0 },
-  cardName: { fontFamily: fonts.display, fontSize: 30, color: tactile.paperInk, textTransform: 'uppercase' },
-  cardMeta: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: tactile.paperMuted },
-  cardPaddle: { marginTop: 8, width: 64, height: 8, borderWidth: 1, borderColor: tactile.paperInk },
+  rule: { flexDirection: 'row', gap: 14, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.background, alignItems: 'center' },
+  ruleNum: { fontFamily: fonts.display, fontSize: 22, color: palette.onAccent, width: 34, height: 34, textAlign: 'center', lineHeight: 30, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold },
+  ruleText: { fontFamily: fonts.bodySemiBold, fontSize: 17, lineHeight: 23, color: palette.foreground, flex: 1 },
+  demoFrame: { borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.background, overflow: 'hidden' },
+  input: { minHeight: 60, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, backgroundColor: palette.surface, color: palette.foreground, fontFamily: fonts.display, fontSize: 28, paddingHorizontal: 16, borderRadius: 0 },
+  inputErr: { borderColor: palette.primary, borderWidth: 3, borderBottomWidth: 5 },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 16, backgroundColor: palette.surface, borderWidth: 2, borderColor: palette.edge, borderBottomWidth: 6 },
+  cardAvatar: { width: 68, height: 68, borderWidth: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.deepest, borderRadius: 0 },
+  cardName: { fontFamily: fonts.display, fontSize: 30, color: palette.foreground, textTransform: 'uppercase' },
+  cardMeta: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.supporting },
+  cardPaddle: { marginTop: 8, width: 64, height: 8, borderWidth: 1, borderColor: palette.edge },
   choices: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
 });

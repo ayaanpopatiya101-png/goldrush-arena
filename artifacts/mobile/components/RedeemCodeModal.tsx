@@ -1,4 +1,5 @@
 import { Text } from '@/components/ui/Text';
+import { palette } from '@/constants/colors';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useRef, useState } from 'react';
@@ -67,31 +68,31 @@ export function RedeemCodeModal({ visible: requested, onClose }: Props) {
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
 
         <Animated.View style={[s.sheet, { transform: [{ translateX: shakeAnim }, { scale: scaleAnim }] }]}>
-          <LinearGradient colors={['#294C44', '#213D39']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={[palette.surface, palette.background]} style={StyleSheet.absoluteFill} />
           <View style={s.topAccent} />
 
           {/* Header row */}
           <View style={s.headerRow}>
             <View style={s.giftIconWrap}>
-              <Feather name="gift" size={18} color="#EFBD3C" />
+              <Feather name="gift" size={18} color={palette.gold} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={s.title}>REDEEM CODE</Text>
               <Text style={s.subtitle}>Enter your code to claim rewards</Text>
             </View>
             <Pressable onPress={handleClose} hitSlop={14} style={s.closeBtn}>
-              <Feather name="x" size={18} color="#F5E7C455" />
+              <Feather name="x" size={18} color={palette.supporting} />
             </Pressable>
           </View>
 
           {/* Code input */}
-          <Animated.View style={[s.inputWrap, result?.success === false && { borderColor: '#CE786388' }]}>
+          <Animated.View style={[s.inputWrap, result?.success === false && { borderColor: palette.danger + '88' }]}>
             <TextInput
               style={s.input}
               value={code}
               onChangeText={t => { setCode(t.toUpperCase()); setResult(null); }}
               placeholder="ENTER CODE"
-              placeholderTextColor="#F5E7C422"
+              placeholderTextColor={palette.supporting}
               autoCapitalize="characters"
               maxLength={12}
               returnKeyType="done"
@@ -106,9 +107,9 @@ export function RedeemCodeModal({ visible: requested, onClose }: Props) {
               <Feather
                 name={result.success ? 'check-circle' : 'alert-circle'}
                 size={15}
-                color={result.success ? '#EFBD3C' : '#CE7863'}
+                color={result.success ? palette.gold : palette.danger}
               />
-              <Text style={[s.resultText, { color: result.success ? '#EFBD3C' : '#CE7863' }]}>
+              <Text style={[s.resultText, { color: result.success ? palette.gold : palette.danger }]}>
                 {result.message}
               </Text>
             </View>
@@ -120,7 +121,7 @@ export function RedeemCodeModal({ visible: requested, onClose }: Props) {
             disabled={loading || !code.trim()}
             style={({ pressed }) => [s.btn, { opacity: loading || !code.trim() ? 0.4 : pressed ? 0.82 : 1 }]}
           >
-            <LinearGradient colors={['#EFBD3C', '#C98E12']} style={s.btnGrad}>
+            <LinearGradient colors={[palette.primary, palette.primary]} style={s.btnGrad}>
               <Text style={s.btnText}>{loading ? 'CHECKING…' : 'REDEEM'}</Text>
             </LinearGradient>
           </Pressable>
@@ -133,7 +134,7 @@ export function RedeemCodeModal({ visible: requested, onClose }: Props) {
 const s = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: '#172E2AEE',
+    backgroundColor: palette.deepest + 'EE',
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -141,8 +142,8 @@ const s = StyleSheet.create({
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderWidth: 3,
-    borderColor: '#CCAD6A',
-    backgroundColor: '#294942',
+    borderColor: palette.border,
+    backgroundColor: palette.raised,
     padding: 24,
     paddingBottom: Platform.OS === 'ios' ? 48 : 36,
     gap: 14,
@@ -151,7 +152,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     top: 0, left: 0, right: 0,
     height: 2,
-    backgroundColor: '#EFBD3C',
+    backgroundColor: palette.gold,
   },
   headerRow: {
     flexDirection: 'row',
@@ -163,9 +164,9 @@ const s = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 3,
-    backgroundColor: '#EFBD3C18',
+    backgroundColor: palette.gold + '18',
     borderWidth: 1,
-    borderColor: '#EFBD3C44',
+    borderColor: palette.gold + '44',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -173,12 +174,12 @@ const s = StyleSheet.create({
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 16,
     letterSpacing: 2.5,
-    color: '#EFBD3C',
+    color: palette.gold,
   },
   subtitle: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 12,
-    color: '#F5E7C444',
+    color: palette.supporting,
     marginTop: 1,
   },
   closeBtn: {
@@ -187,8 +188,8 @@ const s = StyleSheet.create({
   inputWrap: {
     borderRadius: 3,
     borderWidth: 1.5,
-    borderColor: '#F5E7C422',
-    backgroundColor: '#F5E7C407',
+    borderColor: palette.border,
+    backgroundColor: palette.inset,
     overflow: 'hidden',
   },
   input: {
@@ -197,7 +198,7 @@ const s = StyleSheet.create({
     fontFamily: 'SourceSans3_600SemiBold',
     fontSize: 22,
     letterSpacing: 6,
-    color: '#F5E7C4',
+    color: palette.foreground,
     textAlign: 'center',
   },
   resultBox: {
@@ -210,12 +211,12 @@ const s = StyleSheet.create({
     paddingVertical: 11,
   },
   resultSuccess: {
-    backgroundColor: '#EFBD3C12',
-    borderColor: '#EFBD3C55',
+    backgroundColor: palette.gold + '12',
+    borderColor: palette.gold + '55',
   },
   resultError: {
-    backgroundColor: '#CE786312',
-    borderColor: '#CE786355',
+    backgroundColor: palette.danger + '12',
+    borderColor: palette.danger + '55',
   },
   resultText: {
     fontFamily: 'SourceSans3_600SemiBold',
@@ -236,6 +237,6 @@ const s = StyleSheet.create({
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 15,
     letterSpacing: 2.5,
-    color: '#213D39',
+    color: palette.onAccent,
   },
 });

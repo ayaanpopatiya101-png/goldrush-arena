@@ -181,7 +181,7 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
 
   const errorBand = error ? (
     <View style={s.errorBand} accessibilityRole="alert">
-      <Feather name="wifi-off" size={18} color={palette.charcoal} />
+      <Feather name="wifi-off" size={18} color={palette.foreground} />
       <Text style={s.errorText}>{error}</Text>
       <Button testID="live-retry" label="Retry" size="sm" variant="secondary" icon="refresh-cw" onPress={onRetry} />
     </View>
@@ -248,7 +248,7 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
             return p ? <PlayerRow key={i} p={p} me={p.id === playerId} /> : (
               <View key={i} style={s.pRow}>
                 <View style={[s.swatch, { backgroundColor: 'transparent', borderStyle: 'dashed' }]} />
-                <Text style={[s.pName, { color: palette.slate }]}>Open seat · {SEAT_NAMES[i]}</Text>
+                <Text style={[s.pName, { color: palette.supporting }]}>Open seat · {SEAT_NAMES[i]}</Text>
               </View>
             );
           })}
@@ -324,10 +324,10 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
           <View style={[s.swatch, { backgroundColor: me?.color ?? palette.slate }]} />
           <Text style={s.youText} numberOfLines={1}>YOU · {me?.name ?? 'Spectator'} · {SEAT_NAMES[seat]} edge</Text>
           <Pressable testID="live-move-neg" accessibilityRole="button" accessibilityLabel={horizontal ? 'Move paddle left' : 'Move paddle up'} onPress={() => nudge(-1)} style={s.arrow}>
-            <Feather name={horizontal ? 'arrow-left' : 'arrow-up'} size={20} color={palette.charcoal} />
+            <Feather name={horizontal ? 'arrow-left' : 'arrow-up'} size={20} color={palette.foreground} />
           </Pressable>
           <Pressable testID="live-move-pos" accessibilityRole="button" accessibilityLabel={horizontal ? 'Move paddle right' : 'Move paddle down'} onPress={() => nudge(1)} style={s.arrow}>
-            <Feather name={horizontal ? 'arrow-right' : 'arrow-down'} size={20} color={palette.charcoal} />
+            <Feather name={horizontal ? 'arrow-right' : 'arrow-down'} size={20} color={palette.foreground} />
           </Pressable>
         </View>
         {room.variant === 'rally_race' ? <View style={s.panel}><Text style={s.body}>Rally Race · {Math.max(0, 60 - Math.floor(room.tick / 60))}s left</Text><Text style={s.note}>Unlimited goal misses. Score = hits minus twice your misses. A tie gives no rewards. Disconnects and forfeits still eliminate.</Text>{room.players.map(p => <Text key={p.id} style={s.body}>{p.name}: {p.hits - 2*p.goals} points</Text>)}</View> : null}
@@ -361,53 +361,53 @@ function PlayerRow({ p, me, showPlace }: { p: LivePlayer; me: boolean; showPlace
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.stone },
+  root: { flex: 1, backgroundColor: palette.background },
   content: { width: '100%', maxWidth: 560, alignSelf: 'center', paddingHorizontal: 16, gap: 12 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  kicker: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.slate, textTransform: 'uppercase' },
-  title: { fontFamily: fonts.display, fontSize: 30, color: palette.charcoal, textTransform: 'uppercase' },
-  metaBox: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: palette.slate, paddingHorizontal: 8, paddingVertical: 4 },
+  kicker: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.supporting, textTransform: 'uppercase' },
+  title: { fontFamily: fonts.display, fontSize: 30, color: palette.foreground, textTransform: 'uppercase' },
+  metaBox: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: palette.border, paddingHorizontal: 8, paddingVertical: 4 },
   connDot: { width: 8, height: 8 },
-  metaText: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, color: palette.charcoal, textTransform: 'uppercase' },
-  metaLabel: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.slate, textTransform: 'uppercase' },
-  facts: { flexDirection: 'row', borderWidth: 2, borderColor: palette.slate, backgroundColor: palette.sandstone },
-  fact: { flex: 1, paddingVertical: 8, paddingHorizontal: 10, borderRightWidth: 1, borderRightColor: palette.slate },
-  factVal: { fontFamily: fonts.display, fontSize: 22, color: palette.charcoal, textTransform: 'uppercase' },
-  errorBand: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: palette.orange, borderWidth: 2, borderColor: palette.charcoal, padding: 10 },
-  errorText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: textScale.control, color: palette.charcoal },
-  panel: { backgroundColor: tactile.paperPanel, borderWidth: 2, borderColor: palette.slate, padding: 12, gap: 6 },
+  metaText: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, color: palette.foreground, textTransform: 'uppercase' },
+  metaLabel: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.supporting, textTransform: 'uppercase' },
+  facts: { flexDirection: 'row', borderWidth: 2, borderColor: palette.border, backgroundColor: palette.surface },
+  fact: { flex: 1, paddingVertical: 8, paddingHorizontal: 10, borderRightWidth: 1, borderRightColor: palette.border },
+  factVal: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
+  errorBand: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: palette.primary, borderWidth: 2, borderColor: palette.edge, padding: 10 },
+  errorText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: textScale.control, color: palette.foreground },
+  panel: { backgroundColor: palette.surface, borderWidth: 2, borderColor: palette.border, padding: 12, gap: 6 },
   waitHead: { flexDirection: 'row', alignItems: 'baseline', gap: 10, marginBottom: 4 },
-  bigNum: { fontFamily: fonts.display, fontSize: 44, color: palette.charcoal, fontVariant: ['tabular-nums'] },
-  pRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40, paddingHorizontal: 6, borderBottomWidth: 1, borderBottomColor: palette.slate },
-  place: { fontFamily: fonts.display, fontSize: 22, width: 22, color: palette.charcoal },
-  swatch: { width: 16, height: 16, borderWidth: 1, borderColor: palette.charcoal },
-  pName: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: textScale.body, color: palette.charcoal },
-  pMeta: { fontFamily: fonts.body, fontSize: textScale.control, color: palette.slate },
-  aiBadge: { borderWidth: 1, borderColor: palette.charcoal, backgroundColor: palette.stone, paddingHorizontal: 5 },
-  aiText: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, color: palette.charcoal, letterSpacing: 1 },
-  body: { fontFamily: fonts.body, fontSize: textScale.body, color: palette.charcoal },
-  note: { fontFamily: fonts.body, fontSize: textScale.control, color: palette.slate },
+  bigNum: { fontFamily: fonts.display, fontSize: 44, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  pRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40, paddingHorizontal: 6, borderBottomWidth: 1, borderBottomColor: palette.border },
+  place: { fontFamily: fonts.display, fontSize: 22, width: 22, color: palette.foreground },
+  swatch: { width: 16, height: 16, borderWidth: 1, borderColor: palette.edge },
+  pName: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: textScale.body, color: palette.foreground },
+  pMeta: { fontFamily: fonts.body, fontSize: textScale.control, color: palette.supporting },
+  aiBadge: { borderWidth: 1, borderColor: palette.edge, backgroundColor: palette.background, paddingHorizontal: 5 },
+  aiText: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, color: palette.foreground, letterSpacing: 1 },
+  body: { fontFamily: fonts.body, fontSize: textScale.body, color: palette.foreground },
+  note: { fontFamily: fonts.body, fontSize: textScale.control, color: palette.supporting },
   row: { flexDirection: 'row', gap: 10 },
-  confirm: { backgroundColor: palette.sandstone, borderWidth: 2, borderColor: palette.orange, padding: 12, gap: 8 },
-  confirmTitle: { fontFamily: fonts.display, fontSize: 22, color: palette.charcoal, textTransform: 'uppercase' },
-  board: { flexDirection: 'row', borderWidth: 2, borderColor: palette.slate, backgroundColor: palette.sandstone },
-  cell: { flex: 1, paddingVertical: 4, paddingHorizontal: 6, borderRightWidth: 1, borderRightColor: palette.slate },
-  cellSeat: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.8, color: palette.charcoal },
-  cellLives: { fontFamily: fonts.display, fontSize: 22, color: palette.charcoal, fontVariant: ['tabular-nums'] },
-  court: { backgroundColor: tactile.court, borderWidth: 2, borderColor: palette.charcoal, overflow: 'hidden' },
-  wall: { position: 'absolute', borderWidth: 1, borderColor: tactile.courtLine, opacity: 0.35 },
+  confirm: { backgroundColor: palette.surface, borderWidth: 2, borderColor: palette.primary, padding: 12, gap: 8 },
+  confirmTitle: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
+  board: { flexDirection: 'row', borderWidth: 2, borderColor: palette.border, backgroundColor: palette.surface },
+  cell: { flex: 1, paddingVertical: 4, paddingHorizontal: 6, borderRightWidth: 1, borderRightColor: palette.border },
+  cellSeat: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.8, color: palette.foreground },
+  cellLives: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  court: { backgroundColor: palette.inset, borderWidth: 2, borderColor: palette.edge, overflow: 'hidden' },
+  wall: { position: 'absolute', borderWidth: 1, borderColor: palette.border, opacity: 0.35 },
   ownEdge: { position: 'absolute', backgroundColor: palette.gold },
-  paddle: { position: 'absolute', borderWidth: 1, borderColor: palette.charcoal },
+  paddle: { position: 'absolute', borderWidth: 1, borderColor: palette.edge },
   youTag: { position: 'absolute', width: 36, textAlign: 'center', fontFamily: fonts.display, fontSize: 14, color: palette.gold, letterSpacing: 1 },
-  puck: { position: 'absolute', backgroundColor: tactile.courtInk, borderWidth: 1, borderColor: palette.charcoal },
+  puck: { position: 'absolute', backgroundColor: palette.foreground, borderWidth: 1, borderColor: palette.edge },
   overlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
   count: { fontFamily: fonts.display, fontSize: 120, color: palette.gold, fontVariant: ['tabular-nums'] },
-  countSub: { fontFamily: fonts.bodyBold, fontSize: textScale.body, color: tactile.courtText, textTransform: 'uppercase', letterSpacing: 1.4 },
-  outBand: { position: 'absolute', left: 0, right: 0, top: '45%', backgroundColor: palette.charcoal, padding: 10 },
-  outText: { fontFamily: fonts.bodySemiBold, fontSize: textScale.control, color: palette.stone, textAlign: 'center' },
+  countSub: { fontFamily: fonts.bodyBold, fontSize: textScale.body, color: palette.foreground, textTransform: 'uppercase', letterSpacing: 1.4 },
+  outBand: { position: 'absolute', left: 0, right: 0, top: '45%', backgroundColor: palette.deepest, padding: 10 },
+  outText: { fontFamily: fonts.bodySemiBold, fontSize: textScale.control, color: palette.foreground, textAlign: 'center' },
   youRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  youText: { flex: 1, fontFamily: fonts.bodyBold, fontSize: textScale.control, color: palette.charcoal, textTransform: 'uppercase', letterSpacing: 0.8 },
-  arrow: { width: 48, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: palette.slate, backgroundColor: palette.sandstone },
+  youText: { flex: 1, fontFamily: fonts.bodyBold, fontSize: textScale.control, color: palette.foreground, textTransform: 'uppercase', letterSpacing: 0.8 },
+  arrow: { width: 48, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: palette.border, backgroundColor: palette.surface },
 });
 
 export default LiveMatchView;

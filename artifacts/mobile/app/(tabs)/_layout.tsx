@@ -13,13 +13,13 @@ import { fonts } from '@/constants/typography';
 type IconName = React.ComponentProps<typeof Feather>['name'];
 
 function TabIcon({ name, label, focused, wide }: { name: IconName; label: string; focused: boolean; wide?: boolean }) {
-  const c = focused ? palette.charcoal : palette.slate;
+  const c = focused ? palette.onAccent : palette.supporting;
   return (
     <View style={wide ? styles.tabItemWide : styles.tabItem}>
       <View style={[styles.iconPlate, focused && styles.iconPlateOn]}>
         <Feather name={name} size={wide ? 18 : 20} color={c} />
       </View>
-      <Text style={[wide ? styles.tabLabelWide : styles.tabLabel, { color: c, fontFamily: focused ? fonts.bodyBold : fonts.body }]} numberOfLines={2}>
+      <Text style={[wide ? styles.tabLabelWide : styles.tabLabel, { color: focused ? palette.foreground : palette.supporting, fontFamily: focused ? fonts.bodyBold : fonts.body }]} numberOfLines={2}>
         {label}
       </Text>
       {wide ? null : <View style={[styles.pip, { backgroundColor: focused ? palette.orange : 'transparent' }]} />}
@@ -47,9 +47,9 @@ export default function TabLayout() {
         tabBarShowLabel: false,
         tabBarPosition: wide ? 'top' : 'bottom',
         tabBarStyle: wide ? {
-          backgroundColor: palette.ink,
+          backgroundColor: palette.background,
           borderBottomWidth: 2,
-          borderBottomColor: palette.charcoal,
+          borderBottomColor: palette.edge,
           borderTopWidth: 0,
           elevation: 0,
           height: 60 + insets.top,
@@ -57,9 +57,9 @@ export default function TabLayout() {
           paddingHorizontal: Math.max(18, (width - 1160) / 2),
         } : {
           position: 'absolute',
-          backgroundColor: palette.ink,
+          backgroundColor: palette.background,
            borderTopWidth: 2,
-           borderTopColor: palette.charcoal,
+           borderTopColor: palette.edge,
           elevation: 0,
           height: isWeb ? 84 : 60 + insets.bottom,
           paddingBottom: isWeb ? 0 : insets.bottom,
@@ -90,5 +90,5 @@ const styles = StyleSheet.create({
   tabLabelWide: { fontSize: 16 },
   pip: { width: 18, height: 3, marginTop: 1 },
   iconPlate: { width: 36, height: 28, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
-  iconPlateOn: { backgroundColor: palette.orange, borderColor: palette.charcoal },
+  iconPlateOn: { backgroundColor: palette.primary, borderColor: palette.edge },
 });

@@ -1,4 +1,4 @@
-// Shared flat primitives for GoldRush Arena: sandstone plates, charcoal type, orange action.
+// Shared flat primitives for GoldRush Arena: moss plates on carbon, light type, lime action with dark ink.
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
@@ -14,9 +14,9 @@ export function Panel({ children, style, tone = 'base' }: { children?: React.Rea
   return (
     <View style={[
       p.panel,
-      tone === 'raised' && { backgroundColor: palette.graphite2 },
+      tone === 'raised' && { backgroundColor: palette.raised },
       tone === 'outline' && { backgroundColor: 'transparent' },
-      tone === 'paper' && { backgroundColor: tactile.paperPanel, borderColor: tactile.brassEdge },
+      tone === 'paper' && { backgroundColor: palette.inset, borderColor: palette.edge },
       tone === 'brass' && { backgroundColor: tactile.brass, borderColor: tactile.brassEdge },
       style,
     ]}>
@@ -49,7 +49,7 @@ type BtnProps = {
 };
 
 export function Button({ label, onPress, variant = 'primary', icon, disabled, loading, size = 'md', style, testID, accessibilityHint }: BtnProps) {
-  const fg = disabled && !loading ? palette.muted : variant === 'secondary' ? palette.courtText : variant === 'danger' ? palette.slate : palette.charcoal;
+  const fg = disabled && !loading ? palette.muted : variant === 'primary' ? palette.onAccent : variant === 'secondary' ? palette.foreground : variant === 'danger' ? palette.gold : palette.foreground;
   return (
     <Pressable
       testID={testID}
@@ -65,12 +65,12 @@ export function Button({ label, onPress, variant = 'primary', icon, disabled, lo
         p.btn,
         size === 'lg' && p.btnLg,
         size === 'sm' && p.btnSm,
-        variant === 'primary' && { backgroundColor: palette.orange, borderColor: palette.charcoal },
+        variant === 'primary' && { backgroundColor: palette.primary, borderColor: palette.edge },
         pressed && !(disabled || loading) && p.btnPressed,
-        variant === 'secondary' && { backgroundColor: palette.navy, borderColor: palette.charcoal },
-        variant === 'ghost' && { backgroundColor: pressed ? palette.sandstone : palette.stone, borderColor: palette.slate },
-        variant === 'danger' && { backgroundColor: pressed ? palette.sandstone : palette.stone, borderColor: palette.orange },
-        (disabled && !loading) && { backgroundColor: palette.sandstone, borderColor: palette.slate, borderBottomWidth: 2 },
+        variant === 'secondary' && { backgroundColor: pressed ? palette.raised : palette.surface, borderColor: palette.edge },
+        variant === 'ghost' && { backgroundColor: pressed ? palette.raised : 'transparent', borderColor: palette.border },
+        variant === 'danger' && { backgroundColor: pressed ? palette.raised : palette.inset, borderColor: palette.gold },
+        (disabled && !loading) && { backgroundColor: palette.inset, borderColor: palette.border, borderBottomWidth: 2 },
         style,
       ]}
     >
@@ -81,10 +81,10 @@ export function Button({ label, onPress, variant = 'primary', icon, disabled, lo
 }
 
 export function Chip({ label, tone = 'neutral', style }: { label: string; tone?: 'neutral' | 'ochre' | 'moss' | 'clay'; style?: StyleProp<ViewStyle> }) {
-  const c = tone === 'ochre' ? palette.ochre : tone === 'moss' ? palette.moss : tone === 'clay' ? palette.clay : palette.slate;
+  const c = tone === 'ochre' ? palette.gold : tone === 'moss' ? palette.primary : tone === 'clay' ? palette.supporting : palette.border;
   return (
     <View style={[p.chip, { borderColor: c }, (tone === 'ochre' || tone === 'moss') && { backgroundColor: c }, style]}>
-      <Text style={[p.chipText, { color: tone === 'ochre' || tone === 'moss' ? palette.charcoal : c }]}>{label}</Text>
+      <Text style={[p.chipText, { color: tone === 'ochre' || tone === 'moss' ? palette.onAccent : tone === 'neutral' ? palette.supporting : c }]}>{label}</Text>
     </View>
   );
 }
@@ -105,17 +105,17 @@ export function IconButton({ icon, onPress, label, style }: { icon: React.Compon
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={0}
-      style={({ pressed }) => [p.iconBtn, pressed && { backgroundColor: palette.sandstone, borderBottomWidth: 2, transform: [{ translateY: 2 }] }, style]}
+      style={({ pressed }) => [p.iconBtn, pressed && { backgroundColor: palette.raised, borderBottomWidth: 2, transform: [{ translateY: 2 }] }, style]}
     >
-      <Feather name={icon} size={18} color={palette.charcoal} />
+      <Feather name={icon} size={18} color={palette.foreground} />
     </Pressable>
   );
 }
 
 const p = StyleSheet.create({
-  panel: { backgroundColor: palette.sandstone, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.charcoal, borderRadius: R },
+  panel: { backgroundColor: palette.surface, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, borderRadius: R },
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sectionTitle: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.4, color: palette.charcoal, textTransform: 'uppercase' },
+  sectionTitle: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.4, color: palette.foreground, textTransform: 'uppercase' },
   sectionRule: { flex: 1, height: 1, backgroundColor: palette.line },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 2, borderBottomWidth: 5, borderRadius: R, minHeight: 48, paddingHorizontal: 16 },
   // Instant press feedback, without an animated transition.
@@ -128,9 +128,9 @@ const p = StyleSheet.create({
   chip: { borderWidth: 2, borderRadius: 0, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start' },
   chipText: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, letterSpacing: 0.8, textTransform: 'uppercase' },
   stat: { flex: 1, paddingVertical: 10, paddingHorizontal: 12, borderRightWidth: 1, borderRightColor: palette.line },
-  statValue: { fontFamily: fonts.display, fontSize: 28, color: palette.charcoal, fontVariant: ['tabular-nums'] },
-  statLabel: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.muted, textTransform: 'uppercase' },
-  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: R, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.charcoal, backgroundColor: palette.stone },
+  statValue: { fontFamily: fonts.display, fontSize: 28, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  statLabel: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.supporting, textTransform: 'uppercase' },
+  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: R, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, backgroundColor: palette.surface },
 });
 
 // Responsive shell: centers content at 1160 (wide) or 720 (prose) with 16-20 phone gutters.
@@ -156,8 +156,8 @@ export function ScreenTitle({ title, kicker, right, style, tone = 'light' }: { t
         <BrandMark size={36} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
-        {kicker ? <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: tone === 'dark' ? palette.courtText : palette.muted, textTransform: 'uppercase' }}>{kicker}</Text> : null}
-        <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 34, letterSpacing: -0.5, color: tone === 'dark' ? palette.courtText : palette.charcoal, textTransform: 'uppercase' }}>{title}</Text>
+        {kicker ? <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.supporting, textTransform: 'uppercase' }}>{kicker}</Text> : null}
+        <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 34, letterSpacing: -0.5, color: palette.foreground, textTransform: 'uppercase' }}>{title}</Text>
       </View>
       {right}
     </View>
@@ -165,4 +165,4 @@ export function ScreenTitle({ title, kicker, right, style, tone = 'light' }: { t
 }
 
 /** Paper-panel text colors for dark readable copy on cream panels. */
-export const paperText = { ink: tactile.paperInk, muted: tactile.paperMuted } as const;
+export const paperText = { ink: palette.foreground, muted: palette.supporting } as const;

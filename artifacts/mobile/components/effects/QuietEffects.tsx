@@ -5,7 +5,7 @@ import type { GlowTextProps } from "./GlowText";
 import { palette } from "@/constants/colors";
 
 export function GlowText({
-  color = palette.charcoal,
+  color = palette.foreground,
   glowColor: _glow,
   intensity: _intensity,
   pulse: _pulse,

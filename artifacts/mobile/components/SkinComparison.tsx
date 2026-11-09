@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { palette } from '@/constants/colors';
 import { Modal, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { GameArena } from '@/components/GameArena';
 import { Button, ui } from '@/components/ui/Primitives';
@@ -23,13 +24,13 @@ export function SkinComparison({ skinId, onClose }: { skinId: string; onClose: (
   const item = current ? equipped : candidate;
   const size = Math.min(width - 64, 340);
   return <Modal visible={visible} onRequestClose={onClose} animationType="none">
-    <ScrollView style={{ backgroundColor: ui.ink, flex: 1 }} contentContainerStyle={{
+    <ScrollView style={{ backgroundColor: palette.background, flex: 1 }} contentContainerStyle={{
       padding: 24, paddingTop: Math.max(67, insets.top), paddingBottom: Math.max(34, insets.bottom),
       gap: 16, alignItems: 'center',
     }}>
-      <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: 28, color: ui.paper }}>Compare paddle appearance</Text>
-      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: ui.paperDim }}>{current ? 'Currently equipped' : 'Selected'} · {item.name}</Text>
-      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: ui.paperDim }}>
+      <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: 28, color: palette.foreground }}>Compare paddle appearance</Text>
+      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: palette.supporting }}>{current ? 'Currently equipped' : 'Selected'} · {item.name}</Text>
+      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: palette.supporting }}>
         {profile.ownedSkins.includes(candidate.id) ? 'Owned' : 'exclusive' in candidate && candidate.exclusive ? 'Locked to its pass reward' : `${candidate.price} coins`}
         {' · Cosmetic only. Comparing never buys or equips.'}
       </Text>
@@ -40,7 +41,7 @@ export function SkinComparison({ skinId, onClose }: { skinId: string; onClose: (
           practice paused={!running} soundEnabled={false} botDifficulty="easy" botSkill={0}
           onGameOver={() => setRun(value => value + 1)} />
       </View>}
-      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: ui.paperDim }}>Your paddle is at the bottom. Drag to move it. No progression.</Text>
+      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: palette.supporting }}>Your paddle is at the bottom. Drag to move it. No progression.</Text>
       <Button label={current ? 'Show selected item' : 'Show equipped item'} variant="secondary" onPress={() => setCurrent(value => !value)} />
       <Button label={running ? 'Pause court preview' : 'Run court preview'} variant="secondary" onPress={() => setRunning(value => !value)} />
       <Button label="Close comparison" onPress={onClose} />

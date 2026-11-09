@@ -1,6 +1,7 @@
 // Collection view: owned finishes (server + preserved device ownership), saved
 // Studio designs, themes and hit effects. Equip/try/edit/delete all wired.
 import React, { useRef, useState } from 'react';
+import { palette } from '@/constants/colors';
 import { Modal, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { PADDLE_FINISHES, THEME_FINISHES, STRIKE_FINISHES, artworkFor, type Artwork } from '@workspace/goldrush-catalog/cosmetics';
@@ -42,7 +43,7 @@ export function CollectionPanel({ section }: { section: 'skins' | 'themes' | 'hi
   const status = cos.loading ? (
     <View style={st.banner}><Text style={st.bannerText}>Loading your online collection</Text></View>
   ) : cos.error ? (
-    <View style={[st.banner, { borderColor: '#F36B3F' }]}>
+    <View style={[st.banner, { borderColor: palette.primary }]}>
       <Text style={st.bannerText}>{cos.error} Device-owned items are shown; online items appear once connected.</Text>
       <Plate label="Retry" tone="orange" onPress={() => { void cos.reload(); }} />
     </View>
@@ -53,7 +54,7 @@ export function CollectionPanel({ section }: { section: 'skins' | 'themes' | 'hi
       {section === 'skins' && <ShopWalletStrip />}
       {status}
       {err && (
-        <View style={[st.banner, { borderColor: '#F36B3F' }]} accessibilityLiveRegion="polite">
+        <View style={[st.banner, { borderColor: palette.primary }]} accessibilityLiveRegion="polite">
           <Text style={st.bannerText}>{err}</Text>
           <Plate label="Dismiss" onPress={() => setErr(null)} />
         </View>

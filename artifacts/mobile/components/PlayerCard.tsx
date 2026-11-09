@@ -1,4 +1,5 @@
 import { Text } from '@/components/ui/Text';
+import { palette } from '@/constants/colors';
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from '@/components/ui/Flat';
@@ -87,7 +88,7 @@ export function PlayerCard({
           </View>
         </View>
         {isReady != null && (
-          <View style={[styles.readyDot, { backgroundColor: isReady ? '#9BB77A' : colors.muted }]} />
+          <View style={[styles.readyDot, { backgroundColor: isReady ? palette.primary : colors.muted }]} />
         )}
       </LinearGradient>
     </ShimmerCard>

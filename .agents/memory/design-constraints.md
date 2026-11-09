@@ -53,15 +53,19 @@ The user replaced the app palette with Warm Stone `#EEE9DE` for main backgrounds
 
 **How to apply:** This replaces earlier pine/green background preferences. Keep the other visual constraints and preserve existing saved or owned cosmetic identities. Use readable charcoal labels on orange/gold fills, rather than low-contrast gold/orange body text on stone.
 
-The user subsequently requested a 60/30/10 colour scheme across the app. Use
-approximately 60% warm stone for the main surfaces, 30% court navy for important
-sections and the arena, and 10% vermilion orange for actions and selected states.
-Keep gold confined to brand details, rewards and existing cosmetics rather than
-large generic UI surfaces.
+## Latest approved palette: Carbon + Lime
 
-**Why:** The user asked for dominant, secondary and loud accent colours using the
-60/30/10 rule; this allocation preserves GoldRush's identity with less competing colour.
+The user approved applying approximately 60% carbon `#101410`, 30% moss charcoal
+`#263129`, and 10% bright lime `#A3F547`. Use inset `#19211B`, raised `#334038`,
+borders `#4A5D50`, primary text `#F0F4EC` and supporting text `#B6C4B7`.
+Lime buttons have dark `#101410` labels. Gold is limited to small branding/reward
+details and existing cosmetics.
 
-**How to apply:** Treat the proportions as an overall visual hierarchy, not a
-pixel quota for every screen. Pair navy with stone text and orange with charcoal.
-Do not recolour a player's purchased or selected cosmetic to force the ratio.
+**Why:** The user selected Carbon + Lime from proposed palettes, then explicitly
+approved applying it. This replaces the earlier warm-stone/navy/orange scheme
+and permits this bright-green accent despite the older broad neon avoidance.
+
+**How to apply:** Use varied dark surfaces without gradients or excessive glow.
+Treat 60/30/10 as visual hierarchy, not a pixel quota on every screen. Audit
+local colour overrides as well as theme tokens. Do not recolour purchased or
+selected cosmetics merely to force the ratio.

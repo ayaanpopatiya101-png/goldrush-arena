@@ -8,7 +8,7 @@ import { palette, tactile } from '@/constants/colors';
 export function BrandMark({ size = 40 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 40 40" accessibilityLabel="GoldRush Arena">
-      <Rect x={1.5} y={1.5} width={37} height={37} fill={palette.ochre} stroke={palette.paper} strokeWidth={3} />
+      <Rect x={1.5} y={1.5} width={37} height={37} fill={palette.gold} stroke={palette.edge} strokeWidth={3} />
       <Rect x={9} y={9} width={22} height={22} fill={tactile.court} stroke={tactile.courtInk} strokeWidth={1.5} />
       <Rect x={14} y={29} width={12} height={3} fill={palette.orange} />
       <Rect x={14} y={8} width={12} height={3} fill={palette.gold} />

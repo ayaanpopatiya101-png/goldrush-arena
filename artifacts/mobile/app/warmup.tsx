@@ -17,7 +17,7 @@ import { Text } from "@/components/ui/Text";
 import { GameArena, type GameResult } from "@/components/GameArena";
 import { usePlayer } from "@/context/PlayerContext";
 import { useSettings } from "@/hooks/useSettings";
-import { palette } from "@/constants/colors";
+import { palette , PLAYER_COLORS } from "@/constants/colors";
 import {useEquippedCosmetics} from '@/hooks/useEquippedCosmetics';
 
 /** Uses the production physics and input loop, with no reward or inventory side effects. */
@@ -80,7 +80,7 @@ export default function Warmup() {
           onPress={() => router.back()}
           style={s.back}
         >
-          <Feather name="x" size={22} color={palette.charcoal} />
+          <Feather name="x" size={22} color={palette.foreground} />
         </Pressable>
         <Text style={s.heading}>{trial?.label ? "Try on court" : "Warm-up court"}</Text>
         <Text style={s.offline}>Offline</Text>
@@ -116,7 +116,7 @@ export default function Warmup() {
           key={round}
           arenaSize={Math.min(width - 32, 480)}
           playerName={profile.name}
-          playerColor={trial?.artwork?.base ?? palette.orange}
+          playerColor={trial?.artwork?.base ?? PLAYER_COLORS[0]}
           artwork={trial?.artwork??equipped.artwork}
           arenaTheme={trial?.theme??equipped.arenaTheme}
           strikeEffect={trial?.strike??equipped.strikeEffect}
@@ -186,11 +186,11 @@ export default function Warmup() {
   );
 }
 const s = StyleSheet.create({
-  trial: { width: "100%", maxWidth: 480, marginTop: 12, marginHorizontal: 16, padding: 12, gap: 4, backgroundColor: palette.navy, borderWidth: 2, borderColor: palette.charcoal },
+  trial: { width: "100%", maxWidth: 480, marginTop: 12, marginHorizontal: 16, padding: 12, gap: 4, backgroundColor: palette.inset, borderWidth: 2, borderColor: palette.edge },
   trialKicker: { fontFamily: "SourceSans3_700Bold", fontSize: 12, letterSpacing: 1.4, color: palette.gold, textTransform: "uppercase" },
-  trialName: { fontFamily: "BarlowCondensed_700Bold", fontSize: 26, color: palette.stone, textTransform: "uppercase" },
-  trialBody: { fontFamily: "SourceSans3_400Regular", fontSize: 14, lineHeight: 19, color: palette.stone },
-  page: { flex: 1, backgroundColor: palette.stone },
+  trialName: { fontFamily: "BarlowCondensed_700Bold", fontSize: 26, color: palette.foreground, textTransform: "uppercase" },
+  trialBody: { fontFamily: "SourceSans3_400Regular", fontSize: 14, lineHeight: 19, color: palette.foreground },
+  page: { flex: 1, backgroundColor: palette.background },
   header: {
     width: "100%",
     maxWidth: 512,
@@ -200,7 +200,7 @@ const s = StyleSheet.create({
   },
   back: { minHeight: 44, width: 44, justifyContent: "center" },
   heading: { flex: 1, fontSize: 20 },
-  offline: { fontSize: 12, color: palette.slate },
+  offline: { fontSize: 12, color: palette.supporting },
   scoreboard: {
     width: "100%",
     maxWidth: 512,
@@ -209,18 +209,18 @@ const s = StyleSheet.create({
     marginTop: 20,
     justifyContent: "space-between",
   },
-  label: { color: palette.slate, fontSize: 12 },
+  label: { color: palette.supporting, fontSize: 12 },
   score: { fontFamily: "BarlowCondensed_700Bold", fontSize: 40 },
   unchanged: { marginTop: 8, fontSize: 16 },
   instructions: { maxWidth: 512, width: "100%", padding: 24 },
   subheading: { fontSize: 24, fontFamily: "BarlowCondensed_700Bold" },
-  body: { color: palette.slate, fontSize: 14, lineHeight: 22, marginTop: 12 },
+  body: { color: palette.supporting, fontSize: 14, lineHeight: 22, marginTop: 12 },
   controls: { flexDirection: "row", gap: 12, marginTop: 20 },
   secondary: {
     paddingHorizontal: 24,
     minHeight: 48,
     borderWidth: 1,
-    borderColor: palette.slate,
+    borderColor: palette.border,
     justifyContent: "center",
   },
   overlay: {
@@ -231,7 +231,7 @@ const s = StyleSheet.create({
     padding: 24,
   },
   resultTitle: { fontSize: 32, fontFamily: "BarlowCondensed_700Bold" },
-  resultDetail: { color: palette.slate, fontSize: 14, marginTop: 12 },
-  primary: { backgroundColor: palette.orange, padding: 16, marginTop: 24 },
-  darkText: { color: palette.charcoal, fontSize: 16 },
+  resultDetail: { color: palette.supporting, fontSize: 14, marginTop: 12 },
+  primary: { backgroundColor: palette.primary, padding: 16, marginTop: 24 },
+  darkText: { color: palette.foreground, fontSize: 16 },
 });

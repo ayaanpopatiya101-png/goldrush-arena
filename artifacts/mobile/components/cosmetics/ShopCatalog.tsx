@@ -85,7 +85,7 @@ export function ThemeSwatch({ id, size }: { id: string; size: number }) {
       ))}
       <Line x1={m} y1={size * 0.31} x2={size - m} y2={size * 0.31} stroke={t.line} strokeOpacity={0.6} strokeWidth={1} />
       <Rect x={size * 0.38} y={size * 0.62 - m - 6} width={size * 0.24} height={5} fill={palette.orange} />
-      <Circle cx={size * 0.58} cy={size * 0.22} r={4} fill={palette.stone} />
+      <Circle cx={size * 0.58} cy={size * 0.22} r={4} fill={palette.foreground} />
     </Svg>
   );
 }
@@ -103,7 +103,7 @@ export function StrikeSwatch({ id, size }: { id: string; size: number }) {
       {s.motif === 'rings' && [0.14, 0.26, 0.38].map(r => (
         <Circle key={r} cx={cx} cy={cy} r={h * r} fill="none" stroke={s.color} strokeWidth={2.5} strokeOpacity={1 - r} />
       ))}
-      <Circle cx={cx} cy={cy} r={5} fill={palette.stone} />
+      <Circle cx={cx} cy={cy} r={5} fill={palette.foreground} />
     </Svg>
   );
 }
@@ -137,8 +137,8 @@ type Tone = 'orange' | 'gold' | 'navy' | 'plain';
 export function Plate({ label, onPress, tone = 'plain', disabled, busy, hint }: {
   label: string; onPress: () => void; tone?: Tone; disabled?: boolean; busy?: boolean; hint?: string;
 }) {
-  const bg = tone === 'orange' ? palette.orange : tone === 'gold' ? palette.gold : tone === 'navy' ? palette.navy : palette.stone;
-  const fg = tone === 'navy' ? palette.stone : palette.charcoal;
+  const bg = tone === 'orange' ? palette.orange : tone === 'gold' ? palette.gold : tone === 'navy' ? palette.inset : palette.surface;
+  const fg = tone === 'orange' || tone === 'gold' ? palette.onAccent : palette.foreground;
   const off = !!(disabled || busy);
   return (
     <Pressable onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={label} accessibilityHint={hint}
@@ -151,7 +151,7 @@ export function Plate({ label, onPress, tone = 'plain', disabled, busy, hint }: 
 
 function Banner({ text, tone, action, onAction }: { text: string; tone: 'error' | 'info' | 'ok'; action?: string; onAction?: () => void }) {
   return (
-    <View accessibilityLiveRegion="polite" style={[st.banner, tone === 'error' ? { borderColor: palette.orange } : tone === 'ok' ? { borderColor: palette.gold } : null]}>
+    <View accessibilityLiveRegion="polite" style={[st.banner, tone === 'error' ? { borderColor: palette.primary } : tone === 'ok' ? { borderColor: palette.gold } : null]}>
       <Text style={st.bannerText}>{text}</Text>
       {action && onAction ? <Plate label={action} onPress={onAction} tone={tone === 'error' ? 'orange' : 'plain'} /> : null}
     </View>
@@ -408,39 +408,39 @@ export function ShopCatalogPanel({ section }: { section: 'skins' | 'court' }) {
 }
 
 export const st = StyleSheet.create({
-  wallet: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.navy },
+  wallet: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.inset },
   walletMain: { flexGrow: 1, minWidth: 180, padding: 14, gap: 2 },
-  walletSide: { flexGrow: 1, minWidth: 160, maxWidth: 360, padding: 14, gap: 2, backgroundColor: palette.sandstone, borderLeftWidth: 2, borderLeftColor: palette.charcoal },
+  walletSide: { flexGrow: 1, minWidth: 160, maxWidth: 360, padding: 14, gap: 2, backgroundColor: palette.surface, borderLeftWidth: 2, borderLeftColor: palette.edge },
   kicker: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1.4, color: palette.gold, textTransform: 'uppercase' },
-  kickerDim: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1.4, color: palette.slate, textTransform: 'uppercase' },
-  walletValue: { fontFamily: fonts.display, fontSize: 40, color: palette.stone, lineHeight: 44 },
-  walletSideValue: { fontFamily: fonts.display, fontSize: 24, color: palette.charcoal },
-  tiny: { fontFamily: fonts.body, fontSize: 12, lineHeight: 16, color: palette.slate },
-  errorText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: palette.stone },
-  plate: { minHeight: 44, paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: palette.charcoal },
+  kickerDim: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1.4, color: palette.supporting, textTransform: 'uppercase' },
+  walletValue: { fontFamily: fonts.display, fontSize: 40, color: palette.foreground, lineHeight: 44 },
+  walletSideValue: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground },
+  tiny: { fontFamily: fonts.body, fontSize: 12, lineHeight: 16, color: palette.supporting },
+  errorText: { fontFamily: fonts.bodyMedium, fontSize: 14, color: palette.foreground },
+  plate: { minHeight: 44, paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge },
   plateText: { fontFamily: fonts.display, fontSize: 16, letterSpacing: 0.6, textTransform: 'uppercase' },
-  banner: { borderWidth: 2, borderColor: palette.slate, backgroundColor: palette.sandstone, padding: 12, gap: 8 },
-  bannerText: { fontFamily: fonts.bodyMedium, fontSize: 14, lineHeight: 19, color: palette.charcoal },
+  banner: { borderWidth: 2, borderColor: palette.border, backgroundColor: palette.surface, padding: 12, gap: 8 },
+  bannerText: { fontFamily: fonts.bodyMedium, fontSize: 14, lineHeight: 19, color: palette.foreground },
   secHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  secTitle: { fontFamily: fonts.display, fontSize: 20, color: palette.charcoal, textTransform: 'uppercase', letterSpacing: 0.6 },
-  secAside: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.slate, letterSpacing: 1 },
-  rule: { flex: 1, height: 2, backgroundColor: palette.charcoal, opacity: 0.18 },
+  secTitle: { fontFamily: fonts.display, fontSize: 20, color: palette.foreground, textTransform: 'uppercase', letterSpacing: 0.6 },
+  secAside: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.supporting, letterSpacing: 1 },
+  rule: { flex: 1, height: 2, backgroundColor: palette.deepest, opacity: 0.18 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  card: { borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.sandstone, padding: 10, gap: 6 },
-  cardOn: { borderColor: palette.orange, borderWidth: 3, backgroundColor: palette.stone },
-  preview: { height: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.stone, borderWidth: 1, borderColor: palette.slate },
-  cardName: { fontFamily: fonts.display, fontSize: 19, color: palette.charcoal, textTransform: 'uppercase' },
-  cardMeta: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.slate, minHeight: 18 },
-  setCard: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, alignItems: 'center', borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.sandstone, padding: 14 },
-  setTitle: { fontFamily: fonts.display, fontSize: 22, color: palette.charcoal, textTransform: 'uppercase' },
-  setBody: { fontFamily: fonts.body, fontSize: 14, lineHeight: 19, color: palette.slate },
-  studioLink: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.gold, padding: 14, minHeight: 64 },
-  studioGo: { fontFamily: fonts.display, fontSize: 18, color: palette.charcoal, borderWidth: 2, borderColor: palette.charcoal, paddingHorizontal: 12, paddingVertical: 10 },
+  card: { borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, padding: 10, gap: 6 },
+  cardOn: { borderColor: palette.primary, borderWidth: 3, backgroundColor: palette.background },
+  preview: { height: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.background, borderWidth: 1, borderColor: palette.border },
+  cardName: { fontFamily: fonts.display, fontSize: 19, color: palette.foreground, textTransform: 'uppercase' },
+  cardMeta: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.supporting, minHeight: 18 },
+  setCard: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, alignItems: 'center', borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, padding: 14 },
+  setTitle: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
+  setBody: { fontFamily: fonts.body, fontSize: 14, lineHeight: 19, color: palette.supporting },
+  studioLink: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold, padding: 14, minHeight: 64 },
+  studioGo: { fontFamily: fonts.display, fontSize: 18, color: palette.foreground, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 12, paddingVertical: 10 },
   backdrop: { flex: 1, backgroundColor: 'rgba(37,42,43,0.72)', justifyContent: 'center', padding: 18 },
-  sheet: { alignSelf: 'center', width: '100%', maxWidth: 460, backgroundColor: palette.stone, borderWidth: 3, borderColor: palette.charcoal, padding: 18, gap: 10 },
-  sheetTitle: { fontFamily: fonts.display, fontSize: 28, color: palette.charcoal, textTransform: 'uppercase' },
-  sheetLine: { fontFamily: fonts.body, fontSize: 15, lineHeight: 20, color: palette.charcoal },
-  sheetStrong: { fontFamily: fonts.bodyBold, fontSize: 16, color: palette.charcoal },
-  sheetTotals: { borderTopWidth: 2, borderBottomWidth: 2, borderColor: palette.charcoal, paddingVertical: 8, gap: 2 },
+  sheet: { alignSelf: 'center', width: '100%', maxWidth: 460, backgroundColor: palette.background, borderWidth: 3, borderColor: palette.edge, padding: 18, gap: 10 },
+  sheetTitle: { fontFamily: fonts.display, fontSize: 28, color: palette.foreground, textTransform: 'uppercase' },
+  sheetLine: { fontFamily: fonts.body, fontSize: 15, lineHeight: 20, color: palette.foreground },
+  sheetStrong: { fontFamily: fonts.bodyBold, fontSize: 16, color: palette.foreground },
+  sheetTotals: { borderTopWidth: 2, borderBottomWidth: 2, borderColor: palette.edge, paddingVertical: 8, gap: 2 },
   sheetRow: { flexDirection: 'row', gap: 10 },
 });
