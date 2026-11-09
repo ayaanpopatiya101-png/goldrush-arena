@@ -2,7 +2,7 @@ import { Router, raw as rawBody, type IRouter } from "express";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { db, arenaPlayers, avatarUploads } from "@workspace/db";
-import { and, eq, lt } from "drizzle-orm";
+import { and, eq, lt, sql } from "drizzle-orm";
 import { limited, requireArenaIdentity } from "../lib/arenaIdentity.js";
 import { ObjectStorageService, ObjectNotFoundError, objectStorageClient } from "../lib/objectStorage.js";
 import { RequestAvatarUploadBody, CommitAvatarBody, ShareAvatarBody } from "@workspace/api-zod";
@@ -23,13 +23,22 @@ export async function cleanupAvatarUploads() {
   if (cleaning) return;
   cleaning = true;
   try {
-    const expired = await db.select().from(avatarUploads).where(lt(avatarUploads.createdAt, new Date(Date.now() - 1200000))).limit(100);
+    const expired = await db.select().from(avatarUploads).where(and(
+      lt(avatarUploads.createdAt, new Date(Date.now() - 1200000)),
+      sql`NOT EXISTS (SELECT 1 FROM arena_players WHERE avatar_id = ${avatarUploads.id})`
+    )).limit(100);
     for (const upload of expired) {
-      try {
-        const file = await storage.getObjectEntityFile(upload.objectPath);
-        await file.delete({ignoreNotFound:true});
-      } catch (error) { if (!(error instanceof ObjectNotFoundError)) continue; }
-      await db.delete(avatarUploads).where(eq(avatarUploads.id, upload.id));
+      await db.transaction(async tx=>{
+        const [owner]=await tx.select().from(arenaPlayers).where(eq(arenaPlayers.id,upload.playerId)).for("update");
+        if(owner?.avatarId===upload.id)return;
+        const [ticket]=await tx.select().from(avatarUploads).where(eq(avatarUploads.id,upload.id)).for("update");
+        if(!ticket || Date.now()-ticket.createdAt.getTime()<1200000)return;
+        try {
+          const file = await storage.getObjectEntityFile(ticket.objectPath);
+          await file.delete({ignoreNotFound:true});
+        } catch (error) { if (!(error instanceof ObjectNotFoundError)) return; }
+        await tx.delete(avatarUploads).where(eq(avatarUploads.id, upload.id));
+      });
     }
   } finally { cleaning = false; }
 }
@@ -83,7 +92,7 @@ router.post("/multiplayer/avatar/upload", async (req, res) => {
 // No unrestricted presigned PUT URL is given to the guest.
 router.put("/multiplayer/avatar/upload/:id", async (req,res,next) => {
   const [upload] = await db.select().from(avatarUploads).where(and(eq(avatarUploads.id,req.params.id),eq(avatarUploads.playerId,res.locals.arenaPlayer.id)));
-  if (!upload || Date.now()-upload.createdAt.getTime()>600000) { res.sendStatus(404); return; }
+  if (!upload || upload.objectPath!==`/objects/uploads/${req.params.id}` || Date.now()-upload.createdAt.getTime()>600000) { res.sendStatus(404); return; }
   if (!req.is(["image/jpeg","image/png","image/webp"]) || (req.headers["content-encoding"] && req.headers["content-encoding"]!=="identity")) { res.sendStatus(415); return; }
   if (Number(req.headers["content-length"])>MAX) { res.sendStatus(413); return; }
   if (receiving>=2) { res.sendStatus(503); return; }
@@ -113,7 +122,7 @@ router.post("/multiplayer/avatar/commit", async (req, res) => {
   const { uploadId, shared } = parsed.data;
   const owner = res.locals.arenaPlayer.id;
   const [upload] = await db.select().from(avatarUploads).where(and(eq(avatarUploads.id, uploadId), eq(avatarUploads.playerId, owner)));
-  if (!upload || Date.now() - upload.createdAt.getTime() > 600000) { res.status(400).json({ error: "Upload expired or belongs to another player. Choose the image again." }); return; }
+  if (!upload || upload.objectPath!==`/objects/uploads/${uploadId}` || Date.now() - upload.createdAt.getTime() > 600000) { res.status(400).json({ error: "Upload expired or belongs to another player. Choose the image again." }); return; }
   if (decoding >= 2) { res.status(503).json({error:"Photo processing is busy. Your old avatar is unchanged. Retry shortly."}); return; }
   decoding++;
   try {
@@ -130,12 +139,19 @@ router.post("/multiplayer/avatar/commit", async (req, res) => {
     // Re-encode strips metadata and executable/polyglot content. Never serve originals.
     const clean = await pipeline.rotate().resize(512,512,{fit:"cover"}).jpeg({quality:85}).toBuffer();
     const id = randomUUID();
-    await outputFile(id).save(clean,{ contentType: "image/jpeg", resumable: false });
+    // Register before writing, outside the commit transaction: failed writes,
+    // duplicate commits and process crashes leave durable cleanup ownership.
+    await db.insert(avatarUploads).values({id,playerId:owner,objectPath:`/objects/avatars/${id}.jpg`});
     const previous = await db.transaction(async tx => {
       const [p] = await tx.select().from(arenaPlayers).where(eq(arenaPlayers.id, owner)).for("update");
       if(p!.tokenHash!==res.locals.arenaPlayer.tokenHash)throw new Error("Player retired");
-      const consumed = await tx.delete(avatarUploads).where(and(eq(avatarUploads.id, uploadId), eq(avatarUploads.playerId, owner))).returning();
+      const consumed = await tx.update(avatarUploads).set({createdAt:new Date(0)}).where(and(eq(avatarUploads.id, uploadId), eq(avatarUploads.playerId, owner),sql`${avatarUploads.createdAt} > now() - interval '10 minutes'`)).returning();
       if (!consumed.length) throw new Error("Upload already used");
+      const [tracked]=await tx.select().from(avatarUploads).where(eq(avatarUploads.id,id)).for("update");
+      if(!tracked)throw new Error("Output reservation expired");
+      if(p!.avatarId)await tx.insert(avatarUploads).values({id:p!.avatarId,playerId:owner,objectPath:`/objects/avatars/${p!.avatarId}.jpg`,createdAt:new Date(0)}).onConflictDoNothing();
+      // Keep the owner lock through the write so cleanup cannot race a writer.
+      await outputFile(id).save(clean,{ contentType: "image/jpeg", resumable: false });
       await tx.update(arenaPlayers).set({avatarId:id, avatarShared:shared}).where(eq(arenaPlayers.id, owner));
       return p!.avatarId;
     });
@@ -158,6 +174,8 @@ router.post("/multiplayer/avatar/retire", async(_req,res)=>{
   const p=res.locals.arenaPlayer;
   const previous=await db.transaction(async tx=>{
     const [current]=await tx.select().from(arenaPlayers).where(eq(arenaPlayers.id,p.id)).for("update");
+    if(current!.tokenHash!==p.tokenHash)throw new Error("Player retired");
+    if(current!.avatarId)await tx.insert(avatarUploads).values({id:current!.avatarId,playerId:p.id,objectPath:`/objects/avatars/${current!.avatarId}.jpg`,createdAt:new Date(0)}).onConflictDoNothing();
     await tx.update(arenaPlayers).set({avatarId:null,avatarShared:false,cosmetics:{},tokenHash:randomUUID()}).where(eq(arenaPlayers.id,p.id));
     // Keep original staging timestamps: legacy signed URLs must expire before
     // the independent janitor removes their tracked objects.
@@ -171,6 +189,8 @@ router.delete("/multiplayer/avatar", async (_req,res) => {
   const p=res.locals.arenaPlayer;
   const removedId = await db.transaction(async tx => {
     const [current] = await tx.select().from(arenaPlayers).where(eq(arenaPlayers.id,p.id)).for("update");
+    if(current!.tokenHash!==p.tokenHash)throw new Error("Player retired");
+    if(current!.avatarId)await tx.insert(avatarUploads).values({id:current!.avatarId,playerId:p.id,objectPath:`/objects/avatars/${current!.avatarId}.jpg`,createdAt:new Date(0)}).onConflictDoNothing();
     await tx.update(arenaPlayers).set({avatarId:null,avatarShared:false}).where(eq(arenaPlayers.id,p.id));
     return current!.avatarId;
   });

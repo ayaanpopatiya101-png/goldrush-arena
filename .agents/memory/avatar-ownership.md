@@ -12,3 +12,12 @@ Photo upload must remain optional and private by default. Publishing is a separa
 Enforce byte limits before storage writes and clean abandoned uploads independently of guest activity.
 
 **Why:** Declared-size checks plus validation at commit do not limit a signed PUT; a guest can skip commit. Cleanup triggered only by the same guest leaves abandoned files indefinitely.
+
+Photo upload starts in Profile after player creation, not during onboarding.
+
+**Why:** A cloud photo saved against an unfinished onboarding name can be abandoned
+without any saved player retaining its deletion credential.
+
+Cleanup records must survive failed commits and failed storage deletions.
+Register outputs before writing, coordinate cleanup with the owner lock, and
+never discard retry authority just because an avatar is no longer selected.

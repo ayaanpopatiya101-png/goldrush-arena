@@ -47,21 +47,30 @@ test('delete/recreate same name gets a fresh credential and clears private cache
 });
 test('scheduled staging cleanup does not require the original guest',async()=>{
   const removed=[];const deleted=[];
-  const rows=[{id:'a',playerId:'gone-a',objectPath:'a'},{id:'b',playerId:'gone-b',objectPath:'b'}];
+  const rows=['a','b','c','d'].map(id=>({id,playerId:'gone-'+id,objectPath:id,createdAt:new Date(0)}));
+  let fail=true;
+  const tx={
+    select:()=>({from:table=>({where:expression=>({for:async()=>table==='players'
+      ? [{avatarId:expression.value==='gone-d'?'d':null}]
+      : rows.filter(r=>r.id===expression.value&&!deleted.includes(r.id))})})}),
+    delete:()=>({where:async expression=>deleted.push(expression.value)}),
+  };
   const router={get(){},post(){},put(){},patch(){},delete(){},use(){}};
   const api=load('artifacts/api-server/src/routes/avatars.ts',{
     express:{Router:()=>router,raw:()=>()=>{}},
     'node:crypto':require('node:crypto'),sharp:()=>{},
     '@workspace/db':{db:{
-      select:()=>({from:()=>({where:()=>({limit:async()=>rows})})}),
-      delete:()=>({where:async expression=>deleted.push(expression.value)}),
-    },avatarUploads:{createdAt:'createdAt',id:'id'},arenaPlayers:{}},
-    'drizzle-orm':{lt:(_k,date)=>{assert.ok(Date.now()-date.getTime()>=1200000);return{}},eq:(key,value)=>({key,value}),and:()=>({})},
+      select:()=>({from:()=>({where:()=>({limit:async()=>rows.filter(r=>!deleted.includes(r.id))})})}),
+      transaction:async fn=>fn(tx),
+    },avatarUploads:{createdAt:'createdAt',id:'id'},arenaPlayers:'players'},
+    'drizzle-orm':{sql:()=>({}),lt:(_k,date)=>{assert.ok(Date.now()-date.getTime()>=1200000);return{}},eq:(key,value)=>({key,value}),and:()=>({})},
     '../lib/arenaIdentity.js':{limited:()=>false,requireArenaIdentity:()=>{}},
-    '../lib/objectStorage.js':{ObjectStorageService:class{async getObjectEntityFile(p){return{delete:async()=>removed.push(p)}}},ObjectNotFoundError:class extends Error{},objectStorageClient:{}},
+    '../lib/objectStorage.js':{ObjectStorageService:class{async getObjectEntityFile(p){return{delete:async()=>{if(p==='c'&&fail)throw new Error('Storage unavailable');removed.push(p)}}}},ObjectNotFoundError:class extends Error{},objectStorageClient:{}},
     '@workspace/api-zod':{},'../lib/arenaService.js':{rooms:new Map()},
     '../lib/logger.js':{logger:{warn:()=>{}}},
   });
   await api.cleanupAvatarUploads();
   assert.deepEqual(removed,['a','b']);assert.deepEqual(deleted,['a','b']);
+  fail=false;await api.cleanupAvatarUploads();
+  assert.deepEqual(removed,['a','b','c']);assert.deepEqual(deleted,['a','b','c']);
 });

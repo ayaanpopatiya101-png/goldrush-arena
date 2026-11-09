@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Primitives';
 import { palette, tactile } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { ColorPicker } from '@/components/appearance/ColorPicker';
-import { AvatarPhoto, PhotoAvatarEditor } from '@/components/appearance/PhotoAvatarEditor';
+import { AvatarPhoto } from '@/components/appearance/PhotoAvatarEditor';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ChoiceTile, CourtPlate, EMBLEMS, Heading, StepFrame, k, useEntryInsets } from './kit';
 
@@ -206,8 +206,7 @@ export function StyleStep({ name, emoji, color, onEmoji, onColor, onBack, onCrea
       </View>
       <View style={{ gap: 8 }}>
         <Text style={k.label}>Photo (optional)</Text>
-        <Text style={k.help}>Skip this and your emblem is used. You can add or change a photo later in Profile.</Text>
-        <PhotoAvatarEditor testID="entry-photo" username={name} frameColor={color} />
+        <Text style={k.help}>Start with your emblem. After creating your player, add an optional photo in Profile. No photo is uploaded during setup.</Text>
       </View>
       <Text style={k.help}>Progress stays on this device and cannot be recovered if app data is removed. Optional saved photos use cloud storage under your guest identity; they stay private unless you publish them.</Text>
       <LegalLinks onOpen={onLegal} />
