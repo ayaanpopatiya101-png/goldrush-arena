@@ -5,6 +5,19 @@ description: User's chosen references and functional design cues for every GoldR
 
 Use this page guide alongside the approved GoldRush palette and visual constraints.
 
+The user's later Duolingo reference links are an app-wide visual reference for
+onboarding, tutorial, Home, quests/events, ranks, shop/rewards, profile/social and
+settings. They explicitly allow changing the colours.
+
+**Why:** The user supplied these pages and asked to use them as reference images
+for how the app's pages should look.
+
+**How to apply:** Adapt the reference layouts to GoldRush's actual game features,
+keeping existing functionality and avoiding the previously banned treatments.
+The game-specific interactions in the mapping below remain useful; Duolingo is
+now also a visual reference beyond onboarding. Do not add language-learning
+content or copy Duolingo's branded artwork into the game.
+
 **Why:** The user supplied this specific mapping for how the app's pages should look and work, and offered reference photos.
 
 **How to apply:** Borrow the listed layout and interaction ideas, retaining GoldRush identity. This newer guide replaces Atoms as the primary onboarding reference.
