@@ -41,9 +41,9 @@ The user approved a usability review that prioritizes Play over moving practice 
 
 **How to apply:** Preserve the approved materials and identity while reducing cognitive load. Cosmetic previews must not promise material or shape properties the actual game does not implement.
 
-Use the user's supplied Atoms iOS onboarding screenshots as the reference for GoldRush's onboarding.
+Use Duolingo's one-choice-at-a-time flow and visual personalization as the primary onboarding reference; see page-design-references.md.
 
-**Why:** The user explicitly requested these images as the onboarding reference.
+**Why:** The user's newer page-by-page guide supersedes the earlier Atoms reference.
 
 **How to apply:** Use the reference for the onboarding experience while retaining GoldRush's approved identity and the avoidance list above.
 
