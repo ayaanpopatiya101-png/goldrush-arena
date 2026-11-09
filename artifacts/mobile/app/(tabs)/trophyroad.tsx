@@ -946,7 +946,7 @@ const s = StyleSheet.create({
   // Inner tabs
   tabBar: { flexDirection: 'row', marginHorizontal: 18, marginBottom: 14, gap: 6 },
   tabBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 46, borderWidth: 2, borderBottomWidth: 4, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
-  tabBtnActive: { backgroundColor: '#EDBA3C', borderColor: '#252A2B' },
+  tabBtnActive: { backgroundColor: '#F36B3F', borderColor: '#252A2B' },
   tabBtnTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 16, letterSpacing: 1, color: '#252A2B' },
 
   // Track labels above the pass

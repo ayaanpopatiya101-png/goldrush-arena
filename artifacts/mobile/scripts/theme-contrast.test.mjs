@@ -11,7 +11,7 @@ const exported = {};
 vm.runInNewContext(ts.transpileModule(src, {
   compilerOptions: { module: ts.ModuleKind.CommonJS },
 }).outputText, { exports: exported });
-const { palette, tactile, PLAYER_COLORS, default: colors } = exported;
+const { palette, tactile, PLAYER_COLORS, colorBalance, default: colors } = exported;
 const theme = colors.light;
 
 const luminance = h => {
@@ -41,6 +41,20 @@ test('light surfaces retain accessible heading, body and supporting text', () =>
     assert.ok(contrast(theme.foreground, bg) >= 7, `primary text on ${bg}`);
     assert.ok(contrast(theme.mutedForeground, bg) >= 4.5, `supporting text on ${bg}`);
   }
+});
+
+test('60/30/10 roles use stone, navy and orange without recolouring rewards', () => {
+  assert.equal(colorBalance.main.share, 60);
+  assert.equal(colorBalance.secondary.share, 30);
+  assert.equal(colorBalance.accent.share, 10);
+  assert.equal(colorBalance.main.color, theme.background);
+  assert.equal(colorBalance.secondary.color, theme.secondary);
+  assert.equal(colorBalance.accent.color, theme.accent);
+  assert.equal(theme.secondary, '#23344B');
+  assert.equal(theme.accent, '#F36B3F');
+  assert.equal(palette.gold, '#EDBA3C');
+  assert.ok(contrast(theme.secondaryForeground, theme.secondary) >= 7);
+  assert.ok(contrast(theme.accentForeground, theme.accent) >= 4.5);
 });
 
 test('orange actions, gold rewards and navy court have readable foregrounds', () => {

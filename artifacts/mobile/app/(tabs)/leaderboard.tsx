@@ -28,7 +28,7 @@ export default function LeaderboardScreen() {
   return (
     <Reanimated.View style={[s.root, focusStyle]}>
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
-        <ScreenTitle kicker="Personal competition" title="Ranks" style={{ flex: 1 }} />
+        <ScreenTitle kicker="Personal competition" title="Ranks" tone="dark" style={{ flex: 1 }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}>
@@ -124,7 +124,7 @@ export default function LeaderboardScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.stone },
-  header: { paddingHorizontal: 18, paddingBottom: 14, borderBottomWidth: 3, borderBottomColor: palette.charcoal, marginBottom: 18, backgroundColor: palette.gold },
+  header: { paddingHorizontal: 18, paddingBottom: 14, borderBottomWidth: 3, borderBottomColor: palette.charcoal, marginBottom: 18, backgroundColor: palette.navy },
   pad: { padding: 14 },
   h: { fontFamily: fonts.display, fontSize: 22, color: palette.charcoal, textTransform: 'uppercase' },
   body: { fontFamily: fonts.body, fontSize: textScale.body, lineHeight: 22, color: palette.charcoal },
@@ -133,7 +133,7 @@ const s = StyleSheet.create({
   loading: { backgroundColor: palette.navy, borderWidth: 3, borderColor: palette.charcoal, padding: 28, alignItems: 'center', gap: 10, minHeight: 200, justifyContent: 'center' },
   loadingText: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.stone },
   track: { height: 14, padding: 2, borderWidth: 2, borderColor: palette.charcoal, backgroundColor: palette.stone },
-  youRow: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: palette.gold, borderColor: palette.charcoal },
+  youRow: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: palette.stone, borderColor: palette.orange },
   fill: { height: '100%', backgroundColor: palette.orange },
   legacyCell: { flex: 1, borderWidth: 2, borderColor: palette.slate, padding: 10, backgroundColor: palette.sandstone },
   legacyV: { fontFamily: fonts.display, fontSize: 30, color: palette.slate, fontVariant: ['tabular-nums'] },

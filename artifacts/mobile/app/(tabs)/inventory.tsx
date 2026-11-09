@@ -195,7 +195,7 @@ const s = StyleSheet.create({
   countText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: '#252A2B', letterSpacing: 0.5 },
   tabRow:      { flexDirection: 'row', gap: 6, borderBottomWidth: 2, paddingHorizontal: 16, paddingBottom: 12 },
   tab:         { flex: 1, minHeight: 44, justifyContent: 'center', paddingVertical: 10, alignItems: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
-  tabOn:       { backgroundColor: '#EDBA3C', borderColor: '#252A2B' },
+  tabOn:       { backgroundColor: '#F36B3F', borderColor: '#252A2B' },
   tabText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2 },
 
   // Skin grid

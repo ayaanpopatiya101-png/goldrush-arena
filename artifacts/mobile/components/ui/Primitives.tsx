@@ -49,7 +49,7 @@ type BtnProps = {
 };
 
 export function Button({ label, onPress, variant = 'primary', icon, disabled, loading, size = 'md', style, testID, accessibilityHint }: BtnProps) {
-  const fg = disabled && !loading ? palette.muted : variant === 'primary' ? palette.charcoal : variant === 'danger' ? palette.slate : palette.charcoal;
+  const fg = disabled && !loading ? palette.muted : variant === 'secondary' ? palette.courtText : variant === 'danger' ? palette.slate : palette.charcoal;
   return (
     <Pressable
       testID={testID}
@@ -67,7 +67,7 @@ export function Button({ label, onPress, variant = 'primary', icon, disabled, lo
         size === 'sm' && p.btnSm,
         variant === 'primary' && { backgroundColor: palette.orange, borderColor: palette.charcoal },
         pressed && !(disabled || loading) && p.btnPressed,
-        variant === 'secondary' && { backgroundColor: palette.gold, borderColor: palette.charcoal },
+        variant === 'secondary' && { backgroundColor: palette.navy, borderColor: palette.charcoal },
         variant === 'ghost' && { backgroundColor: pressed ? palette.sandstone : palette.stone, borderColor: palette.slate },
         variant === 'danger' && { backgroundColor: pressed ? palette.sandstone : palette.stone, borderColor: palette.orange },
         (disabled && !loading) && { backgroundColor: palette.sandstone, borderColor: palette.slate, borderBottomWidth: 2 },
@@ -149,15 +149,15 @@ export function gridItemWidth(available: number, minCard = 150, gap = 10): numbe
 }
 
 /** Stamped condensed screen title used on every non-Home destination. */
-export function ScreenTitle({ title, kicker, right, style }: { title: string; kicker?: string; right?: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+export function ScreenTitle({ title, kicker, right, style, tone = 'light' }: { title: string; kicker?: string; right?: React.ReactNode; style?: StyleProp<ViewStyle>; tone?: 'light' | 'dark' }) {
   return (
     <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 10 }, style]}>
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ transform: [{ rotate: '-4deg' }] }}>
         <BrandMark size={36} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
-        {kicker ? <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.muted, textTransform: 'uppercase' }}>{kicker}</Text> : null}
-        <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 34, letterSpacing: -0.5, color: palette.charcoal, textTransform: 'uppercase' }}>{title}</Text>
+        {kicker ? <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: tone === 'dark' ? palette.courtText : palette.muted, textTransform: 'uppercase' }}>{kicker}</Text> : null}
+        <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 34, letterSpacing: -0.5, color: tone === 'dark' ? palette.courtText : palette.charcoal, textTransform: 'uppercase' }}>{title}</Text>
       </View>
       {right}
     </View>

@@ -427,7 +427,7 @@ const s = StyleSheet.create({
   accountStatLbl: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: tactile.paperMuted, letterSpacing: 0.5 },
   sensitivityRow: { flexDirection: 'row', padding: 12, gap: 8 },
   sensBtn:   { flex: 1, minHeight: 64, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.slate, backgroundColor: palette.stone, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 3 },
-  sensBtnActive: { borderColor: palette.charcoal, backgroundColor: palette.gold },
+  sensBtnActive: { borderColor: palette.charcoal, backgroundColor: palette.orange },
   sensBtnLabel: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: palette.charcoal },
   sensBtnDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.charcoal, textAlign: 'center' },
   aboutRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },

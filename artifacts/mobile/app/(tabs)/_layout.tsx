@@ -90,5 +90,5 @@ const styles = StyleSheet.create({
   tabLabelWide: { fontSize: 16 },
   pip: { width: 18, height: 3, marginTop: 1 },
   iconPlate: { width: 36, height: 28, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
-  iconPlateOn: { backgroundColor: palette.gold, borderColor: palette.charcoal },
+  iconPlateOn: { backgroundColor: palette.orange, borderColor: palette.charcoal },
 });

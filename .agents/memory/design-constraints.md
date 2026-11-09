@@ -52,3 +52,16 @@ The user replaced the app palette with Warm Stone `#EEE9DE` for main backgrounds
 **Why:** The user supplied these exact colours and roles as the new app design direction.
 
 **How to apply:** This replaces earlier pine/green background preferences. Keep the other visual constraints and preserve existing saved or owned cosmetic identities. Use readable charcoal labels on orange/gold fills, rather than low-contrast gold/orange body text on stone.
+
+The user subsequently requested a 60/30/10 colour scheme across the app. Use
+approximately 60% warm stone for the main surfaces, 30% court navy for important
+sections and the arena, and 10% vermilion orange for actions and selected states.
+Keep gold confined to brand details, rewards and existing cosmetics rather than
+large generic UI surfaces.
+
+**Why:** The user asked for dominant, secondary and loud accent colours using the
+60/30/10 rule; this allocation preserves GoldRush's identity with less competing colour.
+
+**How to apply:** Treat the proportions as an overall visual hierarchy, not a
+pixel quota for every screen. Pair navy with stone text and orange with charcoal.
+Do not recolour a player's purchased or selected cosmetic to force the ratio.

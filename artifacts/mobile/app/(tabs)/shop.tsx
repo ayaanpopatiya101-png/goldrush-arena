@@ -300,7 +300,7 @@ export default function ShopScreen() {
                   <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{item.desc}</Text>
                 </View>
                 <ShimmerCard active={!checkingOut} borderRadius={3} shimmerColor="rgba(255,255,255,0.1)">
-                  <View style={[storeStyles.usdBtn, { backgroundColor: '#EDBA3C', borderColor: '#252A2B' }]}>
+                  <View style={[storeStyles.usdBtn, { backgroundColor: '#F36B3F', borderColor: '#252A2B' }]}>
                     <Text style={[storeStyles.usdBtnText, { color: '#252A2B' }]}>
                       {checkingOut === item.storeKey ? '…' : nativePrice(item.storeKey, item.usd)}
                     </Text>
@@ -328,7 +328,7 @@ export default function ShopScreen() {
                 <Text style={[styles.itemName, { color: '#252A2B' }]}>Coin Packs</Text>
                 <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>From $0.99, up to 50,000 coins</Text>
               </View>
-              <View style={[styles.buyBtn, { backgroundColor: '#EDBA3C', borderColor: '#252A2B' }]}>
+              <View style={[styles.buyBtn, { backgroundColor: '#F36B3F', borderColor: '#252A2B' }]}>
                 <Text style={[styles.buyBtnText, { color: '#252A2B' }]}>STORE →</Text>
               </View>
             </Pressable>
@@ -393,7 +393,7 @@ export default function ShopScreen() {
                       )}
                     </View>
                     {!profile.battlePassPremiumOwned && (
-                      <View style={[storeStyles.usdBtn, { backgroundColor: '#EDBA3C', borderColor: '#252A2B' }]}>
+                      <View style={[storeStyles.usdBtn, { backgroundColor: '#F36B3F', borderColor: '#252A2B' }]}>
                         <Text style={[storeStyles.usdBtnText, { color: '#252A2B' }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : nativePrice(STORE_BATTLE_PASS.key, STORE_BATTLE_PASS.usd)}</Text>
                       </View>
                     )}
@@ -441,7 +441,7 @@ export default function ShopScreen() {
                       disabled={checkingOut === pack.key}
                       style={({ pressed }) => [storeStyles.storeCard, {
                         borderColor: pack.highlight ? '#252A2B' : colors.border,
-                        backgroundColor: pack.highlight ? '#EDBA3C' : colors.card,
+                        backgroundColor: colors.card,
                         opacity: pressed ? 0.82 : 1,
                       }]}
                     >
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 12 },
   headerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 20, letterSpacing: 2 },
-  coinDisplay: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#EDBA3C', borderRadius: 3, borderWidth: 2, borderColor: '#252A2B', paddingHorizontal: 9, paddingVertical: 4 },
+  coinDisplay: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#E3DFD3', borderRadius: 3, borderWidth: 2, borderColor: '#252A2B', paddingHorizontal: 9, paddingVertical: 4 },
   coinAmount: { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   tabRow: { flexDirection: 'row', gap: 6, flexShrink: 0, minHeight: 48, borderBottomWidth: 2, paddingHorizontal: 16, paddingBottom: 12, marginBottom: 4 },
   tab: { flex: 1, minHeight: 46, minWidth: 0, paddingHorizontal: 3, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: '#575D5C', backgroundColor: '#E3DFD3' },
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   themePreview: { width: 64, height: 64, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
   themeArena: { width: 50, height: 50, borderRadius: 3, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
   themePaddle: { width: 30, height: 5, borderRadius: 3, opacity: 0.9 },
-  redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#EDBA3C', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, minHeight: 44, borderColor: '#252A2B', paddingHorizontal: 10, paddingVertical: 6 },
+  redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#E3DFD3', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, minHeight: 44, borderColor: '#252A2B', paddingHorizontal: 10, paddingVertical: 6 },
   redeemCodeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5, color: '#252A2B' },
 });
 
@@ -620,7 +620,7 @@ const storeStyles = StyleSheet.create({
   howItWorks: { backgroundColor: '#E3DFD3', borderRadius: 0, borderWidth: 2, padding: 14, gap: 6 },
   howTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, marginBottom: 4 },
   howStep: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18 },
-  restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', backgroundColor: '#EDBA3C', paddingHorizontal: 12, paddingVertical: 8 },
+  restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 0, borderWidth: 2, borderColor: '#252A2B', backgroundColor: '#E3DFD3', paddingHorizontal: 12, paddingVertical: 8 },
   restoreText: { color: '#252A2B', fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
   confirmBackdrop: { flex: 1, backgroundColor: '#252A2BCC', alignItems: 'center', justifyContent: 'center', padding: 24 },
   confirmCard: { width: '100%', maxWidth: 360, borderRadius: 0, borderWidth: 2, borderBottomWidth: 6, borderColor: '#252A2B', padding: 20 },

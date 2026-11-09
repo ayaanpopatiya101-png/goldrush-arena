@@ -29,6 +29,13 @@ export const palette = {
   moss: '#EDBA3C',
 } as const;
 
+/** Visual allocation, not a per-screen pixel quota. Gold stays reward/cosmetic-only. */
+export const colorBalance = {
+  main: { color: palette.stone, share: 60 },
+  secondary: { color: palette.navy, share: 30 },
+  accent: { color: palette.orange, share: 10 },
+} as const;
+
 /** Physical materials and court-specific text colors. */
 export const tactile = {
   paperPanel: '#E3DFD3',
@@ -53,11 +60,11 @@ const gameTheme = {
   cardForeground: palette.charcoal,
   primary: palette.orange,
   primaryForeground: palette.charcoal,
-  secondary: palette.sandstone,
-  secondaryForeground: palette.charcoal,
+  secondary: palette.navy,
+  secondaryForeground: palette.courtText,
   muted: palette.sandstone,
   mutedForeground: palette.slate,
-  accent: palette.gold,
+  accent: palette.orange,
   accentForeground: palette.charcoal,
   destructive: palette.orange,
   destructiveForeground: palette.charcoal,
