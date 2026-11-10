@@ -2,6 +2,7 @@
 // Saved data (avatars, cosmetics, reward icons) still holds the original emoji
 // strings; the UI shows a line icon instead so no emoji is ever drawn.
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { palette } from '@/constants/colors';
 import React from 'react';
 import { StyleProp, StyleSheet, Text, TextStyle } from 'react-native';
 
@@ -61,7 +62,7 @@ export function Glyph({ value, size, color, style, children }: Props) {
   const v = value ?? children;
   const flat = StyleSheet.flatten(style) ?? {};
   const s = size ?? (typeof flat.fontSize === 'number' ? flat.fontSize : 18);
-  const c = color ?? (typeof flat.color === 'string' ? flat.color : '#EEE7D7');
+  const c = color ?? (typeof flat.color === 'string' ? flat.color : palette.foreground);
   if (typeof v !== 'string' && typeof v !== 'number') return null;
   const str = String(v);
   if (!hasEmoji(str)) return <Text style={style}>{str.replace(/[\uFE0F\u20E3]/g, '')}</Text>;

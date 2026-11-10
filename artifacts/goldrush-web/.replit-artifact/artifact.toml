@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "GoldRush Arena Web"
+description = "Browser-playable GoldRush Arena sharing the existing game implementation and API, with the native app preserved. The production browser entry replaces the Expo launch page at the custom domain."
+version = "1.0.0"
+id = "artifacts/goldrush-web"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24414
+
+[services.development]
+run = "pnpm --filter @workspace/goldrush-web run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/goldrush-web", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/goldrush-web/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24414"
+BASE_PATH = "/"

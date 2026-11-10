@@ -1,4 +1,5 @@
 import { LinearGradient } from '@/components/ui/Flat';
+import { palette } from '@/constants/colors';
 import { CURRENT_SEASON } from '@/constants/season';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Easing, Platform, StyleSheet, Text, View } from 'react-native';
@@ -108,7 +109,7 @@ export function CinematicSplash({ onDone }: Props) {
 
   return (
     <Animated.View style={[styles.root, { opacity: masterFade }]} pointerEvents="none">
-      <LinearGradient colors={['#EEE9DE', '#E3DFD3', '#EEE9DE']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={[palette.background, palette.surface, palette.background]} style={StyleSheet.absoluteFill} />
 
 
       {/* Centre content */}
@@ -157,14 +158,14 @@ export function CinematicSplash({ onDone }: Props) {
 const styles = StyleSheet.create({
   root:         { ...StyleSheet.absoluteFillObject, zIndex: 9999, alignItems: 'center', justifyContent: 'center' },
   center:       { alignItems: 'center', gap: 16 },
-  particle:     { position: 'absolute', backgroundColor: '#EDBA3C' },
+  particle:     { position: 'absolute', backgroundColor: palette.gold },
   logoWrap:     { width: 96, height: 96, alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  logoGlow:     { position: 'absolute', width: 96, height: 96, borderRadius: 3, backgroundColor: '#EDBA3C', shadowColor: '#EDBA3C', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
-  logoText:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 46, color: '#252A2B', letterSpacing: 4, zIndex: 1, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
-  divider:      { height: 1.5, backgroundColor: '#252A2B', borderRadius: 1 },
+  logoGlow:     { position: 'absolute', width: 96, height: 96, borderRadius: 3, backgroundColor: palette.gold, shadowColor: palette.gold, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
+  logoText:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 46, color: palette.foreground, letterSpacing: 4, zIndex: 1, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  divider:      { height: 1.5, backgroundColor: palette.deepest, borderRadius: 1 },
   titleRow:     { flexDirection: 'row', flexWrap: 'nowrap' },
-  titleLetter:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: Platform.OS === 'web' ? 25 : 27, color: '#252A2B', letterSpacing: 3, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
-  subtitle:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: '#575D5C', letterSpacing: 2 },
-  seasonBadge:  { marginTop: 4, backgroundColor: '#EDBA3C', borderRadius: 3, borderWidth: 1, borderColor: '#252A2B', paddingHorizontal: 14, paddingVertical: 5 },
-  seasonText:   { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, color: '#252A2B', letterSpacing: 1.5 },
+  titleLetter:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: Platform.OS === 'web' ? 25 : 27, color: palette.foreground, letterSpacing: 3, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  subtitle:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: palette.supporting, letterSpacing: 2 },
+  seasonBadge:  { marginTop: 4, backgroundColor: palette.gold, borderRadius: 3, borderWidth: 1, borderColor: palette.edge, paddingHorizontal: 14, paddingVertical: 5 },
+  seasonText:   { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, color: palette.foreground, letterSpacing: 1.5 },
 });

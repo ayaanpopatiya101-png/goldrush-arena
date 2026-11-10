@@ -1,0 +1,89 @@
+/* Font files are the exact installed font assets loaded by mobile/app/_layout.tsx.
+   Font family names are unchanged, so copied native styles need no substitutions. */
+@font-face {
+  font-family: 'BarlowCondensed_700Bold';
+  src: url('./_deps/assets/BarlowCondensed_700Bold.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'BarlowCondensed_600SemiBold';
+  src: url('./_deps/assets/BarlowCondensed_600SemiBold.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SourceSans3_400Regular';
+  src: url('./_deps/assets/SourceSans3_400Regular.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SourceSans3_600SemiBold';
+  src: url('./_deps/assets/SourceSans3_600SemiBold.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SourceSans3_700Bold';
+  src: url('./_deps/assets/SourceSans3_700Bold.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'GoldRushGuideFeather';
+  src: url('./_deps/assets/Feather.ttf') format('truetype');
+  font-display: block;
+}
+@font-face {
+  font-family: 'GoldRushGuideMaterialCommunityIcons';
+  src: url('./_deps/assets/MaterialCommunityIcons.ttf') format('truetype');
+  font-display: block;
+}
+
+/* No app-wide CSS exists in Expo: palette/typography are native constants.
+   Mirror those constants here only within this extraction's root. */
+.goldrush-home-guide {
+  --stone: #EEE9DE;
+  --sandstone: #E3DFD3;
+  --charcoal: #252A2B;
+  --slate: #575D5C;
+  --orange: #F36B3F;
+  --gold: #EDBA3C;
+  --navy: #23344B;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--stone);
+  color: var(--charcoal);
+  font-family: 'SourceSans3_400Regular', sans-serif;
+  line-height: normal;
+  -webkit-font-smoothing: antialiased;
+}
+.goldrush-home-guide *, .goldrush-home-guide *::before, .goldrush-home-guide *::after {
+  box-sizing: border-box;
+}
+.goldrush-home-guide .extraction-notice {
+  position: absolute;
+  z-index: 100;
+  bottom: 96px;
+  left: 18px;
+  right: 18px;
+  max-width: 560px;
+  margin-inline: auto;
+  padding: 12px;
+  border: 2px solid var(--slate);
+  background: var(--stone);
+  color: var(--charcoal);
+  font-family: 'SourceSans3_400Regular', sans-serif;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.goldrush-home-guide .extraction-notice button {
+  font-family: 'SourceSans3_700Bold', sans-serif;
+  border: 1px solid var(--slate);
+  background: var(--sandstone);
+  padding: 6px 10px;
+  margin-left: auto;
+}

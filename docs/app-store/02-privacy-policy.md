@@ -1,5 +1,7 @@
 # GoldRush Arena — Privacy Policy
 
+> HISTORICAL TEMPLATE, NOT FOR PUBLICATION. The local-only statements below predate online matches and cloud photo avatars. Use the current disclosure in `artifacts/mobile/lib/legalContent.ts` and `docs/privacy.html`, and obtain publisher/legal review before release.
+
 **Last updated: August 2026**
 
 > ⚠️ HOST THIS AT A PUBLIC URL before submission (GitHub Pages, Notion, or any static host). Apple requires a live Privacy Policy URL in App Store Connect — in-app text alone is not enough.

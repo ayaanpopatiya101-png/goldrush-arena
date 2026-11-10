@@ -1,5 +1,7 @@
+import { Text } from '@/components/ui/Text';
+import { palette } from '@/constants/colors';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { RANKS } from '@/context/PlayerContext';
 import { PulseRing, GlowBorder } from '@/components/effects';
 import { Glyph } from '@/components/ui/Glyph';
@@ -62,7 +64,7 @@ export function RankBadge({ rank, size = 'md', showLabel = true }: RankBadgeProp
           <Glyph style={{ fontSize: iconSize, lineHeight: iconSize + 4 }} value={icon} />
           {num ? (
             <View style={[styles.numPip, { backgroundColor: color, borderColor: color + '66' }]}>
-              <Text style={[styles.numTxt, { fontSize: numSize, color: '#213D39CC' }]}>{num}</Text>
+              <Text style={[styles.numTxt, { fontSize: numSize, color: palette.deepest + 'CC' }]}>{num}</Text>
             </View>
           ) : null}
         </View>

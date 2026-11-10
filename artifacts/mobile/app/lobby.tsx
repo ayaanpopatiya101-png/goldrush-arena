@@ -1,3 +1,5 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from '@/utils/haptics';
 import { LinearGradient } from '@/components/ui/Flat';
@@ -12,7 +14,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import Reanimated, {
@@ -40,6 +41,7 @@ import { useSoundFX } from '@/hooks/useSoundFX';
 import { apiUrl } from '@/utils/api';
 import { Glyph } from '@/components/ui/Glyph';
 import { staticLoop } from '@/components/ui/motion';
+import OnlineMatch, { isOnlineMode } from '@/components/multiplayer/OnlineMatch';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface MatchPlayer {
@@ -55,14 +57,14 @@ function genPlayerId(): string {
 }
 
 const VARIANT_META: Record<string, { emoji: string; name: string; color: string }> = {
-  duos:         { emoji: '👥', name: 'DUOS',         color: '#575D5C' },
-  blitz:        { emoji: '⚡', name: 'BLITZ',        color: '#EDBA3C' },
-  chaos:        { emoji: '🌪️', name: 'CHAOS',        color: '#F36B3F' },
-  survival:     { emoji: '🛡️', name: 'SURVIVAL',     color: '#EDBA3C' },
-  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', color: '#F36B3F' },
-  turbo:        { emoji: '🚀', name: 'TURBO',        color: '#575D5C' },
-  pinball:      { emoji: '🎰', name: 'PINBALL',      color: '#EDBA3C' },
-  six_player:   { emoji: '6️⃣', name: '6-PLAYER',     color: '#EDBA3C' },
+  duos:         { emoji: '👥', name: 'DUOS',         color: palette.supporting },
+  blitz:        { emoji: '⚡', name: 'BLITZ',        color: palette.gold },
+  chaos:        { emoji: '🌪️', name: 'CHAOS',        color: palette.primary },
+  survival:     { emoji: '🛡️', name: 'SURVIVAL',     color: palette.gold },
+  sudden_death: { emoji: '💀', name: 'SUDDEN DEATH', color: palette.primary },
+  turbo:        { emoji: '🚀', name: 'TURBO',        color: palette.supporting },
+  pinball:      { emoji: '🎰', name: 'PINBALL',      color: palette.gold },
+  six_player:   { emoji: '6️⃣', name: '6-PLAYER',     color: palette.gold },
 };
 
 const VARIANT_RULES: Record<string, string[]> = {
@@ -159,10 +161,10 @@ const goFlashStyles = StyleSheet.create({
   overlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#213D3955',
+    backgroundColor: palette.deepest + '55',
   },
   text: {
-    fontFamily: 'SourceSans3_700Bold', fontSize: 112, color: '#6F8A5B',
+    fontFamily: 'SourceSans3_700Bold', fontSize: 112, color: palette.primary,
     textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0,
   },
 });
@@ -204,12 +206,12 @@ function CountdownOverlay({ countdown }: { countdown: number }) {
     <View style={styles.countdownOverlay} pointerEvents="none">
       <Animated.View style={{
         position: 'absolute', width: 100, height: 100, borderRadius: 3,
-        borderWidth: 3, borderColor: '#C99A2E',
+        borderWidth: 3, borderColor: palette.gold,
         opacity: ring1Opacity, transform: [{ scale: ring1Scale }],
       }} />
       <Animated.View style={{
         position: 'absolute', width: 100, height: 100, borderRadius: 3,
-        borderWidth: 2, borderColor: '#C99A2E',
+        borderWidth: 2, borderColor: palette.gold,
         opacity: ring2Opacity, transform: [{ scale: ring2Scale }],
       }} />
       <Reanimated.Text style={[styles.countdownText, numStyle]}>
@@ -221,6 +223,11 @@ function CountdownOverlay({ countdown }: { countdown: number }) {
 
 // ─── Screen ────────────────────────────────────────────────────────────────────
 export default function LobbyScreen() {
+  if (hasGameConfig() && isOnlineMode()) return <OnlineMatch />;
+  return <OfflineLobbyScreen />;
+}
+
+function OfflineLobbyScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { profile } = usePlayer();
@@ -517,14 +524,14 @@ export default function LobbyScreen() {
     : opponents.length === 0
     ? 'Preparing local bot seats...'
     : `${opponents.length}/3 bot seats prepared...`;
-  const statusColor = status === 'searching' ? '#252A2B' : '#575D5C';
+  const statusColor = status === 'searching' ? palette.foreground : palette.supporting;
 
   if (!hasGameConfig()) {
     return (
-      <View style={{ flex: 1, backgroundColor: palette.ink, alignItems: 'center', paddingTop: topPad + 24, paddingHorizontal: 18 }}>
+      <View style={{ flex: 1, backgroundColor: palette.background, alignItems: 'center', paddingTop: topPad + 24, paddingHorizontal: 18 }}>
         <View style={{ width: '100%', maxWidth: 520, gap: 16 }}>
-          <Text accessibilityRole="header" style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 30, color: palette.paper }}>No match is set up</Text>
-          <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 16, lineHeight: 24, color: palette.paperDim }}>
+          <Text accessibilityRole="header" style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 30, color: palette.foreground }}>No match is set up</Text>
+          <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 16, lineHeight: 24, color: palette.supporting }}>
             The lobby opens from Play or Events with a chosen mode. Opening it directly or refreshing clears that choice, so no bots were prepared and nothing will start.
           </Text>
           <Button label="Go to Play" size="lg" onPress={() => router.replace('/')} />
@@ -535,10 +542,10 @@ export default function LobbyScreen() {
 
   return (
     <Reanimated.View entering={SlideInRight.duration(260)} exiting={SlideOutRight.duration(220)} style={[styles.root, { backgroundColor: colors.background }]}>
-      <LinearGradient colors={['#EEE9DE', '#E3DFD3', '#EEE9DE']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={[palette.background, palette.surface, palette.background]} style={StyleSheet.absoluteFill} />
       <FloatingOrbs orbs={ORBS_GOLD} opacity={0.5} />
       <LinearGradient
-        colors={['#C99A2E1A', '#C99A2E08', 'transparent']}
+        colors={['transparent', 'transparent']}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 220 }}
         pointerEvents="none"
       />
@@ -554,22 +561,22 @@ export default function LobbyScreen() {
             {(() => {
               const isGauntlet = config.matchType === 'gauntlet';
               const isRanked   = config.matchType === 'ranked';
-              const c = isGauntlet || isRanked ? '#EDBA3C' : '#575D5C';
+              const c = isGauntlet || isRanked ? palette.gold : palette.supporting;
               const label = isGauntlet
                 ? `GAUNTLET · Round ${getGauntletState().roundNumber}`
                 : isRanked ? 'RANKED' : 'CASUAL';
               return (
-                <View style={[styles.modeBadge, { backgroundColor: c === '#EDBA3C' ? c : 'transparent', borderColor: c }]}>
-                  <Text style={[styles.modeBadgeText, { color: c === '#EDBA3C' ? '#252A2B' : c }]}>{label}</Text>
+                <View style={[styles.modeBadge, { backgroundColor: c === palette.gold ? c : 'transparent', borderColor: c }]}>
+                  <Text style={[styles.modeBadgeText, { color: c === palette.gold ? palette.onAccent : c }]}>{label}</Text>
                 </View>
               );
             })()}
             {config.variant !== 'classic' && (() => {
               const vm = VARIANT_META[config.variant];
-              const c  = vm?.color ?? '#252A2B';
+              const c  = vm?.color ?? palette.foreground;
               return (
-                <View style={[styles.modeBadge, { backgroundColor: c === '#EDBA3C' || c === '#F36B3F' ? c : 'transparent', borderColor: c }]}>
-                  <Text style={[styles.modeBadgeText, { color: c === '#EDBA3C' || c === '#F36B3F' ? '#252A2B' : c }]}>
+                <View style={[styles.modeBadge, { backgroundColor: c === palette.gold || c === palette.primary ? c : 'transparent', borderColor: c }]}>
+                  <Text style={[styles.modeBadgeText, { color: c === palette.gold || c === palette.primary ? palette.onAccent : c }]}>
                     {vm?.name}
                   </Text>
                 </View>
@@ -585,8 +592,8 @@ export default function LobbyScreen() {
               );
             })()}
             {profile.totalGames < 5 && (
-              <View style={[styles.modeBadge, { backgroundColor: '#EDBA3C', borderColor: '#252A2B' }]}>
-                <Text style={[styles.modeBadgeText, { color: '#252A2B' }]}>
+              <View style={[styles.modeBadge, { backgroundColor: palette.gold, borderColor: palette.edge }]}>
+                <Text style={[styles.modeBadgeText, { color: palette.onAccent }]}>
                    TRAINING · {5 - profile.totalGames} left
                 </Text>
               </View>
@@ -603,14 +610,14 @@ export default function LobbyScreen() {
             <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
               {([dot1Anim, dot2Anim, dot3Anim] as Animated.Value[]).map((anim, i) => (
                 <Animated.View key={i} style={{
-                  width: 8, height: 8, borderRadius: 4, backgroundColor: '#C99A2E',
+                  width: 8, height: 8, borderRadius: 4, backgroundColor: palette.gold,
                   opacity: anim,
                   transform: [{ scale: anim.interpolate({ inputRange: [0.2, 1], outputRange: [0.7, 1] }) }],
                 }} />
               ))}
             </View>
           ) : (
-            <View style={[styles.dot, { backgroundColor: '#6F8A5B' }]} />
+            <View style={[styles.dot, { backgroundColor: palette.primary }]} />
           )}
           <Text style={[styles.statusText, { color: statusColor }]}>{searchingLabel}</Text>
         </View>
@@ -621,30 +628,30 @@ export default function LobbyScreen() {
         )}
 
         {/* Lives bank: shown only when it can be used */}
-        {bankLives > 0 ? <View style={{ marginBottom: 8, backgroundColor: '#B4533A10', borderRadius: 3, borderWidth: 1, borderColor: '#B4533A33', padding: 14, gap: 10 }}>
+        {bankLives > 0 ? <View style={{ marginBottom: 8, backgroundColor: palette.danger + '10', borderRadius: 3, borderWidth: 1, borderColor: palette.danger + '33', padding: 14, gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, color: '#B4533A' }}>LIVES BANK</Text>
+            <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, color: palette.danger }}>LIVES BANK</Text>
             <View style={{ flex: 1 }} />
             {bankLives > 0 ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                 {Array.from({ length: Math.min(bankLives, 6) }).map((_, i) => (
                   <Glyph key={i} style={{ fontSize: 11 }} value="❤️" />
                 ))}
-                {bankLives > 6 && <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: '#B4533AAA' }}>+{bankLives - 6}</Text>}
+                {bankLives > 6 && <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: palette.danger + 'AA' }}>+{bankLives - 6}</Text>}
               </View>
             ) : (
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: '#ECE7DC33' }}>Empty</Text>
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: palette.supporting }}>Empty</Text>
             )}
           </View>
 
           {bankLives > 0 ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#ECE7DC99' }}>
+                <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.supporting }}>
                   Use {livesUsed} {livesUsed === 1 ? 'life' : 'lives'} this match
                 </Text>
                 {isChampionPlus && (
-                  <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: '#B4533A66', marginTop: 2 }}>
+                  <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: palette.danger + '66', marginTop: 2 }}>
                      Champion+ cap: 2 lives per match
                   </Text>
                 )}
@@ -652,23 +659,23 @@ export default function LobbyScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Pressable
                   onPress={() => { setLivesUsed(v => Math.max(0, v - 1)); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                  style={[{ width: 32, height: 32, borderRadius: 3, backgroundColor: '#B4533A20', borderWidth: 1, borderColor: '#B4533A44', alignItems: 'center', justifyContent: 'center' }, livesUsed === 0 && { opacity: 0.35 }]}
+                  style={[{ width: 32, height: 32, borderRadius: 3, backgroundColor: palette.danger + '20', borderWidth: 1, borderColor: palette.danger + '44', alignItems: 'center', justifyContent: 'center' }, livesUsed === 0 && { opacity: 0.35 }]}
                   disabled={livesUsed === 0}
                 >
-                  <Text style={{ color: '#B4533A', fontFamily: 'SourceSans3_700Bold', fontSize: 20, lineHeight: 22 }}>−</Text>
+                  <Text style={{ color: palette.danger, fontFamily: 'SourceSans3_700Bold', fontSize: 20, lineHeight: 22 }}>−</Text>
                 </Pressable>
-                <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 24, color: '#B4533A', minWidth: 22, textAlign: 'center' }}>{livesUsed}</Text>
+                <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 24, color: palette.danger, minWidth: 22, textAlign: 'center' }}>{livesUsed}</Text>
                 <Pressable
                   onPress={() => { setLivesUsed(v => Math.min(livesCap, v + 1)); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                  style={[{ width: 32, height: 32, borderRadius: 3, backgroundColor: '#B4533A20', borderWidth: 1, borderColor: '#B4533A44', alignItems: 'center', justifyContent: 'center' }, livesUsed >= livesCap && { opacity: 0.35 }]}
+                  style={[{ width: 32, height: 32, borderRadius: 3, backgroundColor: palette.danger + '20', borderWidth: 1, borderColor: palette.danger + '44', alignItems: 'center', justifyContent: 'center' }, livesUsed >= livesCap && { opacity: 0.35 }]}
                   disabled={livesUsed >= livesCap}
                 >
-                  <Text style={{ color: '#B4533A', fontFamily: 'SourceSans3_700Bold', fontSize: 20, lineHeight: 22 }}>+</Text>
+                  <Text style={{ color: palette.danger, fontFamily: 'SourceSans3_700Bold', fontSize: 20, lineHeight: 22 }}>+</Text>
                 </Pressable>
               </View>
             </View>
           ) : (
-            <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#ECE7DC44', lineHeight: 18 }}>
+            <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.supporting, lineHeight: 18 }}>
               Earn lives from Gold Strikes (Dragon Cache &amp; Nexus Core), the Premium Pass, the Shop, or by referring friends.
             </Text>
           )}
@@ -676,20 +683,20 @@ export default function LobbyScreen() {
 
         {/* Party panel, only visible when player is in a party */}
         {isInParty && (
-          <View style={{ marginBottom: 8, backgroundColor: '#8C8F7A0F', borderRadius: 3, borderWidth: 1, borderColor: '#8C8F7A44', padding: 12, gap: 8 }}>
+          <View style={{ marginBottom: 8, backgroundColor: palette.border, borderRadius: 3, borderWidth: 1, borderColor: palette.border, padding: 12, gap: 8 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, color: '#8C8F7A' }}>YOUR PARTY</Text>
-              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: '#8C8F7A88', letterSpacing: 1.5 }}>· {partyCode}</Text>
+              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, color: palette.supporting }}>YOUR PARTY</Text>
+              <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: palette.supporting, letterSpacing: 1.5 }}>· {partyCode}</Text>
               <View style={{ flex: 1 }} />
-              <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: '#C9D2C6' }}>Entered together; arena opponents are local bots</Text>
+              <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: palette.supporting }}>Entered together; arena opponents are local bots</Text>
             </View>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {partyMembers.map(m => (
-                <View key={m.playerId} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#ECE7DC08', borderRadius: 3, paddingHorizontal: 8, paddingVertical: 5 }}>
+                <View key={m.playerId} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: palette.inset, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 5 }}>
                   <Glyph style={{ fontSize: 14 }} value={m.avatarEmoji} />
                   <View>
-                    <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: '#ECE7DC' }}>{m.name}</Text>
-                    <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: '#ECE7DC55' }}>{m.rank}</Text>
+                    <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: palette.foreground }}>{m.name}</Text>
+                    <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 9, color: palette.supporting }}>{m.rank}</Text>
                   </View>
                   {m.isLeader && <Glyph style={{ fontSize: 10 }} value="👑" />}
                 </View>
@@ -700,21 +707,21 @@ export default function LobbyScreen() {
 
         {/* Game rules */}
         <View style={[styles.rulesCard, {
-          backgroundColor: tactile.paperPanel,
-          borderColor: tactile.brassEdge,
+          backgroundColor: palette.surface,
+          borderColor: palette.edge,
         }]}>
           <Pressable
             onPress={() => setRulesOpen(o => !o)}
             accessibilityRole="button"
             accessibilityState={{ expanded: rulesOpen }}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 }}>
-            <Text style={[styles.rulesTitle, { color: tactile.paperInk, marginBottom: 0 }]}>
+            <Text style={[styles.rulesTitle, { color: palette.foreground, marginBottom: 0 }]}>
               {config.variant !== 'classic'
                 ? `${VARIANT_META[config.variant]?.name ?? ''} RULES`
                 : 'HOW TO PLAY'}
             </Text>
             <View style={{ flex: 1 }} />
-            <Feather name={rulesOpen ? 'chevron-up' : 'chevron-down'} size={18} color={tactile.paperInk} />
+            <Feather name={rulesOpen ? 'chevron-up' : 'chevron-down'} size={18} color={palette.foreground} />
           </Pressable>
           {rulesOpen ? <View style={styles.rulesList}>
             {(VARIANT_RULES[config.variant] ?? VARIANT_RULES['classic']!).map((rule, i) => (
@@ -724,7 +731,7 @@ export default function LobbyScreen() {
                     ? (VARIANT_META[config.variant]?.color ?? colors.primary)
                     : colors.primary,
                 }]} />
-                 <Text style={[styles.ruleText, { color: tactile.paperMuted }]}>{rule}</Text>
+                 <Text style={[styles.ruleText, { color: palette.supporting }]}>{rule}</Text>
               </View>
             ))}
           </View> : null}
@@ -733,9 +740,9 @@ export default function LobbyScreen() {
         <View style={styles.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>MATCH SEATS</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: palette.inset }} />
           </View>
-          <Text style={{ color: '#B8B5AA', fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20 }}>
+          <Text style={{ color: palette.supporting, fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20 }}>
             You control South. Opponent paddles are local bots, even when matchmaking supplies player names. Parties coordinate entry, not synchronized human gameplay.
           </Text>
           <View style={styles.playersList}>
@@ -777,7 +784,7 @@ export default function LobbyScreen() {
         <View style={styles.section}>
           <View style={[styles.sectionHead, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>ARENA</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ECE7DC0E' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: palette.inset }} />
           </View>
           <ScrollView
             horizontal
@@ -813,8 +820,8 @@ export default function LobbyScreen() {
                   <Text style={[styles.mapDesc, { color: colors.mutedForeground }]} numberOfLines={3}>{map.desc}</Text>
                   {unlocked
                     ? (selected
-                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color="#252A2B" /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
-                        : <View style={[styles.mapBadge, { backgroundColor: '#ECE7DC14' }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
+                        ? <View style={[styles.mapBadge, { backgroundColor: map.accent }]}><Feather name="check" size={10} color={palette.foreground} /><Text style={styles.mapBadgeText}>SELECTED</Text></View>
+                        : <View style={[styles.mapBadge, { backgroundColor: palette.inset }]}><Text style={[styles.mapBadgeText, { color: colors.mutedForeground }]}>SELECT</Text></View>)
                     : <View style={[styles.mapLockBadge, { borderColor: reqRank?.color + '66' }]}><Feather name="lock" size={9} color={reqRank?.color} /><Text style={[styles.mapLockText, { color: reqRank?.color }]}>{reqRank?.name}</Text></View>}
                 </Pressable>
               );
@@ -843,7 +850,7 @@ const styles = StyleSheet.create({
   modeBadge:   { borderRadius: 3, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 4 },
   modeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 1.5 },
   content: { paddingHorizontal: 18, paddingBottom: 40, gap: 20, width: '100%', maxWidth: 760, alignSelf: 'center' },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderWidth: 2, borderColor: tactile.brassEdge, backgroundColor: palette.graphite },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface },
   dot: { width: 8, height: 8, borderRadius: 4 },
   statusText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
   section: { gap: 10 },
@@ -857,7 +864,7 @@ const styles = StyleSheet.create({
   mapName: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   mapDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, lineHeight: 14, minHeight: 42 },
   mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
-  mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: '#252A2B', letterSpacing: 0.5 },
+  mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: palette.foreground, letterSpacing: 0.5 },
   mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
   mapLockText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
   rulesCard: { borderRadius: 0, borderWidth: 2, padding: 16, gap: 10 },
@@ -866,6 +873,6 @@ const styles = StyleSheet.create({
   ruleItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   ruleDot: { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
   ruleText: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, flex: 1, lineHeight: 19 },
-  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#23344BEE', alignItems: 'center', justifyContent: 'center' },
-  countdownText: { color: '#EDBA3C', fontSize: 96, fontFamily: 'SourceSans3_700Bold', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: palette.deepest + 'EE', alignItems: 'center', justifyContent: 'center' },
+  countdownText: { color: palette.gold, fontSize: 96, fontFamily: 'SourceSans3_700Bold', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
 });

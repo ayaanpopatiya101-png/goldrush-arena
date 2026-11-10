@@ -1,15 +1,9 @@
+import { Text } from '@/components/ui/Text';
+import { palette } from '@/constants/colors';
 import { Feather } from "@expo/vector-icons";
 import { reloadAppAsync } from "expo";
 import React, { useState } from "react";
-import {
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, View,  } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
@@ -214,7 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     paddingHorizontal: 24,
     minWidth: 200,
-    shadowColor: '#213D39',
+    shadowColor: palette.background,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -230,7 +224,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "#172E2AEE",
+    backgroundColor: palette.deepest + 'EE',
     justifyContent: "flex-end",
   },
   modalContainer: {
@@ -239,7 +233,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderWidth: 3,
-    borderColor: '#CCAD6A',
+    borderColor: palette.border,
   },
   modalHeader: {
     flexDirection: "row",

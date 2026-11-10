@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { logger } from "../lib/logger.js";
+import { requireArenaIdentity, limited } from "../lib/arenaIdentity.js";
 
 const router: IRouter = Router();
 
@@ -33,6 +34,22 @@ interface Party {
 
 // ─── In-memory state ──────────────────────────────────────────────────────────
 const parties  = new Map<string, Party>();
+export function partyAllows(code: string, playerId: string, mode: string, variant: string) {
+  const party = parties.get(code);
+  return !!party && party.members.some(m => m.playerId === playerId) &&
+    (!party.launchConfig || (party.launchConfig.matchType === mode && party.launchConfig.variant === variant));
+}
+export function partyMemberIds(code: string) { return parties.get(code)?.members.map(m => m.playerId); }
+router.use("/party", requireArenaIdentity, (req, res, next) => {
+  const identity = res.locals.arenaPlayer;
+  if (limited(`party:${identity.id}`, 90)) { res.status(429).json({ error: "Too many party requests" }); return; }
+  req.body = { ...(req.body ?? {}), playerId: identity.id };
+  if (req.body.partyCode && !/^[A-Z2-9]{6}$/.test(req.body.partyCode)) {
+    res.status(400).json({ error: "Invalid party code" }); return;
+  }
+  if (req.body.playerName) req.body.playerName = String(req.body.playerName).trim().slice(0, 24);
+  next();
+});
 const PARTY_TTL = 30 * 60 * 1_000; // 30 min
 
 function cleanParties() {
@@ -129,6 +146,9 @@ router.get('/party/:code/members', (req, res) => {
   cleanParties();
   const party = parties.get((req.params.code ?? '').toUpperCase());
   if (!party) { res.status(404).json({ error: 'party not found' }); return; }
+  if (!party.members.some(m => m.playerId === res.locals.arenaPlayer.id)) {
+    res.status(403).json({ error: "Not a party member" }); return;
+  }
   res.json({ members: party.members.map(memberView), launchConfig: party.launchConfig ?? null });
 });
 
@@ -147,6 +167,9 @@ router.patch('/party/:code/launch', (req, res) => {
   };
 
   const leader = party.members.find(m => m.isLeader);
+  if (!["casual", "ranked"].includes(matchType) || !["classic","duos","blitz","chaos","survival","sudden_death","turbo","pinball","rally_race"].includes(variant) || (matchType === "ranked" && variant === "rally_race")) {
+    res.status(400).json({ error: "This party mode is not supported online." }); return;
+  }
   if (!leader || leader.playerId !== playerId) {
     res.status(403).json({ error: 'only the party leader can launch' });
     return;

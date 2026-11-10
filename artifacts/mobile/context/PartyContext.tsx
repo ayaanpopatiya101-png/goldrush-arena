@@ -4,6 +4,12 @@ import { usePlayer, SKINS } from './PlayerContext';
 import { apiUrl } from '@/utils/api';
 import { setGameConfig } from '@/store/gameSession';
 import type { MatchType, GameVariant } from '@/store/gameSession';
+import { getArenaSession, arenaRequestOptions } from '@/utils/arenaSession';
+
+async function partyFetch(url: string, init: RequestInit = {}) {
+  const auth = await arenaRequestOptions();
+  return fetch(url, { ...init, signal: auth.signal, headers: { ...init.headers, ...auth.headers } });
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface PartyMember {
@@ -40,7 +46,7 @@ interface PartyContextType {
   joinParty:   (code: string) => Promise<'ok' | 'not_found' | 'full' | 'error'>;
   leaveParty:  () => void;
   /** Leader only: broadcasts a game-mode launch to all party members, who auto-navigate to /lobby. */
-  launchParty: (cfg: PartyLaunchConfig) => void;
+  launchParty: (cfg: PartyLaunchConfig) => Promise<boolean>;
 }
 
 const PartyContext = createContext<PartyContextType>({
@@ -49,7 +55,7 @@ const PartyContext = createContext<PartyContextType>({
   createParty: async () => null,
   joinParty:   async () => 'error' as const,
   leaveParty:  () => {},
-  launchParty: () => {},
+   launchParty: async () => false,
 });
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -64,7 +70,15 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
   const [partyCode, setPartyCode] = useState<string | null>(null);
   const [members,   setMembers]   = useState<PartyMember[]>([]);
   const pollRef          = useRef<ReturnType<typeof setInterval> | null>(null);
-  const playerIdRef      = useRef(`${profile.name}-${Date.now()}`);
+   const playerIdRef      = useRef('');
+   const [identityId, setIdentityId] = useState('');
+   useEffect(() => {
+     let active = true;
+     getArenaSession().then(s => {
+       if (active) { playerIdRef.current = s.playerId; setIdentityId(s.playerId); }
+     }).catch(() => {});
+     return () => { active = false; };
+   }, []);
   const profileRef       = useRef(profile);
   const isLeaderRef      = useRef(false);
   const lastLaunchTimeRef = useRef<number>(0);
@@ -83,7 +97,8 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
 
   const refreshMembers = useCallback(async (code: string) => {
     try {
-      const res = await fetch(apiUrl(`/party/${code}/members`));
+      const res = await partyFetch(apiUrl(`/party/${code}/members`));
+      if (res.status === 404 || res.status === 403) { stopPoll(); setPartyCode(null); setMembers([]); return; }
       if (!res.ok) return;
       const data = await res.json() as { members: PartyMember[]; launchConfig: ServerLaunchConfig | null };
       setMembers(data.members);
@@ -119,7 +134,9 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
   async function createParty(): Promise<string | null> {
     const code = genPartyCode();
     try {
-      const res = await fetch(apiUrl('/party/create'), {
+      const session = await getArenaSession();
+      playerIdRef.current = session.playerId; setIdentityId(session.playerId);
+      const res = await partyFetch(apiUrl('/party/create'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -138,23 +155,15 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
       stopPoll();
       pollRef.current = setInterval(() => refreshMembers(code), 3000);
       return code;
-    } catch {
-      // Offline: create locally so the UI still works for single-device use
-      const me: PartyMember = {
-        playerId: playerIdRef.current, name: profile.name,
-        avatarEmoji: profile.avatarEmoji, rank: profile.rank,
-        winStreak: profile.winStreak, isLeader: true,
-      };
-      setPartyCode(code);
-      setMembers([me]);
-      return code;
-    }
+    } catch { return null; }
   }
 
   async function joinParty(code: string): Promise<'ok' | 'not_found' | 'full' | 'error'> {
     const upper = code.toUpperCase().trim();
     try {
-      const res = await fetch(apiUrl('/party/join'), {
+      const session = await getArenaSession();
+      playerIdRef.current = session.playerId; setIdentityId(session.playerId);
+      const res = await partyFetch(apiUrl('/party/join'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -183,7 +192,7 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
   function leaveParty() {
     stopPoll();
     if (partyCode) {
-      fetch(apiUrl('/party/leave'), {
+      partyFetch(apiUrl('/party/leave'), {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ partyCode, playerId: playerIdRef.current }),
@@ -195,13 +204,16 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
   }
 
   /** Leader broadcasts the chosen game mode; all non-leader members auto-navigate to /lobby. */
-  function launchParty(cfg: PartyLaunchConfig) {
-    if (!partyCode) return;
-    fetch(apiUrl(`/party/${partyCode}/launch`), {
+  async function launchParty(cfg: PartyLaunchConfig): Promise<boolean> {
+    if (!partyCode) return false;
+    try {
+    const response = await partyFetch(apiUrl(`/party/${partyCode}/launch`), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerId: playerIdRef.current, ...cfg }),
-    }).catch(() => {}); // fire-and-forget; leader navigates immediately in the calling component
+    });
+    return response.ok;
+    } catch { return false; }
   }
 
   useEffect(() => () => stopPoll(), []);
@@ -209,7 +221,7 @@ export function PartyProvider({ children }: { children: React.ReactNode }) {
   return (
     <PartyContext.Provider value={{
       partyCode, members, isInParty, isLeader,
-      myPlayerId: playerIdRef.current,
+       myPlayerId: identityId,
       createParty, joinParty, leaveParty, launchParty,
     }}>
       {children}

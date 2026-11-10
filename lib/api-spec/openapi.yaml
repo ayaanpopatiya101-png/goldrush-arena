@@ -11,6 +11,243 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /cosmetics:
+    get:
+      operationId: getCosmetics
+      responses:
+        "200":
+          description: Verified coin wallet and owned cosmetics
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CosmeticState" }
+  /cosmetics/designs:
+    post:
+      operationId: savePaddleDesign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PaddleDesign" }
+      responses:
+        "200":
+          description: Saved design
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CosmeticState" }
+  /cosmetics/designs/{id}:
+    delete:
+      operationId: deletePaddleDesign
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Removed design and unequipped if active
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CosmeticState" }
+  /cosmetics/equip:
+    post:
+      operationId: equipCosmetic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CosmeticEquipInput" }
+      responses:
+        "200":
+          description: Equipped
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CosmeticState" }
+  /cosmetics/purchase:
+    post:
+      operationId: purchaseCosmetic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CosmeticPurchaseInput" }
+      responses:
+        "200":
+          description: Atomic repeat-safe purchase
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CosmeticState" }
+  /cosmetics/offer:
+    post:
+      operationId: respondCosmeticOffer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CosmeticOfferInput" }
+      responses:
+        "200":
+          description: Recorded offer impression or dismissal
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CosmeticState" }
+  /openai/paddle-design:
+    post:
+      operationId: assistPaddleDesign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DesignAssistInput" }
+      responses:
+        "200":
+          description: Validated parameters only, never generated code
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DesignAssistResult" }
+  /multiplayer/avatar/retire:
+    post:
+      operationId: retireAvatarIdentity
+      responses:
+        "204": { description: Photo removed and guest credential revoked }
+  /multiplayer/avatar/upload/{id}:
+    put:
+      operationId: putAvatarBytes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          image/jpeg:
+            schema: { type: string, format: binary }
+      responses:
+        "204": { description: Authenticated image stored with hard 5 MB limit }
+        "413": { description: Rejected before writing any object }
+  /multiplayer/avatar:
+    get:
+      operationId: getAvatar
+      responses:
+        "200":
+          description: Own avatar metadata
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AvatarInfo" }
+    patch:
+      operationId: shareAvatar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AvatarSharingInput" }
+      responses:
+        "200":
+          description: Sharing preference saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AvatarInfo" }
+    delete:
+      operationId: removeAvatar
+      responses:
+        "204": { description: Avatar removed }
+  /multiplayer/avatar/upload:
+    post:
+      operationId: requestAvatarUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AvatarUploadInput" }
+      responses:
+        "200":
+          description: Owned staging upload
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, uploadUrl]
+                properties:
+                  id: { type: string }
+                  uploadUrl: { type: string }
+  /multiplayer/avatar/commit:
+    post:
+      operationId: commitAvatar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AvatarCommitInput" }
+      responses:
+        "200":
+          description: Validated and saved avatar
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AvatarInfo" }
+  /multiplayer/competition:
+    get:
+      operationId: getCompetition
+      responses:
+        "200":
+          description: Authenticated skill record, separate from local XP
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [current, history]
+                properties:
+                  current: { $ref: "#/components/schemas/CompetitiveSeason" }
+                  history:
+                    type: array
+                    items: { $ref: "#/components/schemas/CompetitiveSeason" }
+  /multiplayer/session:
+    post:
+      operationId: createPlayerSession
+      responses:
+        "200":
+          description: Server-issued device identity
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlayerSession" }
+  /multiplayer/queue:
+    post:
+      operationId: joinLiveQueue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/QueueInput" }
+      responses:
+        "200":
+          description: Authorized room
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiveRoom" }
+    delete:
+      operationId: leaveLiveQueue
+      responses:
+        "204":
+          description: Left queue or forfeited live match
+  /multiplayer/current:
+    get:
+      operationId: getLiveRoom
+      responses:
+        "200":
+          description: Current authorized room
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiveRoom" }
+  /multiplayer/result/{matchId}:
+    get:
+      operationId: getLiveResult
+      parameters:
+        - in: path
+          name: matchId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Immutable server-validated reward receipt belonging to this player
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiveResult" }
   /healthz:
     get:
       operationId: healthCheck
@@ -26,6 +263,173 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    PaddleDesign:
+      type: object
+      required: [id, name, motif, base, ink, accent, density, texture]
+      properties:
+        id: { type: string, pattern: "^custom_[a-f0-9-]{36}$" }
+        name: { type: string, minLength: 1, maxLength: 32 }
+        motif: { type: string, enum: [chevron, circuit, checker, sunburst, wave, facets, racing, crosshatch] }
+        base: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+        ink: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+        accent: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+        density: { type: integer, minimum: 2, maximum: 8 }
+        texture: { type: string, enum: [none, etched, grain] }
+    CosmeticState:
+      type: object
+      required: [balance, owned, designs, equippedSkin, equippedTheme, equippedStrike, offerAvailable, offerDismissed, offerLastShown]
+      properties:
+        balance: { type: integer }
+        owned: { type: array, items: { type: string } }
+        designs: { type: array, items: { $ref: "#/components/schemas/PaddleDesign" } }
+        equippedSkin: { type: string }
+        equippedTheme: { type: string }
+        equippedStrike: { type: string }
+        offerAvailable: { type: boolean }
+        offerDismissed: { type: boolean }
+        offerLastShown: { type: number }
+    CosmeticEquipInput:
+      type: object
+      required: [kind, id]
+      properties:
+        kind: { type: string, enum: [skin, theme, strike] }
+        id: { type: string, maxLength: 80 }
+    CosmeticPurchaseInput:
+      type: object
+      required: [id, requestId]
+      properties:
+        id: { type: string, maxLength: 80 }
+        requestId: { type: string, pattern: "^[a-f0-9-]{36}$" }
+    CosmeticOfferInput:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [shown, dismissed] }
+    DesignAssistInput:
+      type: object
+      required: [prompt, current]
+      properties:
+        prompt: { type: string, minLength: 3, maxLength: 600 }
+        current: { $ref: "#/components/schemas/PaddleDesign" }
+    DesignAssistResult:
+      type: object
+      required: [design, explanation, remaining]
+      properties:
+        design: { $ref: "#/components/schemas/PaddleDesign" }
+        explanation: { type: string, maxLength: 300 }
+        remaining: { type: integer }
+    AvatarSharingInput:
+      type: object
+      required: [shared]
+      properties:
+        shared: { type: boolean }
+    AvatarUploadInput:
+      type: object
+      required: [size, contentType]
+      properties:
+        size: { type: integer, minimum: 1, maximum: 5242880 }
+        contentType: { type: string, enum: [image/jpeg, image/png, image/webp] }
+    AvatarCommitInput:
+      type: object
+      required: [uploadId, shared]
+      properties:
+        uploadId: { type: string }
+        shared: { type: boolean }
+    AvatarInfo:
+      type: object
+      required: [id, shared]
+      properties:
+        id: { type: [string, "null"] }
+        shared: { type: boolean }
+    CompetitiveSeason:
+      type: object
+      required: [season, rating, games, wins, peak, lastDelta, division, placed, endsAt]
+      properties:
+        season: { type: string }
+        rating: { type: integer }
+        games: { type: integer }
+        wins: { type: integer }
+        peak: { type: integer }
+        lastDelta: { type: integer }
+        division: { type: string }
+        placed: { type: boolean }
+        endsAt: { type: string }
+    PlayerSession:
+      type: object
+      required: [playerId, token]
+      properties:
+        playerId: { type: string }
+        token: { type: string }
+    QueueInput:
+      type: object
+      required: [name, color, mode, variant, latency]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 24 }
+        color: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+        mode: { type: string, enum: [ranked, casual] }
+        variant: { type: string, enum: [classic, blitz, chaos, survival, sudden_death, turbo, pinball, duos, rally_race] }
+        latency: { type: number, minimum: 0, maximum: 2000 }
+        partyCode: { type: string, pattern: "^[A-Z2-9]{6}$" }
+    LivePlayer:
+      type: object
+      required: [id, name, color, seat, isBot, connected, paddle, lives, hits, goals, place, rating]
+      properties:
+        avatarUrl: { type: [string, "null"] }
+        id: { type: string }
+        name: { type: string }
+        color: { type: string }
+        seat: { type: integer }
+        isBot: { type: boolean }
+        connected: { type: boolean }
+        paddle: { type: number }
+        lives: { type: integer }
+        hits: { type: integer }
+        goals: { type: integer }
+        place: { type: integer }
+        rating: { type: integer }
+    LiveBall:
+      type: object
+      required: [id, x, y]
+      properties:
+        id: { type: integer }
+        x: { type: number }
+        y: { type: number }
+    LiveRoom:
+      type: object
+      required: [id, phase, mode, variant, region, players, balls, tick, serverTime, startAt, createdAt, reason]
+      properties:
+        id: { type: string }
+        phase: { type: string, enum: [waiting, countdown, playing, saving, finished, void] }
+        mode: { type: string, enum: [ranked, casual] }
+        variant: { type: string }
+        region: { type: string }
+        players:
+          type: array
+          items: { $ref: "#/components/schemas/LivePlayer" }
+        balls:
+          type: array
+          items: { $ref: "#/components/schemas/LiveBall" }
+        tick: { type: integer }
+        serverTime: { type: number }
+        startAt: { type: number }
+        createdAt: { type: number }
+        reason: { type: string }
+    LiveResult:
+      type: object
+      required: [matchId, playerId, won, position, deflections, goalsAgainst, xpEarned, coinsEarned, matchType, humanCount, ratingBefore, ratingAfter]
+      properties:
+        matchId: { type: string }
+        playerId: { type: string }
+        won: { type: boolean }
+        position: { type: integer }
+        deflections: { type: integer }
+        goalsAgainst: { type: integer }
+        xpEarned: { type: integer }
+        coinsEarned: { type: integer }
+        matchType: { type: string, enum: [ranked, casual] }
+        humanCount: { type: integer }
+        ratingBefore: { type: integer }
+        ratingAfter: { type: integer }
     HealthStatus:
       type: object
       properties:

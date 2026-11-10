@@ -3,7 +3,7 @@ import { Platform, ScrollView, StyleSheet, Text, View, useWindowDimensions } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GameArena } from '@/components/GameArena';
 import { Button, Chip, Panel } from '@/components/ui/Primitives';
-import { palette } from '@/constants/colors';
+import { palette , PLAYER_COLORS } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { usePlayer } from '@/context/PlayerContext';
 import { useBlockingOverlay } from '@/context/OverlayQueue';
@@ -21,13 +21,15 @@ export function nextTutorialStep(step: TutorialStep, event: StageEvent | 'startM
   return step;
 }
 
+const TRACK: Record<TutorialStep, number> = { move: 20, block: 40, miss: 55, missDone: 65, match: 82, progress: 100 };
+
 const COPY: Record<TutorialStep, { kicker: string; title: string; body: string }> = {
   move: { kicker: 'Step 1 of 4 · Move', title: 'Slide your paddle', body: 'Your paddle sits on the bottom edge, nearest you. Drag along the court. On desktop, click and drag. The ball waits until you move.' },
   block: { kicker: 'Step 2 of 4 · Block', title: 'Meet the slow ball', body: 'A slow ball is heading for your edge. Put your paddle in its path to send it back.' },
   miss: { kicker: 'Step 3 of 4 · Miss', title: 'Now let one through', body: 'Place your paddle, then watch. This ball is aimed away from you on purpose so you can see what a miss looks like.' },
   missDone: { kicker: 'Step 3 of 4 · Miss', title: 'That cost a life', body: 'A ball that crosses your bottom edge removes one life. Lose them all and you are out. Here it was free. Next, a gentle match against three local bots.' },
   match: { kicker: 'Step 4 of 4 · Intro match', title: 'Last paddle standing', body: 'Slow ball, no power-ups, extra lives. Protect the bottom edge. Nothing here affects rank or history.' },
-  progress: { kicker: 'Debrief', title: 'How you climb', body: 'Account XP unlocks XP ranks and cosmetics. Only Ranked changes competitive level. Quest claims earn pass points separately. Practice and this tutorial award nothing.' },
+  progress: { kicker: 'Debrief', title: 'How you climb', body: 'Account XP unlocks service ranks and cosmetics. Only real-player Ranked changes seasonal skill. Quest claims earn pass points separately. Practice and this tutorial award nothing.' },
 };
 
 /** First-run and Settings replay share this flow and the profile completion flag. */
@@ -66,7 +68,7 @@ export function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
   const showCourt = step !== 'progress';
   const isMatch = step === 'match';
   const shared = {
-    arenaSize, playerName: 'You', playerColor: palette.orange, playerGlowColor: palette.orange,
+    arenaSize, playerName: 'You', playerColor: PLAYER_COLORS[0], playerGlowColor: PLAYER_COLORS[0],
     botNames: ['North bot', 'West bot', 'East bot'], botRanks: ['Bronze 1', 'Bronze 1', 'Bronze 1'],
     practice: true, botDifficulty: 'easy' as const, soundEnabled: false,
   };
@@ -78,6 +80,10 @@ export function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
         <View style={s.heading}>
           <Text style={s.kicker}>{copy.kicker}</Text>
           <Button testID="tutorial-skip" label="Skip" size="sm" variant="ghost" onPress={finish} disabled={busy} />
+        </View>
+        {/* Lesson track: one continuous bar like the entry flow */}
+        <View style={s.track} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <View style={[s.trackFill, { width: `${TRACK[step]}%` as never }]} />
         </View>
         <Text accessibilityRole="header" style={s.title}>{copy.title}</Text>
         <Text style={s.body} accessibilityLiveRegion="polite">{copy.body}</Text>
@@ -105,13 +111,13 @@ export function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
 
         {step === 'progress' && (
           <Panel style={s.debrief}>
-            {[['Account XP', 'Casual and Ranked earn XP toward cosmetic unlocks.'], ['Competitive level', 'Ranked placement changes your level. Casual does not.'], ['Pass points', 'Claim completed quests to advance the pass.'], ['Ownership', 'Owned cosmetics stay in Collection.']].map(([k, v]) => (
+            {[['Account XP', 'Casual and Ranked earn XP toward cosmetic unlocks.'], ['Season skill', 'Five real-player Ranked placements reveal your division. Casual does not affect skill.'], ['Pass points', 'Claim completed quests to advance the pass.'], ['Ownership', 'Owned cosmetics stay in Collection.']].map(([k, v]) => (
               <View key={k} style={s.row}><Text style={s.rowKey}>{k}</Text><Text style={s.rowVal}>{v}</Text></View>
             ))}
           </Panel>
         )}
 
-        {error && <Text accessibilityRole="alert" style={[s.body, { color: palette.clay }]}>{error}</Text>}
+        {error && <Text accessibilityRole="alert" style={[s.body, { color: palette.supporting }]}>{error}</Text>}
         {step === 'progress' && (
           <Button testID="tutorial-finish" label={error ? 'Retry save' : 'Finish tutorial'} size="lg" loading={busy} onPress={finish} />
         )}
@@ -122,17 +128,19 @@ export function TutorialOverlay({ onComplete }: { onComplete: () => void }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.ink },
+  root: { flex: 1, backgroundColor: palette.background },
   content: { width: '100%', maxWidth: 720, alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 8, gap: 12 },
   heading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  kicker: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.4, color: palette.charcoal, textTransform: 'uppercase', flexShrink: 1 },
-  title: { fontFamily: fonts.display, fontSize: 30, color: palette.paper },
-  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22, color: palette.paperDim },
-  court: { alignSelf: 'center' },
+  track: { height: 14, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, padding: 2 },
+  trackFill: { height: '100%', backgroundColor: palette.gold },
+  kicker: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.4, color: palette.supporting, textTransform: 'uppercase', flexShrink: 1 },
+  title: { fontFamily: fonts.display, fontSize: 32, lineHeight: 34, color: palette.foreground, textTransform: 'uppercase', marginTop: 4 },
+  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22, color: palette.supporting },
+  court: { alignSelf: 'center', backgroundColor: palette.inset },
   legend: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap' },
   debrief: { padding: 4 },
-  row: { flexDirection: 'row', gap: 12, paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: palette.line },
-  rowKey: { fontFamily: fonts.display, fontSize: 17, color: palette.paper, width: 90, textTransform: 'uppercase', letterSpacing: 1 },
-  rowVal: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.paperDim, flex: 1 },
+  row: { flexDirection: 'row', gap: 12, paddingVertical: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: palette.border },
+  rowKey: { fontFamily: fonts.display, fontSize: 17, color: palette.foreground, width: 90, textTransform: 'uppercase', letterSpacing: 1 },
+  rowVal: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.supporting, flex: 1 },
   note: { fontFamily: fonts.body, fontSize: 13, color: palette.muted, textAlign: 'center' },
 });

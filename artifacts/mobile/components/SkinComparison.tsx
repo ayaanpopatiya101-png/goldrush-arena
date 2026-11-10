@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import { palette } from '@/constants/colors';
 import { Modal, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { GameArena } from '@/components/GameArena';
 import { Button, ui } from '@/components/ui/Primitives';
 import { SKINS, usePlayer } from '@/context/PlayerContext';
 import { useBlockingOverlay } from '@/context/OverlayQueue';
 import { fonts } from '@/constants/typography';
+import { artworkFor } from '@workspace/goldrush-catalog/cosmetics';
+import { PaddleArt } from '@/components/cosmetics/PaddleArt';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /** Uses the same paddle renderer as matches, without touching ownership or balances. */
@@ -21,23 +24,24 @@ export function SkinComparison({ skinId, onClose }: { skinId: string; onClose: (
   const item = current ? equipped : candidate;
   const size = Math.min(width - 64, 340);
   return <Modal visible={visible} onRequestClose={onClose} animationType="none">
-    <ScrollView style={{ backgroundColor: ui.ink, flex: 1 }} contentContainerStyle={{
+    <ScrollView style={{ backgroundColor: palette.background, flex: 1 }} contentContainerStyle={{
       padding: 24, paddingTop: Math.max(67, insets.top), paddingBottom: Math.max(34, insets.bottom),
       gap: 16, alignItems: 'center',
     }}>
-      <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: 28, color: ui.paper }}>Compare paddle appearance</Text>
-      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: ui.paperDim }}>{current ? 'Currently equipped' : 'Selected'} · {item.name}</Text>
-      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: ui.paperDim }}>
+      <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: 28, color: palette.foreground }}>Compare paddle appearance</Text>
+      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: palette.supporting }}>{current ? 'Currently equipped' : 'Selected'} · {item.name}</Text>
+      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: palette.supporting }}>
         {profile.ownedSkins.includes(candidate.id) ? 'Owned' : 'exclusive' in candidate && candidate.exclusive ? 'Locked to its pass reward' : `${candidate.price} coins`}
         {' · Cosmetic only. Comparing never buys or equips.'}
       </Text>
+      <PaddleArt design={artworkFor(item.id)} width={Math.min(size, 220)} height={26} />
       {visible && <View style={{ width: size, height: size }}>
-        <GameArena key={`${item.id}-${run}`} arenaSize={size} playerName="You" playerColor={item.color} playerGlowColor={item.glowColor}
+        <GameArena key={`${item.id}-${run}`} arenaSize={size} playerName="You" playerColor={item.color} playerGlowColor={item.glowColor} artwork={artworkFor(item.id)}
           botNames={['North bot', 'West bot', 'East bot']} botRanks={['Bronze 1', 'Bronze 1', 'Bronze 1']}
           practice paused={!running} soundEnabled={false} botDifficulty="easy" botSkill={0}
           onGameOver={() => setRun(value => value + 1)} />
       </View>}
-      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: ui.paperDim }}>Your paddle is at the bottom. Drag to move it. No progression.</Text>
+      <Text style={{ fontFamily: fonts.body, fontSize: 16, color: palette.supporting }}>Your paddle is at the bottom. Drag to move it. No progression.</Text>
       <Button label={current ? 'Show selected item' : 'Show equipped item'} variant="secondary" onPress={() => setCurrent(value => !value)} />
       <Button label={running ? 'Pause court preview' : 'Run court preview'} variant="secondary" onPress={() => setRunning(value => !value)} />
       <Button label="Close comparison" onPress={onClose} />

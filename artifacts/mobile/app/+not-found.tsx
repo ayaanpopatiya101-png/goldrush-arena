@@ -25,7 +25,7 @@ export default function NotFoundScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.ink, justifyContent: 'center' },
+  root: { flex: 1, backgroundColor: palette.background, justifyContent: 'center' },
   box: { alignItems: 'center', gap: 16, maxWidth: 420 },
-  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 23, color: palette.paperDim, textAlign: 'center' },
+  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 23, color: palette.supporting, textAlign: 'center' },
 });

@@ -1,6 +1,8 @@
 import app from "./app.js";
 import { logger } from "./lib/logger.js";
 import { getUncachableStripeClient } from "./stripeClient.js";
+import { installArenaSocket } from "./lib/arenaSocket.js";
+import { startAvatarCleanup } from "./routes/avatars.js";
 
 async function initStripe() {
   try {
@@ -18,7 +20,9 @@ if (Number.isNaN(port) || port <= 0) throw new Error(`Invalid PORT value: "${raw
 
 await initStripe();
 
-app.listen(port, (err) => {
+const server = app.listen(port, (err) => {
   if (err) { logger.error({ err }, "Error listening on port"); process.exit(1); }
   logger.info({ port }, "Server listening");
 });
+installArenaSocket(server);
+startAvatarCleanup();
