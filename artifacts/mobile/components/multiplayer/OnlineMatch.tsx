@@ -32,6 +32,8 @@ export default function OnlineMatch() {
   const cancelled = useRef(false);
   const sequence = useRef(0);
   const lastInput = useRef(0);
+  const queueRequest = useRef<Promise<LiveRoom> | null>(null);
+  const leaving = useRef(false);
   const profileRef = useRef(profile); profileRef.current = profile;
   const saveRef = useRef(addMatchResult); saveRef.current = addMatchResult;
   const pendingKey = `@goldrush_pending_online_${currentUsername}`;
@@ -128,18 +130,24 @@ export default function OnlineMatch() {
             setRoom({ ...latest.current, phase: "void", reason: "Server interruption" });
             return;
           }
+          if (disposed || leaving.current) return;
           const config = getGameConfig();
           const start = Date.now();
           // The health request measures this client's round-trip to the sole current region.
           await fetch(apiUrl("/healthz"), { signal: arenaTimeout(8000) });
-          active = await joinLiveQueue({
+          const queueOptions = await arenaRequestOptions(currentUsername);
+          if (disposed || leaving.current) return;
+          const joining = joinLiveQueue({
             name: profileRef.current.name.slice(0,24), color: config.playerColor,
             mode: config.matchType === "ranked" ? "ranked" : "casual",
             variant: config.variant as QueueInput["variant"], latency: Math.min(2000, Date.now()-start),
             ...(partyCode ? { partyCode } : {}),
-          }, await arenaRequestOptions(currentUsername));
+          }, queueOptions);
+          queueRequest.current = joining;
+          try { active = await joining; }
+          finally { if (queueRequest.current === joining) queueRequest.current = null; }
         }
-        if (disposed || backgrounded) return;
+        if (disposed || backgrounded || leaving.current) return;
         await AsyncStorage.setItem(pendingKey, JSON.stringify(active));
         if (disposed || backgrounded) return;
         setRoom(active);
@@ -206,7 +214,12 @@ export default function OnlineMatch() {
   }, [attempt, currentUsername, partyCode]);
 
   async function leave() {
+    if (leaving.current) return;
+    leaving.current = true;
     try {
+      // A cancel can beat the queue POST response. Delete only after that POST
+      // settles, otherwise it can create an abandoned seat after a successful cancel.
+      await queueRequest.current?.catch(() => undefined);
       if (latest.current?.phase === "playing") {
         const archived: string[] = JSON.parse(await AsyncStorage.getItem(forfeitedKey) ?? "[]");
         await AsyncStorage.setItem(forfeitedKey, JSON.stringify([...new Set([...archived, latest.current.id])]));
@@ -214,7 +227,7 @@ export default function OnlineMatch() {
       await leaveLiveQueue(await arenaRequestOptions(currentUsername));
       await AsyncStorage.removeItem(pendingKey);
       cancelled.current = true; socket.current?.close(); router.replace("/");
-    } catch { setError("Could not confirm leaving. Retry; the online match cannot pause."); }
+    } catch { leaving.current = false; setError("Could not confirm leaving. Retry; the online match cannot pause."); }
   }
   async function again(casual = false) {
     if (casual && partyCode) { setError("Party mode changes must be made together: cancel the queue, then ask the leader to choose Casual on Home."); return; }

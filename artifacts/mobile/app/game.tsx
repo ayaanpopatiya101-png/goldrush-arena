@@ -32,6 +32,7 @@ const VARIANT_PROPS: Record<string, {
   initialLives?: number;
   startingBallCount?: number;
   ballSpawnFrames?: number;
+  firstBallSpawnFrames?: number;
   noPowerups?: boolean;
   startSpeedMult?: number;
   duoMode?: boolean;
@@ -40,8 +41,8 @@ const VARIANT_PROPS: Record<string, {
   playerBonusLives?: number;
   maxSkillBots?: boolean; // game.tsx only, forces botSkill to 1.0
 }> = {
-  classic:       {},
-  duos:          { duoMode: true },
+  classic:       { firstBallSpawnFrames: 420, ballSpawnFrames: 600 },
+  duos:          { duoMode: true, ballSpawnFrames: 420 },
   blitz:         { initialLives: 1, startingBallCount: 2, ballSpawnFrames: 600, startSpeedMult: 1.5 },
   chaos:         { initialLives: 3, startingBallCount: 5, ballSpawnFrames: 300, noPowerups: true, startSpeedMult: 1.2 },
   survival:      { initialLives: 12, ballSpawnFrames: 300 },
@@ -51,8 +52,8 @@ const VARIANT_PROPS: Record<string, {
   six_player:    { sixPlayer: true, initialLives: 4, ballSpawnFrames: 600 },
   // ── Elite rank-gated modes ────────────────────────────────────────────────
   storm_surge:    { initialLives: 1, startingBallCount: 3, startSpeedMult: 1.6, ballSpawnFrames: 420, maxSkillBots: true },
-  ghost_protocol: { initialLives: 2, startingBallCount: 2, startSpeedMult: 1.1, phantomBalls: true },
-  warlord:        { sixPlayer: true, initialLives: 3, playerBonusLives: 5, startSpeedMult: 1.3, maxSkillBots: true },
+  ghost_protocol: { initialLives: 2, startingBallCount: 2, startSpeedMult: 1.1, phantomBalls: true, ballSpawnFrames: 420 },
+  warlord:        { sixPlayer: true, initialLives: 3, playerBonusLives: 5, startSpeedMult: 1.3, maxSkillBots: true, ballSpawnFrames: 420 },
 };
 
 const MODE_LABELS: Record<GameMode, string> = { square:'4-PLAYER', triangle:'3-PLAYER', duel:'1v1' };

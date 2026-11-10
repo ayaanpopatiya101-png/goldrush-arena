@@ -7,7 +7,7 @@ export type ArenaRoom = Omit<LiveRoom, "players" | "balls"> & {
   nextBall: number; finishedAt?: number; saving?: boolean; createdRating: number; reservedIds?: string[];
 };
 export const RULES: Record<string, { lives: number; balls: number; speed: number; spawn: number }> = {
-  classic: { lives: 5, balls: 1, speed: 300, spawn: 7 },
+  classic: { lives: 5, balls: 1, speed: 300, spawn: 10 },
   rally_race: { lives: 5, balls: 1, speed: 300, spawn: 15 },
   duos: { lives: 5, balls: 1, speed: 300, spawn: 7 },
   blitz: { lives: 1, balls: 2, speed: 450, spawn: 10 },
@@ -86,7 +86,9 @@ export function stepArena(room: ArenaRoom, now: number, random = Math.random) {
       b.x = 500; b.y = 500; b.vx = Math.cos(angle)*speed; b.vy = Math.sin(angle)*speed;
     }
   }
-  if (room.tick % (RULES[room.variant]!.spawn * 60) === 0 && room.balls.length < 8) spawnBall(room, random);
+  const first = room.variant === "classic" ? 7 * 60 : RULES[room.variant]!.spawn * 60;
+  const interval = RULES[room.variant]!.spawn * 60;
+  if (room.tick >= first && (room.tick - first) % interval === 0 && room.balls.length < 8) spawnBall(room, random);
   finishIfNeeded(room);
   if (room.variant === "rally_race" && room.tick >= 3600 && room.phase === "playing") {
     const contenders = room.players.filter(p => !p.place).sort((a, b) => (b.hits - 2*b.goals) - (a.hits - 2*a.goals));

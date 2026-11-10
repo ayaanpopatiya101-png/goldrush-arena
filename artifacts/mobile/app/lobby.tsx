@@ -72,7 +72,7 @@ const VARIANT_RULES: Record<string, string[]> = {
     'Drag to move your bottom paddle (desktop: click and drag)',
     'Deflect balls, let them through and lose a life',
     'Each player starts with 5 lives',
-    'New balls spawn every 7 seconds',
+    'Second ball after 7 seconds, then a new ball every 10 seconds',
     'Collect power-ups near your paddle zone',
     'Last player standing wins!',
   ],
