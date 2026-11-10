@@ -20,6 +20,7 @@ import { useRevenueCat } from '@/lib/revenuecat';
 import { apiUrl } from '@/utils/api';
 import { withTimeout } from '@/utils/withTimeout';
 import { Glyph } from '@/components/ui/Glyph';
+import { useLocalSearchParams } from 'expo-router';
 
 const NATIVE_PACKAGE_IDS: Record<string, string> = {
   'Starter Sack': 'starter_sack',
@@ -62,11 +63,15 @@ const STORE_BATTLE_PASS = {
 
 
 export default function ShopScreen() {
+  const { section } = useLocalSearchParams<{ section?: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { profile, applyStorePurchases } = usePlayer();
   const revenueCat = useRevenueCat();
   const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'extras' | 'store'>('skins');
+  useEffect(() => {
+    if (section === 'store') setActiveTab('store');
+  }, [section]);
   const [redeemVisible, setRedeemVisible] = useState(false);
   const focusStyle = useFocusAnimation();
 
@@ -126,6 +131,7 @@ export default function ShopScreen() {
   }
 
   async function completeNativePurchase(productName: string) {
+    if (productName === STORE_BATTLE_PASS.key && profile.battlePassPremiumOwned) return;
     const pkg = revenueCat.getPackage(NATIVE_PACKAGE_IDS[productName]);
     if (!pkg) {
       xAlert('Store unavailable', 'This item is not available from your app store yet.');
@@ -151,6 +157,7 @@ export default function ShopScreen() {
   }
 
   async function handleBuyFromStore(productName: string) {
+    if (productName === STORE_BATTLE_PASS.key && profile.battlePassPremiumOwned) return;
     if (Platform.OS !== 'web') {
       if (__DEV__) {
         setPendingNativeProduct(productName);
@@ -380,7 +387,11 @@ export default function ShopScreen() {
                 <HolographicShimmer borderRadius={3}>
                   <Pressable
                     onPress={() => handleBuyFromStore(STORE_BATTLE_PASS.key)}
-                    disabled={checkingOut === STORE_BATTLE_PASS.key || !!profile.battlePassPremiumOwned}
+                    disabled={checkingOut === STORE_BATTLE_PASS.key || !!profile.battlePassPremiumOwned
+                      || (Platform.OS === 'web' ? !priceCache.current[STORE_BATTLE_PASS.key]
+                        : !revenueCat.available || !!revenueCat.error || !revenueCat.getPackage(NATIVE_PACKAGE_IDS[STORE_BATTLE_PASS.key]))}
+                    accessibilityRole="button"
+                    accessibilityLabel={profile.battlePassPremiumOwned ? 'Battle Pass Plus owned' : `Battle Pass Plus, ${nativePrice(STORE_BATTLE_PASS.key, STORE_BATTLE_PASS.usd)}`}
                     style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: palette.border, backgroundColor: palette.surface }]}
                   >
                     <LinearGradient colors={[palette.inset, palette.inset]} style={StyleSheet.absoluteFill} />

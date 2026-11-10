@@ -69,3 +69,9 @@ and permits this bright-green accent despite the older broad neon avoidance.
 Treat 60/30/10 as visual hierarchy, not a pixel quota on every screen. Audit
 local colour overrides as well as theme tokens. Do not recolour purchased or
 selected cosmetics merely to force the ratio.
+
+Alternative palette studies are exploration, not approval to replace Carbon + Lime.
+
+**Why:** The user explicitly reaffirmed this while requesting Profile and progression polish.
+
+**How to apply:** Keep the approved palette for production screens unless the user explicitly approves a replacement.

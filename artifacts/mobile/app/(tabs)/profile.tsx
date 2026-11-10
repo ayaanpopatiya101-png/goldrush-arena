@@ -1,46 +1,26 @@
-import { idleAnimation } from "@/components/ui/idleAnimation";
 import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Button, Panel, ScreenTitle, Shell, paperText } from '@/components/ui/Primitives';
 import { tactile, palette } from '@/constants/colors';
-import { LinearGradient } from '@/components/ui/Flat';
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Easing, Image, Platform, Pressable, ScrollView, Share, StyleSheet, TextInput, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Platform, Pressable, ScrollView, Share, StyleSheet, TextInput, View } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
-import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RankBadge } from '@/components/RankBadge';
-import { FloatingOrbs, GlowBorder, GlowText, PulseRing, ShimmerCard } from '@/components/effects';
+import { AchievementGrid } from '@/components/progression/AchievementGrid';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
-  ACHIEVEMENTS, AVATAR_EMOJIS, RANKS, SKINS,
+  ACHIEVEMENTS, AVATAR_EMOJIS,
   getChallengeCode, getRankIndex, usePlayer, xpForNextRank, xpToLevel,
 } from '@/context/PlayerContext';
 import { apiUrl } from '@/utils/api';
 import { useColors } from '@/hooks/useColors';
 import { Glyph } from '@/components/ui/Glyph';
-import { staticLoop } from '@/components/ui/motion';
 import { ColorPicker } from '@/components/appearance/ColorPicker';
 import { AvatarPhoto, PhotoAvatarEditor } from '@/components/appearance/PhotoAvatarEditor';
-
-// ─── AI-generated achievement artwork, replaces generic award icon ──────────
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const ACH_IMAGE: Partial<Record<string, number>> = {
-  first_win:  require('../../assets/images/ach_first_win.png'),
-  hat_trick:  require('../../assets/images/ach_hat_trick.png'),
-  survivor:   require('../../assets/images/ach_survivor.png'),
-  streak3:    require('../../assets/images/ach_streak3.png'),
-  streak5:    require('../../assets/images/ach_streak5.png'),
-  level10:    require('../../assets/images/ach_level10.png'),
-  level25:    require('../../assets/images/ach_level25.png'),
-  collector:  require('../../assets/images/ach_collector.png'),
-  gold_rank:  require('../../assets/images/ach_gold_rank.png'),
-  century:    require('../../assets/images/ach_century.png'),
-  deflect100: require('../../assets/images/ach_deflect100.png'),
-  powerup10:  require('../../assets/images/ach_powerup10.png'),
-};
 
 export default function ProfileScreen() {
   const colors    = useColors();
@@ -128,25 +108,7 @@ export default function ProfileScreen() {
   const [tempEmoji, setTempEmoji]         = useState(profile.avatarEmoji);
   const [tempColor, setTempColor]         = useState(profile.avatarFrameColor);
 
-  const orbitAnim  = useRef(new Animated.Value(0)).current;
-  const glowAnim   = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const orbit = staticLoop(
-      Animated.timing(orbitAnim, { toValue: 1, duration: 5500, easing: Easing.linear, useNativeDriver: true })
-    );
-    const glow = staticLoop(Animated.sequence([
-      Animated.timing(glowAnim, { toValue: 1, duration: 2200, useNativeDriver: true }),
-      Animated.timing(glowAnim, { toValue: 0, duration: 2200, useNativeDriver: true }),
-    ]));
-    orbit.start(); glow.start();
-    return () => { orbit.stop(); glow.stop(); };
-  }, []);
-  const orbitRotate  = orbitAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  const orbitRotateR = orbitAnim.interpolate({ inputRange: [0, 1], outputRange: ['360deg', '0deg'] });
-  const avatarScale  = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.04] });
-
   const rankInfo  = xpForNextRank(profile.xp);
-  const rankData  = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
   const topPad    = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
   const winRate   = profile.totalGames > 0 ? Math.round((profile.wins / profile.totalGames) * 100) : 0;
   const code      = getChallengeCode(profile.name);
@@ -192,28 +154,18 @@ export default function ProfileScreen() {
 
   return (
     <Reanimated.View style={[styles.root, { backgroundColor: colors.background }, focusStyle]}>
-      <FloatingOrbs opacity={0.75} />
-      <LinearGradient colors={[palette.background, palette.background, palette.background]} style={StyleSheet.absoluteFill} />
-      <LinearGradient
-        colors={['transparent', 'transparent']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 440 }}
-        pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['transparent', 'transparent']}
-        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 300 }}
-        pointerEvents="none"
-      />
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: topPad + 8, paddingBottom: insets.bottom + 80 }}
       >
         <Shell style={{ gap: 16 }}>
-        <ScreenTitle kicker="Player" title="Profile" right={<View style={{ backgroundColor: tactile.brass, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 8, paddingVertical: 4 }}><Text style={{ color: palette.onAccent, fontFamily: 'SourceSans3_700Bold', fontSize: 12 }}>{profile.coins.toLocaleString()} COINS</Text></View>} style={{ marginBottom: 12 }} />
+        <ScreenTitle kicker="Player" title="Profile" />
+        <View style={{ alignSelf: 'flex-start', maxWidth: '100%', backgroundColor: tactile.brass, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 8, paddingVertical: 4 }}>
+          <Text style={{ color: palette.onAccent, fontFamily: 'SourceSans3_700Bold', fontSize: 12 }}>{profile.coins.toLocaleString()} COINS</Text>
+        </View>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <Button label="Ranks" icon="award" variant="secondary" style={{ flex: 1 }} onPress={() => router.push('/leaderboard')} />
-          <Button label="Season pass" icon="gift" variant="secondary" style={{ flex: 1 }} onPress={() => router.push('/trophyroad')} />
+          <Button label="Battle Pass" icon="gift" variant="secondary" style={{ flex: 1 }} onPress={() => router.push('/trophyroad')} />
         </View>
         {/* ── Profile card ── */}
         <View style={[styles.profileCard, { borderColor: palette.edge, backgroundColor: palette.surface }]}>
@@ -223,10 +175,9 @@ export default function ProfileScreen() {
 
           {/* Avatar, centered, tappable to edit */}
           <Pressable accessibilityRole="button" accessibilityLabel="Edit avatar" hitSlop={8} onPress={() => { setTempEmoji(profile.avatarEmoji); setTempColor(profile.avatarFrameColor); setAvatarEditing(true); }}>
-            <Animated.View style={[styles.bigAvatar, {
+            <View style={[styles.bigAvatar, {
               borderColor: profile.avatarFrameColor,
               backgroundColor: profile.avatarFrameColor + '33',
-              transform: [{ scale: avatarScale }],
               overflow: 'visible',
             }]}>
               <View style={{ width: 71, height: 71, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
@@ -235,31 +186,31 @@ export default function ProfileScreen() {
                 </AvatarPhoto>
               </View>
               <View style={styles.editBadge}>
-                <Feather name="edit-2" size={9} color={palette.foreground} />
+                <Feather name="edit-2" size={9} color={palette.onAccent} />
               </View>
-            </Animated.View>
+            </View>
           </Pressable>
 
           {/* Centered name / rank / streak block */}
           <View style={[styles.profileInfo, { alignItems: 'center' }]}>
-            <GlowText intensity="medium" color={rankData.color} style={[styles.profileName, { color: colors.foreground }]}>{profile.name}</GlowText>
+            <Text style={[styles.profileName, { color: colors.foreground }]}>{profile.name}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <RankBadge rank={profile.rank} size="sm" showLabel={false} />
-              <GlowText intensity="soft" color={palette.foreground} style={[styles.levelBadge, { color: palette.foreground }]}>Lv.{xpToLevel(profile.xp)} · {profile.rank}</GlowText>
+              <Text style={[styles.levelBadge, { color: palette.foreground }]}>Lv.{xpToLevel(profile.xp)} · {profile.rank}</Text>
             </View>
             {/* Skill tier badge */}
             {profile.skillTier && (() => {
               const tierColor = profile.skillTier === 'Pro' ? palette.gold : profile.skillTier === 'Veteran' ? palette.border : palette.gold;
-              const tierIcon  = profile.skillTier === 'Pro' ? '🏆' : profile.skillTier === 'Veteran' ? '🥈' : '🥉';
+              const tierIcon = profile.skillTier === 'Pro' ? 'trophy-outline' as const : 'medal-outline' as const;
               return (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: tierColor + '1E', borderRadius: 3, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: tierColor + '44' }}>
-                  <Glyph style={{ fontSize: 12 }} value={tierIcon} />
+                  <MaterialCommunityIcons name={tierIcon} size={14} color={palette.gold} />
                   <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.foreground, letterSpacing: 0.8 }}>{profile.skillTier.toUpperCase()}</Text>
                 </View>
               );
             })()}
             <View style={styles.loginStreakRow}>
-              <Glyph style={styles.streakIcon} value="🔥" />
+              <MaterialCommunityIcons name="fire" size={14} color={palette.gold} />
               <Text style={[styles.streakText, { color: palette.supporting }]}>{profile.loginStreak} day streak</Text>
             </View>
           </View>
@@ -305,7 +256,7 @@ export default function ProfileScreen() {
 
             <View style={styles.row}>
               <Pressable onPress={handleSaveAvatar} accessibilityRole="button" accessibilityLabel="Save avatar" style={[styles.saveBtn, { backgroundColor: colors.primary, flex: 1 }]}>
-                <Text style={[styles.saveBtnText, { color: palette.foreground }]}>SAVE</Text>
+                <Text style={[styles.saveBtnText, { color: palette.onAccent }]}>SAVE</Text>
               </Pressable>
               <Pressable onPress={() => setAvatarEditing(false)} accessibilityRole="button" accessibilityLabel="Cancel avatar edit" style={[styles.cancelBtn, { borderColor: colors.border, flex: 1 }]}>
                 <Text style={[styles.cancelBtnText, { color: colors.mutedForeground }]}>CANCEL</Text>
@@ -324,9 +275,7 @@ export default function ProfileScreen() {
             )}
           </View>
           <View style={[styles.xpTrack, { backgroundColor: palette.surface, borderRadius: 0 }]}>
-            <ShimmerCard active={true} borderRadius={3} duration={2200} shimmerColor="rgba(255,255,255,0.3)" style={[styles.xpFill, { width: `${rankInfo.progress * 100}%` as never, backgroundColor: palette.gold }]}>
-              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', backgroundColor: palette.raised, borderRadius: 4 }} />
-            </ShimmerCard>
+            <View style={[styles.xpFill, { width: `${rankInfo.progress * 100}%` as never, backgroundColor: palette.gold }]} />
           </View>
         </Panel>
 
@@ -356,39 +305,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* ── Achievements ── */}
-        <View style={styles.sectionWrap}>
-          <View style={[styles.sectionHeader, { alignItems: 'center' }]}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>ACHIEVEMENTS</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: palette.border }} />
-            <Text style={[styles.sectionCount, { color: colors.mutedForeground }]}>
-              {profile.achievements.length}/{ACHIEVEMENTS.length}
-            </Text>
-          </View>
-          <View style={styles.achieveGrid}>
-            {ACHIEVEMENTS.map(ach => {
-              const unlocked = profile.achievements.includes(ach.id);
-              return (
-                <ShimmerCard key={ach.id} active={unlocked} borderRadius={3} shimmerColor="rgba(200,130,10,0.1)" style={[styles.achCard, {
-                  backgroundColor: unlocked ? palette.raised : colors.card,
-                  borderColor:     unlocked ? palette.gold : colors.border,
-                  opacity:         1,
-                  overflow:        'hidden',
-                }]}>
-                  {ACH_IMAGE[ach.id] != null
-                    ? <Image
-                        source={ACH_IMAGE[ach.id]!}
-                        style={{ width: unlocked ? 44 : 34, height: unlocked ? 44 : 34, opacity: unlocked ? 1 : 0.3, marginTop: unlocked ? 4 : 2 }}
-                        resizeMode="contain"
-                      />
-                    : <Glyph style={{ fontSize: unlocked ? 26 : 20, opacity: unlocked ? 1 : 0.3, marginTop: unlocked ? 4 : 2 }} value="🏅" />
-                  }
-                  <Text style={[styles.achName, { color: unlocked ? palette.foreground : colors.mutedForeground }]} numberOfLines={1}>{ach.name}</Text>
-                  <Text style={[styles.achDesc, { color: colors.mutedForeground }]} numberOfLines={2}>{ach.desc}</Text>
-                </ShimmerCard>
-              );
-            })}
-          </View>
-        </View>
+        <AchievementGrid items={ACHIEVEMENTS} unlockedIds={profile.achievements} />
 
         {/* ── Match history ── */}
         {profile.matchHistory.length > 0 && (
@@ -401,7 +318,7 @@ export default function ProfileScreen() {
               {profile.matchHistory.slice(0, 8).map(match => (
                 <View key={match.id} style={[styles.historyRow, { backgroundColor: colors.card, borderColor: match.won ? palette.gold : colors.border }]}>
                   <View style={[styles.histResult, { backgroundColor: match.won ? palette.gold : palette.primary }]}>
-                    <Text style={[styles.histResultText, { color: palette.foreground }]}>
+                    <Text style={[styles.histResultText, { color: palette.onAccent }]}>
                       {match.won ? 'W' : 'L'}
                     </Text>
                   </View>
@@ -414,7 +331,7 @@ export default function ProfileScreen() {
                     </Text>
                   </View>
                   <View style={{ alignItems: 'flex-end', gap: 2 }}>
-                    <Text style={[styles.histXP, { color: rankData.color }]}>+{match.xpEarned} XP</Text>
+                    <Text style={[styles.histXP, { color: palette.foreground }]}>+{match.xpEarned} XP</Text>
                     <Text style={[styles.histTime, { color: colors.mutedForeground }]}>
                       {new Date(match.timestamp).toLocaleDateString()}
                     </Text>
@@ -511,7 +428,7 @@ export default function ProfileScreen() {
                 </Text>
                 <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.supporting }}>Tap to claim your reward</Text>
               </View>
-              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.foreground }}>CLAIM →</Text>
+              <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.foreground }}>CLAIM</Text>
             </Pressable>
           )}
 
@@ -597,8 +514,8 @@ const styles = StyleSheet.create({
   bigAvatar:      { width: 76, height: 76, borderRadius: 0, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
   bigAvatarEmoji: { fontSize: 36 },
   editBadge:      { position: 'absolute', bottom: -4, right: -4, width: 24, height: 24, borderRadius: 0, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold, alignItems: 'center', justifyContent: 'center' },
-  profileInfo:    { gap: 5 },
-  profileName:    { fontFamily: 'BarlowCondensed_700Bold', fontSize: 34, textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'center' },
+  profileInfo:    { gap: 5, width: '100%', minWidth: 0 },
+  profileName:    { width: '100%', flexShrink: 1, fontFamily: 'BarlowCondensed_700Bold', fontSize: 34, textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'center' },
   levelBadge:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, letterSpacing: 0.5 },
   loginStreakRow:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
   streakIcon:     { fontSize: 12 },
@@ -627,7 +544,7 @@ const styles = StyleSheet.create({
 
   // XP
   xpSection: { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, padding: 14, gap: 8 },
-  xpHeader:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  xpHeader:  { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
   xpTitle:   { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 0.8, textTransform: 'uppercase', flex: 1 },
   xpTotal:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
   xpRemaining: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
