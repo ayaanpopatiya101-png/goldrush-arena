@@ -55,7 +55,8 @@ function lzwEncode(indices: Uint8Array): number[] {
       emit(w);
       if (nextCode < 4096) {
         table.set(key, nextCode++);
-        if (nextCode > maxCode && codeSize < 12) { codeSize++; maxCode = (1 << codeSize) - 1; }
+        // The decoder creates each dictionary entry one emitted code later.
+        if (nextCode > maxCode + 1 && codeSize < 12) { codeSize++; maxCode = (1 << codeSize) - 1; }
       } else {
         emit(CLEAR); reset();
       }
@@ -82,6 +83,12 @@ export function encodeGIF(
   height: number,
   delayCs: number,
 ): Uint8Array {
+  if (!frames.length || !Number.isInteger(width) || !Number.isInteger(height) ||
+      width < 1 || height < 1 || width > 512 || height > 512 ||
+      !Number.isFinite(delayCs) || delayCs < 1 ||
+      frames.some(f => f.length !== width * height * 4)) {
+    throw new Error('Invalid GIF frames, dimensions or timing');
+  }
   const bytes: number[] = [];
   const push    = (...vals: number[]) => vals.forEach(v => bytes.push(v & 0xFF));
   const pushLE  = (val: number, n: number) => { for (let i = 0; i < n; i++) bytes.push((val >> (i * 8)) & 0xFF); };
@@ -152,7 +159,7 @@ export function decodeJpegBase64(base64: string): DecodedJpegFrame {
   const inputBytes = new Uint8Array(binaryStr.length);
   for (let i = 0; i < binaryStr.length; i++) inputBytes[i] = binaryStr.charCodeAt(i);
 
-  const decoded = jpeg.decode(inputBytes, { useTArray: true });
+  const decoded = jpeg.decode(inputBytes, { useTArray: true, maxResolutionInMP: 1, maxMemoryUsageInMB: 32 });
   return {
     data: new Uint8ClampedArray(decoded.data.buffer, decoded.data.byteOffset, decoded.data.byteLength),
     width: decoded.width,
@@ -171,7 +178,8 @@ export function createHighlightGIF(
   _legacyHeight?: number,
   fps    = 3,
 ): Uint8Array {
-  if (base64Frames.length === 0) throw new Error('Cannot encode an empty highlight clip');
+  if (base64Frames.length < 2 || base64Frames.length > 36) throw new Error('A clip needs 2–36 recorded frames');
+  if (!Number.isFinite(fps) || fps <= 0 || fps > 100) throw new Error('Invalid clip frame rate');
   const decodedFrames = base64Frames.map(decodeJpegBase64);
   const { width, height } = decodedFrames[0];
   if (decodedFrames.some(frame => frame.width !== width || frame.height !== height)) {

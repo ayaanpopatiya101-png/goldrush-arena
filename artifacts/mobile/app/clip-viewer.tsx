@@ -19,13 +19,11 @@ import { Text } from '@/components/ui/Text';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, Animated,
-  Dimensions, InteractionManager, Keyboard,
+   Dimensions, Keyboard, Linking,
   Platform, Pressable, ScrollView, StyleSheet,
   TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { Image } from 'expo-image';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -37,7 +35,8 @@ import {
   uint8ToBase64, type SavedClip,
 } from '@/store/clipLibrary';
 import { createHighlightGIF } from '@/utils/gifEncoder';
-import { getClipTier, canClaimClipReward, consumeClipRewardSlot, type ClipTier } from '@/utils/clipRewards';
+import { getClipTier, canClaimClipReward, consumeClipRewardSlot, clipRewardIdentity } from '@/utils/clipRewards';
+import { exportClip, exportErrorMessage, WEB_PHOTOS_HELP } from '@/utils/clipExport';
 import { usePlayer } from '@/context/PlayerContext';
 import { trackEvent } from '@/utils/analytics';
 import { Glyph } from '@/components/ui/Glyph';
@@ -143,7 +142,12 @@ export default function ClipViewer() {
   const [encodeError,  setEncodeError]  = useState(false);
 
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'missing'>('loading');
-  const shareSupported = Platform.OS !== 'web';
+  const shareSupported = true;
+  const [notice, setNotice] = useState('');
+  const [operation, setOperation] = useState<string | null>(null);
+  const operationLock = useRef(false);
+  const encodeVersion = useRef(0);
+  useEffect(() => () => { encodeVersion.current++; }, []);
 
   // ── Edit state ───────────────────────────────────────────────────────────
   const [activeTool,   setActiveTool]   = useState<'trim' | 'caption' | 'sticker' | null>(null);
@@ -165,14 +169,23 @@ export default function ClipViewer() {
   const [canReward, setCanReward] = useState(false);
   useEffect(() => {
     if (isFromLibrary) { setCanReward(false); return; }
-    canClaimClipReward().then(setCanReward);
+    canClaimClipReward().then(setCanReward).catch(() => setCanReward(false));
   }, [isFromLibrary]);
 
   // ── Load source (pending clip OR library clip) ────────────────────────────
   useEffect(() => {
+    let alive = true;
+    setLoadState('loading');
+    setGifBase64(null);
+    setSourceFrames([]);
+    setSaved(false);
+    setSourceSavedId(null);
+    setIsFromLibrary(false);
+    encodeVersion.current++;
     if (savedClipId) {
       // Load from library
       getClipLibrary().then(lib => {
+        if (!alive) return;
         const c = lib.find(x => x.id === savedClipId);
         if (!c || !Array.isArray(c.frames) || c.frames.length === 0) { setLoadState('missing'); return; }
         setSourceFrames(c.frames);
@@ -185,9 +198,9 @@ export default function ClipViewer() {
         setSticker(c.sticker ?? null);
         setTrimStart(0); setTrimEnd(c.frames.length - 1);
         setPendingStart(0); setPendingEnd(c.frames.length - 1);
-        setGifBase64(c.gifBase64 ?? null); // instant display (gifBase64 may be absent on auto-saved clips)
+        // Re-encode recorded frames, repairing absent or corrupt legacy GIF caches.
         setLoadState('ready');
-      }).catch(() => setLoadState('missing'));
+      }).catch(() => { if (alive) setLoadState('missing'); });
     } else {
       // Fresh clip from game
       const pending = getPendingClip();
@@ -200,24 +213,29 @@ export default function ClipViewer() {
       setPendingStart(0); setPendingEnd(pending.frames.length - 1);
       setLoadState('ready');
     }
+    return () => { alive = false; };
   }, [savedClipId]);
 
   // ── Encode GIF when frames load (and when trim is applied) ───────────────
   useEffect(() => {
-    if (sourceFrames.length === 0 || gifBase64 !== null) return;
+    if (sourceFrames.length === 0) return;
     encode(sourceFrames);
   }, [sourceFrames]);
 
   function encode(frames: string[]) {
+    const version = ++encodeVersion.current;
+    setGifBase64(null);
     setEncoding(true);
     setEncodeError(false);
-    InteractionManager.runAfterInteractions(() => {
+    setTimeout(() => {
+      if (version !== encodeVersion.current) return;
       encodeFrames(frames)
-        .then(b64 => setGifBase64(b64))
-        .catch(() => setEncodeError(true))
-        .finally(() => setEncoding(false));
-    });
+        .then(b64 => { if (version === encodeVersion.current) setGifBase64(b64); })
+        .catch(() => { if (version === encodeVersion.current) setEncodeError(true); })
+        .finally(() => { if (version === encodeVersion.current) setEncoding(false); });
+    }, 50);
   }
+  useEffect(() => { setSaved(false); }, [trimStart, trimEnd, caption, sticker]);
 
   // ── Tool handlers ─────────────────────────────────────────────────────────
   function toggleTool(t: 'trim' | 'caption' | 'sticker') {
@@ -226,6 +244,7 @@ export default function ClipViewer() {
   }
 
   function applyTrim() {
+    if (operationLock.current || encoding || pendingEnd <= pendingStart) return;
     const trimmed = sourceFrames.slice(pendingStart, pendingEnd + 1);
     setTrimStart(pendingStart);
     setTrimEnd(pendingEnd);
@@ -236,7 +255,11 @@ export default function ClipViewer() {
 
   // ── Save ─────────────────────────────────────────────────────────────────
   const handleSave = useCallback(async () => {
-    if (!gifBase64) return;
+    if (!gifBase64 || encoding || operationLock.current) return;
+    operationLock.current = true;
+    setOperation('Saving to My Clips…');
+    setNotice('');
+    try {
     const frames = sourceFrames.slice(trimStart, trimEnd + 1);
     const clipData: Omit<SavedClip, 'id' | 'timestamp'> = {
       frames, gifBase64, type: sourceType, score: sourceScore,
@@ -245,7 +268,7 @@ export default function ClipViewer() {
     };
     if (sourceSavedId) {
       // Update existing
-      await updateClipInLibrary(sourceSavedId, { gifBase64, caption: caption || undefined, sticker: sticker || undefined });
+      await updateClipInLibrary(sourceSavedId, { frames, gifBase64, caption: caption || undefined, sticker: sticker || undefined });
     } else {
       const saved = await saveClipToLibrary(clipData);
       setSourceSavedId(saved.id);
@@ -263,30 +286,30 @@ export default function ClipViewer() {
       Animated.spring(saveAnim, { toValue: 1.15, useNativeDriver: true, bounciness: 12 }),
       Animated.spring(saveAnim, { toValue: 1,    useNativeDriver: true, bounciness: 6  }),
     ]).start();
-  }, [gifBase64, sourceFrames, trimStart, trimEnd, sourceType, sourceScore, sourceClipScore, caption, sticker, sourceSavedId, tier]);
+    setNotice('Saved to My Clips on this device. This is not a Photos save.');
+    } catch (error) {
+      setNotice(`My Clips save failed. ${error instanceof Error ? error.message : 'Check device storage and retry.'}`);
+    } finally {
+      operationLock.current = false;
+      setOperation(null);
+    }
+  }, [gifBase64, encoding, sourceFrames, trimStart, trimEnd, sourceType, sourceScore, sourceClipScore, caption, sticker, sourceSavedId, tier]);
 
   // ── Share ─────────────────────────────────────────────────────────────────
-  const handleShare = useCallback(async () => {
-    if (!gifBase64 || sharing) return;
+  const handleExport = useCallback(async (action: 'share' | 'download' | 'photos') => {
+    if (!gifBase64 || encoding || operationLock.current) return;
+    operationLock.current = true;
     setSharing(true);
+    setOperation(action === 'photos' ? 'Saving GIF to Photos…' : 'Exporting GIF…');
+    setNotice('');
     try {
-      if (!await Sharing.isAvailableAsync()) {
-        Alert.alert('Sharing unavailable', 'Use a supported device to open the share sheet. No share reward was claimed.');
-        return;
-      }
-      const path = (FileSystem.cacheDirectory ?? '') + 'goldrush_clip.gif';
-      await FileSystem.writeAsStringAsync(path, gifBase64, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      await Sharing.shareAsync(path, {
-        mimeType: 'image/gif',
-        dialogTitle: 'Share your GoldRush highlight!',
-        UTI: 'com.compuserve.gif',
-      });
-      // Claim reward on first share of a new clip
+      const result = await exportClip(gifBase64, action);
+      setNotice(result);
+      // Preserve the existing native share-sheet bonus, NOT a social-post claim.
+      // Photos saves and browser exports never grant progression rewards.
       let rewardClaimedForShare = rewardClaimed;
-      if (canReward && !rewardClaimed) {
-        const granted = await consumeClipRewardSlot();
+      if (Platform.OS !== 'web' && action === 'share' && !isFromLibrary && canReward && !rewardClaimed) {
+        const granted = await consumeClipRewardSlot(clipRewardIdentity(sourceFrames));
         if (granted) {
           await claimEventBonus({ xp: tier.xp, coins: tier.coins, credits: 0 });
           setRewardClaimed(true);
@@ -299,12 +322,14 @@ export default function ClipViewer() {
         tier: tier.label,
         reward_claimed: rewardClaimedForShare,
       });
-    } catch {
-      Alert.alert('Share failed', 'Could not open the share sheet. Try again.');
+    } catch (error) {
+      setNotice(exportErrorMessage(error));
     } finally {
+      operationLock.current = false;
+      setOperation(null);
       setSharing(false);
     }
-  }, [gifBase64, sharing, canReward, rewardClaimed, tier, claimEventBonus]);
+  }, [gifBase64, encoding, isFromLibrary, sourceFrames, canReward, rewardClaimed, tier, claimEventBonus]);
 
   // ── GIF data URI ─────────────────────────────────────────────────────────
   const gifUri = gifBase64 ? `data:image/gif;base64,${gifBase64}` : null;
@@ -400,6 +425,7 @@ export default function ClipViewer() {
                   style={cv.gif}
                   contentFit="contain"
                   autoplay
+                  onError={() => { setGifBase64(null); setEncodeError(true); }}
                 />
               )}
 
@@ -458,7 +484,7 @@ export default function ClipViewer() {
               {pendingEnd - pendingStart + 1} frames selected
               {Platform.OS !== 'web' ? ` · ${((pendingEnd - pendingStart + 1) / 3).toFixed(1)}s at 3 frames per second` : ''}
             </Text>
-            <Pressable onPress={applyTrim} style={cv.applyBtn}>
+            <Pressable onPress={applyTrim} disabled={encoding || !!operation} style={cv.applyBtn}>
               <View style={cv.applyBtnGrad}>
                 <Text style={cv.applyBtnTxt}>Apply trim</Text>
               </View>
@@ -509,12 +535,12 @@ export default function ClipViewer() {
         )}
 
         {/* ── Reward preview (new clips only) ── */}
-        {!shareSupported && (
+        {Platform.OS === 'web' && (
           <View style={[cv.rewardCard, { borderColor: palette.border }]}>
-            <Text style={cv.stateBody}>Sharing clips needs the iOS or Android app. In the browser you can trim, caption and save to this device only.</Text>
+            <Text style={cv.stateBody}>{WEB_PHOTOS_HELP}</Text>
           </View>
         )}
-        {shareSupported && !isFromLibrary && !rewardClaimed && canReward && (
+        {Platform.OS !== 'web' && !isFromLibrary && !rewardClaimed && canReward && (
           <Reanimated.View entering={ZoomIn.delay(400).duration(500).springify()} style={cv.rewardCard}>
             <Text style={cv.rewardTitle}>Share reward: granted after the share sheet closes, whether or not you send it</Text>
             <View style={cv.rewardRow}>
@@ -545,7 +571,7 @@ export default function ClipViewer() {
           <Animated.View style={[{ flex: 1 }, { transform: [{ scale: saveAnim }] }]}>
             <Pressable
               onPress={handleSave}
-              disabled={!gifBase64}
+              disabled={!gifBase64 || encoding || !!operation}
               accessibilityRole="button"
               accessibilityLabel={saved ? 'Saved to this device' : 'Save clip to this device'}
               style={({ pressed }) => [cv.saveBtn, { opacity: pressed ? 0.8 : 1 }]}
@@ -553,15 +579,15 @@ export default function ClipViewer() {
               <View style={cv.saveBtnGrad}>
                 <Feather name={saved ? 'check-circle' : 'bookmark'} size={18} color={saved ? palette.moss : palette.paper} />
                 <Text style={[cv.saveBtnTxt, saved && { color: palette.foreground }]}>
-                  {saved ? 'Saved on this device' : 'Save to this device'}
+                  {saved ? 'Saved to My Clips' : 'Save to My Clips'}
                 </Text>
               </View>
             </Pressable>
           </Animated.View>
 
           {shareSupported ? <Pressable
-            onPress={handleShare}
-            disabled={!gifBase64 || sharing}
+            onPress={() => void handleExport('share')}
+            disabled={!gifBase64 || encoding || !!operation}
             accessibilityRole="button"
             accessibilityState={{ disabled: !gifBase64 || sharing, busy: sharing }}
             style={({ pressed }) => [cv.shareBtn, { opacity: (pressed || sharing || !gifBase64) ? 0.75 : 1 }]}
@@ -571,11 +597,21 @@ export default function ClipViewer() {
                 ? <ActivityIndicator size="small" color={palette.onAccent} />
                 : <Feather name="share-2" size={18} color={palette.onAccent} />}
               <Text style={cv.shareBtnTxt}>
-                {gifBase64 ? 'Open share sheet' : 'Preparing'}
+                {gifBase64 ? 'Share GIF' : 'Preparing'}
               </Text>
             </View>
           </Pressable> : null}
         </View>
+        <Button
+          label={Platform.OS === 'web' ? 'Download GIF' : 'Save to Photos'}
+          icon="download"
+          disabled={!gifBase64 || encoding || !!operation}
+          onPress={() => void handleExport(Platform.OS === 'web' ? 'download' : 'photos')}
+        />
+        {Platform.OS !== 'web' && <Text style={cv.stateBody}>Animated GIF, not MP4. Photos saving only adds this GIF; it does not need access to your existing library. Caption and sticker are library decorations, not included in the GIF.</Text>}
+        {operation && <Text accessibilityLiveRegion="polite" style={cv.stateBody}>{operation}</Text>}
+        {!!notice && <Text accessibilityRole="alert" style={cv.stateBody}>{notice}</Text>}
+        {Platform.OS !== 'web' && /permission|access/i.test(notice) && <Button label="Open device Settings" variant="ghost" onPress={() => { void Linking.openSettings().catch(() => setNotice('Open Settings manually and allow GoldRush to add photos.')); }} />}
 
         {/* View library link */}
         <Pressable onPress={() => router.push('/my-clips')} style={cv.libraryLink}>

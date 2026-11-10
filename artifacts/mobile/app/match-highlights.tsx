@@ -13,9 +13,7 @@ import { Text } from '@/components/ui/Text';
 
 import { Panel, ScreenTitle, paperText } from '@/components/ui/Primitives';
 import { tactile, palette } from '@/constants/colors';
-import * as FileSystem from 'expo-file-system/legacy';
 import * as Haptics    from 'expo-haptics';
-import * as Sharing    from 'expo-sharing';
 import { LinearGradient } from '@/components/ui/Flat';
 import { router }           from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -30,7 +28,8 @@ import { usePlayer }          from '@/context/PlayerContext';
 import { getBestMatchEvents, type MatchEvent } from '@/store/matchEvents';
 import { setPendingClip }     from '@/store/highlightClip';
 import { saveClipToLibrary, getClipLibrary, type SavedClip } from '@/store/clipLibrary';
-import { getClipTier, getClipGrade, canClaimClipReward, consumeClipRewardSlot } from '@/utils/clipRewards';
+import { getClipTier, getClipGrade, canClaimClipReward, consumeClipRewardSlot, clipRewardIdentity } from '@/utils/clipRewards';
+import { exportClip, exportErrorMessage } from '@/utils/clipExport';
 import { createHighlightGIF } from '@/utils/gifEncoder';
 import { uint8ToBase64 }      from '@/store/clipLibrary';
 import { trackEvent }         from '@/utils/analytics';
@@ -55,6 +54,8 @@ function ClipCard({
   const [cardState,   setCardState]   = useState<CardState>('idle');
   const [gifUri,      setGifUri]      = useState<string | null>(null);
   const [rewardDone,  setRewardDone]  = useState(false);
+  const lock = useRef(false);
+  const [notice, setNotice] = useState('');
 
   const tier  = getClipTier(event.clipScore);
   const grade = getClipGrade(event.clipScore);
@@ -71,38 +72,31 @@ function ClipCard({
     try {
       const bytes  = await createHighlightGIF(event.frames);
       const base64 = uint8ToBase64(bytes);
-      const path   = `${(FileSystem as any).cacheDirectory ?? ''}highlight_${event.id}.gif`;
-      await FileSystem.writeAsStringAsync(path, base64, { encoding: FileSystem.EncodingType.Base64 });
-      setGifUri(path);
-      return path;
+      setGifUri(base64);
+      return base64;
     } catch {
+      setNotice('These recorded frames could not be encoded. Open Edit to retry; no export was made.');
       return null;
     }
   }
 
   // ── Share ───────────────────────────────────────────────────────────────────
   async function handleShare() {
+    if (lock.current) return;
+    lock.current = true;
+    setNotice('');
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const path = await ensureGif();
-    if (!path) { setCardState('idle'); return; }
+    if (!path) { setCardState('idle'); lock.current = false; return; }
     setCardState('sharing');
     try {
-      if (Platform.OS !== 'web' && await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(path, {
-          mimeType:    'image/gif',
-          dialogTitle: `${event.emoji} ${event.label}, GoldRush Arena`,
-          UTI:         'com.compuserve.gif',
-        });
-      } else {
-        Alert.alert('Sharing unavailable', 'Native sharing is not available here. Save the clip or try on a supported device. No share reward was claimed.');
-        return;
-      }
+      setNotice(await exportClip(path, 'share'));
       // Claim reward if available
       let rewardClaimedForShare = rewardDone;
-      if (!rewardDone) {
+      if (Platform.OS !== 'web' && !rewardDone) {
         const canClaim = await canClaimClipReward();
         if (canClaim) {
-          const granted = await consumeClipRewardSlot();
+          const granted = await consumeClipRewardSlot(clipRewardIdentity(event.frames));
           if (granted) {
             await claimEventBonus({ coins: tier.coins, xp: tier.xp, credits: 0 });
             setRewardDone(true);
@@ -116,25 +110,23 @@ function ClipCard({
         clip_score: event.clipScore,
         reward_claimed: rewardClaimedForShare,
       });
-    } catch {
-      Alert.alert('Share failed', 'Could not open the share sheet. No share reward was claimed. Try again.');
+    } catch (error) {
+      setNotice(exportErrorMessage(error));
     } finally {
+      lock.current = false;
       setCardState('idle');
     }
   }
 
   // ── Save to library ─────────────────────────────────────────────────────────
   async function handleSave() {
-    if (cardState === 'saved') return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Encode GIF if not done yet (skip await so we can still save frames)
-    let b64 = '';
+    if (cardState === 'saved' || lock.current) return;
+    lock.current = true;
+    setNotice('');
     try {
-      const path = await ensureGif();
-      if (path) {
-        b64 = await FileSystem.readAsStringAsync(path, { encoding: FileSystem.EncodingType.Base64 });
-      }
-    } catch { /* save without GIF, viewer will re-encode */ }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const b64 = await ensureGif();
+    if (!b64) { setCardState('idle'); return; }
 
     await saveClipToLibrary({
       frames:    event.frames,
@@ -159,6 +151,11 @@ function ClipCard({
       });
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setNotice('Saved to My Clips on this device, not Photos.');
+    } catch (error) {
+      setNotice(`My Clips save failed. ${error instanceof Error ? error.message : 'Check storage and retry.'}`);
+      setCardState('idle');
+    } finally { lock.current = false; }
   }
 
   const busy = cardState === 'encoding' || cardState === 'sharing';
@@ -208,6 +205,7 @@ function ClipCard({
           </View>
         </View>
       </View>
+      {!!notice && <Text accessibilityRole="alert" style={mh.totalNote}>{notice}</Text>}
 
       {/* Action row */}
       <View style={mh.actions}>
@@ -235,7 +233,7 @@ function ClipCard({
         {/* Save button */}
         <Pressable
           onPress={handleSave}
-          disabled={cardState === 'saved'}
+          disabled={cardState === 'saved' || busy}
           style={({ pressed }) => [mh.actionBtn, mh.saveBtn, cardState === 'saved' && mh.saveBtnDone, pressed && { opacity: 0.75 }]}
         >
           <Reanimated.Text style={[mh.actionBtnText, saveStyle, cardState === 'saved' && { color: palette.primary }]}>
@@ -281,7 +279,7 @@ export default function MatchHighlightsScreen() {
     for (const ev of events) {
       const canClaim = await canClaimClipReward();
       if (!canClaim) break;
-      const granted = await consumeClipRewardSlot();
+      const granted = await consumeClipRewardSlot(clipRewardIdentity(ev.frames));
       if (granted) {
         const tier = getClipTier(ev.clipScore);
         totalCoins += tier.coins;

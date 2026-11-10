@@ -31,6 +31,7 @@ import { createHighlightGIF } from '@/utils/gifEncoder';
 import {
   getClipTier,
   consumeClipRewardSlot,
+  clipRewardIdentity,
   getRemainingClipRewards,
   MAX_DAILY_REWARDS,
   type ClipTier,
@@ -76,6 +77,7 @@ export function HighlightShareModal({
   const [rewardGranted,  setRewardGranted]  = useState<{ coins: number; xp: number } | null>(null);
   const [remainingToday, setRemainingToday] = useState<number>(MAX_DAILY_REWARDS);
   const [sharing,        setSharing]        = useState(false);
+  const shareLock = useRef(false);
 
   const tier     = getClipTier(clipScore);
   const taskRef  = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | null>(null);
@@ -122,7 +124,8 @@ export function HighlightShareModal({
 
   // ── Share + grant reward ──────────────────────────────────────────────────
   async function handleShare() {
-    if (!gifUri || sharing) return;
+    if (!gifUri || shareLock.current) return;
+    shareLock.current = true;
     setSharing(true);
     try {
       if (!await Sharing.isAvailableAsync()) {
@@ -136,7 +139,7 @@ export function HighlightShareModal({
       });
 
       if (!rewarded) {
-        const granted = await consumeClipRewardSlot();
+        const granted = await consumeClipRewardSlot(clipRewardIdentity(frames));
         if (granted) {
           await claimEventBonus({ xp: tier.xp, coins: tier.coins, credits: 0 });
           setRewarded(true);
@@ -152,6 +155,7 @@ export function HighlightShareModal({
     } catch {
       Alert.alert('Share failed', 'Could not open the share sheet. Try again.');
     } finally {
+      shareLock.current = false;
       setSharing(false);
     }
   }

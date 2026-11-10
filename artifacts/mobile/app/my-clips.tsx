@@ -17,7 +17,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 function thumbUri(clip: SavedClip): string | null {
-  if (clip.gifBase64) return `data:image/gif;base64,${clip.gifBase64}`;
+  // Thumbnail the recorded source, not an unvalidated legacy GIF cache.
   const f = Array.isArray(clip.frames) ? clip.frames[0] : undefined;
   return f ? `data:image/jpeg;base64,${f}` : null;
 }
@@ -25,6 +25,8 @@ function thumbUri(clip: SavedClip): string | null {
 function ClipCell({ clip, width, onOpen, onDelete }: { clip: SavedClip; width: number; onOpen: () => void; onDelete: () => Promise<void> }) {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [previewFailed, setPreviewFailed] = useState(false);
   const uri = thumbUri(clip);
   const playable = Array.isArray(clip.frames) && clip.frames.length > 0;
   const date = new Date(clip.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -38,7 +40,7 @@ function ClipCell({ clip, width, onOpen, onDelete }: { clip: SavedClip; width: n
         style={({ pressed }) => [pressed && { opacity: 0.85 }]}
       >
         <View style={mc.thumb}>
-          {uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" autoplay={false} /> : (
+          {uri && !previewFailed ? <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" autoplay={false} onError={() => setPreviewFailed(true)} /> : (
             <View style={mc.noThumb}><Feather name="film" size={20} color={palette.muted} /><Text style={mc.meta}>No preview</Text></View>
           )}
           <View style={mc.tier}><Text style={mc.tierText}>{clip.tier}</Text></View>
@@ -54,12 +56,19 @@ function ClipCell({ clip, width, onOpen, onDelete }: { clip: SavedClip; width: n
           <View style={{ flexDirection: 'row', gap: 6 }}>
             <Button label="Keep" size="sm" variant="secondary" style={{ flex: 1 }} onPress={() => setConfirming(false)} />
             <Button label="Delete" size="sm" variant="danger" style={{ flex: 1 }} loading={busy}
-              onPress={async () => { setBusy(true); await onDelete(); }} />
+              onPress={async () => {
+                if (busy) return;
+                setBusy(true);
+                try { await onDelete(); }
+                catch { setError('Delete failed. Your clip has not been removed. Retry after checking storage.'); }
+                finally { setBusy(false); }
+              }} />
           </View>
         </View>
       ) : (
         <Button label="Delete" icon="trash-2" size="sm" variant="ghost" onPress={() => setConfirming(true)} style={{ margin: 8, marginTop: 0 }} />
       )}
+      {!!error && <Text accessibilityRole="alert" style={mc.meta}>{error}</Text>}
     </View>
   );
 }
@@ -88,7 +97,7 @@ export default function MyClipsScreen() {
             <IconButton icon="arrow-left" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
             <View style={{ flex: 1 }}>
               <ScreenTitle kicker="Saved highlights" title="My clips" />
-              <Text style={mc.meta}>{state === 'ready' ? `${clips.length} of 10 saved on this device` : 'Saved on this device only'}</Text>
+              <Text style={mc.meta}>{state === 'ready' ? `${clips.length} saved on this device · up to 50, space permitting. Oldest clips are removed when full.` : 'Saved on this device only'}</Text>
             </View>
           </View>
 

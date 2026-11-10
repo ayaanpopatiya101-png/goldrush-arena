@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AppState } from "react-native";
+import { AppState, View } from "react-native";
 import { router } from "expo-router";
 import { getLiveRoom, joinLiveQueue, leaveLiveQueue, getLiveResult, type LiveRoom, type LiveResult, type QueueInput } from "@workspace/api-client-react";
 import { LiveMatchView } from "./LiveMatchView";
@@ -9,6 +9,9 @@ import { useParty } from "@/context/PartyContext";
 import { getGameConfig, updateGameConfig } from "@/store/gameSession";
 import { getArenaSession, arenaRequestOptions, arenaTimeout } from "@/utils/arenaSession";
 import { apiUrl } from "@/utils/api";
+import { useHighlightCapture } from "@/hooks/useHighlightCapture";
+import { clearPendingClip, getPendingClip, setPendingClip } from "@/store/highlightClip";
+import { computeClipScore } from "@/utils/clipRewards";
 
 export const onlineVariants = ["classic", "duos", "blitz", "chaos", "survival", "sudden_death", "turbo", "pinball", "rally_race"];
 export function isOnlineMode() {
@@ -38,6 +41,26 @@ export default function OnlineMatch() {
   const saveRef = useRef(addMatchResult); saveRef.current = addMatchResult;
   const pendingKey = `@goldrush_pending_online_${currentUsername}`;
   const forfeitedKey = `@goldrush_forfeited_online_${currentUsername}`;
+  const captureTarget = useRef<View>(null);
+  const captureMatch = useRef<string | null>(null);
+  const capture = useHighlightCapture();
+  const [momentCaptured, setMomentCaptured] = useState(false);
+  useEffect(() => {
+    if (room?.phase === "playing" && captureMatch.current !== room.id) {
+      clearPendingClip();
+      captureMatch.current = room.id;
+      setMomentCaptured(false);
+      capture.startCapture(captureTarget);
+    }
+  }, [room?.id, room?.phase]);
+
+  function keepMoment() {
+    const frames = capture.snapshotClip();
+    if (!frames || !room || room.phase !== "playing") return;
+    const me = room.players.find(p => p.id === playerId);
+    setPendingClip(frames, "manual", me?.hits ?? 0, computeClipScore(room.balls.length, me?.lives ?? 5));
+    setMomentCaptured(true);
+  }
 
   async function saveResult(matchId: string) {
     if (saving.current || receipt.current?.matchId === matchId) return;
@@ -59,6 +82,16 @@ export default function OnlineMatch() {
       }
       await AsyncStorage.setItem(forfeitedKey, JSON.stringify(archived.filter(id => !recovered.has(id))));
       const verified = await getLiveResult(matchId, await arenaRequestOptions(currentUsername));
+      if (captureMatch.current === matchId) {
+        const pending = getPendingClip();
+        const frames = pending?.frames ?? capture.snapshotClip();
+        capture.stopAndGetClip();
+        if (frames) {
+          const me = latest.current?.players.find(p => p.id === playerId);
+          setPendingClip(frames, "manual", verified.deflections,
+            pending?.clipScore ?? computeClipScore(latest.current?.balls.length ?? 1, me?.lives ?? 5));
+        }
+      }
       updateGameConfig({ onlineMatchId: matchId, matchId, matchType: verified.matchType, bankLivesUsed: 0 });
       await saveRef.current({ ...verified, transactionId: matchId });
       await AsyncStorage.removeItem(pendingKey);
@@ -243,6 +276,8 @@ export default function OnlineMatch() {
     } catch { setError("Could not start a fresh queue. Please retry."); }
   }
   return <LiveMatchView room={room} playerId={playerId} connection={connection} error={error} saved={saved}
+    captureTarget={captureTarget} captureStatus={capture.captureStatus}
+    momentCaptured={momentCaptured} onCapture={keepMoment}
     onMove={position => {
       if (Date.now()-lastInput.current < 30) return;
       lastInput.current = Date.now();

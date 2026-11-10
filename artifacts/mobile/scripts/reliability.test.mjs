@@ -114,15 +114,19 @@ test('exclusive pass cosmetics cannot be bought for zero coins', async () => {
 });
 
 test('unavailable sharing exits before claiming rewards', async () => {
-  const highlights = await source('app/match-highlights.tsx');
-  assert.match(highlights, /Sharing unavailable/);
-  assert.ok(highlights.indexOf('Sharing unavailable') < highlights.indexOf('let rewardClaimedForShare'));
-  for (const path of ['app/clip-viewer.tsx', 'components/HighlightShareModal.tsx']) {
+  for (const path of ['app/match-highlights.tsx', 'app/clip-viewer.tsx']) {
     const content = await source(path);
-    assert.match(content, /isAvailableAsync/);
-    assert.match(content, /Sharing unavailable/);
-    assert.match(content, /expo-file-system\/legacy/);
+    assert.match(content, /await exportClip/);
+    assert.ok(content.indexOf('await exportClip') < content.indexOf('let rewardClaimedForShare'));
+    assert.match(content, /Platform.OS !== 'web'/);
   }
+  const native = await source('utils/clipExport.native.ts');
+  assert.ok(native.indexOf('Sharing.isAvailableAsync') < native.indexOf('await Sharing.shareAsync'));
+  assert.match(native, /throw new Error\('Sharing unavailable/);
+  assert.match(native, /expo-file-system\/legacy/);
+  const legacy = await source('components/HighlightShareModal.tsx');
+  assert.match(legacy, /isAvailableAsync/);
+  assert.match(legacy, /Sharing unavailable/);
 });
 
 test('native Shop loads and renders its unavailable store without a server address', async () => {

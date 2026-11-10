@@ -14,7 +14,7 @@ import { getGameConfig, hasGameConfig, updateGameConfig, getActiveEvent, clearAc
 import { recordRoundResult, getGauntletState } from '@/store/gauntletSession';
 import { useSettings } from '@/hooks/useSettings';
 import { useHighlightCapture } from '@/hooks/useHighlightCapture';
-import { setPendingClip, getPendingClip } from '@/store/highlightClip';
+import { setPendingClip, getPendingClip, clearPendingClip } from '@/store/highlightClip';
 import { computeClipScore, getClipTier } from '@/utils/clipRewards';
 import { startMatchTracking, getCurrentMatchId, recordMatchEvent, getBestMatchEvents } from '@/store/matchEvents';
 import { saveClipToLibrary } from '@/store/clipLibrary';
@@ -176,7 +176,7 @@ function OfflineGameScreen() {
   const [clipSaved,      setClipSaved]      = useState(false);
 
   // Highlight clip capture (no-op on web via platform file split)
-  const { startCapture, triggerHighlight, snapshotClip, stopAndGetClip } = useHighlightCapture();
+  const { startCapture, triggerHighlight, snapshotClip, stopAndGetClip, captureStatus } = useHighlightCapture();
 
   // Training period always forces easy bots; after that matchType decides.
   const botDifficulty: 'easy' | 'normal' = isTraining || config.matchType === 'casual' ? 'easy' : 'normal';
@@ -215,6 +215,7 @@ function OfflineGameScreen() {
     if (startedRef.current) return;
     startedRef.current = true;
     setTimerRunning(true);
+    clearPendingClip();
     startCapture(arenaWrapRef as any);
     setCaptureStarted(true);
     startMatchTracking(); // begin the per-match event log
@@ -501,12 +502,14 @@ function OfflineGameScreen() {
           <View style={{ flex: 1 }} />
           {captureStarted && !gameOver && (
             <Pressable onPress={handleManualRecord} style={styles.iconBtn} hitSlop={8}
+              disabled={captureStatus !== 'Recording ready'}
               accessibilityRole="button" accessibilityLabel={clipSaved ? 'Moment captured' : 'Capture this moment'}>
               <Feather name={clipSaved ? 'check' : 'video'} size={18} color={clipSaved ? palette.moss : palette.paper} />
             </Pressable>
           )}
           <BackgroundMusicButton muted={music.muted} onToggle={music.setMuted} />
         </View>
+        {captureStarted && !gameOver && <Text accessibilityLiveRegion="polite" style={styles.statText}>{captureStatus}</Text>}
 
         {/* Scoreboard: lives per seat */}
         <View style={styles.board} accessibilityLabel="Lives per seat. You control South; every other seat is a local bot.">
