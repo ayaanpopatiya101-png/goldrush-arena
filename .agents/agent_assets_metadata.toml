@@ -141,3 +141,73 @@ mtime_ms = 1794056468059
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:c3199f00-0b97-4a6a-8d55-e6f39d4aa04e/1ee3f6a3-9234-467b-ac80-622d8979be96/ded67f97-ae4e-45f6-ae38-b70398b6d1a1"
 storage_version_token = "1794057273288820"
 content_type = "image/png"
+
+[[outputs]]
+id = "hgbrU27QMWswQGE_Rgo3A"
+uri = "file://generated-artifacts/github-update/goldrush-github-update.zip"
+type = "unspecified"
+title = "GoldRush GitHub Update ZIP"
+description = "275 new and 91 updated project files. Extract and merge into your existing repository, preserving folder paths."
+logical_id = "a89ed77d-973e-44f6-9f2d-b338e306fc10"
+content_hash = "sha256:ecf9ed865fffe6225b1607cb4a48e04083571e0367a0def5166a7f43b81597b8"
+size = 2192680
+mtime_ms = 1794270821166
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:c3199f00-0b97-4a6a-8d55-e6f39d4aa04e/a89ed77d-973e-44f6-9f2d-b338e306fc10/d1066f74-98bd-4633-bb16-44a60dd63a4d"
+storage_version_token = "1794270832047403"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "2SDFVZ6O9__QHOjnK7xQ4"
+uri = "file://generated-artifacts/github-update/goldrush-complete-source.zip"
+type = "unspecified"
+title = "GoldRush Complete Source ZIP"
+description = "All 658 tracked project files, including code, configuration, images, fonts and documentation. No secrets or installed dependencies."
+logical_id = "00a26cf4-14cc-4f67-baf0-7f398bb4e901"
+content_hash = "sha256:59e0d860389422a1e9f6bdc75abb5cabd65d846a65ebea49adfd2a454bd6a151"
+size = 31035575
+mtime_ms = 1794270822498
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:c3199f00-0b97-4a6a-8d55-e6f39d4aa04e/00a26cf4-14cc-4f67-baf0-7f398bb4e901/1f5bb142-6d46-44b2-b879-a91b28f6b02f"
+storage_version_token = "1794270833984447"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "FfMTIXCVnZm0TJhAMOm-p"
+uri = "file://generated-artifacts/github-update/goldrush-all-code.txt"
+type = "text"
+title = "All GoldRush Code — Copy and Paste"
+description = "Text source and configuration with exact file paths. Binary assets are supplied in the ZIPs."
+logical_id = "e45ad737-ed94-4c5e-a623-c1877a94f112"
+content_hash = "sha256:4498db65e4d254e9f5dd787e0c277db7cefcabc174a09d27b305164be0cbd574"
+size = 3784094
+mtime_ms = 1794270822986
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:c3199f00-0b97-4a6a-8d55-e6f39d4aa04e/e45ad737-ed94-4c5e-a623-c1877a94f112/b7e4aa36-b17f-468e-9a83-15dac0eaf712"
+storage_version_token = "1794270835479456"
+content_type = "text/plain"
+
+[[outputs]]
+id = "fGwt2jpDasD0aZY04tfP7"
+uri = "file://generated-artifacts/github-update/START-HERE.txt"
+type = "text"
+title = "Start Here — GitHub Upload Instructions"
+description = "How to apply the update, upload files manually and launch the project."
+logical_id = "d81ff251-9fb7-4768-ad1c-0af78a575f11"
+content_hash = "sha256:51c17a1b371008c1309d872189581cbc0cbb8b0e0c736fadb467196020177a0a"
+size = 3531
+mtime_ms = 1794270820813
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:c3199f00-0b97-4a6a-8d55-e6f39d4aa04e/d81ff251-9fb7-4768-ad1c-0af78a575f11/10c6b60f-f7fb-47bc-a90c-d5a95eeacbf9"
+storage_version_token = "1794270836021510"
+content_type = "text/plain"
+
+[[outputs]]
+id = "ru8PUggA8wnlXKevTk965"
+uri = "file://generated-artifacts/github-update/goldrush-update-manifest.json"
+type = "unspecified"
+title = "Changed File List and Checksums"
+description = "Every included new or changed path, status, size and SHA-256 checksum."
+logical_id = "b85a69e4-586d-4089-8ff1-d5910d697b4d"
+content_hash = "sha256:91958fb5166c514ee78d5dbb2eaf1e08f34c0b76d2c4e3861933aa248d2219fc"
+size = 76305
+mtime_ms = 1794270820822
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:c3199f00-0b97-4a6a-8d55-e6f39d4aa04e/b85a69e4-586d-4089-8ff1-d5910d697b4d/bfaf13b0-fcc8-4749-b08e-a9eeceae20e4"
+storage_version_token = "1794270836672304"
+content_type = "application/octet-stream"
