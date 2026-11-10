@@ -23,3 +23,11 @@ export function clampPaddle(
 ): number {
   return clampPaddleRange(value, length, 0, size);
 }
+
+/** Fold a projected coordinate through side-wall rebounds instead of parking at a corner. */
+export function reflectedIntercept(value: number, min: number, max: number): number {
+  const span = max - min;
+  if (span <= 0 || !Number.isFinite(value)) return (min + max) / 2;
+  const phase = ((value - min) % (2 * span) + 2 * span) % (2 * span);
+  return min + (phase <= span ? phase : 2 * span - phase);
+}
