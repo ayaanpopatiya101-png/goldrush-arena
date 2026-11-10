@@ -16,6 +16,62 @@ test('startup IO cannot spin forever', async () => {
   await assert.rejects(withTimeout(new Promise(() => {}), 5), /timed out/);
 });
 
+test('Plus pricing uses actual catalog envelope and discloses unavailable providers without checkout', async () => {
+  const ts = createRequire(import.meta.url)('typescript');
+  const code = ts.transpileModule(await source('hooks/usePlusOffer.ts'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  async function offer(platform, response, store = {}) {
+    let state, effect, requests = 0;
+    const modules = {
+      react: {
+        useState: initial => [state ?? initial, value => { state = value; }],
+        useEffect: callback => { effect ??= callback; },
+      },
+      'react-native': { Platform: { OS: platform } },
+      '@/lib/revenuecat': { useRevenueCat: () => ({ available: false, getPackage: () => null, ...store }) },
+      '@/utils/api': { apiUrl: path => path },
+      '@/utils/withTimeout': { withTimeout: promise => promise },
+    };
+    const exports = {};
+    vm.runInNewContext(code, {
+      exports, require: id => modules[id], Intl,
+      fetch: async path => {
+        requests++;
+        assert.equal(path, '/store/products');
+        if (response instanceof Error) throw response;
+        return { ok: true, json: async () => response };
+      },
+    });
+    exports.usePlusOffer();
+    effect();
+    await new Promise(resolve => setImmediate(resolve));
+    return { ...exports.usePlusOffer(), requests };
+  }
+  const live = await offer('web', { data: [{
+    name: 'GoldRush Battle Pass Premium',
+    prices: [{ id: 'price_test', currency: 'usd', unit_amount: 673 }],
+  }] });
+  assert.equal(live.price, '$6.73');
+  assert.match(live.message, /Stripe/);
+  const missing = await offer('web', new Error('unavailable'));
+  assert.equal(missing.price, undefined);
+  assert.match(missing.message, /purchase unavailable/);
+  for (const platform of ['ios', 'android']) {
+    const native = await offer(platform);
+    assert.equal(native.requests, 0);
+    assert.match(native.message, /RevenueCat is not configured/);
+    const configured = await offer(platform, null, {
+      available: true, getPackage: id => {
+        assert.equal(id, 'battle_pass_premium_s1');
+        return { product: { priceString: '€7,19' } };
+      },
+    });
+    assert.equal(configured.price, '€7,19');
+    assert.equal(configured.requests, 0);
+  }
+});
+
 // Source-contract checks complement, not replace, the browser countdown test.
 test('lobby owns cancellation and all delayed transitions', async () => {
   const lobby = await source('app/lobby.tsx');

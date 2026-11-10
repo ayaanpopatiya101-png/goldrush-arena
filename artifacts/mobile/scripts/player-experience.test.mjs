@@ -196,7 +196,8 @@ async function playerHarness(storage = new Map(), fail = () => false, session) {
     return exports.PlayerProvider({ username: 'regression', onLogout: noop }).props.value;
   }
   return {
-    render, storage, profileKey, tiers: exports.SEASON_TIERS, receipt: () => receipt,
+    render, storage, profileKey, tiers: exports.SEASON_TIERS, road: exports.TROPHY_ROAD,
+    pass: exports.BATTLE_PASS_TIERS, quests: exports.QUESTS, receipt: () => receipt,
     initialize: async () => {
       effects.shift()();
       // The real initialization uses only async storage and resolved promises.
@@ -234,6 +235,84 @@ test('rapid season claims preserve both rewards without duplicating currency', a
   const saved = JSON.parse(h.storage.get(h.profileKey));
   assert.equal(saved.coins, before + tiers[0].coinReward + tiers[1].coinReward);
   assert.equal(saved.seasonPassClaimed.length, 2);
+});
+
+test('mixed progression claims serialize against latest save and duplicates grant nothing', async () => {
+  const h = await playerHarness();
+  const p = h.render();
+  p.profile.xp = 500000;
+  p.profile.battlePassPoints = 5000;
+  p.profile.battlePassPremiumOwned = true;
+  const road = h.road.find(m => m.reward.type === 'coins');
+  const tier = h.pass.find(t => t.free.type === 'coins' && t.premium.type === 'coins');
+  const quest = h.quests.find(q => q.period === 'daily' && !q.premiumOnly);
+  p.profile.dailyQuestProgress = { [quest.trackKey]: quest.target };
+  const before = p.profile.coins;
+  const points = p.profile.battlePassPoints;
+  await Promise.all([
+    p.claimTrophyRoad(road.id), p.claimBattlePassTier(tier.slot, false),
+    p.claimBattlePassTier(tier.slot, true), p.claimQuestReward(quest.id),
+    p.claimTrophyRoad(road.id), p.claimBattlePassTier(tier.slot, false),
+    p.claimQuestReward(quest.id),
+  ]);
+  const saved = JSON.parse(h.storage.get(h.profileKey));
+  assert.equal(saved.coins, before + road.reward.amount + tier.free.amount + tier.premium.amount);
+  assert.equal(saved.battlePassPoints, points + quest.reward);
+  assert.equal(saved.trophyRoadClaimed.filter(id => id === road.id).length, 1);
+  assert.equal(saved.battlePassClaimed.filter(id => id === `bp_${tier.slot}`).length, 1);
+  assert.equal(saved.battlePassPremiumClaimed.filter(id => id === `bp_${tier.slot}`).length, 1);
+  assert.equal(saved.dailyQuestClaimed.filter(id => id === quest.id).length, 1);
+});
+
+test('locked progression and unowned Plus claims do not write or grant access', async () => {
+  const h = await playerHarness();
+  const p = h.render();
+  p.profile.xp = 0;
+  p.profile.battlePassPoints = 0;
+  await p.claimTrophyRoad(h.road.find(m => m.xp > 0).id);
+  await p.claimBattlePassTier(1, false);
+  p.profile.battlePassPoints = 5000;
+  await p.claimBattlePassTier(1, true);
+  assert.equal(h.storage.has(h.profileKey), false);
+  assert.equal(p.profile.battlePassPremiumOwned, false);
+});
+
+test('failed progression writes leave rewards retryable and do not poison the queue', async () => {
+  let failWrite = true;
+  const h = await playerHarness(new Map(), () => failWrite);
+  const p = h.render();
+  p.profile.battlePassPoints = 5000;
+  const tier = h.pass.find(t => t.free.type === 'coins');
+  const coins = p.profile.coins;
+  await assert.rejects(p.claimBattlePassTier(tier.slot, false), /storage full/);
+  assert.equal(p.profile.battlePassClaimed.includes(`bp_${tier.slot}`), false);
+  failWrite = false;
+  await p.claimBattlePassTier(tier.slot, false);
+  await p.claimBattlePassTier(tier.slot, false);
+  const saved = JSON.parse(h.storage.get(h.profileKey));
+  assert.equal(saved.coins, coins + tier.free.amount);
+  assert.equal(saved.battlePassClaimed.filter(id => id === `bp_${tier.slot}`).length, 1);
+});
+
+test('Plus cosmetics, bank lives and multi-drop rewards persist once through reload', async () => {
+  const h = await playerHarness();
+  const p = h.render();
+  p.profile.battlePassPoints = 5000;
+  p.profile.battlePassPremiumOwned = true;
+  const tiers = ['skin', 'bank_life', 'ultradrop'].map(type => h.pass.find(t => t.premium.type === type));
+  const lives = p.profile.extraLivesInventory ?? 0;
+  const blocks = p.profile.luckyBlocks.length;
+  await Promise.all(tiers.flatMap(t => [
+    p.claimBattlePassTier(t.slot, true), p.claimBattlePassTier(t.slot, true),
+  ]));
+  const saved = JSON.parse(h.storage.get(h.profileKey));
+  assert.equal(saved.ownedSkins.filter(id => id === tiers[0].premium.id).length, 1);
+  assert.equal(saved.extraLivesInventory, lives + (tiers[1].premium.amount ?? 1));
+  assert.equal(saved.luckyBlocks.length, blocks + tiers[2].premium.amount);
+  const reloaded = await playerHarness(h.storage);
+  const next = reloaded.render();
+  await Promise.all(tiers.map(t => next.claimBattlePassTier(t.slot, true)));
+  assert.equal(h.storage.get(h.profileKey), JSON.stringify(saved));
 });
 
 test('season claim storage failure can be retried without losing the reward', async () => {

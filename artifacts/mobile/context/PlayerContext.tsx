@@ -1433,7 +1433,9 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save({ ...profile, tutorialComplete: true });
   }, [profile, save]);
 
-  const claimTrophyRoad = useCallback(async (id: string): Promise<LuckyBlock | null> => {
+  const claimTrophyRoad = useCallback((id: string): Promise<LuckyBlock | null> => {
+    const claim = seasonClaimQueue.current.then(async () => {
+    const profile = profileRef.current;
     if ((profile.trophyRoadClaimed ?? []).includes(id)) return null;
     const milestone = TROPHY_ROAD.find(m => m.id === id);
     if (!milestone || profile.xp < milestone.xp) return null;
@@ -1461,7 +1463,10 @@ export function PlayerProvider({ username, onLogout, children }: {
     }
     await save(updated);
     return earnedBlock;
-  }, [profile, save]);
+    });
+    seasonClaimQueue.current = claim.then(() => undefined, () => undefined);
+    return claim;
+  }, [save]);
 
   const setSelectedSuper = useCallback(async (type: 1 | 2 | 3) => {
     await save({ ...profile, selectedSuper: type });
@@ -1754,7 +1759,9 @@ export function PlayerProvider({ username, onLogout, children }: {
   }, [profile, save]);
 
   // ── Battle Pass: claim a tier reward ────────────────────────────────────────
-  const claimBattlePassTier = useCallback(async (slot: number, isPremium: boolean): Promise<LuckyBlock | null> => {
+  const claimBattlePassTier = useCallback((slot: number, isPremium: boolean): Promise<LuckyBlock | null> => {
+    const claim = seasonClaimQueue.current.then(async () => {
+    const profile = profileRef.current;
     const tier = BATTLE_PASS_TIERS.find(t => t.slot === slot);
     if (!tier) return null;
     const bpp = profile.battlePassPoints ?? 0;
@@ -1806,10 +1813,15 @@ export function PlayerProvider({ username, onLogout, children }: {
     }
     await save(updated);
     return earnedBlock;
-  }, [profile, save]);
+    });
+    seasonClaimQueue.current = claim.then(() => undefined, () => undefined);
+    return claim;
+  }, [save]);
 
   // ── Quests: claim reward for a completed quest ──────────────────────────────
-  const claimQuestReward = useCallback(async (questId: string): Promise<{ success: boolean; bppEarned: number }> => {
+  const claimQuestReward = useCallback((questId: string): Promise<{ success: boolean; bppEarned: number }> => {
+    const claim = seasonClaimQueue.current.then(async () => {
+    const profile = profileRef.current;
     const quest = QUESTS.find(q => q.id === questId);
     if (!quest) return { success: false, bppEarned: 0 };
     // Premium-only quests require owning the pass
@@ -1835,7 +1847,10 @@ export function PlayerProvider({ username, onLogout, children }: {
       [claimedKey]: [...claimedList, questId],
     });
     return { success: true, bppEarned };
-  }, [profile, save]);
+    });
+    seasonClaimQueue.current = claim.then(() => undefined, () => undefined);
+    return claim;
+  }, [save]);
 
   const claimReferralReward = useCallback(async (choice: 'coins' | 'life') => {
     if (choice === 'coins') {

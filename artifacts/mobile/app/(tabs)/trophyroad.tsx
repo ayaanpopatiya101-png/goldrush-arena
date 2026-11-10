@@ -1,1041 +1,242 @@
-import { idleAnimation } from "@/components/ui/idleAnimation";
-import { palette } from '@/constants/colors';
-import { Text, AnimatedText } from '@/components/ui/Text';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ScreenTitle, paperText } from '@/components/ui/Primitives';
-import {
-  Animated, Dimensions, Pressable, ScrollView,
-  StyleSheet, View,
-} from 'react-native';
-import Reanimated, { FadeInRight } from 'react-native-reanimated';
-import { useFocusAnimation } from '@/hooks/useFocusAnimation';
-import { LinearGradient } from '@/components/ui/Flat';
+import { Text } from '@/components/ui/Text';
+import React, { useCallback, useRef, useState } from 'react';
+import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { palette } from '@/constants/colors';
+import { ScreenTitle } from '@/components/ui/Primitives';
+import { useFocusAnimation } from '@/hooks/useFocusAnimation';
 import {
-  BATTLE_PASS_TIERS, BATTLE_PASS_POINTS_PER_TIER, BATTLE_PASS_SEASON,
-  TROPHY_ROAD, QUESTS, LUCKY_BLOCK_META,
-  type BattlePassTier, type BPReward, type QuestDefinition, type LuckyBlock,
-  type TrophyReward, type TrophyMilestone,
-  usePlayer,
+  BATTLE_PASS_TIERS, BATTLE_PASS_POINTS_PER_TIER, BATTLE_PASS_SEASON, QUESTS, LUCKY_BLOCK_META,
+  type BattlePassTier, type LuckyBlock, usePlayer,
 } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
-import { FloatingOrbs, ORBS_ARCANE, GlowText, ParticleField, ShimmerCard, PulseRing, HolographicShimmer, GlowBorder } from '@/components/effects';
-import { Glyph } from '@/components/ui/Glyph';
-import { staticLoop } from '@/components/ui/motion';
+import { BattlePassTrack, bpCellState, isOwnedCosmetic } from '@/components/progression/BattlePassTrack';
+import { QuestSection } from '@/components/progression/QuestList';
+import { RewardInspector, type InspectTarget } from '@/components/progression/RewardInspector';
+import { RewardArt, StateChip, bpRewardView } from '@/components/progression/rewards';
+import { usePlusOffer } from '@/hooks/usePlusOffer';
 
-const { width: SW } = Dimensions.get('window');
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function bpRewardEmoji(r: BPReward): string {
-  if (r.type === 'coins')     return '🪙';
-  if (r.type === 'credits')   return '⚡';
-  if (r.type === 'skin')      return '🎨';
-  if (r.type === 'ultradrop') return '💎';
-  if (r.type === 'luckyblock' && r.tier) return LUCKY_BLOCK_META[r.tier].emoji;
-  return '🎁';
-}
-function bpRewardLabel(r: BPReward): string {
-  if (r.label) return r.label;
-  if (r.type === 'coins')     return `${(r.amount ?? 0).toLocaleString()} Coins`;
-  if (r.type === 'credits')   return `${r.amount ?? 0} Credits`;
-  if (r.type === 'skin')      return 'Excl. Skin';
-  if (r.type === 'ultradrop') return r.amount === 1 ? 'Ultra Drop' : `${r.amount}× Ultra Drop`;
-  if (r.type === 'luckyblock' && r.tier) {
-    const m = LUCKY_BLOCK_META[r.tier];
-    const cnt = r.amount && r.amount > 1 ? `${r.amount}× ` : '';
-    return `${cnt}${m.name}`;
-  }
-  return 'Reward';
-}
-function bpRewardColor(r: BPReward): string {
-  if (r.type === 'coins')     return palette.gold;
-  if (r.type === 'credits')   return palette.primary;
-  if (r.type === 'skin')      return palette.supporting;
-  if (r.type === 'ultradrop') return palette.gold;
-  if (r.type === 'luckyblock' && r.tier) return LUCKY_BLOCK_META[r.tier].color;
-  return palette.foreground;
-}
-function questEmoji(q: QuestDefinition) {
-  if (q.period === 'daily')    return '☀️';
-  if (q.period === 'weekly')   return '📅';
-  return '🏆';
-}
-function getQuestProgress(q: QuestDefinition, profile: ReturnType<typeof usePlayer>['profile']): number {
-  const map = q.period === 'daily'   ? profile.dailyQuestProgress
-            : q.period === 'weekly'  ? profile.weeklyQuestProgress
-            :                          profile.seasonalQuestProgress;
-  return (map ?? {})[q.trackKey] ?? 0;
-}
-function isQuestClaimed(q: QuestDefinition, profile: ReturnType<typeof usePlayer>['profile']): boolean {
-  const arr = q.period === 'daily'   ? profile.dailyQuestClaimed
-            : q.period === 'weekly'  ? profile.weeklyQuestClaimed
-            :                          profile.seasonalQuestClaimed;
-  return (arr ?? []).includes(q.id);
-}
-
-// ─── 3D Title ─────────────────────────────────────────────────────────────────
-function Title3D({ text, size = 22, color = palette.gold, shadow = palette.gold }: {
-  text: string; size?: number; color?: string; shadow?: string;
-}) {
-  return (
-    <View style={{ position: 'relative' }}>
-      <Text style={[s.titleLayer, { fontSize: size, color }]}>{text}</Text>
-    </View>
-  );
-}
-
-// ─── BPP Badge ────────────────────────────────────────────────────────────────
-function BPPBadge({ bpp }: { bpp: number }) {
-  const pulse = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    staticLoop(Animated.sequence([
-      Animated.timing(pulse, { toValue: 1.04, duration: 1200, useNativeDriver: true }),
-      Animated.timing(pulse, { toValue: 1,    duration: 1200, useNativeDriver: true }),
-    ])).start();
-  }, []);
-  return (
-    <GlowBorder color={palette.gold} borderRadius={3} spread={12} pulse>
-      <Animated.View style={[s.bppBadge, { transform: [{ scale: pulse }] }]}>
-        <LinearGradient colors={[palette.gold, palette.gold]} style={s.bppGrad}>
-          <Text style={s.bppVal}>{bpp.toLocaleString()}</Text>
-          <Text style={s.bppLabel}>BP PTS</Text>
-        </LinearGradient>
-      </Animated.View>
-    </GlowBorder>
-  );
-}
-
-// ─── Pass Slot Card ───────────────────────────────────────────────────────────
-type SlotState = 'locked' | 'free_claimable' | 'premium_claimable' | 'both_claimable' | 'free_claimed' | 'premium_claimed' | 'both_claimed';
-
-function SlotCard({ tier, bpp, hasPremium, onClaim }: {
-  tier: BattlePassTier;
-  bpp: number;
-  hasPremium: boolean;
-  onClaim: (slot: number, isPremium: boolean) => void;
-}) {
-  const scale = useRef(new Animated.Value(1)).current;
-  const glow  = useRef(new Animated.Value(0)).current;
-
-  const isUnlocked   = bpp >= tier.bpp;
-  const isMilestone  = !!tier.isMilestone;
-
-  useEffect(() => {
-    if (!isUnlocked) return;
-    staticLoop(Animated.sequence([
-      Animated.timing(glow, { toValue: 1, duration: 1100, useNativeDriver: true }),
-      Animated.timing(glow, { toValue: 0, duration: 1100, useNativeDriver: true }),
-    ])).start();
-  }, [isUnlocked]);
-
-  const freeColor    = bpRewardColor(tier.free);
-  const premColor    = bpRewardColor(tier.premium);
-
-  function pressHandler(isPremium: boolean) {
-    Animated.sequence([
-      Animated.timing(scale, { toValue: 0.9, duration: 80, useNativeDriver: true }),
-      Animated.spring(scale, { toValue: 1, useNativeDriver: true, bounciness: 12 }),
-    ]).start();
-    onClaim(tier.slot, isPremium);
-  }
-
-  const glowOp = glow.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.9] });
-
-  return (
-    <ShimmerCard active={isUnlocked} borderRadius={3} shimmerColor="rgba(255,215,10,0.12)">
-      <Animated.View style={[s.slotWrap, isMilestone && s.slotMilestone, { transform: [{ scale }] }]}>
-
-
-        {/* Slot number */}
-        <View style={[s.slotNum, isUnlocked && s.slotNumUnlocked, isMilestone && s.slotNumMilestone]}>
-          {isMilestone ? (
-            <Text style={[s.slotNumTxt, { color: palette.onAccent }]}>{tier.slot}</Text>
-          ) : (
-            <Text style={[s.slotNumTxt, isUnlocked && { color: palette.onAccent }]}>{tier.slot}</Text>
-          )}
-        </View>
-
-        {/* Free reward (top) */}
-        <Pressable
-          onPress={() => pressHandler(false)}
-          disabled={!isUnlocked}
-          style={[s.rewardBlock, s.freeBlock, isUnlocked && { borderColor: freeColor + '44' }]}
-        >
-          <LinearGradient
-            colors={isUnlocked ? [freeColor + '18', freeColor + '08'] : [palette.surface, palette.surface]}
-            style={StyleSheet.absoluteFill}
-          />
-          <Glyph style={[s.rewardEmoji, !isUnlocked && { opacity: 0.2 }]} value={bpRewardEmoji(tier.free)} />
-          <Text style={[s.rewardLbl, { color: palette.foreground }]} numberOfLines={2}>
-            {bpRewardLabel(tier.free)}
-          </Text>
-          {isUnlocked && <Text style={[s.trackLabel, { color: palette.supporting }]}>FREE</Text>}
-        </Pressable>
-
-        {/* Premium reward (bottom) */}
-        <Pressable
-          onPress={() => pressHandler(true)}
-          disabled={!isUnlocked || !hasPremium}
-          style={[s.rewardBlock, s.premBlock, isUnlocked && hasPremium && { borderColor: premColor + '55' }]}
-        >
-          <LinearGradient
-            colors={isUnlocked && hasPremium ? [premColor + '18', premColor + '08'] : [palette.background, palette.background]}
-            style={StyleSheet.absoluteFill}
-          />
-          <Glyph style={[s.rewardEmoji, !(isUnlocked && hasPremium) && { opacity: 0.2 }]} value={bpRewardEmoji(tier.premium)} />
-          <Text style={[s.rewardLbl, { color: palette.foreground }]} numberOfLines={2}>
-            {bpRewardLabel(tier.premium)}
-          </Text>
-          {!hasPremium && <Text style={s.lockLabel}>PREMIUM</Text>}
-          {isUnlocked && hasPremium && <Text style={[s.trackLabel, { color: palette.supporting }]}>PREMIUM</Text>}
-        </Pressable>
-      </Animated.View>
-    </ShimmerCard>
-  );
-}
-
-// ─── Quest Row ────────────────────────────────────────────────────────────────
-function QuestRow({ quest, progress, claimed, premiumOwned, onClaim }: {
-  quest: QuestDefinition;
-  progress: number;
-  claimed: boolean;
-  premiumOwned: boolean;
-  onClaim: (id: string) => void;
-}) {
-  const pct = Math.min(1, progress / quest.target);
-  const barW = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(barW, { toValue: pct, duration: 700, delay: 200, useNativeDriver: false }).start();
-  }, [pct]);
-  const barPct = barW.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
-  const isReady = pct >= 1 && !claimed;
-  const isLocked = quest.premiumOnly && !premiumOwned;
-  const periodColor = quest.period === 'daily' ? palette.gold : quest.period === 'weekly' ? palette.supporting : palette.primary;
-
-  return (
-    <ShimmerCard active={claimed} borderRadius={3} shimmerColor="rgba(237,186,60,0.12)">
-      <View style={[s.questRow, { borderColor: claimed ? palette.supporting : isReady ? periodColor : palette.border }]}>
-        <LinearGradient
-          colors={claimed ? [palette.surface, palette.surface] : isReady ? [periodColor + '12', palette.surface] : [palette.surface, palette.surface]}
-          style={StyleSheet.absoluteFill}
-        />
-        <Glyph style={s.questEmoji} value={questEmoji(quest)} />
-        <View style={{ flex: 1, gap: 4 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={[s.questTitle, { color: palette.foreground }]}>
-              {quest.title}
-            </Text>
-            {quest.premiumOnly && (
-              <View style={s.premBadge}>
-                <Text style={s.premBadgeTxt}>PREMIUM</Text>
-              </View>
-            )}
-          </View>
-          <Text style={[s.questDesc, { color: palette.supporting }]}>{quest.description}</Text>
-          {/* Progress bar */}
-          <View style={{ gap: 3 }}>
-            <View style={s.questBarBg}>
-              <Animated.View style={[s.questBarFill, { width: barPct as never, backgroundColor: claimed ? palette.supporting : periodColor }]}>
-                <View style={s.questBarShine} />
-              </Animated.View>
-            </View>
-            <Text style={s.questProg}>
-              {claimed ? 'Complete!' : isLocked ? 'Requires Premium Pass' : `${Math.min(progress, quest.target)} / ${quest.target}`}
-            </Text>
-          </View>
-        </View>
-        {/* BPP badge */}
-        <View style={{ alignItems: 'flex-end', gap: 5, minWidth: 54 }}>
-          <View style={[s.bppChip, { borderColor: palette.edge, backgroundColor: palette.gold }]}>
-            <Text style={[s.bppChipTxt, { color: palette.onAccent }]}>+{quest.reward}</Text>
-            <Text style={[s.bppChipLabel, { color: palette.onAccent }]}>BP</Text>
-          </View>
-          {isReady && !isLocked && (
-            <Pressable onPress={() => onClaim(quest.id)} style={[s.claimBtn, { borderColor: palette.edge, backgroundColor: palette.primary }]}>
-              <Text style={[s.claimBtnTxt, { color: palette.onAccent }]}>CLAIM</Text>
-            </Pressable>
-          )}
-          {claimed && <Glyph style={{ fontSize: 16 }} value="✅" />}
-          {isLocked && <Glyph style={{ fontSize: 14, opacity: 0.4 }} value="🔒" />}
-        </View>
-      </View>
-    </ShimmerCard>
-  );
-}
-
-// ─── Quest Section ────────────────────────────────────────────────────────────
-function QuestSection({ title, quests, profile, premiumOwned, onClaim, defaultOpen }: {
-  title: string;
-  quests: QuestDefinition[];
-  profile: ReturnType<typeof usePlayer>['profile'];
-  premiumOwned: boolean;
-  onClaim: (id: string) => void;
-  defaultOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen ?? true);
-  const claimedCount = quests.filter(q => isQuestClaimed(q, profile)).length;
-  const totalEligible = quests.filter(q => !q.premiumOnly || premiumOwned).length;
-  return (
-    <View style={{ marginBottom: 10 }}>
-      <Pressable onPress={() => setOpen(o => !o)} style={[s.sectionHeader, { borderColor: palette.border }]}>
-        <LinearGradient colors={[palette.surface, palette.surface]} style={StyleSheet.absoluteFill} />
-        <Glyph style={{ fontSize: 14 }} value={title === 'Daily' ? '☀️' : title === 'Weekly' ? '📅' : '🏆'} />
-        <GlowText intensity="soft" color={palette.foreground} style={[s.sectionTitle, { color: palette.foreground }]}>
-          {title.toUpperCase()} QUESTS
-        </GlowText>
-        <View style={s.sectionCount}>
-          <Text style={[s.sectionCountTxt, { color: palette.foreground }]}>{claimedCount}/{totalEligible}</Text>
-        </View>
-        <Text style={{ color: palette.supporting, fontSize: 12 }}>{open ? '▲' : '▼'}</Text>
-      </Pressable>
-      {open && quests.map(q => (
-        <QuestRow
-          key={q.id}
-          quest={q}
-          progress={getQuestProgress(q, profile)}
-          claimed={isQuestClaimed(q, profile)}
-          premiumOwned={premiumOwned}
-          onClaim={onClaim}
-        />
-      ))}
-    </View>
-  );
-}
-
-// ─── Toast ────────────────────────────────────────────────────────────────────
-function Toast({ label, color, onDone }: { label: string; color: string; onDone: () => void }) {
-  const op = useRef(new Animated.Value(0)).current;
-  const ty = useRef(new Animated.Value(30)).current;
-  useEffect(() => {
-    Animated.sequence([
-      Animated.parallel([
-        Animated.timing(op, { toValue: 1, duration: 200, useNativeDriver: true }),
-        Animated.timing(ty, { toValue: 0, duration: 280, useNativeDriver: true }),
-      ]),
-      Animated.delay(1800),
-      Animated.timing(op, { toValue: 0, duration: 350, useNativeDriver: true }),
-    ]).start(onDone);
-  }, []);
-  return (
-    <Animated.View pointerEvents="none" style={[tr.toast, { borderColor: color, opacity: op, transform: [{ translateY: ty }] }]}>
-      <Text style={[tr.toastTxt, { color: palette.foreground }]}>{label}</Text>
-    </Animated.View>
-  );
-}
-
-// ─── Trophy Road ──────────────────────────────────────────────────────────────
-
-interface RoadZone {
-  name: string;
-  subtitle: string;
-  gradColors: [string, string];
-  accent: string;
-  decor: string[];
-  milestones: TrophyMilestone[];
-}
-
-const ROAD_ZONES: RoadZone[] = [
-  {
-    name: 'Dusty Trail',
-    subtitle: 'Where legends begin…',
-    gradColors: [palette.surface, palette.surface],
-    accent: palette.gold,
-    decor: ['🌵', '⛺', '🏜️', '🌅', '🌵'],
-    milestones: TROPHY_ROAD.slice(0, 5),
-  },
-  {
-    name: 'Gold Rush Gulch',
-    subtitle: 'Strike it rich',
-    gradColors: [palette.surface, palette.surface],
-    accent: palette.gold,
-    decor: ['⛏️', '🪨', '💰', '🔦', '💎'],
-    milestones: TROPHY_ROAD.slice(5, 10),
-  },
-  {
-    name: 'Crimson Canyon',
-    subtitle: 'Heat rises, do you?',
-    gradColors: [palette.surface, palette.surface],
-    accent: palette.primary,
-    decor: ['🌋', '🔥', '💥', '🏔️', '🌋'],
-    milestones: TROPHY_ROAD.slice(10, 15),
-  },
-  {
-    name: 'Crystal Caverns',
-    subtitle: 'Beneath the surface',
-    gradColors: [palette.surface, palette.surface],
-    accent: palette.supporting,
-    decor: ['💎', '🔮', '✨', '🫧', '💎'],
-    milestones: TROPHY_ROAD.slice(15, 20),
-  },
-  {
-    name: 'Summit of Champions',
-    subtitle: 'Only the elite reach here',
-    gradColors: [palette.surface, palette.surface],
-    accent: palette.supporting,
-    decor: ['👑', '⚡', '🏆', '🌟', '⚡'],
-    milestones: TROPHY_ROAD.slice(20, 25),
-  },
-];
-
-function trEmoji(r: TrophyReward): string {
-  if (r.type === 'coins')     return '🪙';
-  if (r.type === 'skin')      return '🎨';
-  if (r.type === 'relic')     return '⚔️';
-  if (r.type === 'luckyblock') return LUCKY_BLOCK_META[r.tier].emoji;
-  return '🎁';
-}
-function trLabel(r: TrophyReward): string {
-  if (r.type === 'coins')     return `${r.amount.toLocaleString()} Coins`;
-  if (r.type === 'skin')      return r.id[0].toUpperCase() + r.id.slice(1) + ' Skin';
-  if (r.type === 'relic')     return r.id[0].toUpperCase() + r.id.slice(1) + ' Relic';
-  if (r.type === 'luckyblock') return LUCKY_BLOCK_META[r.tier].name;
-  return 'Reward';
-}
-function trColor(r: TrophyReward): string {
-  if (r.type === 'coins')     return palette.gold;
-  if (r.type === 'skin')      return palette.supporting;
-  if (r.type === 'relic')     return palette.primary;
-  if (r.type === 'luckyblock') return LUCKY_BLOCK_META[r.tier].color;
-  return palette.foreground;
-}
-function fmtXP(n: number): string {
-  if (n >= 1000) return (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'K';
-  return String(n);
-}
-
-// Z-shaped connector between zigzag nodes
-function PathConnector({ fromRight, color }: { fromRight: boolean; color: string }) {
-  const c = color + '70';
-  const v: any = { backgroundColor: c, position: 'absolute' };
-  return (
-    <View style={{ height: 52, marginHorizontal: 40, marginTop: -2, marginBottom: -2 }}>
-      {fromRight ? (
-        <>
-          <View style={[v, { right: 2, top: 0, height: 24, width: 2 }]} />
-          <View style={[v, { right: 2, left: 2, top: 24, height: 2 }]} />
-          <View style={[v, { left: 2, top: 24, bottom: 0, width: 2 }]} />
-        </>
-      ) : (
-        <>
-          <View style={[v, { left: 2, top: 0, height: 24, width: 2 }]} />
-          <View style={[v, { left: 2, right: 2, top: 24, height: 2 }]} />
-          <View style={[v, { right: 2, top: 24, bottom: 0, width: 2 }]} />
-        </>
-      )}
-    </View>
-  );
-}
-
-// Decorative floating emojis inside a zone banner
-function ZoneDecor({ emojis, color }: { emojis: string[]; color: string }) {
-  const floats = emojis.slice(0, 4).map((e, i) => {
-    const anim = useRef(new Animated.Value(0)).current;
-    useEffect(() => {
-      staticLoop(Animated.sequence([
-        Animated.timing(anim, { toValue: -5, duration: 1600 + i * 400, useNativeDriver: true }),
-        Animated.timing(anim, { toValue: 0,  duration: 1600 + i * 400, useNativeDriver: true }),
-      ])).start();
-    }, []);
-    return { e, anim, x: 12 + i * 26 };
-  });
-  return (
-    <View style={{ position: 'absolute', right: 10, top: 0, bottom: 0, width: 120, overflow: 'hidden' }}>
-      {floats.map(({ e, anim, x }, i) => (
-        <AnimatedText key={i}
-          style={{
-            position: 'absolute',
-            fontSize: i === 0 ? 28 : i === 1 ? 20 : 14,
-            right: x,
-            top: i % 2 === 0 ? 6 : 16,
-            transform: [{ translateY: anim }],
-            opacity: 1 - i * 0.15,
-          }}
-        >{e}</AnimatedText>
-      ))}
-    </View>
-  );
-}
-
-function ZoneBanner({ zone, zoneIdx }: { zone: RoadZone; zoneIdx: number }) {
-  return (
-    <View style={{ marginHorizontal: 16, marginTop: zoneIdx === 0 ? 8 : 20, marginBottom: 16 }}>
-      <LinearGradient
-        colors={[zone.accent + '35', zone.accent + '0A']}
-        style={{
-          borderRadius: 3, padding: 16, borderWidth: 1.5,
-          borderColor: zone.accent + '55', overflow: 'hidden',
-        }}
-      >
-
-        <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 8, color: palette.supporting, letterSpacing: 3, marginBottom: 3 }}>
-          ZONE {zoneIdx + 1} · 5 MILESTONES
-        </Text>
-        <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.foreground, letterSpacing: 1.5, lineHeight: 28 }}>
-          {zone.name.toUpperCase()}
-        </Text>
-        <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: palette.supporting, marginTop: 2 }}>
-          {zone.subtitle}
-        </Text>
-        {/* XP range pill */}
-        <View style={{
-          alignSelf: 'flex-start', marginTop: 8,
-          backgroundColor: zone.accent + '22', borderRadius: 3,
-          paddingHorizontal: 8, paddingVertical: 3,
-          borderWidth: 1, borderColor: zone.accent + '44',
-        }}>
-          <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: palette.foreground, letterSpacing: 0.5 }}>
-            {fmtXP(zone.milestones[0].xp)} – {fmtXP(zone.milestones[4].xp)} XP
-          </Text>
-        </View>
-      </LinearGradient>
-    </View>
-  );
-}
-
-function MilestoneNode({ ms, globalIdx, zone, claimed, canClaim, isLeft, onClaim }: {
-  ms: TrophyMilestone; globalIdx: number; zone: RoadZone;
-  claimed: boolean; canClaim: boolean; isLeft: boolean;
-  onClaim: (id: string) => void;
-}) {
-  const pulse = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    if (!canClaim) return;
-    const a = staticLoop(Animated.sequence([
-      Animated.timing(pulse, { toValue: 1.06, duration: 800, useNativeDriver: true }),
-      Animated.timing(pulse, { toValue: 1,    duration: 800, useNativeDriver: true }),
-    ]));
-    a.start();
-    return () => a.stop();
-  }, [canClaim]);
-
-  const borderColor = claimed ? palette.supporting : canClaim ? zone.accent : palette.border;
-  const bg1 = claimed ? palette.surface : canClaim ? zone.accent + '12' : palette.surface;
-
-  return (
-    <View style={[tr.nodeRow, { justifyContent: isLeft ? 'flex-start' : 'flex-end' }]}>
-      <Animated.View style={{ transform: [{ scale: canClaim ? pulse : 1 }] }}>
-        <Pressable
-          onPress={() => canClaim && onClaim(ms.id)}
-          style={({ pressed }) => [
-            tr.nodeCard,
-            { borderColor, opacity: pressed ? 0.85 : 1 },
-            canClaim && { shadowColor: zone.accent, shadowRadius: 0, shadowOpacity: 0, shadowOffset: { width: 0, height: 0 }, elevation: 0 },
-          ]}
-        >
-          <LinearGradient colors={[bg1, bg1]} style={StyleSheet.absoluteFill} />
-
-          {/* Milestone number badge */}
-          <View style={[tr.numBadge, { backgroundColor: zone.accent + '25', borderColor: zone.accent + '40' }]}>
-            <Text style={[tr.numTxt, { color: zone.accent }]}>#{globalIdx + 1}</Text>
-          </View>
-
-          {/* Reward icon */}
-          <Glyph style={{ fontSize: 32, marginVertical: 6 }} value={trEmoji(ms.reward)} />
-
-          {/* Reward name */}
-          <Text style={[tr.rewardTxt, { color: palette.foreground }]} numberOfLines={2}>{trLabel(ms.reward)}</Text>
-
-          {/* XP threshold */}
-          <Text style={tr.xpTxt}>{fmtXP(ms.xp)} XP</Text>
-
-          {/* State chip */}
-          {claimed ? (
-            <View style={[tr.chip, { backgroundColor: palette.gold, borderColor: palette.edge }]}>
-              <Text style={[tr.chipTxt, { color: palette.onAccent }]}>CLAIMED</Text>
-            </View>
-          ) : canClaim ? (
-            <View style={[tr.chip, { backgroundColor: palette.primary, borderColor: palette.edge }]}>
-              <Text style={[tr.chipTxt, { color: palette.onAccent }]}>TAP TO CLAIM</Text>
-            </View>
-          ) : (
-            <View style={[tr.chip, { backgroundColor: palette.background, borderColor: palette.border }]}>
-              <Text style={[tr.chipTxt, { color: palette.supporting }]}> {fmtXP(ms.xp)} XP</Text>
-            </View>
-          )}
-        </Pressable>
-      </Animated.View>
-    </View>
-  );
-}
-
-function ZoneEndArrow({ accentA, accentB }: { accentA: string; accentB: string }) {
-  return (
-    <View style={{ alignItems: 'center', paddingVertical: 12 }}>
-      <LinearGradient
-        colors={[accentA + '00', accentA + '44', accentB + '44', accentB + '00']}
-        style={{ height: 2, width: 80, marginBottom: 6 }}
-      />
-      <Glyph style={{ fontSize: 14, opacity: 0.45 }} value="⬇" />
-      <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 7, color: palette.supporting, letterSpacing: 2.5, marginTop: 3 }}>
-        NEXT ZONE
-      </Text>
-    </View>
-  );
-}
-
-function TrophyRoadTab({
-  profile,
-  onClaim,
-  insets,
-}: {
-  profile: ReturnType<typeof usePlayer>['profile'];
-  onClaim: (id: string) => void;
-  insets: { bottom: number };
-}) {
-  const claimed = profile.trophyRoadClaimed ?? [];
-  const playerXP = profile.xp ?? 0;
-  const total    = TROPHY_ROAD.length;
-  const done     = claimed.length;
-
-  return (
-    <ScrollView showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}>
-
-      {/* Overall progress bar */}
-      <View style={{ marginHorizontal: 16, marginTop: 8, marginBottom: 4 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
-          <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 10, color: palette.foreground, letterSpacing: 1 }}>
-            TROPHY ROAD
-          </Text>
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: palette.supporting }}>
-            {done} / {total} claimed
-          </Text>
-        </View>
-        <View style={{ height: 5, backgroundColor: palette.border, borderRadius: 3, overflow: 'hidden' }}>
-          <LinearGradient
-            colors={[palette.gold, palette.gold]}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={{ height: 5, width: `${(done / total) * 100}%` as any, borderRadius: 2 }}
-          />
-        </View>
-      </View>
-
-      {/* Zones */}
-      {ROAD_ZONES.map((zone, zi) => (
-        <View key={zone.name}>
-          <ZoneBanner zone={zone} zoneIdx={zi} />
-          {zone.milestones.map((ms, mi) => {
-            const globalIdx = zi * 5 + mi;
-            const isLeft    = globalIdx % 2 === 0;
-            const isClaimed = claimed.includes(ms.id);
-            const isUnlocked = playerXP >= ms.xp;
-            return (
-              <React.Fragment key={ms.id}>
-                <MilestoneNode
-                  ms={ms} globalIdx={globalIdx} zone={zone}
-                  claimed={isClaimed} canClaim={isUnlocked && !isClaimed}
-                  isLeft={isLeft} onClaim={onClaim}
-                />
-                {mi < zone.milestones.length - 1 && (
-                  <PathConnector fromRight={!isLeft} color={zone.accent} />
-                )}
-              </React.Fragment>
-            );
-          })}
-          {zi < ROAD_ZONES.length - 1 && (
-            <ZoneEndArrow accentA={zone.accent} accentB={ROAD_ZONES[zi + 1].accent} />
-          )}
-        </View>
-      ))}
-
-      {/* Completion banner */}
-      {done === total && (
-        <View style={{ margin: 20, borderRadius: 3, overflow: 'hidden', borderWidth: 1.5, borderColor: palette.border }}>
-          <LinearGradient colors={[palette.surface, palette.surface]} style={{ padding: 20, alignItems: 'center', gap: 4 }}>
-            <Glyph style={{ fontSize: 40 }} value="🏆" />
-            <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 20, color: palette.foreground, letterSpacing: 2 }}>
-              ROAD COMPLETE!
-            </Text>
-            <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: palette.supporting, textAlign: 'center' }}>
-              You've conquered every zone. True GoldRush Champion.
-            </Text>
-          </LinearGradient>
-        </View>
-      )}
-    </ScrollView>
-  );
-}
-
-// ─── Main Screen ──────────────────────────────────────────────────────────────
-const DAILY_QUESTS   = QUESTS.filter(q => q.period === 'daily');
-const WEEKLY_QUESTS  = QUESTS.filter(q => q.period === 'weekly');
-const SEASONAL_QUESTS = QUESTS.filter(q => q.period === 'seasonal');
+const DAILY = QUESTS.filter(q => q.period === 'daily');
+const WEEKLY = QUESTS.filter(q => q.period === 'weekly');
+const SEASONAL = QUESTS.filter(q => q.period === 'seasonal');
+const PLUS_QUESTS = QUESTS.filter(q => q.premiumOnly).length;
+const SEASON_SKIN_TIERS = BATTLE_PASS_TIERS.filter(t => t.premium.type === 'skin' || t.free.type === 'skin');
+const TOTAL = BATTLE_PASS_TIERS.length;
 
 export default function BattlePassScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { profile, claimBattlePassTier, claimQuestReward, claimTrophyRoad } = usePlayer();
-  const [innerTab, setInnerTab] = useState<'quests' | 'pass'>('pass');
-  const [toasts, setToasts] = useState<{ id: string; label: string; color: string }[]>([]);
-  const [activeLuckyBlock, setActiveLuckyBlock] = useState<LuckyBlock | null>(null);
-  const passScrollRef = useRef<ScrollView>(null);
+  const offer = usePlusOffer();
+  const { profile, claimBattlePassTier, claimQuestReward } = usePlayer();
+  const [tab, setTab] = useState<'pass' | 'quests'>('pass');
+  const [inspect, setInspect] = useState<{ tier: BattlePassTier; isPlus: boolean } | null>(null);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [block, setBlock] = useState<LuckyBlock | null>(null);
+  const busyRef = useRef(false);
+  const focusStyle = useFocusAnimation();
+  const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
-  const bpp         = profile.battlePassPoints ?? 0;
-  const hasPremium  = profile.battlePassPremiumOwned ?? false;
+  const bpp = profile.battlePassPoints ?? 0;
+  const hasPlus = profile.battlePassPremiumOwned ?? false;
   const freeClaimed = profile.battlePassClaimed ?? [];
-  const premClaimed = profile.battlePassPremiumClaimed ?? [];
+  const plusClaimed = profile.battlePassPremiumClaimed ?? [];
+  const ownedSkins = profile.ownedSkins ?? [];
 
-  // Auto-scroll pass to first claimable slot on mount
-  useEffect(() => {
-    if (innerTab !== 'pass') return;
-    const currentTier = Math.floor(bpp / BATTLE_PASS_POINTS_PER_TIER);
-    const targetSlot  = Math.max(0, Math.min(currentTier, BATTLE_PASS_TIERS.length - 1));
-    const SLOT_W = 120;
-    setTimeout(() => passScrollRef.current?.scrollTo({ x: targetSlot * SLOT_W - SW / 2 + SLOT_W / 2, animated: true }), 600);
-  }, [innerTab]);
+  const tiersReached = Math.min(TOTAL, Math.floor(bpp / BATTLE_PASS_POINTS_PER_TIER));
+  const nextTier = BATTLE_PASS_TIERS[tiersReached];
+  const intoTier = bpp % BATTLE_PASS_POINTS_PER_TIER;
+  const ready = BATTLE_PASS_TIERS.reduce((n, t) =>
+    n + (bpCellState(t, false, bpp, hasPlus, freeClaimed, plusClaimed) === 'claimable' ? 1 : 0)
+      + (bpCellState(t, true, bpp, hasPlus, freeClaimed, plusClaimed) === 'claimable' ? 1 : 0), 0);
 
-  const handleClaimTier = useCallback(async (slot: number, isPremium: boolean) => {
-    const tierId = `bp_${slot}`;
-    if (!isPremium && freeClaimed.includes(tierId)) return;
-    if (isPremium && premClaimed.includes(tierId)) return;
-    const block = await claimBattlePassTier(slot, isPremium);
-    const tier = BATTLE_PASS_TIERS.find(t => t.slot === slot);
-    if (!tier) return;
-    const reward = isPremium ? tier.premium : tier.free;
-    if (block) {
-      setActiveLuckyBlock(block);
-    } else {
-      setToasts(prev => [...prev, {
-        id: `${slot}_${isPremium}_${Date.now()}`,
-        label: `${bpRewardLabel(reward)} collected!`,
-        color: bpRewardColor(reward),
-      }]);
-    }
-  }, [claimBattlePassTier, freeClaimed, premClaimed]);
+  const openInspect = useCallback((tier: BattlePassTier, isPlus: boolean) => { setError(''); setInspect({ tier, isPlus }); }, []);
 
-  const handleClaimTrophyMilestone = useCallback(async (id: string) => {
-    const block = await claimTrophyRoad(id);
-    if (block) {
-      setActiveLuckyBlock(block);
-    } else {
-      const ms = TROPHY_ROAD.find(m => m.id === id);
-      if (ms) {
-        const label = trLabel(ms.reward);
-        setToasts(prev => [...prev, { id: id + Date.now(), label: `${label} collected!`, color: trColor(ms.reward) }]);
-      }
-    }
-  }, [claimTrophyRoad]);
+  const claimTier = useCallback(async (tier: BattlePassTier, isPlus: boolean) => {
+    if (busyRef.current) return;
+    if (bpCellState(tier, isPlus, bpp, hasPlus, freeClaimed, plusClaimed) !== 'claimable') return;
+    busyRef.current = true; setBusyKey(`${tier.slot}_${isPlus}`); setError('');
+    try {
+      const b = await claimBattlePassTier(tier.slot, isPlus);
+      setInspect(null);
+      if (b) setBlock(b);
+      else setNotice(`${bpRewardView(isPlus ? tier.premium : tier.free).title} claimed.`);
+    } catch {
+      setError('This claim could not be saved. Nothing was granted; try again.');
+    } finally { busyRef.current = false; setBusyKey(null); }
+  }, [bpp, hasPlus, freeClaimed, plusClaimed, claimBattlePassTier]);
 
-  const handleClaimQuest = useCallback(async (questId: string) => {
-    const result = await claimQuestReward(questId);
-    if (result.success) {
-      const q = QUESTS.find(q => q.id === questId);
-      setToasts(prev => [...prev, {
-        id: questId + Date.now(),
-        label: `+${result.bppEarned} Battle Pass Points!`,
-        color: palette.foreground,
-      }]);
-    }
+  const claimQuest = useCallback(async (id: string) => {
+    if (busyRef.current) return;
+    busyRef.current = true; setBusyKey(id); setNotice('');
+    try {
+      const res = await claimQuestReward(id);
+      setNotice(res.success ? `+${res.bppEarned} Battle Pass points added.` : 'That quest could not be claimed. Check its progress and try again.');
+    } catch {
+      setNotice('This claim could not be saved. Nothing was granted; try again.');
+    } finally { busyRef.current = false; setBusyKey(null); }
   }, [claimQuestReward]);
 
-  // Progress bar for current tier
-  const currentTierIdx = Math.floor(bpp / BATTLE_PASS_POINTS_PER_TIER);
-  const tierProgress = (bpp % BATTLE_PASS_POINTS_PER_TIER) / BATTLE_PASS_POINTS_PER_TIER;
-  const progressAnim = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(progressAnim, { toValue: tierProgress, duration: 1000, delay: 400, useNativeDriver: false }).start();
-  }, [tierProgress]);
-  const progressPct = progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
-  const focusStyle = useFocusAnimation();
+  let target: InspectTarget | null = null;
+  if (inspect) {
+    const { tier, isPlus } = inspect;
+    const r = isPlus ? tier.premium : tier.free;
+    const state = bpCellState(tier, isPlus, bpp, hasPlus, freeClaimed, plusClaimed);
+    target = {
+      key: `${tier.slot}_${isPlus}`,
+      view: bpRewardView(r),
+      state,
+      owned: isOwnedCosmetic(r, ownedSkins),
+      context: `Tier ${tier.slot}, ${isPlus ? 'Plus' : 'Free'} track`,
+      requirement: state === 'claimed' ? 'Already claimed on this account.'
+        : state === 'needsPlus' ? `Plus track reward. Requires Plus${bpp >= tier.bpp ? '; you have already reached this tier.' : ` and ${tier.bpp} points.`}`
+        : state === 'claimable' ? `Tier reached with ${bpp} points. Ready to claim.`
+        : `Unlocks at ${tier.bpp} Battle Pass points. You have ${bpp}, ${tier.bpp - bpp} to go.`,
+    };
+  }
 
   return (
     <Reanimated.View style={[{ flex: 1, backgroundColor: palette.background }, focusStyle]}>
-      <FloatingOrbs orbs={ORBS_ARCANE} opacity={0.8} />
-      <ParticleField count={35} mode="stars" />
-      <LinearGradient colors={[palette.background, palette.background, palette.background]} style={StyleSheet.absoluteFill} />
-      <LinearGradient
-        colors={['transparent', 'transparent']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 380 }}
-        pointerEvents="none"
-      />
+      <ScrollView contentContainerStyle={{ paddingTop: topPad + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 120, gap: 14 }} showsVerticalScrollIndicator={false}>
+        <ScreenTitle kicker={`Season ${BATTLE_PASS_SEASON}`} title="Battle Pass" />
+        <Text style={s.lede}>Finish quests for Battle Pass points. Every {BATTLE_PASS_POINTS_PER_TIER} points reaches a tier with a Free reward, plus a Plus reward if you own Plus.</Text>
 
-      <View style={{ flex: 1, paddingTop: insets.top + 12 }}>
-
-        {/* ── Header ── */}
-        <View style={s.header}>
-          <View style={{ flex: 1 }}>
-            <ScreenTitle kicker={`Season ${BATTLE_PASS_SEASON}`} title="Pass" />
-            <Text style={s.headerSub}>Complete Quests → Earn Points → Unlock Rewards</Text>
+        {/* Points */}
+        <View style={s.card}>
+          <View style={s.statRow}>
+            <View style={s.stat}><Text style={s.statVal}>{bpp.toLocaleString()}</Text><Text style={s.statLbl}>POINTS</Text></View>
+            <View style={s.stat}><Text style={s.statVal}>{tiersReached} / {TOTAL}</Text><Text style={s.statLbl}>TIERS REACHED</Text></View>
+            <View style={s.stat}><Text style={s.statVal}>{ready}</Text><Text style={s.statLbl}>READY TO CLAIM</Text></View>
           </View>
-          <BPPBadge bpp={bpp} />
+          {nextTier ? (
+            <>
+              <Text style={s.small}>{intoTier} / {BATTLE_PASS_POINTS_PER_TIER} points toward tier {nextTier.slot}</Text>
+              <View style={s.bar} accessible accessibilityRole="progressbar" aria-valuenow={intoTier} aria-valuemin={0} aria-valuemax={BATTLE_PASS_POINTS_PER_TIER} accessibilityLabel={`${intoTier} of ${BATTLE_PASS_POINTS_PER_TIER} points toward tier ${nextTier.slot}`}>
+                <View style={[s.fill, { width: `${(intoTier / BATTLE_PASS_POINTS_PER_TIER) * 100}%` }]} />
+              </View>
+            </>
+          ) : <Text style={s.small}>All {TOTAL} tiers reached this season.</Text>}
         </View>
 
-        {/* ── Points progress bar ── */}
-        <View style={s.progressCard}>
-          <View style={s.progressRow}>
-            <Text style={s.progressLbl}>Tier {Math.min(currentTierIdx + 1, 50)} / 50</Text>
-            <Text style={s.progressLbl}>
-              {bpp % BATTLE_PASS_POINTS_PER_TIER} / {BATTLE_PASS_POINTS_PER_TIER} pts to next
-            </Text>
+        {/* Plus */}
+        <View style={[s.card, { borderColor: hasPlus ? palette.edge : palette.border }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <MaterialCommunityIcons name="crown-outline" size={22} color={palette.gold} />
+            <Text style={s.h2}>{hasPlus ? 'PLUS ACTIVE' : 'PLUS TRACK'}</Text>
+            <Text style={[s.badge, hasPlus ? { backgroundColor: palette.gold, color: palette.onAccent } : null]}>{hasPlus ? 'OWNED' : 'NOT OWNED'}</Text>
           </View>
-          <View style={s.barBg}>
-            <ShimmerCard active={true} borderRadius={4} duration={2200} shimmerColor="rgba(255,255,255,0.25)">
-              <Animated.View style={[s.barFill, { width: progressPct as never }]}>
-                <View style={s.barShine} />
-              </Animated.View>
-            </ShimmerCard>
-          </View>
+          <Text style={s.small}>
+            {hasPlus
+              ? `Season ${BATTLE_PASS_SEASON}. Plus rewards claim on the same track as Free rewards once each tier is reached.`
+              : `Plus unlocks the second reward on all ${TOTAL} tiers, including the ${SEASON_SKIN_TIERS.length} season skins below, and ${PLUS_QUESTS} Plus-only quests. Rewards are still earned by reaching each tier.`}
+          </Text>
+          {!hasPlus && (
+            <>
+              <Text style={s.small} accessibilityLiveRegion="polite">{offer.message}</Text>
+              <Pressable onPress={() => router.push({ pathname: '/(tabs)/shop', params: { section: 'store' } })} accessibilityRole="link" aria-label="View store availability and prices in the Shop" style={s.btn}>
+                <Text style={s.btnTxt}>VIEW STORE AVAILABILITY AND PRICES</Text>
+              </Pressable>
+              <Text style={s.small}>Opens the Shop. Nothing is charged on this screen; the Shop shows whether purchasing is available on this device.</Text>
+            </>
+          )}
         </View>
 
-        {/* ── Buy Premium / Premium badge ── */}
-        {!hasPremium ? (
-          <Pressable
-            onPress={() => router.push('/(tabs)/shop')}
-            style={({ pressed }) => [s.buyPremBtn, { opacity: pressed ? 0.8 : 1 }]}
-          >
-            <LinearGradient colors={[palette.surface, palette.surface]} style={StyleSheet.absoluteFill} />
-            <Glyph style={{ fontSize: 18 }} value="👑" />
-            <View style={{ flex: 1 }}>
-              <Text style={s.buyPremTitle}>Upgrade to Premium Pass</Text>
-              <Text style={s.buyPremSub}>2× rewards · 2 exclusive skins · 5× Ultra Drop</Text>
-            </View>
-            <Text style={s.buyPremPrice}>$4.99</Text>
+        {/* Season cosmetics */}
+        <Text style={s.h2} accessibilityRole="header">SEASON {BATTLE_PASS_SEASON} SKINS</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {SEASON_SKIN_TIERS.map(tier => {
+            const isPlus = tier.premium.type === 'skin';
+            const r = isPlus ? tier.premium : tier.free;
+            const view = bpRewardView(r);
+            const state = bpCellState(tier, isPlus, bpp, hasPlus, freeClaimed, plusClaimed);
+            const owned = isOwnedCosmetic(r, ownedSkins);
+            return (
+              <Pressable key={tier.slot} onPress={() => openInspect(tier, isPlus)} accessibilityRole="button"
+                aria-label={`${view.title}, tier ${tier.slot} ${isPlus ? 'Plus' : 'Free'}. Opens details.`}
+                style={s.showcase}>
+                <RewardArt view={view} size={132} dim={state === 'locked' || state === 'needsPlus'} />
+                <Text style={s.showTitle}>{view.title}</Text>
+                <Text style={s.small}>Tier {tier.slot}, {isPlus ? 'Plus' : 'Free'} track</Text>
+                <StateChip state={state} owned={owned} />
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* Tabs */}
+        <View style={s.tabs} accessibilityRole="tablist">
+          {([['pass', 'REWARDS', 'ticket-outline'], ['quests', 'QUESTS', 'clipboard-list-outline']] as const).map(([id, label, icon]) => {
+            const on = tab === id;
+            return (
+              <Pressable key={id} onPress={() => setTab(id)} accessibilityRole="tab" accessibilityState={{ selected: on }} aria-selected={on} style={[s.tab, on && s.tabOn]}>
+                <MaterialCommunityIcons name={icon} size={18} color={on ? palette.onAccent : palette.foreground} />
+                <Text style={[s.tabTxt, on && { color: palette.onAccent }]}>{label}</Text>
+              </Pressable>
+            );
+          })}
+          <Pressable onPress={() => router.push('/trophyroad-map')} accessibilityRole="link" aria-label="Open Trophy Road" style={s.tab}>
+            <MaterialCommunityIcons name="map-outline" size={18} color={palette.foreground} />
+            <Text style={s.tabTxt}>ROAD</Text>
           </Pressable>
+        </View>
+
+        {notice ? (
+          <Pressable onPress={() => setNotice('')} accessibilityRole="button" aria-label={`${notice} Dismiss`} style={s.notice}>
+            <Text style={s.noticeTxt} accessibilityLiveRegion="polite">{notice}</Text>
+            <MaterialCommunityIcons name="close" size={18} color={palette.foreground} />
+          </Pressable>
+        ) : null}
+
+        {tab === 'pass' ? (
+          <BattlePassTrack tiers={BATTLE_PASS_TIERS} bpp={bpp} hasPlus={hasPlus} freeClaimed={freeClaimed} plusClaimed={plusClaimed} ownedSkins={ownedSkins} onInspect={openInspect} />
         ) : (
-          <View style={s.premOwnedBadge}>
-            <LinearGradient colors={[palette.surface, palette.surface]} style={StyleSheet.absoluteFill} />
-            <Glyph style={{ fontSize: 14 }} value="👑" />
-            <Text style={s.premOwnedTxt}>PREMIUM PASS ACTIVE, Season {BATTLE_PASS_SEASON}</Text>
+          <View>
+            <QuestSection title="Daily" period="daily" quests={DAILY} profile={profile} hasPlus={hasPlus} busyId={busyKey} onClaim={claimQuest} />
+            <QuestSection title="Weekly" period="weekly" quests={WEEKLY} profile={profile} hasPlus={hasPlus} busyId={busyKey} onClaim={claimQuest} defaultOpen={false} />
+            <QuestSection title="Seasonal" period="seasonal" quests={SEASONAL} profile={profile} hasPlus={hasPlus} busyId={busyKey} onClaim={claimQuest} defaultOpen={false} />
           </View>
         )}
+      </ScrollView>
 
-        {/* ── Inner Tabs ── */}
-        <View style={s.tabBar}>
-          {([
-            { id: 'pass',   emoji: '🎫', label: 'PASS'   },
-            { id: 'quests', emoji: '📋', label: 'QUESTS' },
-          ] as const).map(tab => (
-            <Pressable
-              key={tab.id}
-              onPress={() => setInnerTab(tab.id)}
-              style={[s.tabBtn, innerTab === tab.id && s.tabBtnActive]}
-            >
-              <Glyph style={{ fontSize: 13 }} color={innerTab === tab.id ? palette.onAccent : palette.foreground} value={tab.emoji} />
-                <Text style={[s.tabBtnTxt, innerTab === tab.id && { color: palette.onAccent }]}>
-                {tab.label}
-              </Text>
-            </Pressable>
-          ))}
-          <Pressable
-            onPress={() => router.push('/trophyroad-map')}
-            style={s.tabBtn}
-          >
-            <Glyph style={{ fontSize: 13 }} value="🗺️" />
-            <Text style={s.tabBtnTxt}>ROAD</Text>
-          </Pressable>
-        </View>
-
-        {/* ── QUESTS Tab ── */}
-        {innerTab === 'quests' && (
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 140, paddingTop: 8 }}
-          >
-            <QuestSection title="Daily"    quests={DAILY_QUESTS}   profile={profile} premiumOwned={hasPremium} onClaim={handleClaimQuest} defaultOpen />
-            <QuestSection title="Weekly"   quests={WEEKLY_QUESTS}  profile={profile} premiumOwned={hasPremium} onClaim={handleClaimQuest} />
-            <QuestSection title="Seasonal" quests={SEASONAL_QUESTS} profile={profile} premiumOwned={hasPremium} onClaim={handleClaimQuest} />
-          </ScrollView>
-        )}
-
-        {/* ── PASS Tab ── */}
-        {innerTab === 'pass' && (
-          <View style={{ flex: 1 }}>
-            {/* Track labels */}
-            <View style={s.trackLabelRow}>
-              <View style={[s.trackTag, { borderColor: palette.border }]}>
-                <Text style={[s.trackTagTxt, { color: palette.supporting }]}>FREE</Text>
-              </View>
-              <View style={[s.trackTag, { borderColor: palette.edge, backgroundColor: palette.gold }]}>
-                <Text style={[s.trackTagTxt, { color: palette.onAccent }]}>PREMIUM</Text>
-              </View>
-            </View>
-
-            <ScrollView
-              ref={passScrollRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingBottom: 8 }}
-            >
-              {BATTLE_PASS_TIERS.map((tier, idx) => (
-                <Reanimated.View key={tier.slot} entering={FadeInRight.delay(idx * 25).duration(280)}>
-                  <SlotCard
-                    tier={tier}
-                    bpp={bpp}
-                    hasPremium={hasPremium}
-                    onClaim={handleClaimTier}
-                  />
-                </Reanimated.View>
-              ))}
-            </ScrollView>
-
-            {/* Legend */}
-            <View style={[s.legend, { paddingBottom: insets.bottom + 104 }]}>
-              {[
-                { emoji: '🪙', label: 'Coins' },
-                { emoji: '⚡', label: 'Credits' },
-                { emoji: '🎁', label: 'Block' },
-                { emoji: '💎', label: 'Ultra' },
-                { emoji: '🎨', label: 'Skin' },
-              ].map(l => (
-                <View key={l.label} style={s.legendItem}>
-                  <Glyph style={{ fontSize: 11 }} value={l.emoji} />
-                  <Text style={s.legendTxt}>{l.label}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-      </View>
-
-      {/* ── Toasts ── */}
-      {toasts.map(t => (
-        <Toast key={t.id} label={t.label} color={t.color}
-          onDone={() => setToasts(prev => prev.filter(x => x.id !== t.id))} />
-      ))}
-
-      {/* ── Lucky Block Opener ── */}
-      {activeLuckyBlock && (
-        <LuckyBlockOpener
-          block={activeLuckyBlock}
-          onClose={() => {
-            const b = activeLuckyBlock;
-            setActiveLuckyBlock(null);
-            setToasts(prev => [...prev, {
-              id: b.id + '_opened',
-              label: `${LUCKY_BLOCK_META[b.tier].name} opened!`,
-              color: LUCKY_BLOCK_META[b.tier].color,
-            }]);
-          }}
-        />
+      <RewardInspector
+        target={target}
+        busy={!!busyKey}
+        error={error}
+        onClaim={inspect ? () => claimTier(inspect.tier, inspect.isPlus) : undefined}
+        onClose={() => { setInspect(null); setError(''); }}
+        secondary={target?.state === 'needsPlus' ? { label: 'VIEW STORE AVAILABILITY AND PRICES', onPress: () => { setInspect(null); router.push({ pathname: '/(tabs)/shop', params: { section: 'store' } }); } } : undefined}
+      />
+      {block && (
+        <LuckyBlockOpener block={block} onClose={() => { const b = block; setBlock(null); setNotice(`${LUCKY_BLOCK_META[b.tier].name} opened.`); }} />
       )}
     </Reanimated.View>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  titleLayer: { fontFamily: 'SourceSans3_700Bold', letterSpacing: 2.5, textTransform: 'uppercase' },
-
-  // Header
-  header: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 18, marginBottom: 10, gap: 12 },
-  seasonLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5, color: palette.supporting, marginBottom: 2 },
-  headerSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, lineHeight: 18, color: palette.supporting, marginTop: 4 },
-
-  // BPP badge
-  bppBadge: { borderRadius: 0, overflow: 'hidden', shadowColor: palette.foreground, shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 } },
-  bppGrad:  { paddingHorizontal: 12, paddingVertical: 6, alignItems: 'center', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge },
-  bppVal:   { color: palette.onGold, fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, lineHeight: 28, fontVariant: ['tabular-nums'] },
-  bppLabel: { color: palette.onGold, fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
-
-  // Progress
-  progressCard: { marginHorizontal: 18, marginBottom: 14, backgroundColor: palette.inset, borderRadius: 0, padding: 14, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge },
-  progressRow:  { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 7 },
-  progressLbl:  { color: palette.foreground, fontFamily: 'SourceSans3_700Bold', fontSize: 13, letterSpacing: 0.3 },
-  barBg:   { height: 18, borderRadius: 0, borderWidth: 2, borderColor: palette.border, padding: 2, backgroundColor: palette.inset, overflow: 'hidden' },
-  barFill: { height: '100%', borderRadius: 0, overflow: 'hidden', backgroundColor: palette.gold },
-  barShine:{ display: 'none' },
-
-  // Buy Premium button
-  buyPremBtn: { marginHorizontal: 18, marginBottom: 12, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, minHeight: 56, gap: 10 },
-  buyPremTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 20, textTransform: 'uppercase', color: palette.foreground, letterSpacing: 0.3 },
-  buyPremSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.supporting, marginTop: 2 },
-  buyPremPrice: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.foreground, backgroundColor: palette.background, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 0, borderWidth: 2, borderColor: palette.edge },
-  premOwnedBadge: { marginHorizontal: 18, marginBottom: 10, borderRadius: 0, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, gap: 8, borderWidth: 2, borderColor: palette.border },
-  premOwnedTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.foreground, letterSpacing: 1 },
-
-  // Inner tabs
-  tabBar: { flexDirection: 'row', marginHorizontal: 18, marginBottom: 14, gap: 6 },
-  tabBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 46, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
-  tabBtnActive: { backgroundColor: palette.primary, borderColor: palette.edge },
-  tabBtnTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 16, letterSpacing: 1, color: palette.foreground },
-
-  // Track labels above the pass
-  trackLabelRow: { flexDirection: 'row', justifyContent: 'flex-start', gap: 10, paddingHorizontal: 18, marginBottom: 6 },
-  trackTag: { borderWidth: 2, borderRadius: 0, paddingHorizontal: 8, paddingVertical: 3 },
-  trackTagTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5 },
-
-  // Slot card
-  slotWrap: {
-    width: 116, borderRadius: 0, overflow: 'hidden',
-    backgroundColor: palette.surface, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.border,
-  },
-  slotMilestone: { borderColor: palette.edge },
-  milestoneGlow: { borderWidth: 2, borderRadius: 0 },
-  slotNum: { alignItems: 'center', paddingVertical: 6, backgroundColor: palette.background, borderBottomWidth: 2, borderColor: palette.border },
-  slotNumUnlocked: { backgroundColor: palette.gold },
-  slotNumMilestone: { backgroundColor: palette.primary },
-  slotNumTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 16, color: palette.foreground, letterSpacing: 0.5 },
-  rewardBlock: { padding: 8, alignItems: 'center', borderWidth: 0, minHeight: 82, justifyContent: 'center' },
-  freeBlock: { borderBottomWidth: 2, borderBottomColor: palette.border },
-  premBlock: {},
-  rewardEmoji: { fontSize: 20, marginBottom: 3 },
-  rewardLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 14, textAlign: 'center', lineHeight: 18, color: palette.foreground },
-  trackLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.8, marginTop: 3 },
-  lockLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.supporting, letterSpacing: 0.8, marginTop: 3 },
-
-  // Quest section
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, overflow: 'hidden', borderRadius: 0, borderWidth: 0, paddingHorizontal: 0, paddingVertical: 6, marginTop: 8, marginBottom: 8 },
-  sectionTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 1.2, flex: 1, color: palette.foreground },
-  sectionCount: { borderRadius: 0, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 7, paddingVertical: 2, backgroundColor: palette.gold },
-  sectionCountTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5 },
-
-  // Quest row
-  questRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, overflow: 'hidden', borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, paddingHorizontal: 14, paddingVertical: 14, marginBottom: 10 },
-  questEmoji: { fontSize: 18, marginTop: 2 },
-  questTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 16 },
-  questDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 13, lineHeight: 18 },
-  questBarBg:   { height: 16, borderRadius: 0, borderWidth: 2, borderColor: palette.edge, padding: 2, backgroundColor: palette.background, overflow: 'hidden' },
-  questBarFill: { height: '100%', borderRadius: 0, overflow: 'hidden' },
-  questBarShine:{ display: 'none' },
-  questProg: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.foreground, fontVariant: ['tabular-nums'] },
-  premBadge:    { borderRadius: 0, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold, paddingHorizontal: 5, paddingVertical: 1 },
-  premBadgeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.onAccent, letterSpacing: 1 },
-  bppChip:    { flexDirection: 'row', alignItems: 'center', gap: 2, borderRadius: 0, borderWidth: 2, paddingHorizontal: 7, paddingVertical: 3 },
-  bppChipTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
-  bppChipLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.6 },
-  claimBtn:    { borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, paddingHorizontal: 12, minHeight: 44, justifyContent: 'center' },
-  claimBtnTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 16, letterSpacing: 1 },
-
-  // Legend
-  legend:     { flexDirection: 'row', justifyContent: 'center', gap: 16, paddingHorizontal: 20, paddingTop: 8 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  legendTxt:  { color: palette.supporting, fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
-});
-
-// ─── Trophy Road Styles ───────────────────────────────────────────────────────
-const tr = StyleSheet.create({
-  nodeRow:    { paddingHorizontal: 28, marginVertical: 0 },
-  nodeCard:   {
-    width: 136, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5,
-    backgroundColor: palette.surface,
-    overflow: 'hidden', alignItems: 'center',
-    paddingVertical: 12, paddingHorizontal: 10,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  numBadge:   {
-    borderRadius: 0, borderWidth: 2,
-    paddingHorizontal: 8, paddingVertical: 2, marginBottom: 2,
-  },
-  numTxt:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, letterSpacing: 0.5 },
-  rewardTxt:  {
-    fontFamily: 'SourceSans3_700Bold', fontSize: 13,
-    textAlign: 'center', lineHeight: 17,
-  },
-  xpTxt:      { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.supporting, letterSpacing: 0.3, marginTop: 3 },
-  chip:       {
-    borderRadius: 0, borderWidth: 2,
-    paddingHorizontal: 7, paddingVertical: 3, marginTop: 7,
-  },
-  chipTxt:    { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.6 },
-
-  // Toast
-  toast: {
-    position: 'absolute', bottom: 120, alignSelf: 'center',
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-     backgroundColor: palette.inset, borderWidth: 2, borderRadius: 0, borderColor: palette.gold,
-    paddingHorizontal: 18, paddingVertical: 10,
-    shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 },
-  },
-  toastTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.foreground },
+  lede: { fontFamily: 'SourceSans3_400Regular', fontSize: 15, lineHeight: 21, color: palette.supporting },
+  card: { padding: 14, gap: 10, backgroundColor: palette.surface, borderWidth: 2, borderBottomWidth: 6, borderColor: palette.edge },
+  statRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  stat: { flexGrow: 1, flexBasis: 84, padding: 8, backgroundColor: palette.inset, borderWidth: 2, borderColor: palette.border },
+  statVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  statLbl: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1, color: palette.supporting },
+  small: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 19, color: palette.supporting },
+  bar: { height: 18, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.inset, padding: 2 },
+  fill: { height: '100%', backgroundColor: palette.primary },
+  h2: { flex: 1, fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, letterSpacing: 1, color: palette.foreground },
+  badge: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1, color: palette.supporting, backgroundColor: palette.inset, paddingHorizontal: 6, paddingVertical: 2 },
+  btn: { minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10, backgroundColor: palette.raised, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge },
+  btnTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, letterSpacing: 0.8, color: palette.foreground, textAlign: 'center' },
+  showcase: { flexGrow: 1, flexBasis: 140, padding: 10, gap: 6, alignItems: 'center', backgroundColor: palette.surface, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.border },
+  showTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
+  tabs: { flexDirection: 'row', gap: 6 },
+  tab: { flex: 1, minHeight: 48, flexDirection: 'row', gap: 4, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface, paddingHorizontal: 4 },
+  tabOn: { backgroundColor: palette.primary, borderColor: palette.edge },
+  tabTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 16, letterSpacing: 1, color: palette.foreground },
+  notice: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, padding: 10, backgroundColor: palette.raised, borderWidth: 2, borderColor: palette.border },
+  noticeTxt: { flex: 1, fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: palette.foreground },
 });
