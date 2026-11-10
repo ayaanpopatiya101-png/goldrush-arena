@@ -4,11 +4,16 @@ import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import vm from 'node:vm';
 import { collisionSteps, paddleInput } from '../utils/arenaGeometry.ts';
+import { canMovePaddle, clampPaddle, clampPaddleRange } from '../utils/courtInput.ts';
+import { idleAnimation } from '../components/ui/idleAnimation.ts';
+import { rankIndexForName } from '../utils/rankIndex.ts';
+import { canClaimSeasonTier, seasonSkinForMilestone } from '../utils/seasonRewards.ts';
+import { createRematchController } from '../store/rematch.ts';
 
 const ts = createRequire(import.meta.url)('typescript');
 const source = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 const compile = text => ts.transpileModule(text, { compilerOptions: {
-  module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, esModuleInterop: true,
+  module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React, esModuleInterop: true,
 } }).outputText;
 const noop = () => {};
 const animation = () => ({ start: noop, stop: noop });
@@ -51,6 +56,8 @@ async function court(options = {}) {
     '@/hooks/useReducedMotion': { useReducedMotion: () => true },
     '@/hooks/useSoundFX': { useSoundFX: () => new Proxy({}, { get: () => noop }) },
     '@/utils/arenaGeometry': { collisionSteps, paddleInput },
+    '@/utils/courtInput': { canMovePaddle, clampPaddle, clampPaddleRange },
+    '@/components/ui/idleAnimation': { idleAnimation },
     '@/constants/colors': { PLAYER_COLORS: ['a', 'b', 'c', 'd'] },
   };
   vm.runInNewContext(code, {
@@ -164,6 +171,8 @@ async function playerHarness(storage = new Map(), fail = () => false, session) {
   const modules = {
     react,
     '@/utils/withTimeout': { withTimeout: promise => promise },
+    '@/utils/rankIndex': { rankIndexForName },
+    '@/utils/seasonRewards': { canClaimSeasonTier, seasonSkinForMilestone },
     '@react-native-async-storage/async-storage': {
       getItem: async key => storage.get(key) ?? null,
       setItem: async (key, value) => { if (fail(key)) throw new Error('storage full'); storage.set(key, value); },
@@ -182,7 +191,7 @@ async function playerHarness(storage = new Map(), fail = () => false, session) {
     return exports.PlayerProvider({ username: 'regression', onLogout: noop }).props.value;
   }
   return {
-    render, storage, profileKey, receipt: () => receipt,
+    render, storage, profileKey, tiers: exports.SEASON_TIERS, receipt: () => receipt,
     initialize: async () => {
       effects.shift()();
       // The real initialization uses only async storage and resolved promises.
@@ -191,6 +200,65 @@ async function playerHarness(storage = new Map(), fail = () => false, session) {
     },
   };
 }
+
+test('season claims reject locked milestones and deliver the advertised skin once', async () => {
+  const h = await playerHarness();
+  const player = h.render();
+  const tier = h.tiers.findIndex(t => t.games === 50);
+  await player.claimSeasonTier(tier);
+  assert.equal(player.profile.ownedSkins.includes('frost'), false);
+  assert.equal(h.storage.has(h.profileKey), false);
+  player.profile.totalGames = 50;
+  await Promise.all([player.claimSeasonTier(tier), player.claimSeasonTier(tier)]);
+  const saved = JSON.parse(h.storage.get(h.profileKey));
+  assert.equal(saved.ownedSkins.filter(id => id === 'frost').length, 1);
+  assert.equal(saved.seasonPassClaimed.filter(index => index === tier).length, 1);
+});
+
+test('rapid season claims preserve both rewards without duplicating currency', async () => {
+  const h = await playerHarness();
+  const player = h.render();
+  player.profile.totalGames = 100;
+  const tiers = h.tiers.map((tier, index) => ({ ...tier, index })).filter(tier => tier.coinReward > 0).slice(0, 2);
+  const before = player.profile.coins;
+  await Promise.all([
+    player.claimSeasonTier(tiers[0].index),
+    player.claimSeasonTier(tiers[1].index),
+    player.claimSeasonTier(tiers[0].index),
+  ]);
+  const saved = JSON.parse(h.storage.get(h.profileKey));
+  assert.equal(saved.coins, before + tiers[0].coinReward + tiers[1].coinReward);
+  assert.equal(saved.seasonPassClaimed.length, 2);
+});
+
+test('season claim storage failure can be retried without losing the reward', async () => {
+  let failWrite = true;
+  const h = await playerHarness(new Map(), key => failWrite && key.includes('_v3_'));
+  const player = h.render();
+  player.profile.totalGames = 100;
+  const tier = h.tiers.findIndex(t => t.coinReward > 0);
+  const before = player.profile.coins;
+  await assert.rejects(player.claimSeasonTier(tier), /storage full/);
+  failWrite = false;
+  await player.claimSeasonTier(tier);
+  const saved = JSON.parse(h.storage.get(h.profileKey));
+  assert.equal(saved.coins, before + h.tiers[tier].coinReward);
+  assert.equal(saved.seasonPassClaimed.filter(index => index === tier).length, 1);
+});
+
+test('legacy claimed skins are repaired on load without awarding currency again', async () => {
+  const seed = await playerHarness();
+  const tier = seed.tiers.findIndex(t => t.games === 50);
+  const old = { ...seed.render().profile, totalGames: 50, ownedSkins: ['default'], seasonPassClaimed: [tier] };
+  const storage = new Map([[seed.profileKey, JSON.stringify(old)]]);
+  const h = await playerHarness(storage);
+  h.render();
+  await h.initialize();
+  const player = h.render();
+  assert.ok(player.profile.ownedSkins.includes('frost'));
+  assert.equal(player.profile.coins, old.coins);
+  assert.equal(player.profile.rank, 'Bronze 1');
+});
 
 test('first profile uses the selected look and keeps it through tutorial save and reload', async () => {
   const storage = new Map([
@@ -278,7 +346,7 @@ test('failed profile storage preserves balances and permits one safe retry', asy
   assert.equal(JSON.parse(h.storage.get(h.profileKey)).totalGames, 1);
 });
 
-test('Play Again commits a second distinct receipt while each match retry still awards once', async () => {
+for (const automatic of [false, true]) test(`${automatic ? 'Automatic rematch' : 'Play Again'} commits a second distinct receipt while each match retry still awards once`, async () => {
   const session = {};
   vm.runInNewContext(compile(await source('store/gameSession.ts')), { exports: session, Date, Math });
   session.setGameConfig({
@@ -288,6 +356,7 @@ test('Play Again commits a second distinct receipt while each match retry still 
   });
   const firstId = session.getGameConfig().matchId;
   const h = await playerHarness(new Map(), () => false, session);
+  h.render().profile.extraLivesInventory = 5;
   const save = h.render().addMatchResult;
   const ranked = { ...award, matchType: 'ranked' };
   await save(ranked);
@@ -305,7 +374,10 @@ test('Play Again commits a second distinct receipt while each match retry still 
     exports: press, startingRematchRef: { current: false }, isArcade: false,
     startRematch: session.startRematch, router: { replace: path => routes.push(path) },
   });
-  press.press();
+  if (automatic) {
+    const countdown = createRematchController();
+    for (let i = 0; i < 15; i++) if (countdown.tick(true) === 0) press.press();
+  } else press.press();
   const secondId = session.getGameConfig().matchId;
   press.press(); // rapid double press must not rotate a second time
   assert.notEqual(secondId, firstId);
@@ -328,10 +400,12 @@ test('Play Again commits a second distinct receipt while each match retry still 
   assert.equal(p.coins, 260);
   assert.equal(p.competitiveLevel, reloaded.receipt().levelAfter);
   assert.equal(reloaded.receipt().levelBefore, firstReceipt.levelAfter);
-  assert.ok(p.competitiveLevel > firstReceipt.levelAfter);
+  // Historical local levels are frozen; live competitive skill is server-owned.
+  assert.equal(p.competitiveLevel, firstReceipt.levelAfter);
   assert.equal(p.matchHistory[0].receipt.id, secondId);
   assert.equal(p.matchHistory[1].receipt.id, firstId);
   assert.equal(firstReceipt.xpAfter, 230);
   assert.equal(reloaded.receipt().id, secondId);
   assert.equal(reloaded.receipt().xpAfter, 460);
+  assert.equal(p.extraLivesInventory, 5);
 });

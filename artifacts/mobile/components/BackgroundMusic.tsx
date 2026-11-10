@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { palette } from '@/constants/colors';
 import { Platform, Pressable, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { File, Paths } from 'expo-file-system';
-import { Audio } from 'expo-av';
+import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
+import { getSettings, useSettings } from '@/hooks/useSettings';
 
 // ─── Shared note / melody data ─────────────────────────────────────────────────
 
@@ -85,6 +87,8 @@ function useWebBackgroundMusic() {
   const nextLoopRef  = useRef(0);
   const schedulerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startedRef   = useRef(false);
+  const mutedRef = useRef(false);
+  mutedRef.current = muted;
 
   const start = useCallback(() => {
     if (typeof AudioContext === 'undefined' &&
@@ -94,13 +98,14 @@ function useWebBackgroundMusic() {
       if (!ctxRef.current) {
         const ctx    = new AudioCtx();
         const master = ctx.createGain();
-        master.gain.setValueAtTime(1, ctx.currentTime);
+        master.gain.setValueAtTime(mutedRef.current || !getSettings().soundEnabled || !getSettings().musicEnabled ? 0 : 1, ctx.currentTime);
         master.connect(ctx.destination);
         ctxRef.current    = ctx;
         masterRef.current = master;
       }
       const ctx    = ctxRef.current;
       const master = masterRef.current!;
+      master.gain.setValueAtTime(mutedRef.current || !getSettings().soundEnabled || !getSettings().musicEnabled ? 0 : 1, ctx.currentTime);
       if (ctx.state === 'suspended') ctx.resume();
       nextLoopRef.current = scheduleWebLoop(ctx, master, ctx.currentTime + 0.05);
       if (schedulerRef.current) clearInterval(schedulerRef.current);
@@ -139,7 +144,7 @@ function useWebBackgroundMusic() {
   return { muted, setMuted, start, stop };
 }
 
-// ─── Native (expo-av) implementation ──────────────────────────────────────────
+// ─── Native (expo-audio) implementation ───────────────────────────────────────
 
 function makeWavBytes(freq: number, duration: number, sampleRate = 22050): Uint8Array {
   const numSamples = Math.floor(sampleRate * duration);
@@ -191,17 +196,19 @@ function useNativeBackgroundMusic() {
     const durSecs = note.d * BEAT;
     const delayMs = durSecs * 1000;
 
-    if (!mutedRef.current) {
+    if (!mutedRef.current && getSettings().soundEnabled && getSettings().musicEnabled) {
       const freq = NOTES[note.n];
       if (freq) {
         try {
           const uri = getNoteUri(freq, durSecs);
-          Audio.Sound.createAsync({ uri }).then(({ sound }) => {
-            sound.playAsync().catch(() => {});
-            sound.setOnPlaybackStatusUpdate(s => {
-              if (s.isLoaded && s.didJustFinish) sound.unloadAsync().catch(() => {});
-            });
-          }).catch(() => {});
+          const player = createAudioPlayer(uri);
+          const subscription = player.addListener('playbackStatusUpdate', status => {
+            if (status.didJustFinish) {
+              subscription.remove();
+              player.remove();
+            }
+          });
+          player.play();
         } catch { /* ignore */ }
       }
     }
@@ -214,7 +221,7 @@ function useNativeBackgroundMusic() {
     if (startedRef.current) return;
     startedRef.current = true;
     indexRef.current   = 0;
-    Audio.setAudioModeAsync({ playsInSilentModeIOS: true, staysActiveInBackground: false }).catch(() => {});
+    setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: false }).catch(() => {});
     // Pre-cache all melody note WAVs synchronously, then begin playing.
     try {
       for (const name of [...new Set(MELODY.map(n => n.n))]) {
@@ -241,9 +248,13 @@ function useNativeBackgroundMusic() {
 // ─── Public hook ──────────────────────────────────────────────────────────────
 
 export function useBackgroundMusic() {
+  const { settings, updateSetting } = useSettings();
   const web    = useWebBackgroundMusic();
   const native = useNativeBackgroundMusic();
-  return Platform.OS === 'web' ? web : native;
+  const music = Platform.OS === 'web' ? web : native;
+  const muted = !settings.soundEnabled || !settings.musicEnabled;
+  useEffect(() => { music.setMuted(muted); }, [muted, music.setMuted]);
+  return { ...music, muted, setMuted: (value: boolean) => { void updateSetting('musicEnabled', !value); } };
 }
 
 // ─── Mute toggle button ───────────────────────────────────────────────────────
@@ -258,11 +269,11 @@ export function BackgroundMusicButton({ muted, onToggle }: Props) {
     <Pressable
       onPress={() => onToggle?.(!muted)}
       style={[styles.btn, {
-        backgroundColor: muted ? '#EEE7D711' : '#D7A83B22',
-        borderColor:     muted ? '#EEE7D733' : '#D7A83B55',
+        backgroundColor: muted ? palette.inset : palette.gold + '22',
+        borderColor:     muted ? palette.border : palette.gold + '55',
       }]}
     >
-      <Feather name={muted ? 'volume-x' : 'volume-2'} size={16} color={muted ? '#EEE7D766' : '#D7A83B'} />
+      <Feather name={muted ? 'volume-x' : 'volume-2'} size={16} color={muted ? palette.supporting : palette.gold} />
     </Pressable>
   );
 }

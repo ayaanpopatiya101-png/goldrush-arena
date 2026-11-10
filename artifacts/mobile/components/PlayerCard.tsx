@@ -1,5 +1,7 @@
+import { Text } from '@/components/ui/Text';
+import { palette } from '@/constants/colors';
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from '@/components/ui/Flat';
 import Reanimated, {
   useAnimatedStyle,
@@ -86,7 +88,7 @@ export function PlayerCard({
           </View>
         </View>
         {isReady != null && (
-          <View style={[styles.readyDot, { backgroundColor: isReady ? '#9BB77A' : colors.muted }]} />
+          <View style={[styles.readyDot, { backgroundColor: isReady ? palette.primary : colors.muted }]} />
         )}
       </LinearGradient>
     </ShimmerCard>
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
   },
   botBadge: {
     borderWidth: 1,
-    borderRadius: 4,
+    borderRadius: 2,
     paddingHorizontal: 4,
     paddingVertical: 1,
   },

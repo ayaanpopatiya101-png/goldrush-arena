@@ -1,0 +1,114 @@
+@import './_group.css';
+
+.gr-home {
+  --stone: #EEE9DE;
+  --sand: #E3DFD3;
+  --ink: #252A2B;
+  --slate: #575D5C;
+  --orange: #F36B3F;
+  --gold: #EDBA3C;
+  --navy: #23344B;
+  background: var(--stone);
+  color: var(--ink);
+  font-family: 'SourceSans3_400Regular', sans-serif;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+.gr-home *, .gr-dialog * { box-sizing: border-box; }
+.gr-home button, .gr-dialog button, .gr-dialog input { font: inherit; color: inherit; }
+.gr-home button, .gr-dialog button { cursor: pointer; border-radius: 2px; }
+.gr-home button:focus-visible, .gr-dialog button:focus-visible, .gr-dialog input:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+.gr-home button:disabled, .gr-dialog button:disabled { cursor: not-allowed; opacity: .55; }
+.gr-preview { background: var(--sand); text-align: center; font-size: 11px; letter-spacing: 1.1px; padding: 5px 10px; text-transform: uppercase; border-bottom: 1px solid #575D5C40; }
+.gr-shell { max-width: 1120px; margin: auto; padding: 0 18px 104px; }
+.gr-header { display: flex; justify-content: space-between; gap: 8px; align-items: center; height: 76px; }
+.gr-identity { display: flex; align-items: center; text-align: left; gap: 10px; border: 0; padding: 0; background: transparent; min-height: 48px; }
+.gr-avatar { width: 43px; height: 45px; display: grid; place-items: center; background: var(--gold); border: 2px solid var(--ink); clip-path: polygon(0 0,100% 0,100% 80%,50% 100%,0 80%); font-family: 'BarlowCondensed_700Bold'; font-size: 25px; padding-bottom: 5px; }
+.gr-identity strong { font-family: 'BarlowCondensed_700Bold'; font-size: 22px; display: block; line-height: 1.05; }
+.gr-small { font-size: 12px; color: var(--slate); }
+.gr-tools { display: flex; gap: 5px; align-items: center; }
+.gr-wallet { display: flex; align-items: center; gap: 6px; padding: 0 10px; height: 38px; border: 1px solid #575D5C65; background: var(--sand); font-family: 'BarlowCondensed_700Bold'; font-size: 20px; }
+.gr-coin { border: 2px solid var(--ink); background: var(--gold); width: 17px; height: 17px; display: inline-grid; place-items: center; font-size: 11px; font-style: normal; }
+.gr-icon { width: 44px; min-height: 44px; background: transparent; border: 1px solid #575D5C65; display: grid; place-items: center; }
+.gr-brand { display: flex; justify-content: space-between; align-items: center; padding: 0 0 14px; }
+.gr-brand h1 { font-family: 'BarlowCondensed_700Bold'; font-size: 36px; line-height: .95; letter-spacing: -1px; margin: 0; }
+.gr-brand h1 span { color: var(--slate); }
+.gr-brand p { font-size: 10px; letter-spacing: 2.3px; margin: 5px 0 0; }
+.gr-edition { font-family: 'BarlowCondensed_700Bold'; font-size: 12px; letter-spacing: 1px; border: 1px solid var(--slate); padding: 5px 7px; text-align: center; line-height: 1.25; }
+.gr-stage { position: relative; height: 294px; overflow: hidden; background: var(--navy); color: var(--stone); border: 2px solid var(--ink); }
+.gr-stage::before { content: ''; position: absolute; inset: 8px; border: 1px solid #EEE9DE35; pointer-events: none; }
+.gr-stage-heading { position: absolute; top: 19px; left: 21px; z-index: 1; }
+.gr-kicker { font-size: 10px; font-family: 'SourceSans3_700Bold'; letter-spacing: 1.7px; text-transform: uppercase; }
+.gr-stage h2 { font-family: 'BarlowCondensed_700Bold'; font-size: 30px; margin: 2px 0; text-transform: uppercase; line-height: 1; }
+.gr-owned { position: absolute; top: 20px; right: 20px; font-size: 10px; letter-spacing: 1.2px; border: 1px solid #EEE9DE70; padding: 4px 6px; }
+.gr-paddle { position: absolute; width: 94%; height: 210px; top: 55px; left: 3%; }
+.gr-stage-bottom { display: flex; align-items: center; justify-content: space-between; position: absolute; bottom: 19px; left: 20px; right: 20px; }
+.gr-stage-bottom small { font-size: 11px; color: var(--stone); }
+.gr-stage-bottom button { min-height: 44px; display: flex; align-items: center; gap: 8px; font-family: 'SourceSans3_600SemiBold'; font-size: 12px; color: var(--stone); background: transparent; border: 1px solid #EEE9DE70; padding: 0 11px; }
+.gr-progress { display: flex; align-items: center; gap: 10px; padding: 12px 0 13px; }
+.gr-rank { display: grid; place-items: center; width: 34px; height: 34px; background: var(--gold); border: 1px solid var(--ink); }
+.gr-progress-copy { flex: 1; }
+.gr-progress-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
+.gr-progress-label b { font-family: 'SourceSans3_700Bold'; }
+.gr-track { height: 5px; background: #575D5C30; }
+.gr-track span { display: block; background: var(--gold); height: 100%; min-width: 3px; }
+.gr-progress > button { background: transparent; border: 0; min-height: 44px; padding: 4px; font-size: 12px; text-decoration: underline; }
+.gr-mode { display: flex; align-items: center; gap: 13px; background: var(--sand); border: 2px solid var(--ink); width: 100%; padding: 12px; text-align: left; min-height: 83px; }
+.gr-mode-mark { width: 42px; height: 46px; display: grid; place-items: center; border: 1px solid var(--ink); background: var(--gold); }
+.gr-mode-copy { flex: 1; }
+.gr-mode-copy > span { display: block; font-size: 10px; font-family: 'SourceSans3_700Bold'; letter-spacing: 1px; color: var(--slate); }
+.gr-mode-copy strong { display: block; font-family: 'BarlowCondensed_700Bold'; font-size: 28px; text-transform: uppercase; line-height: 1; margin: 3px 0 4px; }
+.gr-mode-copy small { display: block; font-size: 12px; color: var(--slate); }
+.gr-change { font-size: 10px; font-family: 'SourceSans3_700Bold'; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.gr-play { width: 100%; min-height: 68px; border: 2px solid var(--ink); border-bottom-width: 6px; background: var(--orange); display: flex; align-items: center; justify-content: center; gap: 13px; margin-top: 9px; font-family: 'BarlowCondensed_700Bold' !important; font-size: 36px !important; letter-spacing: 1.5px; }
+.gr-play:active { transform: translateY(2px); }
+.gr-honesty { text-align: center; font-size: 11px; color: var(--slate); margin: 7px 0 13px; }
+.gr-secondary { display: flex; align-items: stretch; gap: 8px; }
+.gr-secondary button { background: transparent; border: 1px solid #575D5C80; min-height: 47px; padding: 0 11px; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 13px; flex: 1; }
+.gr-secondary button:last-child { flex: 0 0 48px; padding: 0; }
+.gr-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; background: var(--sand); border-top: 2px solid var(--ink); display: flex; min-height: 76px; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.gr-nav button { flex: 1; min-width: 0; min-height: 74px; border: 0; background: transparent; color: var(--slate); display: flex; flex-direction: column; gap: 5px; align-items: center; justify-content: center; font-size: 12px; position: relative; }
+.gr-nav button[aria-current] { color: var(--ink); font-family: 'SourceSans3_700Bold'; }
+.gr-nav button[aria-current]::before { content: ''; position: absolute; top: 0; width: 36px; height: 4px; background: var(--orange); }
+.gr-dialog { --stone: #EEE9DE; --sand: #E3DFD3; --ink: #252A2B; --slate: #575D5C; --orange: #F36B3F; --gold: #EDBA3C; --navy: #23344B; background: var(--stone); color: var(--ink); border: 2px solid var(--ink); border-radius: 2px; width: min(540px, calc(100% - 24px)); max-height: 86dvh; padding: 0; font-family: 'SourceSans3_400Regular', sans-serif; }
+.gr-dialog::backdrop { background: #23344BBA; }
+.gr-dialog-head { position: sticky; top: 0; background: var(--stone); border-bottom: 1px solid var(--slate); z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; }
+.gr-dialog h2 { font-family: 'BarlowCondensed_700Bold'; font-size: 30px; margin: 0; text-transform: uppercase; }
+.gr-dialog h3 { font-family: 'BarlowCondensed_700Bold'; font-size: 22px; margin: 19px 0 9px; }
+.gr-dialog-body { padding: 0 18px 20px; }
+.gr-dialog p { font-size: 14px; line-height: 1.5; }
+.gr-mode-list { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.gr-choice { min-height: 72px; text-align: left; border: 1px solid var(--slate); background: var(--sand); padding: 10px; }
+.gr-choice[aria-checked=true] { border: 2px solid var(--ink); background: var(--gold); padding: 9px; }
+.gr-choice strong { display: block; font-family: 'BarlowCondensed_700Bold'; font-size: 20px; }
+.gr-choice small { display: block; font-size: 11px; }
+.gr-detail { padding: 12px; margin-top: 14px; background: var(--sand); border: 1px solid var(--slate); font-size: 14px; line-height: 1.5; }
+.gr-dialog-action { background: var(--gold); border: 1px solid var(--ink); min-height: 46px; padding: 10px 16px; margin-top: 10px; font-family: 'SourceSans3_700Bold' !important; }
+.gr-destination { width: 100%; display: flex; align-items: center; justify-content: space-between; background: transparent; border: 0; border-bottom: 1px solid #575D5C55; padding: 12px 2px; min-height: 48px; text-align: left; }
+.gr-lobby { background: var(--navy); color: var(--stone); padding: 18px; margin-top: 16px; border: 2px solid var(--ink); }
+.gr-lobby strong { font-family: 'BarlowCondensed_700Bold'; font-size: 25px; }
+.gr-seat { display: flex; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid #EEE9DE40; font-size: 13px; }
+.gr-party-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.gr-dialog input { background: var(--sand); border: 1px solid var(--slate); min-height: 46px; width: 100%; padding: 10px; letter-spacing: 3px; margin-top: 12px; }
+.gr-status { background: var(--sand); border-left: 3px solid var(--orange); padding: 10px; font-size: 13px; }
+@media (min-width: 768px) {
+  .gr-shell { padding: 0 40px 112px; }
+  .gr-header { height: 92px; }
+  .gr-brand { padding-bottom: 25px; }
+  .gr-brand h1 { font-size: 48px; }
+  .gr-layout { display: grid; grid-template-columns: 1.25fr 1fr; gap: 32px; align-items: center; }
+  .gr-stage { height: 430px; }
+  .gr-paddle { height: 310px; top: 73px; }
+  .gr-stage h2 { font-size: 40px; }
+  .gr-stage-heading { top: 25px; left: 28px; }
+  .gr-nav { padding-inline: max(24px, calc((100% - 760px) / 2)); }
+  .gr-secondary { margin-top: 24px; }
+  .gr-play { min-height: 84px; }
+  .gr-brand p { font-size: 12px; }
+}
+@media (max-width: 360px) {
+  .gr-shell { padding-inline: 12px; }
+  .gr-stage { height: 265px; }
+  .gr-paddle { top: 43px; }
+  .gr-wallet { padding-inline: 6px; }
+}

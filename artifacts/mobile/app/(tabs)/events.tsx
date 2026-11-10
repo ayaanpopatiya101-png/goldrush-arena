@@ -1,786 +1,470 @@
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
-import { Panel, ScreenTitle, Shell, paperText } from '@/components/ui/Primitives';
-import { tactile } from '@/constants/colors';
+import { Button, Chip, Panel, ScreenTitle, SectionLabel, Shell } from '@/components/ui/Primitives';
+import { palette } from '@/constants/colors';
+import { fonts, textScale } from '@/constants/typography';
 import * as Haptics from '@/utils/haptics';
-import { LinearGradient } from '@/components/ui/Flat';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import {
-  Platform, Pressable, ScrollView, StyleSheet, Text, View,
-} from 'react-native';
-import Reanimated from 'react-native-reanimated';
-import { useFocusAnimation } from '@/hooks/useFocusAnimation';
+import { AccessibilityInfo, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
-  EVENT_MIN_RANK_INDEX,
-  getCurrentEvents, getEventQualifierState, getRankIndex, RANKS, SKINS, usePlayer,
+  EVENT_MIN_RANK_INDEX, getCurrentEvents, getEventQualifierState, getRankIndex, RANKS, SKINS, usePlayer,
   type EventDefinition, type QualifierRoundDef,
 } from '@/context/PlayerContext';
-import { useColors } from '@/hooks/useColors';
+import { useParty } from '@/context/PartyContext';
 import {
   setActiveEvent, setGameConfig, setQualifierContext,
   type ActiveEventBonus, type GameVariant,
 } from '@/store/gameSession';
-import { getActiveFeaturedMode, useFeaturedModeCountdown, type FeaturedMode } from '@/utils/featuredModes';
-import { FloatingOrbs, GlowText, PulseRing, ShimmerCard, GlowBorder } from '@/components/effects';
-import { Glyph } from '@/components/ui/Glyph';
+import { FEATURED_MODES, useFeaturedModeCountdown, type FeaturedMode } from '@/utils/featuredModes';
+import { deviceTimeZone, fmtLocal, fmtSpan, localChallengeWindow, scheduleWindow, useEventPrefs } from '@/utils/eventPrefs';
 
-// ─── Helpers ───────────────────────────────────────────────────────────────────
-function fmt(ms: number): string {
-  const s = Math.floor(ms / 1000);
-  const d = Math.floor(s / 86400);
-  const h = Math.floor((s % 86400) / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  if (d > 1)   return `${d}d ${h}h`;
-  if (d === 1) return `1d ${h}h`;
-  if (h > 0)   return `${h}h ${m}m`;
-  return `${m}m`;
-}
+const MIN_RANK = RANKS[EVENT_MIN_RANK_INDEX];
+const MIN_RANK_NAME = MIN_RANK?.name ?? 'Master 1';
+const MODE_NAME: Record<string, string> = {
+  classic: 'Classic', chaos: 'Chaos', blitz: 'Blitz', six_player: '6-Player', survival: 'Survival', turbo: 'Turbo',
+};
+const PLACES = ['1st', '2nd', '3rd', '4th'];
 
-const PLACEMENT_ICONS = ['🥇', '🥈', '🥉', '4️⃣'];
-const GENERAL1 = RANKS[EVENT_MIN_RANK_INDEX] ?? RANKS.find(r => r.name === 'General 1');
+function haptic() { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); }
 
-// ─── Screen ────────────────────────────────────────────────────────────────────
 export default function EventsScreen() {
-  const colors    = useColors();
-  const insets    = useSafeAreaInsets();
-  const { profile, spendEventPlay, spendQualifierPlay } = usePlayer();
-
+  const insets = useSafeAreaInsets();
+  const { profile, currentUsername, spendEventPlay, spendQualifierPlay } = usePlayer();
+  const { isInParty, leaveParty } = useParty();
+  const { prefs, status, reload, toggle } = useEventPrefs(currentUsername);
+  const { mode: liveMode, timeLeft } = useFeaturedModeCountdown();
+  const [notice, setNotice] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
   const [, setTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setTick(t => t + 1), 60_000);
-    return () => clearInterval(id);
-  }, []);
+  useEffect(() => { const id = setInterval(() => setTick(t => t + 1), 60_000); return () => clearInterval(id); }, []);
+  useEffect(() => { if (!notice) return; const id = setTimeout(() => setNotice(null), 3500); return () => clearTimeout(id); }, [notice]);
 
-  const events  = getCurrentEvents();
-  const rankIdx = getRankIndex(profile.rank);
-  const hasRank = rankIdx >= EVENT_MIN_RANK_INDEX;
-  const topPad  = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
-  const focusStyle = useFocusAnimation();
-  const nextRank = RANKS.find(r => r.minXP > profile.xp) ?? null;
+  const events = getCurrentEvents();
+  const hasRank = getRankIndex(profile.rank) >= EVENT_MIN_RANK_INDEX;
+  const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
+  const tz = deviceTimeZone();
 
-  function handlePlayFeaturedMode(mode: FeaturedMode) {
+  function say(msg: string) { setNotice(msg); AccessibilityInfo.announceForAccessibility?.(msg); }
+
+  function baseConfig() {
     const skin = SKINS.find(sk => sk.id === profile.currentSkin) ?? SKINS[0];
+    return { playerName: profile.name, playerSkinId: skin.id, playerColor: skin.color, playerGlowColor: skin.glowColor, playerRelicId: 'none' };
+  }
+
+  function playFeatured(mode: FeaturedMode) {
+    if (isInParty) return;
     setGameConfig({
-      playerName:      profile.name,
-      playerSkinId:    skin.id,
-      playerColor:     skin.color,
-      playerGlowColor: skin.glowColor,
-      playerRelicId:   'none',
-      matchType:       'casual',
-      variant:         'classic',
-      featuredModeId:          mode.id,
-      featuredCoinMult:        mode.overrides.coinMultiplier,
-      featuredXpMult:          mode.overrides.xpMultiplier,
+      ...baseConfig(), matchType: 'casual', variant: 'classic',
+      featuredModeId: mode.id,
+      featuredCoinMult: mode.overrides.coinMultiplier,
+      featuredXpMult: mode.overrides.xpMultiplier,
       featuredBallSpeedFactor: mode.overrides.ballSpeedFactor,
     });
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    haptic();
     router.push('/lobby');
   }
 
-  function mainDrawPlaysLeft(ev: EventDefinition): number {
-    const used = (profile.eventPlaysUsed ?? {})[ev.periodKey] ?? 0;
-    return Math.max(0, ev.maxPlays - used);
+  function playRally() {
+    if (isInParty) return;
+    setGameConfig({ ...baseConfig(), matchType: 'casual', variant: 'rally_race' });
+    haptic();
+    router.push('/lobby');
   }
 
-  async function handlePlayQualifier(ev: EventDefinition, roundIdx: number, roundDef: QualifierRoundDef) {
-    if (!hasRank || ev.isLocked) return;
+  async function playQualifier(ev: EventDefinition, roundIdx: number, roundDef: QualifierRoundDef) {
+    if (!hasRank || ev.isLocked || isInParty) return;
+    setBusy(ev.id);
     const ok = await spendQualifierPlay(ev.periodKey, roundIdx);
-    if (!ok) return;
+    setBusy(null);
+    if (!ok) { say('Could not start: no qualifier plays left for this round.'); return; }
     setQualifierContext({
-      periodKey:   ev.periodKey,
-      roundIdx,
-      roundName:   roundDef.name,
-      totalRounds: ev.rounds!.length,
-      threshold:   roundDef.threshold,
-      qpPerPlace:  roundDef.qpPerPlace,
-      eventName:   ev.name,
-      eventEmoji:  ev.emoji,
-      eventColor:  ev.color,
+      periodKey: ev.periodKey, roundIdx, roundName: roundDef.name, totalRounds: ev.rounds!.length,
+      threshold: roundDef.threshold, qpPerPlace: roundDef.qpPerPlace,
+      eventName: ev.name, eventEmoji: ev.emoji, eventColor: ev.color,
     });
-    setGameConfig({
-      playerName:      profile.name,
-      playerSkinId:    profile.currentSkin ?? 'default',
-      playerColor:     profile.avatarFrameColor ?? '#F36B3F',
-      playerGlowColor: (profile.avatarFrameColor ?? '#F36B3F') + '55',
-      matchType:       'ranked',
-      variant:         ev.mode as GameVariant,
-      playerRelicId:   'none',
-    });
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setGameConfig({ ...baseConfig(), matchType: 'ranked', variant: ev.mode as GameVariant });
+    haptic();
     router.push('/game');
   }
 
-  async function handlePlayMainDraw(ev: EventDefinition) {
-    if (!hasRank || ev.isLocked) return;
+  async function playMainDraw(ev: EventDefinition) {
+    if (!hasRank || ev.isLocked || isInParty) return;
+    setBusy(ev.id);
     const ok = await spendEventPlay(ev.periodKey);
-    if (!ok) return;
+    setBusy(null);
+    if (!ok) { say('Could not start: no plays left this period.'); return; }
     const bonus: ActiveEventBonus = {
-      eventId:     ev.id,
-      eventName:   ev.name,
-      eventEmoji:  ev.emoji,
-      eventColor:  ev.color,
-      winXP:       ev.winRewards.xp,
-      winCoins:    ev.winRewards.coins,
-      loseXP:      ev.loseRewards.xp,
-      loseCoins:   ev.loseRewards.coins,
-      winCredits:  ev.creditsOnWin,
-      loseCredits: ev.creditsOnLose,
+      eventId: ev.id, eventName: ev.name, eventEmoji: ev.emoji, eventColor: ev.color,
+      winXP: ev.winRewards.xp, winCoins: ev.winRewards.coins, loseXP: ev.loseRewards.xp, loseCoins: ev.loseRewards.coins,
+      winCredits: ev.creditsOnWin, loseCredits: ev.creditsOnLose,
     };
     setActiveEvent(bonus);
-    setGameConfig({
-      playerName:      profile.name,
-      playerSkinId:    profile.currentSkin ?? 'default',
-      playerColor:     profile.avatarFrameColor ?? '#F36B3F',
-      playerGlowColor: (profile.avatarFrameColor ?? '#F36B3F') + '55',
-      matchType:       'ranked',
-      variant:         ev.mode as GameVariant,
-      playerRelicId:   'none',
-    });
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setGameConfig({ ...baseConfig(), matchType: 'ranked', variant: ev.mode as GameVariant });
+    haptic();
     router.push('/game');
   }
 
-  return (
-    <Reanimated.View style={[s.root, { backgroundColor: colors.background }, focusStyle]}>
-      <FloatingOrbs opacity={0.8} />
-      <LinearGradient colors={['#EEE9DE', '#EEE9DE', '#EEE9DE']} style={StyleSheet.absoluteFill} />
-      <LinearGradient
-        colors={['#EDBA3C22', '#EDBA3C0E', 'transparent']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 400 }}
-        pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['transparent', '#EEE9DE88']}
-        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 }}
-        pointerEvents="none"
-      />
+  async function onToggle(field: 'follows' | 'reminders', id: string, label: string) {
+    const was = prefs[field].includes(id);
+    const ok = await toggle(field, id);
+    if (Platform.OS !== 'web') Haptics.selectionAsync?.();
+    if (!ok) say('Could not save that preference on this device. Try again.');
+    else if (field === 'follows') say(was ? `Unfollowed ${label}` : `Following ${label}`);
+    else say(was ? `In-app reminder off for ${label}` : `In-app reminder on for ${label}. Shown here when it opens; no push notifications.`);
+  }
 
-      {/* Header */}
+  const liveReminders = FEATURED_MODES.filter(m => m.id === liveMode?.id && prefs.reminders.includes(m.id));
+  const liveLocalReminders = [events.weekly, events.monthly, events.annual].filter(ev => !ev.isLocked && prefs.reminders.includes(ev.id));
+  const timeStr = timeLeft.d > 0 ? `${timeLeft.d}d ${timeLeft.h}h` : timeLeft.h > 0 ? `${timeLeft.h}h ${timeLeft.m}m` : `${timeLeft.m}m ${timeLeft.s}s`;
+  const localEvents = [events.weekly, events.monthly, events.annual];
+
+  return (
+    <View style={[s.root, { backgroundColor: palette.background }]}>
       <View style={[s.header, { paddingTop: topPad + 6 }]}>
-        <View style={{ flex: 1 }}>
-          <ScreenTitle kicker="GoldRush Arena" title="Events" />
-          <Text style={[s.subtitle, { color: colors.mutedForeground }]}>
-            Featured mode open to all · competitions from {GENERAL1?.name ?? 'the required rank'}
-          </Text>
-        </View>
-        <View style={[s.datePill, { borderColor: colors.border }]}>
-          <Feather name="calendar" size={11} color={colors.mutedForeground} />
-          <Text style={[s.dateText, { color: colors.mutedForeground }]}>
-            {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-          </Text>
-        </View>
+        <ScreenTitle kicker="GoldRush Arena" title="Events" />
+        <Text style={s.sub}>All times shown in your device time ({tz}).</Text>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 4, paddingBottom: insets.bottom + 144 }}
-      >
-        <Shell style={{ gap: 14 }}>
-        {/* ── Featured Mode ── */}
-        <FeaturedModeSection onPlay={handlePlayFeaturedMode} />
-
-        {/* Advanced competitions: clearly separated, gates unchanged */}
-        <View style={s.advHeader} accessibilityRole="header">
-          <Text style={s.advTitle}>ADVANCED COMPETITIONS</Text>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C' }} />
-          <Text style={s.advMeta}>{hasRank ? 'UNLOCKED' : `REQUIRES ${GENERAL1?.name.toUpperCase() ?? 'GENERAL 1'}`}</Text>
+      {notice && (
+        <View style={s.toast} accessibilityLiveRegion="polite">
+          <Feather name="check-square" size={16} color={palette.foreground} />
+          <Text style={s.toastText}>{notice}</Text>
         </View>
-        {!hasRank && (
-          <Panel tone="paper" style={[s.rankGate, { borderLeftWidth: 6, borderLeftColor: tactile.coral }]}>
-            <Feather name="flag" size={22} color={paperText.ink} />
-            <View style={{ flex: 1 }}>
-              <Text style={[s.rankGateTitle, { color: paperText.ink }]}>YOUR NEXT STEP: {nextRank ? nextRank.name.toUpperCase() : profile.rank.toUpperCase()}</Text>
-              <Text style={[s.rankGateBody, { color: paperText.ink }]}>
-                {nextRank
-                  ? `${(nextRank.minXP - profile.xp).toLocaleString()} XP to ${nextRank.name}. Ranked, Casual and the featured mode above all earn XP.`
-                  : 'You are at the top XP rank.'}
-              </Text>
-              <Text style={[s.rankGateReq, { color: paperText.muted }]}>
-                The Weekly, Monthly Cup and Grand Prix below open at {GENERAL1?.name ?? 'General 1'} ({(GENERAL1?.minXP ?? 0).toLocaleString()} XP). You are {profile.rank}. You can read the formats now; entry stays locked until then.
-              </Text>
-            </View>
-          </Panel>
-        )}
+      )}
 
-        {/* Weekly, direct entry, no qualifier */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <GlowText intensity="medium" color='#252A2B' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>WEEKLY EVENT</GlowText>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#575D5C', letterSpacing: 1 }}>DIRECT ENTRY</Text>
-        </View>
-        <EventCard
-          ev={events.weekly}
-          rankGated={!hasRank}
-          mainDrawPlaysLeft={mainDrawPlaysLeft(events.weekly)}
-          qs={null}
-          onPlayQualifier={() => {}}
-          onPlayMainDraw={() => handlePlayMainDraw(events.weekly)}
-        />
-
-        {/* Monthly Cup, 2-round qualifier */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4, marginTop: 4 }}>
-          <GlowText intensity="medium" color='#252A2B' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>MONTHLY CUP</GlowText>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#575D5C', letterSpacing: 1 }}>2-ROUND QUALIFIER</Text>
-        </View>
-        <EventCard
-          ev={events.monthly}
-          rankGated={!hasRank}
-          mainDrawPlaysLeft={mainDrawPlaysLeft(events.monthly)}
-          qs={getEventQualifierState(profile, events.monthly)}
-          onPlayQualifier={(rIdx, rDef) => handlePlayQualifier(events.monthly, rIdx, rDef)}
-          onPlayMainDraw={() => handlePlayMainDraw(events.monthly)}
-        />
-
-        {/* Annual Grand Prix, 3-round qualifier */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4, marginTop: 4 }}>
-          <GlowText intensity="medium" color='#252A2B' style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2 }}>ANNUAL GRAND PRIX</GlowText>
-          <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
-          <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#575D5C', letterSpacing: 1 }}>3-ROUND QUALIFIER</Text>
-        </View>
-        <EventCard
-          ev={events.annual}
-          rankGated={!hasRank}
-          mainDrawPlaysLeft={mainDrawPlaysLeft(events.annual)}
-          qs={getEventQualifierState(profile, events.annual)}
-          onPlayQualifier={(rIdx, rDef) => handlePlayQualifier(events.annual, rIdx, rDef)}
-          onPlayMainDraw={() => handlePlayMainDraw(events.annual)}
-        />
-
-        <View style={[s.infoBox, { borderColor: '#575D5C66', backgroundColor: '#E3DFD3' }]}>
-          <Glyph style={s.infoIcon} value="⚡" />
-          <Text style={[s.infoText, { color: '#575D5C' }]}>
-            All participants earn <Text style={{ color: '#252A2B' }}>Credits</Text> (spent in the Forge to craft items) plus bonus XP and coins in the <Text style={{ color: '#252A2B' }}>Main Draw</Text>. Qualifier rounds award <Text style={{ color: '#252A2B' }}>Qualifier Points (QP)</Text> based on finishing place; earn enough QP to advance to the next stage.
-          </Text>
-        </View>
-        </Shell>
-      </ScrollView>
-    </Reanimated.View>
-  );
-}
-
-// ─── Featured Mode Section ────────────────────────────────────────────────────
-function FeaturedModeSection({ onPlay }: { onPlay: (mode: FeaturedMode) => void }) {
-  const { mode, timeLeft } = useFeaturedModeCountdown();
-  if (!mode) return null;
-
-  const { d, h, m: min, s: sec } = timeLeft;
-  const timeStr = d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${min}m` : `${min}m ${sec}s`;
-  const color = mode.color;
-
-  return (
-    <View style={{ gap: 8, marginBottom: 4 }}>
-      {/* Section header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 0 }}>
-        <GlowText intensity="medium" color={color} style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color }}>FEATURED THIS WEEK</GlowText>
-        <View style={{ flex: 1, height: 1, backgroundColor: '#575D5C44' }} />
-        <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: '#575D5C', letterSpacing: 1 }}>OPEN TO ALL · CASUAL · COMPETITIVE LEVEL UNCHANGED</Text>
-      </View>
-
-      {/* Card */}
-        <View style={[s.card, { backgroundColor: '#E3DFD3', borderColor: '#575D5C' }]}>
-        <LinearGradient colors={[color + '14', 'transparent']} style={StyleSheet.absoluteFill} />
-
-        {/* Top row */}
-        <View style={s.cardTop}>
-          <View style={[s.typeBadge, { borderColor: color + '55', backgroundColor: color + '18' }]}>
-            <Glyph style={{ fontSize: 12, marginRight: 3 }} value={mode.emoji} />
-            <Text style={[s.badgeText, { color: '#252A2B' }]}>FEATURED</Text>
-          </View>
-            <View style={[s.timePill, { borderColor: '#575D5C66' }]}>
-            <Feather name="clock" size={9} color="#575D5C" />
-            <Text style={[s.timeText, { color: '#575D5C' }]}>{timeStr} left</Text>
-          </View>
-        </View>
-
-        {/* Name row */}
-        <View style={s.nameRow}>
-          <Glyph style={s.eventEmoji} value={mode.emoji} />
-          <View style={{ flex: 1 }}>
-            <GlowText intensity="medium" color="#252A2B" style={s.eventName}>{mode.name}</GlowText>
-            <Text style={[s.eventDesc, { color: '#575D5C' }]}>{mode.descriptor}</Text>
-          </View>
-        </View>
-
-        {/* Rule summary */}
-        <View style={{ gap: 5 }}>
-          {mode.ruleSummary.map((rule, i) => (
-            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color + '99' }} />
-              <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: '#575D5C', lineHeight: 18 }}>{rule}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Override pills */}
-        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-          {mode.overrides.coinMultiplier != null && (
-            <View style={[s.rewardPill]}>
-              <Text style={[s.rewardValue, { color: '#252A2B' }]}>{mode.overrides.coinMultiplier}× </Text>
-              <Text style={s.rewardLabel}>COINS</Text>
-            </View>
-          )}
-          {mode.overrides.xpMultiplier != null && (
-            <View style={[s.rewardPill]}>
-              <Text style={[s.rewardValue, { color: '#252A2B' }]}>{mode.overrides.xpMultiplier}× </Text>
-              <Text style={s.rewardLabel}>XP</Text>
-            </View>
-          )}
-          {mode.overrides.ballSpeedFactor != null && (
-            <View style={[s.rewardPill]}>
-              <Text style={[s.rewardValue, { color: '#252A2B' }]}>{mode.overrides.ballSpeedFactor}× </Text>
-              <Text style={s.rewardLabel}>BALL SPEED</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Play button */}
-        <Pressable
-          onPress={() => onPlay(mode)}
-          accessibilityRole="button"
-          accessibilityLabel={`Play ${mode.name}, casual match, competitive level unchanged`}
-          style={({ pressed }) => [
-            s.playBtn,
-            { backgroundColor: '#F36B3F', borderColor: '#252A2B',
-              opacity: pressed ? 0.75 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
-          ]}
-        >
-          <Text style={[s.playBtnText, { color: '#252A2B' }]}>PLAY {mode.name.toUpperCase()}</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
-// ─── Types ─────────────────────────────────────────────────────────────────────
-type QS = ReturnType<typeof getEventQualifierState>;
-
-// ─── Event Card ────────────────────────────────────────────────────────────────
-function EventCard({
-  ev, rankGated, mainDrawPlaysLeft, qs, onPlayQualifier, onPlayMainDraw,
-}: {
-  ev: EventDefinition;
-  rankGated: boolean;
-  mainDrawPlaysLeft: number;
-  qs: QS;
-  onPlayQualifier: (roundIdx: number, roundDef: QualifierRoundDef) => void;
-  onPlayMainDraw: () => void;
-}) {
-  const modeName: Record<string, string> = {
-    classic: 'Classic', chaos: 'Chaos', blitz: 'Blitz',
-    six_player: '6-Player', survival: 'Survival', turbo: 'Turbo',
-  };
-
-  // ── DATE-LOCKED ──────────────────────────────────────────────────────────────
-  if (ev.isLocked) {
-    return (
-      <View style={[s.card, { backgroundColor: '#E3DFD3', borderColor: '#575D5C66' }]}>
-        <View style={s.cardTop}>
-          <View style={[s.lockBadge, { borderColor: '#575D5C66' }]}>
-            <Feather name="lock" size={10} color="#575D5C" />
-            <Text style={[s.badgeText, { color: '#575D5C' }]}>LOCKED</Text>
-          </View>
-          <View style={[s.timePill, { borderColor: '#575D5C66' }]}>
-            <Feather name="clock" size={9} color="#575D5C" />
-            <Text style={[s.timeText, { color: '#575D5C' }]}>Opens {ev.opensOnLabel}</Text>
-          </View>
-        </View>
-        <View style={s.nameRow}>
-          <Glyph style={[s.eventEmoji, { opacity: 0.25 }]} value={ev.emoji} />
-          <View style={{ flex: 1 }}>
-            <Text style={[s.eventName, { color: '#252A2B' }]}>{ev.name}</Text>
-            <Text style={[s.eventDesc, { color: '#575D5C' }]}>Opens {ev.opensOnLabel}. Check back then!</Text>
-          </View>
-        </View>
-        <View style={[s.countdownBox, { borderColor: '#575D5C66', backgroundColor: '#E3DFD3' }]}>
-          <Feather name="lock" size={14} color="#575D5C" />
-          <View>
-            <Text style={[s.countdownLabel, { color: '#575D5C' }]}>OPENS IN</Text>
-            <Text style={[s.countdownTime, { color: '#252A2B' }]}>{fmt(ev.endsIn)}</Text>
-          </View>
-          <Text style={[s.countdownDate, { color: '#575D5C' }]}>{ev.opensOnLabel}</Text>
-        </View>
-        <View style={[s.playBtn, { backgroundColor: '#E3DFD3', borderColor: '#575D5C66', opacity: 0.8 }]}>
-          <Text style={[s.playBtnText, { color: '#575D5C' }]}> OPENS {ev.opensOnLabel.toUpperCase()}</Text>
-        </View>
-      </View>
-    );
-  }
-
-  // ── WEEKLY (no qualifier) ─────────────────────────────────────────────────────
-  if (ev.rounds === null) {
-    const noPlays  = mainDrawPlaysLeft === 0;
-    const disabled = noPlays || rankGated;
-    return (
-      <GlowBorder color={ev.color ?? '#CE7863'} borderRadius={3} spread={8}>
-        <View style={[s.card, { backgroundColor: '#E3DFD3', borderColor: '#575D5C' }]}>
-          <LinearGradient colors={[ev.color + (disabled ? '06' : '14'), 'transparent']} style={StyleSheet.absoluteFill} />
-          <View style={s.cardTop}>
-            <TypeBadge label="WEEKLY" color={ev.color} dim={disabled} />
-            <View style={s.cardTopRight}>
-              <ModePill mode={modeName[ev.mode] ?? ev.mode} />
-              <TimePill ms={ev.endsIn} label="left" />
-            </View>
-          </View>
-          <NameRow ev={ev} dim={disabled} />
-          <PlaysRow plays={mainDrawPlaysLeft} max={ev.maxPlays} color={ev.color} />
-          <View style={[s.divider, { backgroundColor: '#575D5C66' }]} />
-          <RewardRow ev={ev} />
-          <PlayButton
-            label={rankGated ? 'REQUIRES GENERAL 1' : noPlays ? 'NO PLAYS REMAINING' : `▶  PLAY ${ev.name.toUpperCase()}`}
-            color="#F36B3F"
-            disabled={disabled}
-            onPress={onPlayMainDraw}
-          />
-        </View>
-      </GlowBorder>
-    );
-  }
-
-  // ── QUALIFIER EVENTS (monthly / annual) ───────────────────────────────────────
-  if (!qs) return null; // shouldn't happen
-
-  // ELIMINATED, used all qualifier plays without reaching threshold
-  if (qs.isEliminated) {
-    return (
-      <View style={[s.card, { backgroundColor: '#E3DFD3', borderColor: '#575D5C' }]}>
-        <View style={s.cardTop}>
-          <View style={[s.lockBadge, { borderColor: '#575D5C66', backgroundColor: '#EEE9DE' }]}>
-            <Text style={[s.badgeText, { color: '#252A2B' }]}>ELIMINATED</Text>
-          </View>
-          <TimePill ms={ev.endsIn} label="resets" />
-        </View>
-        <NameRow ev={ev} dim />
-        <View style={[s.countdownBox, { borderColor: '#575D5C66', backgroundColor: '#EEE9DE' }]}>
-          <Glyph style={{ fontSize: 20 }} value="❌" />
-          <View style={{ flex: 1 }}>
-            <Text style={[s.countdownLabel, { color: '#575D5C' }]}>
-              {qs.roundDef.name.toUpperCase()}, ELIMINATED
-            </Text>
-            <Text style={[s.countdownTime, { color: '#575D5C', fontSize: 13, fontFamily: 'SourceSans3_400Regular' }]}>
-              You earned <Text style={{ color: '#252A2B', fontFamily: 'SourceSans3_700Bold' }}>{qs.qp} QP</Text> but needed <Text style={{ color: '#252A2B', fontFamily: 'SourceSans3_700Bold' }}>{qs.roundDef.threshold} QP</Text> to advance.
-              {'\n'}Try again next period when the event resets.
-            </Text>
-          </View>
-        </View>
-        <View style={[s.playBtn, { backgroundColor: '#EEE9DE', borderColor: '#575D5C66', opacity: 0.85 }]}>
-          <Text style={[s.playBtnText, { color: '#575D5C' }]}>ELIMINATED THIS PERIOD</Text>
-        </View>
-      </View>
-    );
-  }
-
-  // MAIN DRAW, player has qualified
-  if (qs.roundDef.isMainDraw) {
-    const noPlays  = mainDrawPlaysLeft === 0;
-    const disabled = noPlays || rankGated;
-    const roundLabel = ev.rounds.length > 2 ? 'GRAND FINAL' : 'MAIN DRAW';
-    return (
-      <GlowBorder color={ev.color ?? '#CE7863'} borderRadius={3} spread={8}>
-        <View style={[s.card, { backgroundColor: '#E3DFD3', borderColor: '#575D5C' }]}>
-          <LinearGradient colors={['#EDBA3C18', 'transparent']} style={StyleSheet.absoluteFill} />
-          <View style={s.cardTop}>
-            <View style={[s.qualifiedBadge, { borderColor: '#252A2B', backgroundColor: '#EDBA3C' }]}>
-              <Text style={[s.badgeText, { color: '#252A2B' }]}> {roundLabel}, QUALIFIED</Text>
-            </View>
-            <View style={s.cardTopRight}>
-              <ModePill mode={modeName[ev.mode] ?? ev.mode} />
-              <TimePill ms={ev.endsIn} label="left" />
-            </View>
-          </View>
-          <NameRow ev={ev} dim={disabled} />
-          {/* Main draw plays */}
-          <PlaysRow plays={mainDrawPlaysLeft} max={ev.maxPlays} color={ev.color} />
-          <View style={[s.divider, { backgroundColor: '#575D5C66' }]} />
-          <RewardRow ev={ev} />
-          <PlayButton
-            label={rankGated ? 'REQUIRES GENERAL 1' : noPlays ? 'NO PLAYS REMAINING' : `▶  PLAY ${roundLabel}`}
-            color="#F36B3F"
-            disabled={disabled}
-            onPress={onPlayMainDraw}
-          />
-        </View>
-      </GlowBorder>
-    );
-  }
-
-  // QUALIFIER ROUND, playing to earn QP
-  const disabled  = qs.playsLeft === 0 || rankGated;
-  const qpFraction = Math.min(qs.qp / qs.roundDef.threshold, 1);
-  const totalRounds = ev.rounds.length;
-  const roundNum    = qs.roundIdx + 1;
-
-  return (
-    <GlowBorder color={ev.color ?? '#CE7863'} borderRadius={3} spread={8}>
-      <View style={[s.card, { backgroundColor: '#E3DFD3', borderColor: '#575D5C' }]}>
-        <LinearGradient colors={['#E3DFD30C', 'transparent']} style={StyleSheet.absoluteFill} />
-
-        {/* Top row: round badge + mode + time */}
-        <View style={s.cardTop}>
-          <View style={[s.roundBadge, { borderColor: '#575D5C66', backgroundColor: '#EEE9DE' }]}>
-            <Text style={s.roundBadgeEmoji}>{qs.roundDef.badge}</Text>
-            <Text style={[s.badgeText, { color: '#252A2B' }]}>{qs.roundDef.name.toUpperCase()}</Text>
-            <Text style={[s.roundCounter, { color: '#575D5C' }]}>  {roundNum}/{totalRounds}</Text>
-          </View>
-          <View style={s.cardTopRight}>
-            <ModePill mode={modeName[ev.mode] ?? ev.mode} />
-            <TimePill ms={ev.endsIn} label="left" />
-          </View>
-        </View>
-
-        <NameRow ev={ev} dim={disabled} />
-
-        {/* QP Progress bar */}
-        <View style={s.qpSection}>
-          <View style={s.qpHeader}>
-            <Text style={[s.qpLabel, { color: '#575D5C' }]}>QUALIFIER POINTS</Text>
-            <Text style={[s.qpValue, { color: '#252A2B' }]}>
-              {qs.qp} / {qs.roundDef.threshold} QP
-            </Text>
-          </View>
-          <View style={[s.qpTrack, { backgroundColor: '#575D5C66' }]}>
-            <View style={[s.qpFill, { width: `${qpFraction * 100}%` as never, backgroundColor: '#F36B3F' }]} />
-          </View>
-          {qs.qp >= qs.roundDef.threshold - (qs.roundDef.qpPerPlace[0]) && qs.qp < qs.roundDef.threshold && (
-            <Text style={[s.qpNearNote, { color: '#575D5C' }]}>
-              One good finish can qualify you!
-            </Text>
-          )}
-        </View>
-
-        {/* Plays remaining */}
-        <PlaysRow plays={qs.playsLeft} max={qs.roundDef.maxPlays} color="#F36B3F" />
-
-        {/* QP per placement table */}
-        <View style={[s.qpTable, { borderColor: '#575D5C66', backgroundColor: '#EEE9DE' }]}>
-          <Text style={[s.qpTableTitle, { color: '#252A2B' }]}>QP PER PLACEMENT</Text>
-          <View style={s.qpTableRows}>
-            {qs.roundDef.qpPerPlace.map((qp, i) => (
-              <View key={i} style={s.qpTableRow}>
-                <Glyph style={s.qpTableIcon} value={PLACEMENT_ICONS[i]} />
-                <Text style={[s.qpTablePlace, { color: '#252A2B' }]}>
-                  {['1st', '2nd', '3rd', '4th'][i]}
-                </Text>
-                <Text style={[s.qpTablePoints, { color: '#252A2B' }]}>+{qp} QP</Text>
+      <ScrollView contentContainerStyle={{ paddingTop: 4, paddingBottom: insets.bottom + 144 }} showsVerticalScrollIndicator={false}>
+        <Shell style={{ gap: 18 }}>
+          {isInParty && (
+            <Panel style={[s.pad, s.partyBar]}>
+              <Feather name="users" size={20} color={palette.foreground} />
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text style={s.h3}>You are in a party</Text>
+                <Text style={s.body}>Events on this screen are solo. Leave the party to play them, or launch modes for everyone from Play.</Text>
               </View>
+              <Button size="sm" variant="secondary" label="Leave party" onPress={() => { leaveParty(); say('Left party. Solo events are now available.'); }} testID="leave-party" />
+            </Panel>
+          )}
+
+          {status === 'error' && (
+            <Panel style={[s.pad, s.partyBar]}>
+              <Feather name="alert-triangle" size={18} color={palette.foreground} />
+              <Text style={[s.body, { flex: 1 }]}>Saved follows and reminders could not be read from this device.</Text>
+              <Button size="sm" variant="ghost" label="Retry" onPress={reload} />
+            </Panel>
+          )}
+
+          {liveReminders.map(m => (
+            <Panel key={m.id} tone="brass" style={[s.pad, s.partyBar]}>
+              <Feather name="bell" size={18} color={palette.onAccent} />
+              <Text style={[s.body, { flex: 1, color: palette.onAccent }]}>Reminder: {m.name} is open now. Closes in {timeStr}.</Text>
+            </Panel>
+          ))}
+
+          {liveLocalReminders.map(ev => (
+            <Panel key={ev.id} tone="brass" style={[s.pad, s.partyBar]}>
+              <Feather name="bell" size={18} color={palette.onAccent} />
+              <Text style={[s.body, { flex: 1, color: palette.onAccent }]}>Reminder: local challenge {ev.name} is open. Closes {fmtLocal(localChallengeWindow(ev.type, ev.endsIn).closes)}.</Text>
+            </Panel>
+          ))}
+
+          {/* Featured */}
+          {liveMode ? (
+            <View style={{ gap: 8 }}>
+              <SectionLabel title="Featured now" right={<Chip label={`Closes in ${timeStr}`} tone="ochre" />} />
+              <Panel style={s.featured}>
+                <View style={s.band}>
+                  <Feather name="clock" size={14} color={palette.gold} />
+                  <Text style={s.bandText}>Featured mode · closes in {timeStr}</Text>
+                </View>
+                <View style={[s.pad, { gap: 12 }]}>
+                  <View style={s.rowWrap}>
+                    <Chip label="Casual" />
+                    <Chip label="Local bots" />
+                    <Chip label="Open to all ranks" />
+                  </View>
+                  <Text style={s.hero}>{liveMode.name}</Text>
+                  <Text style={s.body}>{liveMode.descriptor}</Text>
+                  <ModifierRow mode={liveMode} />
+                  <Text style={s.fine}>
+                    Played against local bots. Competitive level is unchanged. Modifiers apply to this mode only.
+                    Window: {fmtLocal(scheduleWindow(liveMode.startDay, liveMode.endDay).start)} to {fmtLocal(scheduleWindow(liveMode.startDay, liveMode.endDay).end)}.
+                  </Text>
+                  <Button
+                    size="lg"
+                    label={isInParty ? 'Leave party to play' : `Play ${liveMode.name}`}
+                    icon="play"
+                    disabled={isInParty}
+                    onPress={() => playFeatured(liveMode)}
+                    testID="play-featured"
+                    accessibilityHint="Opens the lobby with this featured mode's modifiers, versus local bots"
+                  />
+                </View>
+              </Panel>
+            </View>
+          ) : (
+            <Panel style={s.pad}><Text style={s.body}>No featured mode is scheduled right now.</Text></Panel>
+          )}
+
+          {/* Rally Race */}
+          <View style={{ gap: 8 }}>
+            <SectionLabel title="Always on" right={<Chip label="Casual online" />} />
+            <Panel tone="raised" style={[s.pad, { gap: 10, borderWidth: 3, borderColor: palette.edge }]}>
+              <Text style={s.h2}>Rally Race</Text>
+              <Text style={s.body}>Sixty seconds. Keep the ball alive and stack points.</Text>
+              <View style={s.ruleGrid}>
+                <Rule k="+1" v="per deflection" />
+                <Rule k="−2" v="per missed ball" />
+                <Rule k="60s" v="match length" />
+              </View>
+              <Text style={s.fine}>Goals do not eliminate anyone. Highest score wins. Tied top scores void the result: no awards for that match. Unranked; no rank change.</Text>
+              <Button
+                label={isInParty ? 'Leave party to play' : 'Find Rally Race'}
+                icon="zap"
+                disabled={isInParty}
+                onPress={playRally}
+                testID="play-rally"
+              />
+            </Panel>
+          </View>
+
+          {/* Playlist schedule */}
+          <View style={{ gap: 8 }}>
+            <SectionLabel title="Rotating playlist" />
+            <Text style={s.fine}>Each mode opens at local midnight on its first day and closes at local midnight after its last day, on this device's clock.</Text>
+            {FEATURED_MODES.map(m => {
+              const w = scheduleWindow(m.startDay, m.endDay);
+              const live = m.id === liveMode?.id;
+              return (
+                <Panel key={m.id} style={[s.pad, { gap: 8 }, live && { borderColor: palette.primary, borderWidth: 3 }]}>
+                  <View style={s.rowBetween}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.h3}>{m.name}</Text>
+                      <Text style={s.meta}>{w.days} · {live ? 'Open now' : `Opens ${fmtLocal(w.start)}`}</Text>
+                      <Text style={s.meta}>Closes {fmtLocal(w.end)}</Text>
+                    </View>
+                    {live && <Chip label="Live" tone="ochre" />}
+                  </View>
+                  <ModifierRow mode={m} />
+                  <View style={s.rowWrap}>
+                    <Toggle on={prefs.follows.includes(m.id)} icon="star" onLabel="Following" offLabel="Follow" disabled={status !== 'ready'} onPress={() => onToggle('follows', m.id, m.name)} />
+                    <Toggle on={prefs.reminders.includes(m.id)} icon="bell" onLabel="In-app reminder on" offLabel="In-app reminder" disabled={status !== 'ready'} onPress={() => onToggle('reminders', m.id, m.name)} />
+                  </View>
+                </Panel>
+              );
+            })}
+            <Text style={s.fine}>Reminders appear at the top of this screen when the mode is open. GoldRush does not send push notifications for events.</Text>
+          </View>
+
+          {/* Local challenges */}
+          <View style={{ gap: 8 }}>
+            <SectionLabel title="Local challenges" right={<Chip label={hasRank ? 'Unlocked' : `Needs ${MIN_RANK_NAME}`} />} />
+            <Text style={s.fine}>
+              Solo challenges played against bots on this device. Not esports and not against other players. Your earned plays, QP and rewards are kept. In-app reminders show at the top of this screen while a challenge is open; no push notifications.
+            </Text>
+            {!hasRank && (
+              <Panel tone="paper" style={s.pad}>
+                <Text style={s.body}>
+                  Entry opens at {MIN_RANK_NAME} ({(MIN_RANK?.minXP ?? 0).toLocaleString()} XP). You are {profile.rank} with {profile.xp.toLocaleString()} XP. Rules are readable now.
+                </Text>
+              </Panel>
+            )}
+            {localEvents.map(ev => (
+              <LocalChallenge
+                key={ev.id}
+                ev={ev}
+                hasRank={hasRank}
+                inParty={isInParty}
+                busy={busy === ev.id}
+                playsLeft={Math.max(0, ev.maxPlays - ((profile.eventPlaysUsed ?? {})[ev.periodKey] ?? 0))}
+                qs={ev.rounds ? getEventQualifierState(profile, ev) : null}
+                followed={prefs.follows.includes(ev.id)}
+                reminded={prefs.reminders.includes(ev.id)}
+                onRemind={() => onToggle('reminders', ev.id, ev.name)}
+                prefsReady={status === 'ready'}
+                onFollow={() => onToggle('follows', ev.id, ev.name)}
+                onQualifier={(i, r) => playQualifier(ev, i, r)}
+                onMainDraw={() => playMainDraw(ev)}
+              />
             ))}
           </View>
-        </View>
 
-        {/* Advance info */}
-        <View style={[s.advanceNote, { borderColor: '#575D5C66', backgroundColor: '#EEE9DE' }]}>
-          <Text style={[s.advanceText, { color: '#575D5C' }]}>
-             Reach <Text style={{ color: '#252A2B', fontFamily: 'SourceSans3_700Bold' }}>{qs.roundDef.threshold} QP</Text> to advance to <Text style={{ color: '#252A2B', fontFamily: 'SourceSans3_700Bold' }}>{ev.rounds[qs.roundIdx + 1]?.name ?? 'the Final'}</Text>
-          </Text>
-        </View>
-
-        <PlayButton
-          label={
-            rankGated    ? 'REQUIRES GENERAL 1' :
-            qs.playsLeft === 0 ? 'NO PLAYS REMAINING' :
-            `▶  PLAY ${qs.roundDef.name.toUpperCase()}`
-          }
-          color="#F36B3F"
-          disabled={disabled}
-          onPress={() => !disabled && onPlayQualifier(qs!.roundIdx, qs!.roundDef)}
-        />
-      </View>
-    </GlowBorder>
-  );
-}
-
-// ─── Small shared components ───────────────────────────────────────────────────
-function TypeBadge({ label, color, dim }: { label: string; color: string; dim: boolean }) {
-  return (
-    <View style={[s.typeBadge, { borderColor: (dim ? color + '22' : color + '55'), backgroundColor: color + (dim ? '08' : '18') }]}>
-          <Text style={[s.badgeText, { color: '#252A2B' }]}>{label}</Text>
+          {/* Pro */}
+          <View style={{ gap: 8 }}>
+            <SectionLabel title="Pro & competitive" />
+            <Panel style={[s.pad, { gap: 10 }]}>
+              <Text style={s.h3}>No tournaments announced</Text>
+              <Text style={s.body}>There are no official GoldRush tournaments, teams or prize pools at this time. Anything announced will appear here with dates and rules.</Text>
+              <Text style={s.body}>For competitive play today, use Ranked: skill rating is shown separately from XP level.</Text>
+              <View style={s.rowWrap}>
+                <Button size="sm" label="Ranked on Home" icon="home" variant="secondary" onPress={() => router.push('/')} />
+                <Button size="sm" label="Leaderboard" icon="bar-chart-2" variant="secondary" onPress={() => router.push('/leaderboard' as never)} />
+              </View>
+            </Panel>
+          </View>
+        </Shell>
+      </ScrollView>
     </View>
   );
 }
 
-function ModePill({ mode }: { mode: string }) {
+function ModifierRow({ mode }: { mode: FeaturedMode }) {
+  const o = mode.overrides;
+  const items = [
+    o.coinMultiplier != null && `${o.coinMultiplier}× coins`,
+    o.xpMultiplier != null && `${o.xpMultiplier}× XP`,
+    o.ballSpeedFactor != null && `${o.ballSpeedFactor}× ball speed`,
+  ].filter(Boolean) as string[];
+  return <View style={s.rowWrap}>{items.map(t => <View key={t} style={s.mod}><Text style={s.modText}>{t}</Text></View>)}</View>;
+}
+
+function Rule({ k, v }: { k: string; v: string }) {
   return (
-      <View style={[s.modePill, { borderColor: '#575D5C66' }]}>
-      <Text style={[s.modeText, { color: '#575D5C' }]}>{mode}</Text>
+    <View style={s.rule}>
+      <Text style={s.ruleK}>{k}</Text>
+      <Text style={s.meta}>{v}</Text>
     </View>
   );
 }
 
-function TimePill({ ms, label }: { ms: number; label: string }) {
-  return (
-    <View style={[s.timePill, { borderColor: '#575D5C66' }]}>
-      <Feather name="clock" size={9} color="#575D5C" />
-      <Text style={[s.timeText, { color: '#575D5C' }]}>{fmt(ms)} {label}</Text>
-    </View>
-  );
-}
-
-function NameRow({ ev, dim }: { ev: EventDefinition; dim: boolean }) {
-  return (
-    <View style={s.nameRow}>
-      <Glyph style={[s.eventEmoji, { opacity: dim ? 0.25 : 1 }]} value={ev.emoji} />
-      <View style={{ flex: 1 }}>
-        <GlowText intensity="medium" color="#252A2B" style={s.eventName}>{ev.name}</GlowText>
-        <Text style={[s.eventDesc, { color: '#575D5C' }]}>{ev.description}</Text>
-      </View>
-    </View>
-  );
-}
-
-function PlaysRow({ plays, max, color }: { plays: number; max: number; color: string }) {
-  return (
-    <View style={s.playsRow}>
-      <Text style={[s.playsLabel, { color: '#575D5C' }]}>PLAYS</Text>
-      <View style={s.dots}>
-        {Array.from({ length: max }).map((_, i) => (
-          <View key={i} style={[s.dot, { backgroundColor: i < plays ? color : '#575D5C66' }]} />
-        ))}
-      </View>
-      <Text style={[s.playsRemaining, { color: plays === 0 ? '#575D5C' : '#252A2B' }]}>
-        {plays === 0 ? 'DONE' : `${plays}/${max}`}
-      </Text>
-    </View>
-  );
-}
-
-function RewardRow({ ev }: { ev: EventDefinition }) {
-  return (
-    <>
-      <View style={s.rewardRow}>
-        <RewardPill label="WIN XP"    value={`+${ev.winRewards.xp}`} />
-        <RewardPill label="WIN COINS" value={`+${ev.winRewards.coins}`} />
-        <RewardPill label="CREDITS"   value={`+${ev.creditsOnWin}`} prefix="⚡" />
-      </View>
-      <Text style={[s.lossNote, { color: '#575D5C' }]}>
-        Loss: +{ev.loseRewards.xp} XP · +{ev.loseRewards.coins} coins · +{ev.creditsOnLose}
-      </Text>
-    </>
-  );
-}
-
-function RewardPill({ label, value, prefix = '' }: {
-  label: string; value: string; prefix?: string;
-}) {
-  return (
-    <View style={s.rewardPill}>
-      <Text style={[s.rewardValue, { color: '#252A2B' }]}>{prefix}{value}</Text>
-      <Text style={[s.rewardLabel, { color: '#575D5C' }]}>{label}</Text>
-    </View>
-  );
-}
-
-function PlayButton({ label, color, disabled, onPress }: {
-  label: string; color: string; disabled: boolean; onPress: () => void;
+function Toggle({ on, icon, onLabel, offLabel, onPress, disabled }: {
+  on: boolean; icon: React.ComponentProps<typeof Feather>['name']; onLabel: string; offLabel: string; onPress: () => void; disabled?: boolean;
 }) {
   return (
     <Pressable
-      onPress={disabled ? undefined : onPress}
+      onPress={onPress}
       disabled={disabled}
-      accessibilityRole="button"
-      accessibilityLabel={label.replace('▶', '').trim()}
-      accessibilityState={{ disabled }}
-      style={({ pressed }) => [
-        s.playBtn,
-        {
-          backgroundColor: disabled ? '#E3DFD3' : color,
-          borderColor:     disabled ? '#575D5C66' : '#252A2B',
-          opacity: disabled ? 0.5 : pressed ? 0.75 : 1,
-          transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
-        },
-      ]}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: on, disabled }}
+      accessibilityLabel={offLabel}
+      style={({ pressed }) => [s.toggle, on && { backgroundColor: palette.primary, borderColor: palette.edge }, pressed && { borderBottomWidth: 2, transform: [{ translateY: 2 }] }, disabled && { opacity: 0.5 }]}
     >
-      <Text style={[s.playBtnText, { color: disabled ? '#575D5C' : '#252A2B' }]}>{label}</Text>
+      <Feather name={on ? 'check' : icon} size={14} color={on ? palette.onAccent : palette.foreground} />
+      <Text style={[s.toggleText, { color: on ? palette.onAccent : palette.foreground }]}>{on ? onLabel : offLabel}</Text>
     </Pressable>
   );
 }
 
-// ─── Styles ────────────────────────────────────────────────────────────────────
+type QS = ReturnType<typeof getEventQualifierState>;
+
+function LocalChallenge({ ev, hasRank, inParty, busy, playsLeft, qs, followed, reminded, onRemind, prefsReady, onFollow, onQualifier, onMainDraw }: {
+  ev: EventDefinition; hasRank: boolean; inParty: boolean; busy: boolean; playsLeft: number; qs: QS | null;
+  followed: boolean; reminded: boolean; onRemind: () => void; prefsReady: boolean; onFollow: () => void;
+  onQualifier: (i: number, r: QualifierRoundDef) => void; onMainDraw: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const win = localChallengeWindow(ev.type, ev.endsIn);
+  const kind = ev.type === 'weekly' ? 'Weekly challenge' : ev.type === 'monthly' ? 'Monthly cup' : 'Annual grand prix';
+
+  let label = '';
+  let action: (() => void) | undefined;
+  let state = '';
+  if (ev.isLocked) { label = `Opens ${ev.opensOnLabel}`; state = 'Not open yet'; }
+  else if (qs?.isEliminated) { label = 'Eliminated this period'; state = `${qs.qp}/${qs.roundDef.threshold} QP, round ended`; }
+  else if (!qs || qs.roundDef.isMainDraw) {
+    const name = !qs ? 'Play challenge' : ev.rounds && ev.rounds.length > 2 ? 'Play grand final' : 'Play main draw';
+    state = qs ? 'Qualified' : 'Direct entry';
+    label = playsLeft === 0 ? 'No plays left' : name; if (playsLeft > 0) action = onMainDraw;
+  } else {
+    state = `${qs.roundDef.name} · ${qs.qp}/${qs.roundDef.threshold} QP`;
+    label = qs.playsLeft === 0 ? 'No plays left' : `Play ${qs.roundDef.name}`;
+    if (qs.playsLeft > 0) action = () => onQualifier(qs.roundIdx, qs.roundDef);
+  }
+  if (!ev.isLocked && !hasRank) { label = `Requires ${MIN_RANK_NAME}`; action = undefined; }
+  if (action && inParty) { label = 'Leave party to play'; action = undefined; }
+
+  const qpFrac = qs && !qs.roundDef.isMainDraw && qs.roundDef.threshold > 0 ? Math.min(1, qs.qp / qs.roundDef.threshold) : null;
+
+  return (
+    <Panel style={{ overflow: 'hidden' }}>
+      <View style={[s.band, ev.isLocked && { backgroundColor: palette.raised }]}>
+        <Text style={[s.bandText, { flex: 1 }]}>{kind} · vs bots</Text>
+      </View>
+      <View style={[s.pad, { gap: 10 }]}>
+        <View style={s.rowBetween}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.h2}>{ev.name}</Text>
+            <Text style={s.meta}>{MODE_NAME[ev.mode] ?? ev.mode} · {state}</Text>
+          </View>
+          <Text style={s.meta}>{ev.isLocked ? `in ${fmtSpan(Math.max(0, (win.opens?.getTime() ?? Date.now()) - Date.now()))}` : `${fmtSpan(Math.max(0, win.closes.getTime() - Date.now()))} left`}</Text>
+        </View>
+        {qpFrac != null && (
+          <View style={s.track} accessibilityLabel={`Qualifier points ${qs!.qp} of ${qs!.roundDef.threshold}`}>
+            <View style={[s.fill, { width: `${qpFrac * 100}%` as never }]} />
+          </View>
+        )}
+        <View style={s.rowWrap}>
+          <Button size="sm" label={busy ? 'Starting' : label} loading={busy} disabled={!action} onPress={action} style={{ flexGrow: 1 }} />
+          <Button size="sm" variant="ghost" label={open ? 'Hide details' : 'Details'} icon={open ? 'chevron-up' : 'chevron-down'} onPress={() => setOpen(o => !o)} />
+          <Toggle on={followed} icon="star" onLabel="Following" offLabel="Follow" disabled={!prefsReady} onPress={onFollow} />
+          <Toggle on={reminded} icon="bell" onLabel="In-app reminder on" offLabel="In-app reminder" disabled={!prefsReady} onPress={onRemind} />
+        </View>
+      </View>
+      {open && (
+        <View style={s.detail}>
+          <Detail h="Rules">
+            {ev.description} Mode: {MODE_NAME[ev.mode] ?? ev.mode}. Opponents are local bots.
+            {ev.rounds ? ` ${ev.rounds.length} stages: ${ev.rounds.map(r => r.name).join(', ')}.` : ` Up to ${ev.maxPlays} plays this period.`}
+          </Detail>
+          {qs && !qs.roundDef.isMainDraw && (
+            <Detail h={`QP this round (need ${qs.roundDef.threshold})`}>
+              {qs.roundDef.qpPerPlace.map((q, i) => `${PLACES[i]} +${q}`).join(' · ')}. Plays left: {qs.playsLeft}/{qs.roundDef.maxPlays}.
+            </Detail>
+          )}
+          <Detail h="Eligibility">
+            {MIN_RANK_NAME} or higher. Solo only; not available while in a party.
+          </Detail>
+          <Detail h="Rewards">
+            Win: +{ev.winRewards.xp} XP, +{ev.winRewards.coins} coins, +{ev.creditsOnWin} credits. Loss: +{ev.loseRewards.xp} XP, +{ev.loseRewards.coins} coins, +{ev.creditsOnLose} credits. Main draw plays left: {playsLeft}/{ev.maxPlays}.
+          </Detail>
+          <Detail h="Times (device local)">
+            {win.opens ? `Opens ${fmtLocal(win.opens)}. ` : 'Open now. '}Closes and resets {fmtLocal(win.closes)}.
+          </Detail>
+        </View>
+      )}
+    </Panel>
+  );
+}
+
+function Detail({ h, children }: { h: string; children: React.ReactNode }) {
+  return (
+    <View style={{ gap: 2 }}>
+      <Text style={s.kicker}>{h}</Text>
+      <Text style={s.body}>{children}</Text>
+    </View>
+  );
+}
+
 const s = StyleSheet.create({
-  advHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
-  advTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 1, color: '#252A2B' },
-  advMeta: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.8, color: '#575D5C' },
-  root:            { flex: 1 },
-  header:          { paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
-  title:           { fontFamily: 'SourceSans3_700Bold', fontSize: 24, letterSpacing: 2 },
-  subtitle:        { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 2, letterSpacing: 0.4 },
-  datePill:        { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 2, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 5 },
-  dateText:        { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
-  scroll:          { paddingHorizontal: 16, paddingTop: 4, gap: 14 },
-
-  rankGate:        { borderRadius: 3, borderWidth: 1, padding: 16, flexDirection: 'row', gap: 12, alignItems: 'flex-start', overflow: 'hidden' },
-  rankGateIcon:    { fontSize: 26, marginTop: 2 },
-  rankGateTitle:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13, letterSpacing: 1.2, marginBottom: 6 },
-  rankGateBody:    { fontFamily: 'SourceSans3_400Regular', fontSize: 13, lineHeight: 19 },
-  rankGateReq:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 8, lineHeight: 16 },
-
-  card:            { borderRadius: 0, borderWidth: 2, padding: 16, overflow: 'hidden', gap: 12 },
-  cardTop:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cardTopRight:    { flexDirection: 'row', gap: 6, alignItems: 'center' },
-
-  typeBadge:       { borderWidth: 2, borderRadius: 0, paddingHorizontal: 8, paddingVertical: 3 },
-  lockBadge:       { borderWidth: 2, borderRadius: 0, paddingHorizontal: 8, paddingVertical: 3, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  qualifiedBadge:  { borderWidth: 2, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  roundBadge:      { borderWidth: 2, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center' },
-  roundBadgeEmoji: { fontSize: 12, marginRight: 4 },
-  roundCounter:    { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
-  badgeText:       { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
-
-  modePill:        { borderWidth: 2, borderRadius: 0, paddingHorizontal: 8, paddingVertical: 3 },
-  modeText:        { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 0.4 },
-  timePill:        { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 2, borderRadius: 0, paddingHorizontal: 8, paddingVertical: 3 },
-  timeText:        { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
-
-  nameRow:         { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  eventEmoji:      { fontSize: 28, lineHeight: 34 },
-  eventName:       { fontFamily: 'SourceSans3_700Bold', fontSize: 17, letterSpacing: 0.5 },
-  eventDesc:       { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 3, lineHeight: 17 },
-
-  countdownBox:    { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 2, borderRadius: 0, paddingHorizontal: 14, paddingVertical: 12 },
-  countdownLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2 },
-  countdownTime:   { fontFamily: 'SourceSans3_700Bold', fontSize: 18, marginTop: 1 },
-  countdownDate:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginLeft: 'auto' as never },
-
-  playsRow:        { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  playsLabel:      { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 1, width: 38 },
-  dots:            { flexDirection: 'row', gap: 5, flex: 1 },
-  dot:             { width: 10, height: 10, borderRadius: 3 },
-  playsRemaining:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
-
-  divider:         { height: 1, borderRadius: 1 },
-
-  rewardRow:       { flexDirection: 'row', gap: 8 },
-  rewardPill:      { flex: 1, alignItems: 'center', gap: 2 },
-  rewardValue:     { fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
-  rewardLabel:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 0.8 },
-  lossNote:        { fontFamily: 'SourceSans3_400Regular', fontSize: 12, textAlign: 'center' },
-
-  // QP section
-  qpSection:       { gap: 6 },
-  qpHeader:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  qpLabel:         { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
-  qpValue:         { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
-  qpTrack:         { height: 8, borderRadius: 4, overflow: 'hidden' },
-  qpFill:          { height: '100%', borderRadius: 4 },
-  qpNearNote:      { fontFamily: 'SourceSans3_400Regular', fontSize: 12, textAlign: 'center' },
-
-  // QP placement table
-  qpTable:         { borderRadius: 3, borderWidth: 1, padding: 12, gap: 6 },
-  qpTableTitle:    { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2, marginBottom: 2 },
-  qpTableRows:     { gap: 6 },
-  qpTableRow:      { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  qpTableIcon:     { fontSize: 14, width: 22 },
-  qpTablePlace:    { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, flex: 1 },
-  qpTablePoints:   { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
-
-  advanceNote:     { borderRadius: 3, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8 },
-  advanceText:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 17 },
-
-  playBtn:         { borderRadius: 0, borderWidth: 2, paddingVertical: 14, minHeight: 48, justifyContent: 'center', alignItems: 'center' },
-  playBtnText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 13, letterSpacing: 1.5 },
-
-  infoBox:         { flexDirection: 'row', gap: 10, borderWidth: 2, borderRadius: 0, padding: 14, alignItems: 'flex-start', marginTop: 2 },
-  infoIcon:        { fontSize: 14 },
-  infoText:        { fontFamily: 'SourceSans3_400Regular', fontSize: 12, flex: 1, lineHeight: 18 },
+  root: { flex: 1 },
+  header: { paddingHorizontal: 18, paddingBottom: 10, gap: 4 },
+  sub: { fontFamily: fonts.body, fontSize: textScale.caption, color: palette.supporting },
+  pad: { padding: 14 },
+  partyBar: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
+  featured: { borderWidth: 3, borderBottomWidth: 6, borderColor: palette.edge, overflow: 'hidden' },
+  band: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 9, backgroundColor: palette.inset },
+  bandText: { fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', color: palette.foreground },
+  hero: { fontFamily: fonts.display, fontSize: 40, color: palette.foreground, textTransform: 'uppercase', letterSpacing: -0.5 },
+  h2: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground, textTransform: 'uppercase' },
+  h3: { fontFamily: fonts.display, fontSize: 19, color: palette.foreground, textTransform: 'uppercase', letterSpacing: 0.5 },
+  kicker: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, color: palette.supporting, textTransform: 'uppercase', letterSpacing: 1 },
+  body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.foreground },
+  meta: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.supporting },
+  fine: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: palette.supporting },
+  rowWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
+  mod: { borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold, paddingHorizontal: 8, paddingVertical: 3 },
+  modText: { fontFamily: fonts.bodyBold, fontSize: 13, color: palette.onAccent },
+  ruleGrid: { flexDirection: 'row', borderWidth: 2, borderColor: palette.edge },
+  rule: { flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: palette.border, backgroundColor: palette.background },
+  ruleK: { fontFamily: fonts.display, fontSize: 26, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  toggle: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.background },
+  toggleText: { fontFamily: fonts.bodyBold, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.6 },
+  toast: { position: 'absolute', zIndex: 10, left: 18, right: 18, bottom: 110, flexDirection: 'row', gap: 10, alignItems: 'center', padding: 12, backgroundColor: palette.gold, borderWidth: 2, borderColor: palette.edge },
+  toastText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.onAccent },
+  track: { height: 16, padding: 2, backgroundColor: palette.background, borderWidth: 2, borderColor: palette.edge },
+  fill: { height: '100%', backgroundColor: palette.gold },
+  detail: { borderTopWidth: 2, borderTopColor: palette.border, backgroundColor: palette.background, padding: 14, gap: 10 },
 });

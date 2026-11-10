@@ -11,6 +11,7 @@ import { Button, IconButton } from '@/components/ui/Primitives';
 import { palette, tactile } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { SKINS, usePlayer } from '@/context/PlayerContext';
+import { useEquippedCosmetics } from '@/hooks/useEquippedCosmetics';
 import { useSettings } from '@/hooks/useSettings';
 import { setCompletedMatch } from '@/store/completedMatch';
 import { setGameConfig } from '@/store/gameSession';
@@ -21,6 +22,7 @@ export default function ArcadeScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { profile, currentUsername } = usePlayer();
+  const appearance=useEquippedCosmetics();
   const { settings } = useSettings();
   const music = useBackgroundMusic();
 
@@ -48,7 +50,6 @@ export default function ArcadeScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => { music.setMuted(!settings.musicEnabled); }, [settings.musicEnabled]);
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', next => { if (next !== 'active' && !gameOver) setPaused(true); });
@@ -114,6 +115,7 @@ export default function ArcadeScreen() {
         <View style={[s.frame, { width: arenaSize, height: arenaSize }]}>
           {!gameOver && (
             <GameArena
+              {...appearance}
               arenaSize={arenaSize - 2}
               courtStyle="tactile"
               playerName={profile.name}
@@ -161,23 +163,23 @@ export default function ArcadeScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.ink, alignItems: 'center' },
+  root: { flex: 1, backgroundColor: palette.background, alignItems: 'center' },
   column: { flex: 1, gap: 8 },
   hud: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 52 },
-  mode: { fontFamily: fonts.display, fontSize: 22, color: palette.paper, letterSpacing: 0.5 },
-  board: { flexDirection: 'row', borderWidth: 2, borderColor: tactile.brassEdge, borderRadius: 0, backgroundColor: tactile.brass },
+  mode: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, letterSpacing: 0.5 },
+  board: { flexDirection: 'row', borderWidth: 2, borderColor: palette.edge, borderRadius: 0, backgroundColor: palette.raised },
   cell: { flex: 1, paddingVertical: 8, paddingHorizontal: 12 },
-  cellMid: { borderLeftWidth: 1, borderRightWidth: 1, borderColor: tactile.courtLine },
-  cellLabel: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: tactile.paperInk },
-  cellValue: { fontFamily: fonts.display, fontSize: 30, color: tactile.paperInk, fontVariant: ['tabular-nums'] },
-  rule: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: tactile.paperInk, marginTop: 6 },
-  frame: { borderWidth: 1, borderColor: tactile.brassEdge, borderRadius: 0, overflow: 'hidden', backgroundColor: palette.ink },
+  cellMid: { borderLeftWidth: 1, borderRightWidth: 1, borderColor: palette.border },
+  cellLabel: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.foreground },
+  cellValue: { fontFamily: fonts.display, fontSize: 30, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  rule: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.foreground, marginTop: 6 },
+  frame: { borderWidth: 1, borderColor: palette.edge, borderRadius: 0, overflow: 'hidden', backgroundColor: palette.background },
   footer: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   youMark: { borderWidth: 2, borderRadius: 2, paddingHorizontal: 8, paddingVertical: 2 },
-  youText: { fontFamily: fonts.bodyBold, fontSize: 13, color: palette.paper },
-  tip: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: palette.paperDim, lineHeight: 19 },
-  scrim: { flex: 1, backgroundColor: palette.ink + 'E6', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  dialog: { width: '100%', maxWidth: 360, backgroundColor: palette.graphite, borderWidth: 2, borderColor: tactile.brassEdge, borderRadius: 0, padding: 20, gap: 12 },
-  dialogTitle: { fontFamily: fonts.display, fontSize: 28, color: palette.paper },
-  dialogBody: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22, color: palette.paperDim },
+  youText: { fontFamily: fonts.bodyBold, fontSize: 13, color: palette.foreground },
+  tip: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: palette.supporting, lineHeight: 19 },
+  scrim: { flex: 1, backgroundColor: palette.background + 'E6', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  dialog: { width: '100%', maxWidth: 360, backgroundColor: palette.surface, borderWidth: 2, borderColor: palette.edge, borderRadius: 0, padding: 20, gap: 12 },
+  dialogTitle: { fontFamily: fonts.display, fontSize: 28, color: palette.foreground },
+  dialogBody: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22, color: palette.supporting },
 });

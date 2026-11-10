@@ -1,0 +1,187 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+.palette-study,
+.palette-study * {
+  box-sizing: border-box;
+}
+
+.palette-study {
+  --main: #dce8e8;
+  --secondary: #264b62;
+  --accent: #e66f3c;
+  --main-ink: #183847;
+  --secondary-ink: #f3f0e7;
+  --accent-ink: #2e241e;
+  --muted-ink: #53666d;
+  width: 100%;
+  min-height: 680px;
+  padding: 22px;
+  color: var(--main-ink);
+  background: var(--main);
+  font-family: 'Source Sans 3', 'Trebuchet MS', sans-serif;
+}
+
+.palette-study__sheet {
+  width: 100%;
+  min-height: 636px;
+  padding: 22px 23px 18px;
+  border: 1px solid color-mix(in srgb, var(--main-ink) 20%, transparent);
+  display: flex;
+  flex-direction: column;
+  background: var(--main);
+}
+
+.palette-study__topline,
+.palette-study__meta,
+.palette-study__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.palette-study__topline {
+  padding-bottom: 13px;
+  border-bottom: 1px solid color-mix(in srgb, var(--main-ink) 20%, transparent);
+  color: var(--muted-ink);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+}
+
+.palette-study__index {
+  color: var(--main-ink);
+  font-family: 'Barlow Condensed', Impact, sans-serif;
+  font-size: 17px;
+  letter-spacing: .05em;
+}
+
+.palette-study__title {
+  margin: 17px 0 1px;
+  font-family: 'Barlow Condensed', Impact, sans-serif;
+  font-size: 39px;
+  font-weight: 700;
+  letter-spacing: -.015em;
+  line-height: .98;
+}
+
+.palette-study__subtitle {
+  margin: 7px 0 14px;
+  color: var(--muted-ink);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .015em;
+}
+
+.palette-study__court {
+  position: relative;
+  height: 214px;
+  overflow: hidden;
+  background: var(--secondary);
+  color: var(--secondary-ink);
+}
+
+.palette-study__court svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.palette-study__court-label {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  padding: 4px 7px 3px;
+  background: var(--main);
+  color: var(--main-ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.palette-study__ratio {
+  display: flex;
+  height: 13px;
+  margin-top: 14px;
+  overflow: hidden;
+}
+
+.palette-study__ratio-main {
+  width: 60%;
+  background: var(--main);
+  border: 1px solid color-mix(in srgb, var(--main-ink) 52%, transparent);
+}
+.palette-study__ratio-secondary { width: 30%; background: var(--secondary); }
+.palette-study__ratio-accent { width: 10%; background: var(--accent); }
+
+.palette-study__swatches {
+  display: grid;
+  grid-template-columns: 6fr 3fr 1fr;
+  gap: 11px;
+  padding-top: 8px;
+}
+
+.palette-study__swatch-name {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--muted-ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.palette-study__hex {
+  display: block;
+  color: var(--main-ink);
+  font-family: 'Source Sans 3', 'Trebuchet MS', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .035em;
+}
+
+.palette-study__accent-value {
+  text-align: right;
+}
+
+.palette-study__notes {
+  display: grid;
+  grid-template-columns: 1fr 1.08fr;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--main-ink) 20%, transparent);
+}
+
+.palette-study__note-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted-ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.palette-study__note-copy {
+  margin: 0;
+  color: var(--main-ink);
+  font-size: 11px;
+  line-height: 1.32;
+}
+
+.palette-study__footer {
+  margin-top: auto;
+  padding-top: 13px;
+  color: var(--muted-ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 420px) {
+  .palette-study { padding: 12px; }
+  .palette-study__sheet { padding: 18px 17px 15px; }
+}

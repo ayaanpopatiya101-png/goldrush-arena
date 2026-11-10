@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Glyph } from '@/components/ui/Glyph';
 import { Button } from '@/components/ui/Primitives';
-import { palette, tactile } from '@/constants/colors';
+import { palette } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { SavedAccountMeta } from '@/context/PlayerContext';
 import { findSavedPlayer } from '@/utils/onboarding';
@@ -28,7 +28,7 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
   async function del(name: string) {
     setDeleting(true); setDelError('');
     try { await onDelete(name); setConfirm(null); }
-    catch { setDelError(`${name} could not be deleted completely. Try again.`); }
+    catch { setDelError(`${name} could not be deleted completely. Connect to the internet to remove its server photo and online access, then retry.`); }
     finally { setDeleting(false); }
   }
   function openByName() {
@@ -45,7 +45,7 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
       <Heading kicker="This device" title="Saved players" body="Local saves, not online accounts. Pick up where you left off." />
 
       {!loaded ? (
-        <View style={[s.row, { height: 72, backgroundColor: palette.graphite2 }]} accessibilityLabel="Loading saved players" />
+        <View style={[s.row, { height: 72, backgroundColor: palette.raised }]} accessibilityLabel="Loading saved players" />
       ) : loadError ? (
         <View style={s.empty}>
           <Text style={k.error} accessibilityRole="alert">Saved players could not be read.</Text>
@@ -62,7 +62,7 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
             <View key={a.username} style={s.row}>
               {confirm === a.username ? (
                 <View style={s.confirm}>
-                  <Text style={s.confirmText}>Delete {a.username} and all of its progress from this device? This cannot be undone.</Text>
+                   <Text style={s.confirmText}>Delete {a.username}, its saved photo and all local progress? This cannot be undone. Online players need a connection to revoke their photo and online access safely.</Text>
                   {delError ? <Text style={k.error} accessibilityRole="alert">{delError}</Text> : null}
                   <View style={{ flexDirection: 'row', gap: 8 }}>
                     <View style={{ flex: 1 }}><Button testID={`entry-saved-keep-${a.username}`} label="Keep" variant="secondary" size="sm" onPress={() => { setConfirm(null); setDelError(''); }} /></View>
@@ -79,10 +79,10 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
                     accessibilityLabel={`Continue as ${a.username}, ${a.rank}`}
                     accessibilityState={{ disabled: !!busyName, busy: busyName === a.username }}
                     aria-disabled={!!busyName}
-                    style={({ pressed }) => [s.main, pressed && { backgroundColor: palette.graphite2 }]}
+                    style={({ pressed }) => [s.main, pressed && { backgroundColor: palette.raised }]}
                   >
                     <View style={[s.avatar, { borderColor: a.avatarColor }]}>
-                      <Glyph value={a.avatarEmoji} size={22} color={palette.paper} />
+                      <Glyph value={a.avatarEmoji} size={22} color={palette.foreground} />
                     </View>
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <Text style={s.name} numberOfLines={1}>{a.username}</Text>
@@ -97,7 +97,7 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
                     accessibilityRole="button"
                     accessibilityLabel={`Delete ${a.username} from this device`}
                   >
-                    <Feather name="trash-2" size={18} color={palette.clay} />
+                    <Feather name="trash-2" size={18} color={palette.supporting} />
                   </Pressable>
                 </>
               )}
@@ -134,14 +134,14 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
 }
 
 const s = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'stretch', borderWidth: 2, borderColor: tactile.brass, backgroundColor: palette.graphite, borderRadius: 2, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'stretch', borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.background, borderRadius: 0, overflow: 'hidden' },
   main: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, minHeight: 64 },
-  avatar: { width: 44, height: 44, borderWidth: 3, borderRadius: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.ink },
-  name: { fontFamily: fonts.display, fontSize: 22, color: palette.paper, textTransform: 'uppercase' },
-  cont: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.charcoal },
-  del: { width: 52, alignItems: 'center', justifyContent: 'center', borderLeftWidth: 2, borderLeftColor: tactile.brass },
+  avatar: { width: 44, height: 44, borderWidth: 3, borderRadius: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.background },
+  name: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
+  cont: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.foreground },
+  del: { width: 52, alignItems: 'center', justifyContent: 'center', borderLeftWidth: 2, borderLeftColor: palette.edge, backgroundColor: palette.surface },
   confirm: { flex: 1, padding: 12, gap: 10 },
-  confirmText: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.paper },
-  empty: { gap: 10, alignItems: 'flex-start', padding: 16, borderWidth: 2, borderColor: palette.line, borderStyle: 'dashed' },
-  input: { flex: 1, minHeight: 48, borderWidth: 2, borderColor: palette.lineStrong, borderRadius: 2, backgroundColor: palette.ink, color: palette.paper, fontFamily: fonts.body, fontSize: 17, paddingHorizontal: 12 },
+  confirmText: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.foreground },
+  empty: { gap: 10, alignItems: 'flex-start', padding: 16, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
+  input: { flex: 1, minHeight: 48, borderWidth: 2, borderColor: palette.edge, borderRadius: 0, backgroundColor: palette.background, color: palette.foreground, fontFamily: fonts.body, fontSize: 17, paddingHorizontal: 12 },
 });

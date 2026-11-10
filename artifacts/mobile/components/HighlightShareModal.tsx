@@ -1,3 +1,5 @@
+import { Text } from '@/components/ui/Text';
+import { palette } from '@/constants/colors';
 /**
  * HighlightShareModal
  *
@@ -19,7 +21,6 @@ import {
   Modal,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -211,7 +212,7 @@ export function HighlightShareModal({
           <View style={styles.previewArea}>
             {encoding && (
               <View style={styles.centred}>
-                <ActivityIndicator size="large" color="#EFBD3C" />
+                <ActivityIndicator size="large" color={palette.gold} />
                 <Text style={styles.hintText}>Encoding clip…</Text>
               </View>
             )}
@@ -238,7 +239,7 @@ export function HighlightShareModal({
                 key={i}
                 style={[
                   styles.capDot,
-                  { backgroundColor: i < (MAX_DAILY_REWARDS - remainingToday) ? tier.color : '#F5E7C418' },
+                  { backgroundColor: i < (MAX_DAILY_REWARDS - remainingToday) ? tier.color : palette.inset },
                 ]}
               />
             ))}
@@ -252,13 +253,13 @@ export function HighlightShareModal({
             <Pressable
               style={[
                 styles.shareBtn,
-                { backgroundColor: rewarded ? '#1E4A3F' : tier.color },
+                { backgroundColor: rewarded ? palette.inset : tier.color },
                 (!gifUri || encoding || sharing) && styles.shareBtnDisabled,
               ]}
               onPress={handleShare}
               disabled={!gifUri || encoding || sharing || capReached}
             >
-              <Text style={[styles.shareBtnText, { color: rewarded ? '#9BB77A' : '#213D39' }]}>
+              <Text style={[styles.shareBtnText, { color: rewarded ? palette.primary : palette.background }]}>
                 {sharing ? 'Opening share sheet…' : rewarded ? 'Shared & Rewarded' : capReached ? 'Share (cap reached)' : 'Share & Earn'}
               </Text>
             </Pressable>
@@ -283,15 +284,15 @@ export function HighlightShareModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: '#172E2AEE',
+    backgroundColor: palette.deepest + 'EE',
     justifyContent: 'flex-end',
   },
   card: {
-    backgroundColor: '#294942',
+    backgroundColor: palette.raised,
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderWidth: 3,
-    borderColor: '#CCAD6A',
+    borderColor: palette.border,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 44,
@@ -304,19 +305,19 @@ const styles = StyleSheet.create({
   typeLabel: {
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 14,
-    color: '#EFBD3C',
+    color: palette.gold,
     letterSpacing: 1.2,
   },
   scoreLabel: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#F5E7C444',
+    color: palette.supporting,
     letterSpacing: 0.8,
     marginTop: 2,
   },
   closeBtn: {
     fontSize: 18,
-    color: '#F5E7C455',
+    color: palette.supporting,
     paddingHorizontal: 4,
   },
   tierBadge: {
@@ -337,14 +338,14 @@ const styles = StyleSheet.create({
   tierSub: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#F5E7C455',
+    color: palette.supporting,
     marginTop: 2,
   },
   rewardBox: {
-    backgroundColor: '#294C44',
+    backgroundColor: palette.surface,
     borderRadius: 3,
     borderWidth: 1,
-    borderColor: '#9BB77A55',
+    borderColor: palette.primary + '55',
     padding: 14,
     alignItems: 'center',
     gap: 4,
@@ -352,27 +353,27 @@ const styles = StyleSheet.create({
   rewardTitle: {
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 15,
-    color: '#9BB77A',
+    color: palette.primary,
   },
   rewardLine: {
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 18,
-    color: '#F5E7C4',
+    color: palette.foreground,
   },
   rewardRemain: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#F5E7C455',
+    color: palette.supporting,
     marginTop: 2,
   },
   previewArea: {
     width: '100%',
     aspectRatio: 1,
     maxHeight: 240,
-    backgroundColor: '#213D39',
+    backgroundColor: palette.background,
     borderRadius: 3,
     borderWidth: 1,
-    borderColor: '#F5E7C40A',
+    borderColor: palette.border,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -382,7 +383,7 @@ const styles = StyleSheet.create({
   hintText: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 13,
-    color: '#F5E7C455',
+    color: palette.supporting,
   },
   gifPreview: { width: '100%', height: '100%' },
   capRow: {
@@ -393,12 +394,12 @@ const styles = StyleSheet.create({
   capDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: 2,
   },
   capText: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 11,
-    color: '#F5E7C433',
+    color: palette.supporting,
     marginLeft: 4,
   },
   actions: { gap: 8 },
@@ -416,19 +417,19 @@ const styles = StyleSheet.create({
   earnHint: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 12,
-    color: '#F5E7C444',
+    color: palette.supporting,
     textAlign: 'center',
   },
   cancelBtn: { alignItems: 'center', paddingVertical: 10 },
   cancelText: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 14,
-    color: '#F5E7C444',
+    color: palette.supporting,
   },
   caption: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 10,
-    color: '#F5E7C41A',
+    color: palette.supporting,
     textAlign: 'center',
     letterSpacing: 0.8,
   },

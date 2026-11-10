@@ -1,5 +1,6 @@
 // Flat text. Glow, pulse and glitch were removed by the visual rules; props kept for compatibility.
 import React from 'react';
+import { palette } from '@/constants/colors';
 import { Text, TextProps } from 'react-native';
 
 export interface GlowTextProps extends TextProps {
@@ -10,6 +11,6 @@ export interface GlowTextProps extends TextProps {
   glitch?: boolean;
 }
 
-export function GlowText({ color = '#252A2B', style, children, glowColor: _g, intensity: _i, pulse: _p, glitch: _gl, ...rest }: GlowTextProps) {
+export function GlowText({ color = palette.foreground, style, children, glowColor: _g, intensity: _i, pulse: _p, glitch: _gl, ...rest }: GlowTextProps) {
   return <Text {...rest} style={[{ color }, style]}>{children}</Text>;
 }

@@ -1,0 +1,200 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+.reference-palette,
+.reference-palette * {
+  box-sizing: border-box;
+}
+
+.reference-palette {
+  --main: #0b1020;
+  --secondary: #1d2c48;
+  --accent: #ffc83d;
+  --main-ink: #f5f2e9;
+  --secondary-ink: #f5f2e9;
+  --accent-ink: #161718;
+  --muted-ink: #bdc5d2;
+  --court-accent: #ffc83d;
+  --center-line: #bdc5d2;
+  width: 100%;
+  height: 680px;
+  padding: 14px;
+  color: var(--main-ink);
+  background: var(--main);
+  font-family: 'Source Sans 3', 'Trebuchet MS', sans-serif;
+}
+
+.reference-palette__sheet {
+  width: 100%;
+  height: 652px;
+  padding: 18px 20px 16px;
+  border: 1px solid color-mix(in srgb, var(--main-ink) 26%, transparent);
+  display: flex;
+  flex-direction: column;
+  background: var(--main);
+}
+
+.reference-palette__topline,
+.reference-palette__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.reference-palette__topline {
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--main-ink) 25%, transparent);
+  color: var(--muted-ink);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.reference-palette__index {
+  color: var(--main-ink);
+  font-family: 'Barlow Condensed', Impact, sans-serif;
+  font-size: 16px;
+  letter-spacing: .06em;
+}
+
+.reference-palette__title {
+  margin: 14px 0 0;
+  font-family: 'Barlow Condensed', Impact, sans-serif;
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  line-height: .98;
+}
+
+.reference-palette__subtitle {
+  margin: 5px 0 12px;
+  color: var(--muted-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.reference-palette__court {
+  position: relative;
+  height: 208px;
+  flex: 0 0 208px;
+  overflow: hidden;
+  background: var(--secondary);
+  color: var(--secondary-ink);
+}
+
+.reference-palette__court svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.reference-palette__court-label {
+  position: absolute;
+  left: 10px;
+  bottom: 9px;
+  padding: 4px 7px 3px;
+  background: var(--main);
+  color: var(--main-ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.reference-palette__ratio {
+  display: flex;
+  height: 13px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.reference-palette__ratio-main {
+  width: 60%;
+  background: var(--main);
+  border: 1px solid color-mix(in srgb, var(--main-ink) 58%, transparent);
+}
+.reference-palette__ratio-secondary { width: 30%; background: var(--secondary); }
+.reference-palette__ratio-accent { width: 10%; background: var(--accent); }
+
+.reference-palette__swatches {
+  display: grid;
+  grid-template-columns: 6fr 3fr 1fr;
+  gap: 10px;
+  padding-top: 7px;
+}
+
+.reference-palette__swatch-name {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--muted-ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.reference-palette__hex {
+  display: block;
+  color: var(--main-ink);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .025em;
+  white-space: nowrap;
+}
+
+.reference-palette__accent-value { text-align: right; }
+
+.reference-palette__notes {
+  display: grid;
+  grid-template-columns: 1fr 1.08fr;
+  gap: 14px;
+  margin-top: 13px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--main-ink) 25%, transparent);
+}
+
+.reference-palette__note-label {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--muted-ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.reference-palette__note-copy {
+  margin: 0;
+  color: var(--main-ink);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.reference-palette__cta {
+  align-self: flex-start;
+  margin-top: 12px;
+  padding: 8px 13px 7px;
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: 'Barlow Condensed', Impact, sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.reference-palette__footer {
+  margin-top: auto;
+  padding-top: 9px;
+  color: var(--muted-ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 420px) {
+  .reference-palette { padding: 10px; }
+  .reference-palette__sheet { padding: 16px 15px 14px; }
+}

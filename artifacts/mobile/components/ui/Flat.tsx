@@ -1,6 +1,7 @@
 // Flat replacements for gradient and blur surfaces. Legacy call sites keep
 // their structure while resolving into the current warm-stone materials.
 import React from 'react';
+import { palette } from '@/constants/colors';
 import { View, ViewProps } from 'react-native';
 
 function isOpaque(c: string | undefined): boolean {
@@ -22,11 +23,11 @@ type GradientProps = ViewProps & {
 /** Renders the first color as a flat fill when opaque; translucent veils render no fill. */
 export function LinearGradient({ colors, start: _s, end: _e, locations: _l, style, children, ...rest }: GradientProps) {
   const raw = colors[0];
-  const first = raw === '#213D39' || raw === '#14231F' ? '#EEE9DE'
-    : raw === '#294C44' || raw === '#2B4E46' ? '#E3DFD3'
-    : raw === '#EFBD3C' || raw === '#D7A83B' ? '#EDBA3C'
-    : raw === '#E56846' || raw === '#CE7863' ? '#F36B3F'
-    : raw === '#F5E7C4' || raw === '#EDE3CC' ? '#252A2B'
+  const first = raw === '#213D39' || raw === '#14231F' ? palette.background
+    : raw === '#294C44' || raw === '#2B4E46' ? palette.surface
+    : raw === '#EFBD3C' || raw === '#D7A83B' ? palette.gold
+    : raw === '#E56846' || raw === '#CE7863' ? palette.primary
+    : raw === '#F5E7C4' || raw === '#EDE3CC' ? palette.foreground
     : raw;
   const bg = isOpaque(first) ? first : undefined;
   if (!bg && !children) return null;
@@ -37,5 +38,5 @@ type BlurProps = ViewProps & { intensity?: number; tint?: string; children?: Rea
 
 /** Flat sandstone panel in place of a blur/glass surface. */
 export function BlurView({ intensity: _i, tint: _t, experimentalBlurMethod: _m, style, children, ...rest }: BlurProps) {
-  return <View {...rest} style={[style, { backgroundColor: '#E3DFD3' }]}>{children}</View>;
+  return <View {...rest} style={[style, { backgroundColor: palette.surface }]}>{children}</View>;
 }

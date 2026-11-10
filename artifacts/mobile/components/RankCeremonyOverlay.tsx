@@ -1,3 +1,6 @@
+import { idleAnimation } from "@/components/ui/idleAnimation";
+import { palette } from '@/constants/colors';
+import { Text } from '@/components/ui/Text';
 /**
  * RankCeremonyOverlay, full-screen cinematic rank promotion sequence.
  *
@@ -8,17 +11,7 @@
  */
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Animated, Dimensions, Easing, Modal, Platform, Pressable, StyleSheet, View,  } from 'react-native';
 import Reanimated, {
   useAnimatedStyle,
   useSharedValue,
@@ -104,7 +97,7 @@ function CeremonyParticle({ p, triggered, rankColor }: { p: ParticleData; trigge
         width: p.size,
         height: p.size,
         borderRadius: p.size / 2,
-        backgroundColor: p.id % 4 === 0 ? '#F5E7C4' : rankColor,
+        backgroundColor: p.id % 4 === 0 ? palette.foreground : rankColor,
         shadowColor: rankColor,
         shadowOpacity: 0,
         shadowRadius: 0,
@@ -267,7 +260,7 @@ export function RankCeremonyOverlay({ newRank, visible: requested, onDismiss }: 
       <Pressable style={{ flex: 1 }} onPress={handleSkip}>
         <Animated.View style={[s.overlay, { opacity: overlayOp }]}>
           {/* Dark bg */}
-          <LinearGradient colors={['#213D39', '#213D39', '#213D39']} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={[palette.background, palette.background, palette.background]} style={StyleSheet.absoluteFill} />
 
 
 
@@ -317,7 +310,7 @@ export function RankCeremonyOverlay({ newRank, visible: requested, onDismiss }: 
 const s = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: '#172E2AF2',
+    backgroundColor: palette.deepest + 'F2',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -342,7 +335,7 @@ const s = StyleSheet.create({
   star: {
     position: 'absolute',
     borderRadius: 3,
-    backgroundColor: '#F5E7C4',
+    backgroundColor: palette.foreground,
   },
   stage: {
     alignItems: 'center',
@@ -352,7 +345,7 @@ const s = StyleSheet.create({
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 11,
     letterSpacing: 5,
-    color: '#D1DAC6',
+    color: palette.supporting,
     marginBottom: 24,
     textTransform: 'uppercase',
   },
@@ -380,7 +373,7 @@ const s = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 60,
-    backgroundColor: '#F5E7C4',
+    backgroundColor: palette.foreground,
     opacity: 0.22,
     transform: [{ skewX: '-15deg' }],
   },
@@ -400,7 +393,7 @@ const s = StyleSheet.create({
   flavorText: {
     fontFamily: 'SourceSans3_400Regular',
     fontSize: 15,
-    color: '#D1DAC6',
+    color: palette.supporting,
     letterSpacing: 0.5,
     textAlign: 'center',
   },
@@ -413,6 +406,6 @@ const s = StyleSheet.create({
     fontFamily: 'SourceSans3_700Bold',
     fontSize: 16,
     letterSpacing: 3,
-    color: '#213D39',
+    color: palette.background,
   },
 });

@@ -5,6 +5,11 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { getGameConfig } from '@/store/gameSession';
 import { setCompletedMatch, type CompletedMatch } from '@/store/completedMatch';
 import { trackEvent } from '@/utils/analytics';
+import { rankIndexForName } from '@/utils/rankIndex';
+import { canClaimSeasonTier, seasonSkinForMilestone } from '@/utils/seasonRewards';
+import { getLiveResult } from '@workspace/api-client-react';
+import { arenaRequestOptions, retireArenaProfile } from '@/utils/arenaSession';
+import { clearAvatarState } from '@/hooks/useAvatar';
 
 // ─── Ranks & Skins ────────────────────────────────────────────────────────────
 // 20 ranks: Bronze/Silver/Gold/Diamond/Master (×3 each) + Champion (×5, top-100 leaderboard)
@@ -52,10 +57,9 @@ export const SKINS = [
 ];
 
 // ─── Rank helpers ─────────────────────────────────────────────────────────────
-/** Index of a rank name into RANKS. Unknown ranks (e.g. bot "Grandmaster") map to the top tier. */
+/** Resolve legacy names without letting unknown ranks unlock endgame content. */
 export function getRankIndex(rankName: string): number {
-  const i = RANKS.findIndex(r => r.name === rankName);
-  return i >= 0 ? i : RANKS.length - 1;
+  return rankIndexForName(rankName, RANKS.map(rank => rank.name));
 }
 export const MAX_RANK_INDEX = RANKS.length - 1;
 
@@ -819,6 +823,8 @@ export async function logoutAccount(): Promise<void> {
 }
 
 export async function deleteAccount(username: string): Promise<void> {
+  await retireArenaProfile(username);
+  clearAvatarState(username);
   const accounts = await getSavedAccounts();
   const filtered = accounts.filter(a => a.username !== username);
   await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(filtered));
@@ -918,6 +924,8 @@ export interface PlayerProfile {
 }
 
 export interface MatchResult {
+  /** Explicit server receipt, also used to recover a completed forfeited match. */
+  serverMatchId?: string;
   receipt?: CompletedMatch;
   transactionId?: string;
   id: string; won: boolean; xpEarned: number; coinsEarned: number;
@@ -1097,6 +1105,7 @@ export function PlayerProvider({ username, onLogout, children }: {
   profileRef.current = profile;
   const matchSaves = useRef(new Map<string, Promise<void>>());
   const matchQueue = useRef<Promise<void>>(Promise.resolve());
+  const seasonClaimQueue = useRef<Promise<void>>(Promise.resolve());
   const [isLoaded, setIsLoaded]           = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -1127,6 +1136,13 @@ export function PlayerProvider({ username, onLogout, children }: {
             avatarFrameColor: account.avatarColor ?? base.avatarFrameColor,
           };
         }
+      }
+      base.rank = getRankFromXP(base.xp);
+      // Repair previously claimed milestone skins without issuing currency again.
+      for (const index of base.seasonPassClaimed ?? []) {
+        const tier = SEASON_TIERS[index];
+        const skin = tier && base.totalGames >= tier.games ? seasonSkinForMilestone(tier.games) : null;
+        if (skin) base.ownedSkins = [...new Set([...base.ownedSkins, skin])];
       }
       // Daily streak logic on load
       const today = todayStr();
@@ -1185,6 +1201,11 @@ export function PlayerProvider({ username, onLogout, children }: {
   }, [profile, save]);
 
   const addMatchResult = useCallback(async (result: Omit<MatchResult, 'id'|'timestamp'> & { eventBonus?: { xp: number; coins: number; credits: number } }) => {
+    const onlineId = result.serverMatchId ?? getGameConfig().onlineMatchId;
+    if (onlineId) {
+      const verified = await getLiveResult(onlineId, await arenaRequestOptions(username));
+      result = { ...verified, transactionId: verified.matchId, eventBonus: { xp: 0, coins: 0, credits: 0 } };
+    }
     const id = result.transactionId ?? getGameConfig().matchId;
     if (!id) throw new Error('No match identity; reward was not applied.');
     const pending = matchSaves.current.get(id);
@@ -1196,10 +1217,12 @@ export function PlayerProvider({ username, onLogout, children }: {
     if (profile.rewardedMatchIds?.includes(id)) throw new Error('Match already awarded; receipt expired.');
     const matchType = result.matchType ?? 'casual';
     const opponentLevels = result.opponentLevels ?? [];
-    const levelDelta = calcTrueSkillDelta(result.position, profile.competitiveLevel, opponentLevels, matchType);
+    // Preserve the historical local level, but never present it as live competitive skill.
+    // New competitive skill is server-validated and shown separately in Ranks.
+    const levelDelta = 0;
     const newCompLevel = Math.max(1, Math.min(50, profile.competitiveLevel + levelDelta));
     // Apply featured mode multipliers (set when player opts in via Events tab)
-    const { featuredCoinMult: _fcm = 1, featuredXpMult: _fxm = 1 } = getGameConfig();
+    const { featuredCoinMult: _fcm = 1, featuredXpMult: _fxm = 1 } = onlineId ? {} : getGameConfig();
     const finalXpEarned    = _fxm !== 1 ? Math.round(result.xpEarned   * _fxm) : result.xpEarned;
     const finalCoinsEarned = _fcm !== 1 ? Math.round(result.coinsEarned * _fcm) : result.coinsEarned;
     const eventBonus = result.eventBonus ?? { xp: 0, coins: 0, credits: 0 };
@@ -1373,20 +1396,27 @@ export function PlayerProvider({ username, onLogout, children }: {
     return reward;
   }, [profile, save]);
 
-  const claimSeasonTier = useCallback(async (tierIdx: number): Promise<LuckyBlock | null> => {
+  const claimSeasonTier = useCallback((tierIdx: number): Promise<LuckyBlock | null> => {
+    const claim = seasonClaimQueue.current.then(async () => {
+    const profile = profileRef.current;
     if (profile.seasonPassClaimed.includes(tierIdx)) return null;
     const tier = SEASON_TIERS[tierIdx];
-    if (!tier) return null;
+    if (!tier || !canClaimSeasonTier(tierIdx, profile.totalGames, SEASON_TIERS.map(t => t.games), profile.seasonPassClaimed)) return null;
     let updated = { ...profile, seasonPassClaimed: [...profile.seasonPassClaimed, tierIdx] };
     let earnedBlock: LuckyBlock | null = null;
     if (tier.coinReward > 0) updated = { ...updated, coins: updated.coins + tier.coinReward };
+    const skin = seasonSkinForMilestone(tier.games);
+    if (skin) updated = { ...updated, ownedSkins: [...new Set([...updated.ownedSkins, skin])] };
     if (tier.luckyBlockTier) {
       earnedBlock = { id: Date.now().toString(36) + 'sp', tier: tier.luckyBlockTier, source: 'season_pass' };
       updated = { ...updated, luckyBlocks: [...(updated.luckyBlocks ?? []), earnedBlock] };
     }
     await save(updated);
     return earnedBlock;
-  }, [profile, save]);
+    });
+    seasonClaimQueue.current = claim.then(() => undefined, () => undefined);
+    return claim;
+  }, [save]);
 
   const logout = useCallback(async () => {
     await logoutAccount();

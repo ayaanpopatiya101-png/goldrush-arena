@@ -46,7 +46,7 @@ export function SupportHelp({ onOpenShop }: { onOpenShop: () => void }) {
 }
 
 const s = StyleSheet.create({
-  root: { padding: 16, gap: 14, backgroundColor: palette.ink },
-  body: { fontFamily: fonts.body, fontSize: textScale.body, lineHeight: 23, color: palette.paperDim },
-  error: { fontFamily: fonts.bodySemiBold, fontSize: textScale.control, lineHeight: 21, color: palette.clay },
+  root: { padding: 16, gap: 14, backgroundColor: palette.background },
+  body: { fontFamily: fonts.body, fontSize: textScale.body, lineHeight: 23, color: palette.supporting },
+  error: { fontFamily: fonts.bodySemiBold, fontSize: textScale.control, lineHeight: 21, color: palette.supporting },
 });

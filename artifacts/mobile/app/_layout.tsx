@@ -2,6 +2,8 @@ import { useFonts, BarlowCondensed_600SemiBold, BarlowCondensed_700Bold } from '
 import { SourceSans3_400Regular, SourceSans3_500Medium, SourceSans3_600SemiBold, SourceSans3_700Bold } from '@expo-google-fonts/source-sans-3';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { palette } from '@/constants/colors';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState } from 'react';
 import { StartupState } from '@/components/StartupState';
@@ -39,7 +41,9 @@ function PlayerEntry() {
 
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+    <>
+    <StatusBar style="light" backgroundColor={palette.background} />
+    <Stack screenOptions={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: palette.background } }}>
       <Stack.Screen name="(tabs)"    options={{ headerShown: false }} />
       <Stack.Screen name="lobby"     options={{ headerShown: false, animation: 'slide_from_right' }} />
       <Stack.Screen name="game"      options={{ headerShown: false, animation: 'fade' }} />
@@ -50,7 +54,10 @@ function RootLayoutNav() {
       <Stack.Screen name="legal"          options={{ headerShown: false, animation: 'slide_from_right' }} />
       <Stack.Screen name="onboarding-flow" options={{ headerShown: false, animation: 'fade', presentation: 'fullScreenModal' }} />
       <Stack.Screen name="challenge"       options={{ headerShown: false, animation: 'fade' }} />
+      <Stack.Screen name="warmup"          options={{ headerShown: false, animation: 'fade' }} />
+      <Stack.Screen name="paddle-studio" options={{headerShown:false,animation:'slide_from_right'}} />
     </Stack>
+    </>
   );
 }
 
@@ -84,7 +91,7 @@ export default function RootLayout() {
         const accounts = await getSavedAccounts();
         if (!active) return;
         const acct     = accounts.find(a => a.username === username);
-        setAuthUser({ username, emoji: acct?.avatarEmoji ?? '🎮', color: acct?.avatarColor ?? '#FFD700' });
+        setAuthUser({ username, emoji: acct?.avatarEmoji ?? '🎮', color: acct?.avatarColor ?? '#D0AF66' });
         setAuthState('in');
       } else {
         if (active) setAuthState('out');

@@ -1,8 +1,9 @@
 import * as Haptics from '@/utils/haptics';
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -77,7 +78,7 @@ export default function GauntletScreen() {
     return (
       <View style={[s.root, { alignItems: 'center', justifyContent: 'center', padding: 24 }]}>
         <View style={[s.column, { gap: 16 }]}>
-          <Text accessibilityRole="header" style={[s.title, { color: palette.paper }]}>No completed Gauntlet round</Text>
+          <Text accessibilityRole="header" style={[s.title, { color: palette.foreground }]}>No completed Gauntlet round</Text>
           <Text style={s.body}>This link has no saved round to display. Gauntlet runs live in memory, so a refresh clears them. Return to Play to begin a new run. No rewards were created.</Text>
           <Pressable accessibilityRole="button" onPress={handleGoHome} style={s.primaryBtn}>
             <Text style={s.primaryText}>Return to Play</Text>
@@ -104,7 +105,7 @@ export default function GauntletScreen() {
           {/* ── Round result ── */}
           <Animated.View style={[s.card, { transform: [{ scale: bannerScale }] }, roundWon && { borderColor: palette.ochre }]}>
             <ScreenTitle title="Gauntlet" kicker={`Round ${completedRound}`} />
-            <Text accessibilityRole="header" style={[s.title, { color: roundWon ? palette.charcoal : palette.paper }]}>
+            <Text accessibilityRole="header" style={[s.title, { color: roundWon ? palette.gold : palette.foreground }]}>
               {gauntletOver ? (gauntletWon ? 'Gauntlet won' : 'Gauntlet over') : roundWon ? 'Round won' : 'Round lost'}
             </Text>
             <Text style={s.body}>
@@ -129,15 +130,15 @@ export default function GauntletScreen() {
           ) : (
             <View style={{ gap: 8 }}>
               <View style={s.nextRow}>
-                <Feather name={VARIANT_ICON[nextVariant] ?? 'circle'} size={22} color={tactile.paperInk} />
+                <Feather name={VARIANT_ICON[nextVariant] ?? 'circle'} size={22} color={palette.foreground} />
                 <View style={{ flex: 1 }}>
                   <Text style={s.nextLabel}>Next: round {state.roundNumber}</Text>
                   <Text style={s.nextName}>{nextMeta.name}</Text>
-                  <Text style={[s.body, { color: tactile.paperMuted }]}>{nextMeta.sub}</Text>
+                  <Text style={[s.body, { color: palette.supporting }]}>{nextMeta.sub}</Text>
                 </View>
               </View>
               <Pressable onPress={handleStartNextRound} accessibilityRole="button" style={({ pressed }) => [s.primaryBtn, pressed && { opacity: 0.85 }]}>
-                <Feather name="play" size={18} color={palette.ochreInk} />
+                <Feather name="play" size={18} color={palette.onAccent} />
                 <Text style={s.primaryText}>Start round {state.roundNumber}</Text>
               </Pressable>
               <Pressable onPress={handleGoHome} accessibilityRole="button" style={({ pressed }) => [s.secondaryBtn, pressed && { opacity: 0.8 }]}>
@@ -169,7 +170,7 @@ export default function GauntletScreen() {
               <View style={s.stat}><Text style={s.statVal}>{state.totalXP}</Text><Text style={s.statLbl}>Account XP</Text></View>
               <View style={s.stat}><Text style={s.statVal}>{state.totalCoins}</Text><Text style={s.statLbl}>Coins</Text></View>
             </View>
-            {gauntletWon && <Text style={[s.body, { color: palette.charcoal }]}>Champion bonus included: +1500 account XP and +300 coins.</Text>}
+            {gauntletWon && <Text style={[s.body, { color: palette.foreground }]}>Champion bonus included: +1500 account XP and +300 coins.</Text>}
           </View>
         </View>
       </ScrollView>
@@ -184,27 +185,27 @@ const VARIANT_ICON: Record<string, React.ComponentProps<typeof Feather>['name']>
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.ink },
+  root: { flex: 1, backgroundColor: palette.background },
   column: { width: '100%', maxWidth: 640, gap: 12 },
-  card: { borderWidth: 2, borderColor: palette.lineStrong, backgroundColor: palette.graphite, borderRadius: 0, padding: 16, gap: 8 },
+  card: { borderWidth: 2, borderColor: palette.border, backgroundColor: palette.surface, borderRadius: 0, padding: 16, gap: 8 },
   kicker: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted, letterSpacing: 0.5 },
   title: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 40, lineHeight: 44 },
-  body: { fontFamily: 'SourceSans3_400Regular', fontSize: 15, lineHeight: 21, color: palette.paperDim },
+  body: { fontFamily: 'SourceSans3_400Regular', fontSize: 15, lineHeight: 21, color: palette.supporting },
   note: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, lineHeight: 18, color: palette.muted },
-  statsRow: { flexDirection: 'row', gap: 16, borderWidth: 2, borderColor: tactile.brassEdge, backgroundColor: tactile.brass, padding: 12 },
+  statsRow: { flexDirection: 'row', gap: 16, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.raised, padding: 12 },
   stat: { flex: 1 },
-  statVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: tactile.paperInk },
-  statLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: tactile.paperMuted },
-  nextRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', borderWidth: 2, borderColor: tactile.brassEdge, borderRadius: 0, padding: 14, backgroundColor: tactile.paperPanel },
-  nextLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: tactile.paperMuted },
-  nextName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: tactile.paperInk },
+  statVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: palette.foreground },
+  statLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.supporting },
+  nextRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', borderWidth: 2, borderColor: palette.edge, borderRadius: 0, padding: 14, backgroundColor: palette.surface },
+  nextLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.supporting },
+  nextName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.foreground },
   primaryBtn: { flexDirection: 'row', gap: 8, minHeight: 52, alignItems: 'center', justifyContent: 'center', borderRadius: 3, backgroundColor: palette.ochre },
-  primaryText: { fontFamily: 'SourceSans3_700Bold', fontSize: 17, color: palette.ochreInk },
-  secondaryBtn: { minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 3, borderWidth: 1, borderColor: palette.line },
-  secondaryText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.paper },
-  playerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 10, borderWidth: 1, borderColor: palette.line, borderRadius: 3 },
+  primaryText: { fontFamily: 'SourceSans3_700Bold', fontSize: 17, color: palette.onAccent },
+  secondaryBtn: { minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 3, borderWidth: 1, borderColor: palette.border },
+  secondaryText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.foreground },
+  playerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 10, borderWidth: 1, borderColor: palette.border, borderRadius: 3 },
   playerRowYou: { borderColor: palette.ochre },
-  playerName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.paper },
+  playerName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.foreground },
   playerTag: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.muted },
-  winCount: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: palette.paper, minWidth: 34, textAlign: 'right' },
+  winCount: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: palette.foreground, minWidth: 34, textAlign: 'right' },
 });

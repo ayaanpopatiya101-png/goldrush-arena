@@ -10,7 +10,9 @@
     "build": "node scripts/build.js",
     "serve": "node server/serve.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test:reliability": "node --test scripts/reliability.test.mjs scripts/lobby-recovery.test.mjs scripts/theme-contrast.test.mjs scripts/completed-match.test.mjs scripts/player-experience.test.mjs scripts/support-contact.test.mjs scripts/onboarding.test.mjs"
+    "test:reliability": "node --test scripts/reliability.test.mjs scripts/lobby-recovery.test.mjs scripts/theme-contrast.test.mjs scripts/completed-match.test.mjs scripts/player-experience.test.mjs scripts/support-contact.test.mjs scripts/onboarding.test.mjs scripts/comfort.test.mjs",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "devDependencies": {
     "@babel/core": "^7.29.13",
@@ -63,8 +65,13 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
+    "@workspace/goldrush-catalog": "workspace:*",
+    "expo-audio": "~1.1.1",
     "expo-av": "^16.0.8",
+    "expo-crypto": "~15.0.9",
     "expo-file-system": "^19.0.24",
+    "expo-image-manipulator": "~14.0.8",
+    "expo-secure-store": "~15.0.8",
     "expo-sharing": "^14.0.8",
     "expo-store-review": "^9.0.9",
     "jpeg-js": "^0.4.4",

@@ -1,10 +1,16 @@
+import { Text } from '@/components/ui/Text';
 import { Feather } from '@expo/vector-icons';
 import { getCompletedMatch, updateCompletedMatch } from '@/store/completedMatch';
 import { startRematch } from '@/store/gameSession';
+import { useAutomaticRematch } from '@/hooks/useAutomaticRematch';
+import { useHasBlockingOverlay } from '@/context/OverlayQueue';
+import { useParty } from '@/context/PartyContext';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { cancelAutomaticRematch } from '@/store/rematch';
 import * as Haptics from '@/utils/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import Reanimated, { FadeIn, FadeOutDown, ZoomIn, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RankBadge } from '@/components/RankBadge';
@@ -26,11 +32,12 @@ import { Glyph } from '@/components/ui/Glyph';
 const EMOTES = ['🔥', '👏', '😤', '💀', '🤝', '👑'] as const;
 
 function EmoteButton({ emoji, selected, onPress }: { emoji: string; selected: boolean; onPress: () => void }) {
+  const reducedMotion = useReducedMotion();
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   function handlePress() {
-    scale.value = withSpring(1.45, { damping: 5, stiffness: 320 }, () => {
+    if (!reducedMotion) scale.value = withSpring(1.45, { damping: 5, stiffness: 320 }, () => {
       scale.value = withSpring(1, { damping: 8, stiffness: 200 });
     });
     onPress();
@@ -52,17 +59,17 @@ function EmoteButton({ emoji, selected, onPress }: { emoji: string; selected: bo
 }
 
 export default function PostGameScreen() {
-  const rawParams = useLocalSearchParams();
   const { currentUsername } = usePlayer();
   const receipt = getCompletedMatch();
-  if ((!rawParams.won && !rawParams.xpEarned) || !receipt || receipt.username !== currentUsername) {
+  // A saved, profile-owned receipt is the authority, not optional URL display parameters.
+  if (!receipt || receipt.username !== currentUsername) {
     return (
-      <View style={{ flex: 1, backgroundColor: palette.ink, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <View style={{ flex: 1, backgroundColor: palette.background, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <View style={{ width: '100%', maxWidth: 520, gap: 16 }}>
-          <Text accessibilityRole="header" style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 30, color: palette.paper }}>No results to show</Text>
-          <Text accessibilityRole="alert" style={{ fontFamily: 'SourceSans3_400Regular', color: palette.paperDim, fontSize: 16, lineHeight: 24 }}>Results only appear right after a saved match. Refreshing or opening this page directly clears them. Your saved progress is on Profile.</Text>
+          <Text accessibilityRole="header" style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 30, color: palette.foreground }}>No results to show</Text>
+          <Text accessibilityRole="alert" style={{ fontFamily: 'SourceSans3_400Regular', color: palette.supporting, fontSize: 16, lineHeight: 24 }}>Results only appear right after a saved match. Refreshing or opening this page directly clears them. Your saved progress is on Profile.</Text>
           <Pressable accessibilityRole="button" onPress={() => router.replace('/')} style={{ minHeight: 48, justifyContent: 'center', alignItems: 'center', borderRadius: 3, backgroundColor: palette.ochre }}>
-            <Text style={{ fontFamily: 'SourceSans3_700Bold', color: palette.ochreInk, fontSize: 17 }}>Return to Play</Text>
+            <Text style={{ fontFamily: 'SourceSans3_700Bold', color: palette.onAccent, fontSize: 17 }}>Return to Play</Text>
           </Pressable>
         </View>
       </View>
@@ -73,7 +80,10 @@ export default function PostGameScreen() {
 
 function PostGameContent() {
   const insets = useSafeAreaInsets();
-  const { settings } = useSettings();
+  const { settings, loaded, updateSetting } = useSettings();
+  const { isInParty } = useParty();
+  const blockingOverlay = useHasBlockingOverlay();
+  const reducedMotion = useReducedMotion();
   const sfx = useSoundFX(settings.soundEnabled);
   const startingRematchRef = useRef(false);
 
@@ -129,7 +139,7 @@ function PostGameContent() {
   const evCredits = parseInt(params.evCredits ?? '0', 10);
   const evName    = params.evName ?? '';
   const evEmoji   = params.evEmoji ?? '';
-  const evColor   = params.evColor ?? '#EFBD3C';
+  const evColor   = params.evColor ?? palette.gold;
   const hasEvent  = evXP > 0 || evCoins > 0 || evCredits > 0;
 
   // Qualifier params
@@ -146,7 +156,7 @@ function PostGameContent() {
   ];
   const qEventName  = params.qEventName  ?? '';
   const qEventEmoji = params.qEventEmoji ?? '';
-  const qEventColor = params.qEventColor ?? '#EFBD3C';
+  const qEventColor = params.qEventColor ?? palette.gold;
   const isQualifier  = qPeriodKey.length > 0 && qRoundIdx >= 0;
   const qpEarnedThisMatch = isQualifier ? (qpPerPlace[Math.min(Math.max(position - 1, 0), 3)] ?? 0) : 0;
 
@@ -195,10 +205,14 @@ function PostGameContent() {
 
   // Ceremony overlay, initialized after `promoted` is computed
   const [showCeremony, setShowCeremony] = useState(promoted && !completed?.ceremonySeen);
+  const rematchBlocked = blockingOverlay || showCeremony || showShareCard || !!activeLuckyBlock ||
+    isInParty || isQualifier || isChallengeRun;
+  const automatic = useAutomaticRematch(loaded && settings.autoRematch, rematchBlocked, handlePlayAgain);
 
   const topPad = insets.top;
 
   async function handleShare() {
+    automatic.cancel();
     const posLabel = (['', '1st', '2nd', '3rd', '4th'])[position] ?? '4th';
     const msg = won
       ? `VICTORY! I won a match in GoldRush Arena with ${deflections} deflections and earned +${xpEarned} XP. Think you can beat me?`
@@ -207,13 +221,17 @@ function PostGameContent() {
   }
 
   useEffect(() => {
-    Animated.parallel([
+    if (reducedMotion) {
+      [fadeAnim, scaleAnim, card1Anim, card2Anim, card3Anim].forEach(anim => anim.setValue(1));
+    } else {
+      Animated.parallel([
       Animated.spring(scaleAnim, { toValue: 1, friction: 5, tension: 60, useNativeDriver: true }),
       Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
     ]).start();
     [card1Anim, card2Anim, card3Anim].forEach((anim, i) => {
       Animated.timing(anim, { toValue: 1, duration: 380, delay: 350 + i * 150, useNativeDriver: true }).start();
     });
+    }
 
     if (Platform.OS !== 'web') {
       if (won) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -230,7 +248,7 @@ function PostGameContent() {
       const prevProgress = rankInfo.progress;
       Animated.timing(xpBarAnim, { toValue: prevProgress, duration: 0, useNativeDriver: false }).start(() => {
         const newProgress = xpForNextRank(newXP).progress;
-        Animated.timing(xpBarAnim, { toValue: newProgress, duration: 1200, useNativeDriver: false }).start();
+        Animated.timing(xpBarAnim, { toValue: newProgress, duration: reducedMotion ? 0 : 1200, useNativeDriver: false }).start();
       });
     }, 600);
 
@@ -298,7 +316,7 @@ function PostGameContent() {
       ];
 
   return (
-    <Reanimated.View entering={FadeIn.duration(250)} exiting={FadeOutDown.duration(200)} style={[styles.root, { backgroundColor: palette.ink }]}>
+    <Reanimated.View entering={reducedMotion ? undefined : FadeIn.duration(250)} exiting={reducedMotion ? undefined : FadeOutDown.duration(200)} style={[styles.root, { backgroundColor: palette.background }]}>
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -306,10 +324,26 @@ function PostGameContent() {
         >
         <View style={styles.column}>
         <ScreenTitle title="Match receipt" kicker="GoldRush Arena" />
+        <View style={styles.card}>
+          <Text accessibilityLiveRegion="polite" style={styles.cardTitle}>
+            {automatic.remaining !== null ? `Next match in ${automatic.remaining}s` :
+              isInParty ? 'Party rematches need a new leader launch' : 'Automatic next match stopped'}
+          </Text>
+          <Text style={styles.progSub}>No bank lives or money will be spent automatically.</Text>
+          {automatic.remaining !== null && <Pressable accessibilityRole="button" onPress={automatic.cancel} style={styles.secondaryBtn}>
+            <Text style={styles.secondaryText}>Cancel next match</Text>
+          </Pressable>}
+          <Pressable accessibilityRole="button" onPress={() => {
+            cancelAutomaticRematch();
+            void updateSetting('autoRematch', !settings.autoRematch);
+          }} style={styles.linkBtn}>
+            <Text style={styles.linkText}>{settings.autoRematch ? 'Turn off automatic matches' : 'Enable for future matches'}</Text>
+          </Pressable>
+        </View>
         {/* ── Result header: outcome, stats, next actions (above the fold) ── */}
         <Animated.View style={[styles.resultCard, { transform: [{ scale: scaleAnim }] }, won && !isArcade && { borderColor: palette.ochre }]}>
-          <Text style={[styles.kicker, { color: tactile.paperMuted }]}>{modeLabel}</Text>
-          <Text accessibilityRole="header" style={[styles.resultText, { color: tactile.paperInk }]}>{outcome}</Text>
+          <Text style={[styles.kicker, { color: palette.supporting }]}>{modeLabel}</Text>
+          <Text accessibilityRole="header" style={[styles.resultText, { color: palette.foreground }]}>{outcome}</Text>
           {newBest && <Text style={styles.resultSub}>New personal best</Text>}
           {isArcade && !newBest && arcadeBest > 0 && <Text style={styles.resultSub}>{arcadeBest - deflections} more hits to beat your best</Text>}
           <View style={styles.statsGrid}>
@@ -328,23 +362,23 @@ function PostGameContent() {
             accessibilityRole="button"
             style={({ pressed }) => [styles.playAgainBtn, pressed && { opacity: 0.85 }]}
           >
-            <Feather name="refresh-cw" size={18} color={palette.ochreInk} />
+            <Feather name="refresh-cw" size={18} color={palette.onAccent} />
             <Text style={styles.playAgainText}>{isArcade ? 'Retry arcade' : 'Play again'}</Text>
           </Pressable>
           <View style={styles.buttons}>
             <Pressable onPress={() => router.replace('/')} accessibilityRole="button" style={({ pressed }) => [styles.secondaryBtn, pressed && { opacity: 0.8 }]}>
-              <Feather name="home" size={16} color={palette.paper} />
+              <Feather name="home" size={16} color={palette.foreground} />
               <Text style={styles.secondaryText}>Home</Text>
             </Pressable>
             {!isArcade && (
               <Pressable onPress={handleShare} accessibilityRole="button" accessibilityLabel="Share result text" style={({ pressed }) => [styles.secondaryBtn, pressed && { opacity: 0.8 }]}>
-                <Feather name="share-2" size={16} color={palette.paper} />
+                <Feather name="share-2" size={16} color={palette.foreground} />
                 <Text style={styles.secondaryText}>Share text</Text>
               </Pressable>
             )}
             {!isArcade && isChallengeRun && (
               <Pressable onPress={() => setShowShareCard(true)} accessibilityRole="button" style={({ pressed }) => [styles.secondaryBtn, pressed && { opacity: 0.8 }]}>
-                <Feather name="target" size={16} color={palette.paper} />
+                <Feather name="target" size={16} color={palette.foreground} />
                 <Text style={styles.secondaryText}>Challenge card</Text>
               </Pressable>
             )}
@@ -356,7 +390,7 @@ function PostGameContent() {
                 <Text style={styles.clipTitle}>Match highlights</Text>
                 <Text style={styles.clipSub}>{momentCount} moment{momentCount > 1 ? 's' : ''} from this match · kept until you leave or play again</Text>
               </View>
-              <Feather name="chevron-right" size={18} color={palette.paper} />
+              <Feather name="chevron-right" size={18} color={palette.foreground} />
             </Pressable>
           ) : highlightClip ? (
             <Pressable onPress={() => router.push('/clip-viewer')} accessibilityRole="button" style={({ pressed }) => [styles.clipRow, pressed && { opacity: 0.85 }]}>
@@ -365,7 +399,7 @@ function PostGameContent() {
                 <Text style={styles.clipTitle}>Your captured clip</Text>
                 <Text style={styles.clipSub}>Trim, caption and save it to this device</Text>
               </View>
-              <Feather name="chevron-right" size={18} color={palette.paper} />
+              <Feather name="chevron-right" size={18} color={palette.foreground} />
             </Pressable>
           ) : null}
         </Animated.View>
@@ -389,24 +423,22 @@ function PostGameContent() {
                 Account level {xpToLevel(previousXP)} to {xpToLevel(newXP)} · {newXP} XP total · XP rank {promoted ? `${previousRank.name} to ${newRank.name}` : newRank.name}. Casual and ranked matches both earn account XP, which also moves your XP rank.
               </Text>
               {promoted && (
-                <Reanimated.View entering={ZoomIn.duration(300).delay(600)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Reanimated.View entering={reducedMotion ? undefined : ZoomIn.duration(300).delay(600)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <RankBadge rank={newRank.name} size="sm" showLabel={false} />
-                  <Text style={[styles.progName, { color: palette.charcoal }]}>Promoted to {newRank.name}</Text>
+                  <Text style={[styles.progName, { color: palette.foreground }]}>Promoted to {newRank.name}</Text>
                 </Reanimated.View>
               )}
             </View>
 
             <View style={styles.progRow}>
               <View style={styles.progHead}>
-                <Text style={styles.progName}>Competitive level</Text>
-                <Text style={[styles.progVal, levelDelta > 0 && { color: palette.charcoal }, levelDelta < 0 && { color: palette.slate }]}>
+                <Text style={styles.progName}>Historical level</Text>
+                <Text style={[styles.progVal, levelDelta > 0 && { color: palette.foreground }, levelDelta < 0 && { color: palette.supporting }]}>
                   {matchType === 'ranked' ? `${levelBefore} to ${levelAfter} / 50` : `${levelBefore} / 50`}
                 </Text>
               </View>
               <Text style={styles.progSub}>
-                {matchType === 'ranked'
-                  ? (levelDelta === 0 ? 'No change this match. Only ranked placement against your lobby moves it.' : `${levelDelta > 0 ? '+' : ''}${levelDelta} from your ranked placement against this lobby.`)
-                  : 'Unchanged. Only ranked matches move competitive level.'}
+                Preserved from the earlier progression system. Live competitive skill, placements and season changes are shown in Ranks.
               </Text>
             </View>
 
@@ -503,7 +535,7 @@ function PostGameContent() {
                 <Text style={styles.cardTitle}>{winStreak}-win streak reward</Text>
                 <Text style={styles.progName}>{meta.name} · tap to open</Text>
               </View>
-              <Feather name="chevron-right" size={18} color={palette.paper} />
+              <Feather name="chevron-right" size={18} color={palette.foreground} />
             </Pressable>
           );
         })()}
@@ -566,36 +598,36 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { paddingHorizontal: 18, alignItems: 'center' },
   column: { width: '100%', maxWidth: 720, gap: 12 },
-  resultCard: { borderWidth: 2, borderColor: tactile.brassEdge, backgroundColor: tactile.paperPanel, borderRadius: 0, padding: 16, gap: 4 },
+  resultCard: { borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, borderRadius: 0, padding: 16, gap: 4 },
   kicker: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted, letterSpacing: 1 },
   resultText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 44, lineHeight: 48 },
-  resultSub: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 15, color: tactile.paperMuted },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10, borderTopWidth: 1, borderTopColor: palette.line, paddingTop: 10, rowGap: 8 },
+  resultSub: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 15, color: palette.supporting },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10, borderTopWidth: 1, borderTopColor: palette.border, paddingTop: 10, rowGap: 8 },
   statItem: { minWidth: 96, flexGrow: 1, flexBasis: '18%' },
-  statValue: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: tactile.paperInk },
-  statLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: tactile.paperMuted },
+  statValue: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: palette.foreground },
+  statLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.supporting },
   playAgainBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 52, borderRadius: 3, backgroundColor: palette.ochre },
-  playAgainText: { color: palette.ochreInk, fontFamily: 'SourceSans3_700Bold', fontSize: 17 },
+  playAgainText: { color: palette.onAccent, fontFamily: 'SourceSans3_700Bold', fontSize: 17 },
   buttons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  secondaryBtn: { flexGrow: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 46, borderRadius: 3, borderWidth: 1, borderColor: palette.line, paddingHorizontal: 12 },
-  secondaryText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.paper },
-  clipRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingHorizontal: 14, borderRadius: 3, borderWidth: 1, borderColor: palette.line, backgroundColor: palette.graphite },
-  clipTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.paper },
-  clipSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: palette.paperDim },
-  card: { borderRadius: 0, borderWidth: 2, borderColor: palette.lineStrong, backgroundColor: palette.graphite, padding: 14, gap: 8 },
+  secondaryBtn: { flexGrow: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 46, borderRadius: 3, borderWidth: 1, borderColor: palette.border, paddingHorizontal: 12 },
+  secondaryText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.foreground },
+  clipRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingHorizontal: 14, borderRadius: 3, borderWidth: 1, borderColor: palette.border, backgroundColor: palette.surface },
+  clipTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.foreground },
+  clipSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: palette.supporting },
+  card: { borderRadius: 0, borderWidth: 2, borderColor: palette.border, backgroundColor: palette.surface, padding: 14, gap: 8 },
   rowCard: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   cardTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.muted, letterSpacing: 0.5 },
-  progRow: { gap: 6, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: palette.line },
+  progRow: { gap: 6, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: palette.border },
   progHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 },
-  progName: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.paper },
-  progVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: palette.charcoal },
-  progSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.paperDim },
-  xpTrack: { height: 8, borderRadius: 2, overflow: 'hidden', backgroundColor: palette.ink },
+  progName: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.foreground },
+  progVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: palette.foreground },
+  progSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.supporting },
+  xpTrack: { height: 8, borderRadius: 2, overflow: 'hidden', backgroundColor: palette.background },
   xpFill: { height: '100%', backgroundColor: palette.ochre },
   linkBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, alignSelf: 'flex-start' },
-  linkText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.charcoal },
+  linkText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.foreground },
   bonusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 28 },
-  bonusLabel: { flex: 1, fontFamily: 'SourceSans3_400Regular', fontSize: 15, color: palette.paper },
-  bonusMult: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.paper },
-  streakText: { textAlign: 'center', fontFamily: 'SourceSans3_600SemiBold', fontSize: 14, color: palette.paperDim },
+  bonusLabel: { flex: 1, fontFamily: 'SourceSans3_400Regular', fontSize: 15, color: palette.foreground },
+  bonusMult: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.foreground },
+  streakText: { textAlign: 'center', fontFamily: 'SourceSans3_600SemiBold', fontSize: 14, color: palette.supporting },
 });

@@ -1,10 +1,10 @@
 import * as Haptics from '@/utils/haptics';
+import { palette } from '@/constants/colors';
+import { Text, AnimatedText } from '@/components/ui/Text';
 import { useBlockingOverlay } from '@/context/OverlayQueue';
 import { LinearGradient } from '@/components/ui/Flat';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Animated, Modal, Platform, Pressable, StyleSheet, Text, View,
-} from 'react-native';
+import { Animated, Modal, Platform, Pressable, StyleSheet, View,  } from 'react-native';
 import {
   GOLD_STRIKE_NAME, LUCKY_BLOCK_META, LuckyBlock, LuckyBlockReward, LuckyBlockTier,
   generateLuckyBlockReward, rollLuckyBlockUpgrade, usePlayer,
@@ -195,7 +195,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
   return (
     <Modal visible={visible} animationType="none" transparent presentationStyle="overFullScreen">
       <Animated.View style={[s.overlay, { opacity: overlayOp }]}>
-        <LinearGradient colors={['#213D39', '#213D39']} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={[palette.background, palette.background]} style={StyleSheet.absoluteFill} />
 
 
 
@@ -209,20 +209,20 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
         {phase !== 'revealed' ? (
           <View style={s.center}>
             {/* Category label */}
-            <Animated.Text style={[s.categoryLabel, { opacity: blockOp }]}>
+            <AnimatedText style={[s.categoryLabel, { opacity: blockOp }]}>
               {GOLD_STRIKE_NAME.toUpperCase()}
-            </Animated.Text>
+            </AnimatedText>
             {/* Tier title */}
-            <Animated.Text style={[s.tierLabel, { color: meta.color, opacity: blockOp }]}>
+            <AnimatedText style={[s.tierLabel, { color: meta.color, opacity: blockOp }]}>
               {meta.name}
-            </Animated.Text>
+            </AnimatedText>
 
             {/* Tap pip counter (filled = already tapped) */}
             <View style={s.pips}>
               {[0, 1, 2, 3].map(i => (
                 <View key={i} style={[s.pip, {
-                  backgroundColor: i < 4 - tapsLeft ? meta.color : '#F5E7C415',
-                  borderColor:     i < 4 - tapsLeft ? meta.color : '#F5E7C425',
+                  backgroundColor: i < 4 - tapsLeft ? meta.color : palette.border,
+                  borderColor:     i < 4 - tapsLeft ? meta.color : palette.border,
                   shadowColor:     meta.color,
                   shadowOpacity:   i < 4 - tapsLeft ? 0.8 : 0,
                   shadowRadius: 0,
@@ -253,7 +253,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
               }]}>
                 <View style={[s.block, { borderColor: meta.color + 'BB', shadowColor: meta.color }]}>
                   <LinearGradient
-                    colors={[meta.color + '66', meta.color + '28', '#213D3955']}
+                    colors={[meta.color + '66', meta.color + '28', palette.deepest + '55']}
                     start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }}
                     style={StyleSheet.absoluteFill}
                   />
@@ -280,7 +280,7 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
             borderColor: meta.color + '66',
           }]}>
             <LinearGradient
-              colors={[meta.color + '30', meta.color + '10', '#213D3900']}
+              colors={[meta.color + '30', meta.color + '10', palette.deepest + '00']}
               style={StyleSheet.absoluteFill}
             />
             <Glyph style={s.rewardEmoji} value={meta.emoji} />
@@ -290,10 +290,10 @@ export function LuckyBlockOpener({ block, onClose }: Props) {
 
             {reward && (
               <View style={s.rewardItems}>
-                <View style={[s.rewardRow, { borderColor: '#EFBD3C33' }]}>
+                <View style={[s.rewardRow, { borderColor: palette.gold + '33' }]}>
                   <Glyph style={s.rIcon} value="🪙" />
                   <Text style={s.rLabel}>Coins</Text>
-                  <Text style={[s.rValue, { color: '#EFBD3C' }]}>
+                  <Text style={[s.rValue, { color: palette.gold }]}>
                     +{reward.coins.toLocaleString()}
                   </Text>
                 </View>
@@ -323,10 +323,10 @@ const BLOCK_SIZE = 148;
 
 const s = StyleSheet.create({
   overlay: {
-    flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#172E2AF2',
+    flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.deepest + 'F2',
   },
   star: {
-    position: 'absolute', borderRadius: 3, backgroundColor: '#F5E7C4',
+    position: 'absolute', borderRadius: 3, backgroundColor: palette.foreground,
   },
   flashBurst: {
     position: 'absolute', width: 200, height: 200, borderRadius: 3,
@@ -337,7 +337,7 @@ const s = StyleSheet.create({
   },
   categoryLabel: {
     fontSize: 10, fontFamily: 'SourceSans3_600SemiBold', letterSpacing: 3.5,
-    color: '#D1DAC6', marginBottom: 6,
+    color: palette.supporting, marginBottom: 6,
   },
   tierLabel: {
     fontSize: 22, fontFamily: 'SourceSans3_700Bold', letterSpacing: 2,
@@ -377,7 +377,7 @@ const s = StyleSheet.create({
   blockHighlight: {
     position: 'absolute', top: 10, left: 10,
     width: 40, height: 40, borderRadius: 3,
-    backgroundColor: '#F5E7C418',
+    backgroundColor: palette.inset,
   },
   blockEmoji: {
     fontSize: 72,
@@ -386,7 +386,7 @@ const s = StyleSheet.create({
     marginTop: 32, alignItems: 'center', gap: 6,
   },
   hintText: {
-    fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 3, color: '#D1DAC6',
+    fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 3, color: palette.supporting,
   },
   tapsLeft: {
     fontSize: 13, fontFamily: 'SourceSans3_600SemiBold', letterSpacing: 1,
@@ -406,16 +406,16 @@ const s = StyleSheet.create({
   },
   rewardRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#294C44', borderRadius: 0, padding: 14, borderWidth: 2,
+    backgroundColor: palette.surface, borderRadius: 0, padding: 14, borderWidth: 2,
   },
   rIcon: { fontSize: 20 },
-  rLabel: { flex: 1, color: '#D1DAC6', fontSize: 14, fontFamily: 'SourceSans3_600SemiBold' },
+  rLabel: { flex: 1, color: palette.supporting, fontSize: 14, fontFamily: 'SourceSans3_600SemiBold' },
   rValue: { fontSize: 18, fontFamily: 'SourceSans3_700Bold' },
   collectBtn: {
     paddingHorizontal: 40, paddingVertical: 16, borderRadius: 0,
     marginTop: 4,
   },
   collectBtnTxt: {
-    color: '#F5E7C4', fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 2,
+    color: palette.foreground, fontSize: 16, fontFamily: 'SourceSans3_700Bold', letterSpacing: 2,
   },
 });
