@@ -20,7 +20,7 @@ import { RankCeremonyOverlay } from '@/components/RankCeremonyOverlay';
 import { useSettings } from '@/hooks/useSettings';
 import { useSoundFX } from '@/hooks/useSoundFX';
 import { ShareCard } from '@/components/ShareCard';
-import { getPendingClip, clearPendingClip } from '@/store/highlightClip';
+import { getPendingClip } from '@/store/highlightClip';
 import { submitChallengeScore } from '@/utils/dailyChallenge';
 import { getDeviceId } from '@/utils/deviceId';
 import { palette, tactile } from '@/constants/colors';
@@ -169,9 +169,8 @@ function PostGameContent() {
   const levelDelta  = levelAfter - levelBefore;
 
   const [selectedEmote, setSelectedEmote] = useState<string | null>(null);
-  // Read the pending highlight clip once at mount; clear when screen unmounts
+  // Keep the source available when opening the viewer; the next match clears it.
   const highlightClip = useRef(getPendingClip()).current;
-  useEffect(() => () => clearPendingClip(), []);
 
   const fadeAnim        = useRef(new Animated.Value(0)).current;
   const scaleAnim       = useRef(new Animated.Value(0.7)).current;

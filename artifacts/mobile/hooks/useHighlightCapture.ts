@@ -1,18 +1,14 @@
-/**
- * Web stub — highlight capture requires react-native-view-shot (native only).
- * Metro picks `useHighlightCapture.native.ts` on iOS/Android and this file on web.
- */
-import { RefObject } from 'react';
-import { View } from 'react-native';
-
-export type HighlightType = 'multi_block' | 'near_death' | 'hot_streak' | 'manual';
+import { toJpeg } from 'html-to-image';
+import { useClipCaptureBuffer } from './useClipCaptureBuffer';
+export type { HighlightType } from '../store/highlightClip';
 
 export function useHighlightCapture() {
-  return {
-    startCapture:     (_ref: RefObject<View>) => {},
-    triggerHighlight: (_type: HighlightType) => {},
-    snapshotClip:     (): string[] | null => null,
-    stopAndGetClip:   (): { frames: string[]; type: HighlightType } | null => null,
-    isCapturing:      (): boolean => false,
-  };
+  return useClipCaptureBuffer(async view => {
+    if (document.visibilityState !== 'visible') throw new Error('Recording paused');
+    const uri = await toJpeg(view.current as unknown as HTMLElement, {
+      quality: 0.48, canvasWidth: 180, canvasHeight: 180,
+      pixelRatio: 1, skipFonts: true, backgroundColor: '#101410',
+    });
+    return uri.split(',')[1];
+  });
 }

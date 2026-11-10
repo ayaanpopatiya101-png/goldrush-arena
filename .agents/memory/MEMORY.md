@@ -17,3 +17,4 @@
 - [Avatar privacy](avatar-ownership.md) — optional private photos use guest ownership; publication is explicit and separate from local appearance.
 - [Gameplay pacing](gameplay-pacing.md) — normal-mode balls use 7s then 10s intervals; Home is a bot demonstration and tutorials are hands-on.
 - [Event reminders](event-reminders.md) — SMS is deferred; native local notifications first, with browser background push explicitly separate.
+- [Clip export permissions](clip-export-boundaries.md) — SDK-level Photos write checks can differ from OS requirements; downloads and share sheets are not Photos-save evidence.

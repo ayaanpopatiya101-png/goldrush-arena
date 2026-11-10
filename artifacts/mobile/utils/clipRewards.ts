@@ -74,15 +74,30 @@ export function computeClipScore(activeBalls: number, playerLives: number): numb
 
 // ── Daily reward tracking ─────────────────────────────────────────────────────
 
-interface DailyRecord { date: string; count: number; }
+interface DailyRecord { date: string; count: number; clipIds?: string[]; }
+let claims: Promise<unknown> = Promise.resolve();
+
+/** Stable across viewer remounts and library copies; trim does not change source identity. */
+export function clipRewardIdentity(frames: string[]): string {
+  let hash = 2166136261;
+  for (const frame of frames) {
+    for (let i = 0; i < frame.length; i++) hash = Math.imul(hash ^ frame.charCodeAt(i), 16777619);
+  }
+  return `${frames.length}-${hash >>> 0}`;
+}
 
 async function getDailyRecord(): Promise<DailyRecord> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return { date: '', count: 0 };
-    return JSON.parse(raw) as DailyRecord;
+    const record = JSON.parse(raw) as DailyRecord;
+    if (!record || typeof record.date !== 'string' || !Number.isInteger(record.count) || record.count < 0 ||
+        (record.clipIds !== undefined && (!Array.isArray(record.clipIds) || record.clipIds.some(id => typeof id !== 'string')))) {
+      throw new Error('Invalid reward limits');
+    }
+    return record;
   } catch {
-    return { date: '', count: 0 };
+    throw new Error('Reward limits could not be read. No export reward was granted.');
   }
 }
 
@@ -105,11 +120,21 @@ export async function getRemainingClipRewards(): Promise<number> {
  * Attempt to consume one daily clip reward slot.
  * Returns true if the reward was granted, false if the daily cap is already hit.
  */
-export async function consumeClipRewardSlot(): Promise<boolean> {
+export async function consumeClipRewardSlot(clipId: string): Promise<boolean> {
+  if (!clipId) throw new Error('Clip reward identity is required');
+  const result = claims.then(async () => {
   const today   = new Date().toDateString();
   const record  = await getDailyRecord();
   const current = record.date === today ? record.count : 0;
-  if (current >= MAX_DAILY_REWARDS) return false;
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today, count: current + 1 }));
+  const clipIds = record.clipIds ?? [];
+  if (current >= MAX_DAILY_REWARDS || (clipId && clipIds.includes(clipId))) return false;
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({
+    date: today, count: current + 1,
+    // Keep identities across days so reopening yesterday's pending clip cannot reward it again.
+    clipIds: clipId ? [...clipIds, clipId].slice(-1000) : clipIds,
+  }));
   return true;
+  });
+  claims = result.catch(() => {});
+  return result;
 }

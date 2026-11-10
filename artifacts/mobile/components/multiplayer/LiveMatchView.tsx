@@ -32,6 +32,10 @@ export type LiveMatchViewProps = {
   onCasual?: () => void;
   onResults: () => void;
   onAgain: () => void;
+  captureTarget?: React.RefObject<View | null>;
+  captureStatus?: string;
+  momentCaptured?: boolean;
+  onCapture?: () => void;
 };
 
 const COURT = 1000;
@@ -65,7 +69,7 @@ function paddleRect(p: LivePlayer, s: number) {
   }
 }
 
-export function LiveMatchView({ room, playerId, connection, error, saved, ratingChange, onMove, onLeave, onRetry, onCasual, onResults, onAgain }: LiveMatchViewProps) {
+export function LiveMatchView({ room, playerId, connection, error, saved, ratingChange, onMove, onLeave, onRetry, onCasual, onResults, onAgain, captureTarget, captureStatus, momentCaptured, onCapture }: LiveMatchViewProps) {
   const insets = useSafeAreaInsets();
   const appearance=useEquippedCosmetics();
   const theme=THEME_FINISHES.find(t=>t.id===appearance.arenaTheme)??THEME_FINISHES[0];
@@ -280,6 +284,11 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
         {errorBand}
         {confirm}
         {leaveBtn}
+        {phase === 'playing' && onCapture && <View style={s.row}>
+          <Text accessibilityLiveRegion="polite" style={[s.note, { flex: 1 }]}>{captureStatus}</Text>
+          <Button label={momentCaptured ? 'Moment captured' : 'Capture this moment'} icon="video" size="sm"
+            disabled={captureStatus !== 'Recording ready'} onPress={onCapture} />
+        </View>}
         <View style={s.board}>
           {[0, 1, 2, 3].map(i => {
             const p = room.players.find(pl => pl.seat === i);
@@ -292,7 +301,7 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
             );
           })}
         </View>
-        <View ref={browserCourt} testID="live-court" {...(isWeb ? {} : pan.panHandlers)} accessibilityLabel={`Court. You defend the ${SEAT_NAMES[seat]} edge. Drag ${horizontal ? 'left and right' : 'up and down'} to move.`}
+        <View ref={node => { browserCourt.current = node; if (captureTarget) captureTarget.current = node; }} collapsable={false} testID="live-court" {...(isWeb ? {} : pan.panHandlers)} accessibilityLabel={`Court. You defend the ${SEAT_NAMES[seat]} edge. Drag ${horizontal ? 'left and right' : 'up and down'} to move.`}
           style={[s.court, { width: size, height: size,backgroundColor:theme.floor }]}>
           {theme.motif==='rings'?[0.3,0.5,0.7].map(n=><View key={n} pointerEvents="none" style={{position:'absolute',width:size*n,height:size*n,top:size*(1-n)/2,left:size*(1-n)/2,borderRadius:999,borderWidth:1,borderColor:theme.line,opacity:0.15}}/>):null}
           {theme.motif==='lines'?[1,2,3,4,5,6,7].map(n=><View key={n} pointerEvents="none" style={{position:'absolute',left:0,right:0,top:size*n/8,height:1,backgroundColor:theme.line,opacity:0.15}}/>):null}

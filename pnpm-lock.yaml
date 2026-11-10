@@ -676,6 +676,9 @@ importers:
       expo-image-manipulator:
         specifier: ~14.0.8
         version: 14.0.8(expo@54.0.38)
+      expo-media-library:
+        specifier: ~18.2.1
+        version: 18.2.1(expo@54.0.38)(react-native@0.81.5(@babel/core@7.29.13)(@types/react@19.1.17)(react@19.1.0))
       expo-notifications:
         specifier: ~0.32.17
         version: 0.32.17(expo@54.0.38)(react-native@0.81.5(@babel/core@7.29.13)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
@@ -688,6 +691,9 @@ importers:
       expo-store-review:
         specifier: ^9.0.9
         version: 9.0.9(expo@54.0.38)(react-native@0.81.5(@babel/core@7.29.13)(@types/react@19.1.17)(react@19.1.0))
+      html-to-image:
+        specifier: ^1.11.13
+        version: 1.11.13
       jpeg-js:
         specifier: ^0.4.4
         version: 0.4.4
@@ -734,6 +740,9 @@ importers:
       '@types/jpeg-js':
         specifier: ^0.3.7
         version: 0.3.7
+      '@types/omggif':
+        specifier: ^1.0.5
+        version: 1.0.5
       '@types/react':
         specifier: ~19.1.10
         version: 19.1.17
@@ -800,6 +809,9 @@ importers:
       expo-web-browser:
         specifier: ~15.0.10
         version: 15.0.11(expo@54.0.38)(react-native@0.81.5(@babel/core@7.29.13)(@types/react@19.1.17)(react@19.1.0))
+      omggif:
+        specifier: ^1.0.10
+        version: 1.0.10
       react:
         specifier: 'catalog:'
         version: 19.1.0
@@ -3146,6 +3158,9 @@ packages:
   '@types/node@26.6.6':
     resolution: {integrity: sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog==}
 
+  '@types/omggif@1.0.5':
+    resolution: {integrity: sha512-gDQJflz1rOgEcUXkMAl80bDGN46f5mp8GbcM5dyvq+zsFV6YRBRtmNxlJJ5mjY77T7BRkRFzdIBVmK90QYhCxA==}
+
   '@types/pg@8.20.0':
     resolution: {integrity: sha512-bEPFOaMAHTEP1EzpvHTbmwR8UsFyHSKsRisLIHVMXnpNefSbGA1bD6CVy+qKjGSqmZqNqBDV2azOBo8TgkcVow==}
 
@@ -4234,6 +4249,12 @@ packages:
     peerDependencies:
       expo: '*'
 
+  expo-media-library@18.2.1:
+    resolution: {integrity: sha512-dV1acx6Aseu+I5hmF61wY8UkD4vdt8d7YXHDfgNp6ZSs06qxayUxgrBsiG2eigLe54VLm3ycbFBbWi31lhfsCA==}
+    peerDependencies:
+      expo: '*'
+      react-native: '*'
+
   expo-modules-autolinking@3.0.28:
     resolution: {integrity: sha512-DQhRuyD7b8mX833Ei5vqjF/HoZIGzKihPdfwpihq7cEOLFkhG/erz53HjebwV3XNFLMA3wBuX/vnyev8ISojCQ==}
     hasBin: true
@@ -4650,6 +4671,9 @@ packages:
 
   html-entities@2.6.0:
     resolution: {integrity: sha512-kig+rMn/QOVRvr7c86gQ8lWXq+Hkv6CbAH1hLu+RG338StTpE8Z0b44SDVaqVu7HGKf27frdmUYEs9hTUX/cLQ==}
+
+  html-to-image@1.11.13:
+    resolution: {integrity: sha512-cuOPoI7WApyhBElTTb9oqsawRvZ0rHhaHwghRLlTuffoD1B2aDemlCruLeZrUIIdvG7gs9xeELEPm6PhuASqrg==}
 
   html2canvas@1.4.1:
     resolution: {integrity: sha512-fPU6BHNpsyIhr8yyMpTLLxAbkaK8ArIBcmZIRiBLiDhjeqvXolaEmDGmELFuX9I4xDcaKKcJl+TKZLqruBbmWA==}
@@ -5369,6 +5393,9 @@ packages:
   object.assign@4.1.7:
     resolution: {integrity: sha512-nK28WOo+QIjBkDduTINE4JkF/UJJKyf2EJxvJKfblDpyg0Q+pkOHNTL0Qwy6NP6FhE/EnzV73BxxqcJaXY9anw==}
     engines: {node: '>= 0.4'}
+
+  omggif@1.0.10:
+    resolution: {integrity: sha512-LMJTtvgc/nugXj0Vcrrs68Mn2D1r0zf630VNtqtpI1FEO7e+O9FP4gqs9AcnBaSEeoHIPm28u6qgPR0oyEpGSw==}
 
   on-exit-leak-free@2.1.2:
     resolution: {integrity: sha512-0eJJY6hXLGf1udHwfNftBqH+g73EU4B504nZeKpz1sYRKafAghwxEJunB2O7rDZkL4PGfsMVnTXZ2EjibbqcsA==}
@@ -9527,6 +9554,8 @@ snapshots:
     dependencies:
       undici-types: 8.9.0
 
+  '@types/omggif@1.0.5': {}
+
   '@types/pg@8.20.0':
     dependencies:
       '@types/node': 26.6.6
@@ -10559,6 +10588,11 @@ snapshots:
     dependencies:
       expo: 54.0.38(@babel/core@7.29.13)(@expo/metro-runtime@6.1.2)(expo-router@6.0.24)(react-native@0.81.5(@babel/core@7.29.13)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
 
+  expo-media-library@18.2.1(expo@54.0.38)(react-native@0.81.5(@babel/core@7.29.13)(@types/react@19.1.17)(react@19.1.0)):
+    dependencies:
+      expo: 54.0.38(@babel/core@7.29.13)(@expo/metro-runtime@6.1.2)(expo-router@6.0.24)(react-native@0.81.5(@babel/core@7.29.13)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
+      react-native: 0.81.5(@babel/core@7.29.13)(@types/react@19.1.17)(react@19.1.0)
+
   expo-modules-autolinking@3.0.28:
     dependencies:
       '@expo/spawn-async': 1.8.0
@@ -11077,6 +11111,8 @@ snapshots:
       lru-cache: 10.4.3
 
   html-entities@2.6.0: {}
+
+  html-to-image@1.11.13: {}
 
   html2canvas@1.4.1:
     dependencies:
@@ -11978,6 +12014,8 @@ snapshots:
       es-object-atoms: 1.1.2
       has-symbols: 1.1.0
       object-keys: 1.1.1
+
+  omggif@1.0.10: {}
 
   on-exit-leak-free@2.1.2: {}
 
