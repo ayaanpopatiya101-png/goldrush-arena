@@ -15,3 +15,4 @@
 - [Toolchain security](toolchain-security.md) — align Vite optional peers across aliases; legacy Expo Node tooling needs CommonJS-compatible UUID patches.
 - [Multiplayer boundaries](multiplayer-boundaries.md) — server awards stay separate from untrusted local balances; live rooms need one authoritative process.
 - [Avatar privacy](avatar-ownership.md) — optional private photos use guest ownership; publication is explicit and separate from local appearance.
+- [Gameplay pacing](gameplay-pacing.md) — normal-mode balls use 7s then 10s intervals; Home is a bot demonstration and tutorials are hands-on.
