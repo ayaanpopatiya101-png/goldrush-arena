@@ -107,9 +107,10 @@ export function tickRooms(now = Date.now()) {
   for (const room of rooms.values()) {
     if (room.phase === "waiting") {
       for (const p of [...room.players]) if (!p.isBot && now - p.seen > 20_000) leaveRoom(p.id);
-      const connected = room.players.every(p => p.isBot || p.connected);
+      const connected = room.players.length > 0 && room.players.every(p => p.isBot || p.connected);
+      const reserved = room.reservedIds?.some(id => !room.players.some(p => p.id === id));
       // Parties get time for everyone; server party membership is checked by the join route.
-      if (room.mode === "casual" && now-room.createdAt >= (room.partyCode ? 35000 : 12000) && connected) {
+      if (room.mode === "casual" && now-room.createdAt >= 5000 && connected && !reserved) {
         const names = ["Cedar", "Marlow", "Finch", "Rowan"];
         while (room.players.length < 4) {
           const seat = room.players.length;

@@ -103,6 +103,7 @@ test('native Shop loads and renders its unavailable store without a server addre
       'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
       '@/hooks/useFocusAnimation': { useFocusAnimation: () => ({ opacity: 1 }) },
       '@/hooks/useColors': { useColors: () => new Proxy({}, { get: () => '#16171A' }) },
+      '@/constants/colors': { palette: new Proxy({}, { get: () => '#16171A' }), tactile: new Proxy({}, { get: () => '#16171A' }) },
       '@/constants/season': { CURRENT_SEASON: { number: 1, label: 'Season 1' } },
       '@/context/PlayerContext': { SKINS: [{ id: 'classic', color: '#C99A2E', glowColor: '#C99A2E' }], getRankIndex: () => 0, usePlayer: () => ({ profile }) },
       '@/lib/revenuecat': { useRevenueCat: () => ({ available: false, isLoading: false, getPackage: () => null }) },

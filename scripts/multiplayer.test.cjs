@@ -88,6 +88,16 @@ test('duos finishes when the opposite team is eliminated', () => {
   const r=room(); r.variant='duos'; eliminate(r,r.players[1]); eliminate(r,r.players[2]); finishIfNeeded(r);
   assert.equal(r.phase,'saving'); assert.deepEqual(r.players.map(p=>p.place),[1,3,3,1]);
 });
+test('server normal mode adds balls at ticks 420, 1020 and 1620, not every seven seconds', () => {
+  const r = room(); r.players.forEach(p => { p.lives = 10000; });
+  for (let t = 1; t <= 1620; t++) {
+    stepArena(r, 1000, () => .2);
+    assert.equal(r.balls.length, t < 420 ? 0 : t < 1020 ? 1 : t < 1620 ? 2 : 3);
+  }
+  const tick = r.tick;
+  r.phase = 'waiting'; stepArena(r, 1e9);
+  assert.equal(r.tick, tick, 'inactive authority never accrues spawn time');
+});
 test('verified online receipt opens results without URL reward parameters', () => {
   const vm=require('node:vm');
   const postgame=fs.readFileSync('artifacts/mobile/app/postgame.tsx','utf8');

@@ -1,8 +1,9 @@
 import * as Haptics from '@/utils/haptics';
-import { canMovePaddle, clampPaddle, clampPaddleRange } from '@/utils/courtInput';
+import { canMovePaddle, clampPaddle, clampPaddleRange, reflectedIntercept } from '@/utils/courtInput';
 import { idleAnimation } from '@/components/ui/idleAnimation';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, AppState, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useBrowserCourt } from '@/hooks/useBrowserCourt';
 import Svg, { Circle, Line, Polygon, Rect, Text as SvgText } from 'react-native-svg';
 import { getSettings } from '@/hooks/useSettings';
 import { getRankIndex, MAX_RANK_INDEX, type RelicEffect } from '@/context/PlayerContext';
@@ -26,7 +27,7 @@ const WALL_MARGIN = 24;
 const PADDLE_LENGTH = 88;
 const PADDLE_THICKNESS = 14;
 const MAX_BALLS = 8;
-const BALL_SPAWN_FRAMES = 420;   // 7 s × 60 fps
+const BALL_SPAWN_FRAMES = 600;   // normal mode: 10 s after the second ball
 const SUPER_MAX_CHARGE      = 10;
 const SUPER_DURATION_FRAMES = 180; // 3 s @ 60 fps
 const POWERUP_SPAWN_FRAMES = 420;
@@ -54,7 +55,6 @@ interface GameStateRef {
   players: PlayerRef[];
   powerups: PowerUpRef[];
   frame: number;
-  nextBallFrame: number;
   nextPowerupFrame: number;
   speedMultiplier: number;
   winner: number | null;
@@ -71,6 +71,8 @@ export interface GameResult {
 }
 
 interface GameArenaProps {
+  /** Watch-only, four computer paddles. Never emits rewards or accepts input. */
+  demo?: boolean;
   tutorialStage?: 'move' | 'block' | 'miss';
   onTutorialEvent?: (event: 'move' | 'block' | 'miss') => void;
   arenaSize: number;
@@ -117,9 +119,10 @@ interface GameArenaProps {
   /** Extra balls spawned immediately at game start in addition to the first (default 0) */
 
   startingBallCount?: number;
-  /** Frames between automatic ball spawns (default 420 = 7 s at 60 fps) */
+  /** Frames between subsequent automatic ball spawns (default 600 = 10 seconds). */
 
   ballSpawnFrames?: number;
+  firstBallSpawnFrames?: number;
   /** When true, power-up pickups never spawn */
 
   noPowerups?: boolean;
@@ -231,13 +234,14 @@ const COLOR_BOARD_COLORS = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function GameArena({
+  demo = false,
   tutorialStage, onTutorialEvent,
   arenaSize, playerName, playerColor, playerGlowColor,
   botNames, botRanks, onGameOver, onGameModeChange,
   onPlayerLivesChange, grantExtraLifeRef, onEliminatedSpectating,
   colorBoard = false, courtStyle = 'classic', soundEnabled = true,
   sensitivity = 1.0, onActiveBallsChange, botDifficulty = 'normal', onGameStart, onSeatLivesChange, skipCountdown = false,
-  initialLives, startingBallCount, ballSpawnFrames, noPowerups, startSpeedMult = 0.55, rampRate = 0.07,
+  initialLives, startingBallCount, ballSpawnFrames, firstBallSpawnFrames, noPowerups, startSpeedMult = 0.55, rampRate = 0.07,
   rngSeed, soloMode = false,
   duoMode, sixPlayer, playerRelic, botSkill, arenaBg, playerSuperType = 1, paused = false,
   phantomBalls = false, playerBonusLives = 0, practice = false,
@@ -283,9 +287,19 @@ export function GameArena({
   const szRef = useRef(arenaSize);
   szRef.current = arenaSize;
 
-  const pausedRef = useRef(paused);
+  const [backgrounded, setBackgrounded] = useState(AppState.currentState !== 'active');
+  const pausedRef = useRef(paused || backgrounded);
   const gameOverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => { pausedRef.current = paused; }, [paused]);
+  pausedRef.current = paused || backgrounded;
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => setBackgrounded(state !== 'active'));
+    if (Platform.OS !== 'web') return () => sub.remove();
+    const change = () => setBackgrounded(document.visibilityState !== 'visible');
+    document.addEventListener('visibilitychange', change);
+    return () => { sub.remove(); document.removeEventListener('visibilitychange', change); };
+  }, []);
+  const activeTimeRef = useRef(0);
+  const nextBallTimeRef = useRef((firstBallSpawnFrames ?? ballSpawnFrames ?? 420) * 1000 / 60);
 
   const ballSpawnFramesRef   = useRef(ballSpawnFrames   ?? BALL_SPAWN_FRAMES);
   const noPowerupsRef        = useRef(noPowerups        ?? false);
@@ -503,7 +517,7 @@ export function GameArena({
   // ── Initial game state ──
   const gsRef = useRef<GameStateRef>({
     balls: [], powerups: [], frame: 0,
-    nextBallFrame: 8, nextPowerupFrame: POWERUP_SPAWN_FRAMES,
+    nextPowerupFrame: POWERUP_SPAWN_FRAMES,
     speedMultiplier: startSpeedMultVal, winner: null, phase: 'countdown', gameMode: 'square',
     duelTopId: TOP, duelBottomId: BOTTOM, duelFrames: 0,
     players: [
@@ -532,6 +546,13 @@ export function GameArena({
       const perBotSkill = Math.min(skillCap, getRankIndex(bot.rank) / MAX_RANK_INDEX);
       bot.botSpeed    = bot.botSpeed * (0.7 + 0.4 * perBotSkill);
       bot.botAccuracy = Math.min(0.97, bot.botAccuracy * (0.85 + 0.2 * perBotSkill));
+    }
+    if (demo) {
+      for (const bot of gs.players.slice(0, 4)) {
+        bot.isBot = true;
+        bot.botSpeed = 12;
+        bot.botAccuracy = 0.99;
+      }
     }
     // Warlord mode: grant extra lives to the human player only.
     if (playerBonusLives > 0) gs.players[BOTTOM].lives += playerBonusLives;
@@ -674,11 +695,11 @@ export function GameArena({
     isRunningRef.current = false;
     setGamePhase('gameover');
     const won  = winnerId === BOTTOM;
-    const xp   = practice ? 0 : won ? 220 + deflectionsRef.current * 2 : 40 + deflectionsRef.current;
-    const coins = practice ? 0 : won ? 70 : 20;
+    const xp   = practice || demo ? 0 : won ? 220 + deflectionsRef.current * 2 : 40 + deflectionsRef.current;
+    const coins = practice || demo ? 0 : won ? 70 : 20;
     if (won && soundEnabled) sfxRef.current.matchEnd();
-    showAnnouncer(won ? 'YOU WIN!' : 'TIME UP!');
-    setTimeout(() => {
+    showAnnouncer(demo ? 'DEMO · NEXT ROUND' : won ? 'YOU WIN!' : 'TIME UP!');
+    gameOverTimer.current = setTimeout(() => {
       onGameOverRef.current({ won, position: won ? 1 : finishPositionRef.current, deflections: deflectionsRef.current, goalsAgainst: goalsAgainstRef.current, xpEarned: xp, coinsEarned: coins });
     }, 1800);
   }
@@ -794,15 +815,15 @@ export function GameArena({
       playSFX('elim');
       if (playerId !== BOTTOM) finishPositionRef.current = Math.max(2, finishPositionRef.current - 1);
       else {
-        if (practice) {
+        if (practice && !demo) {
           forceWin(gs, gs.players.find(p => !p.isEliminated)?.id ?? TOP);
           return;
         }
         // Human eliminated, enter spectating
-        setIsSpectating(true);
+        if (!demo) setIsSpectating(true);
       }
       setEliminatedState(gs.players.map(p => p.isEliminated));
-      showAnnouncer(playerId === BOTTOM ? 'YOU\'RE OUT! SPECTATING...' : `${player.name} OUT!`);
+      showAnnouncer(playerId === BOTTOM && !demo ? 'YOU\'RE OUT! SPECTATING...' : `${player.name} OUT!`);
 
       if (!duoModeRef.current && !sixPlayerRef.current) updateGameMode(gs);
 
@@ -840,6 +861,7 @@ export function GameArena({
 
   // ── Super ability activation ──
   function activateSuper() {
+    if (demo) return;
     if (!canMovePaddle(pausedRef.current, gsRef.current.players[BOTTOM].isEliminated, gsRef.current.phase)) return;
     if (superChargeRef.current < SUPER_MAX_CHARGE) return;
     if (superActiveFramesRef.current > 0) return;
@@ -864,6 +886,9 @@ export function GameArena({
 
   // ── Bot targeting ──
   function getBotTarget(side: 'top'|'bottom'|'left'|'right', balls: BallRef[], size: number): number {
+    const project = (value: number, radius: number) => demo
+      ? reflectedIntercept(value, WALL_MARGIN + radius, size - WALL_MARGIN - radius)
+      : value;
     let best = size/2, highThreat = -Infinity;
     for (const ball of balls) {
       if (!ball.active) continue;
@@ -871,19 +896,19 @@ export function GameArena({
       if (side === 'top') {
         const t = ball.vy < 0 ? (ball.y - WALL_MARGIN) / Math.abs(ball.vy) : 9999;
         threat = ball.vy < 0 ? 5000 - t*10 : -ball.y;
-        pos    = clampPaddle(ball.vy < 0 ? ball.x + ball.vx*t : ball.x, PADDLE_LENGTH, size);
+        pos    = clampPaddle(project(ball.vy < 0 ? ball.x + ball.vx*t : ball.x, ball.radius), PADDLE_LENGTH, size);
       } else if (side === 'bottom') {
         const t = ball.vy > 0 ? (size - WALL_MARGIN - ball.y) / Math.abs(ball.vy) : 9999;
         threat = ball.vy > 0 ? 5000 - t*10 : -(size-ball.y);
-        pos    = clampPaddle(ball.vy > 0 ? ball.x + ball.vx*t : ball.x, PADDLE_LENGTH, size);
+        pos    = clampPaddle(project(ball.vy > 0 ? ball.x + ball.vx*t : ball.x, ball.radius), PADDLE_LENGTH, size);
       } else if (side === 'left') {
         const t = ball.vx < 0 ? (ball.x - WALL_MARGIN) / Math.abs(ball.vx) : 9999;
         threat = ball.vx < 0 ? 5000 - t*10 : -ball.x;
-        pos    = clampPaddle(ball.vx < 0 ? ball.y + ball.vy*t : ball.y, PADDLE_LENGTH, size);
+        pos    = clampPaddle(project(ball.vx < 0 ? ball.y + ball.vy*t : ball.y, ball.radius), PADDLE_LENGTH, size);
       } else {
         const t = ball.vx > 0 ? (size - WALL_MARGIN - ball.x) / Math.abs(ball.vx) : 9999;
         threat = ball.vx > 0 ? 5000 - t*10 : -(size-ball.x);
-        pos    = clampPaddle(ball.vx > 0 ? ball.y + ball.vy*t : ball.y, PADDLE_LENGTH, size);
+        pos    = clampPaddle(project(ball.vx > 0 ? ball.y + ball.vy*t : ball.y, ball.radius), PADDLE_LENGTH, size);
       }
       if (threat > highThreat) { highThreat = threat; best = pos; }
     }
@@ -926,6 +951,12 @@ export function GameArena({
 
     const gs   = gsRef.current;
     const size = szRef.current;
+    activeTimeRef.current += rawDelta;
+    // Bounded repeat even when strong bots hold the court indefinitely.
+    if (demo && activeTimeRef.current >= 45000) {
+      forceWin(gs, gs.players.filter(p => !p.isEliminated).sort((a, b) => b.lives - a.lives)[0]?.id ?? TOP);
+      return;
+    }
     gs.frame++;
 
     const GYB = size - WALL_MARGIN;
@@ -1151,7 +1182,7 @@ export function GameArena({
     }
 
     // ── Bot AI (every 3 frames) ──
-    if (gs.frame % 3 === 0) {
+    if (demo || gs.frame % 3 === 0) {
       if (isDuel) {
         // TOP duel bot
         if (duelBot.isBot && !duelBot.isEliminated) {
@@ -1179,10 +1210,10 @@ export function GameArena({
         }
       } else {
         // Normal 4 / 3-player bot AI
-        for (const pid of [TOP, LEFT, RIGHT] as const) {
+        for (const pid of (demo ? [BOTTOM, TOP, LEFT, RIGHT] : [TOP, LEFT, RIGHT])) {
           const bot = gs.players[pid];
           if (bot.isEliminated || !bot.isBot) continue;
-          const side: 'top'|'left'|'right' = pid === TOP ? 'top' : pid === LEFT ? 'left' : 'right';
+          const side = pid === BOTTOM ? 'bottom' : pid === TOP ? 'top' : pid === LEFT ? 'left' : 'right';
           const rawTarget = getBotTarget(side, gs.balls, size);
           // In six-player mode, TOP only defends the left half, clamp its target
           const target = (sixPlayerRef.current && pid === TOP) ? Math.min(rawTarget, size / 2) : rawTarget;
@@ -1272,10 +1303,10 @@ export function GameArena({
       }
     }
 
-    // ── Spawn new ball every 5 s ──
-    if (gs.frame >= gs.nextBallFrame && gs.balls.filter(b => b.active).length < MAX_BALLS) {
+    // Only elapsed active play counts. No wall-clock catch-up after a pause.
+    if (activeTimeRef.current >= nextBallTimeRef.current && gs.balls.filter(b => b.active).length < MAX_BALLS) {
       spawnBall(gs, size);
-      gs.nextBallFrame    = gs.frame + ballSpawnFramesRef.current;
+      nextBallTimeRef.current = activeTimeRef.current + ballSpawnFramesRef.current * 1000 / 60;
       gs.speedMultiplier  = Math.min(gs.speedMultiplier + rampRateRef.current, 2.0);
     }
 
@@ -1323,8 +1354,8 @@ export function GameArena({
   // ── PanResponder ──
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder:  () => true,
+      onStartShouldSetPanResponder: () => !demo && canMovePaddle(pausedRef.current, gsRef.current.players[BOTTOM].isEliminated, gsRef.current.phase),
+      onMoveShouldSetPanResponder: () => !demo && canMovePaddle(pausedRef.current, gsRef.current.players[BOTTOM].isEliminated, gsRef.current.phase),
       onPanResponderGrant: (evt) => {
         const x   = evt.nativeEvent.locationX;
         const gs  = gsRef.current;
@@ -1355,6 +1386,18 @@ export function GameArena({
       },
     })
   ).current;
+  const browserCourt = useBrowserCourt(!demo && !paused && !backgrounded && gamePhase === 'playing' && !eliminatedState[BOTTOM], x => {
+    const p = gsRef.current.players[BOTTOM];
+    if (!canMovePaddle(pausedRef.current, p.isEliminated, gsRef.current.phase)) return;
+    const size = szRef.current;
+    p.prevPaddleCenter = p.paddleCenter;
+    const raw = paddleInput(x * size, size, getPaddleLen(p), sensitivityRef.current * p.paddleSpeedMult);
+    p.paddleCenter = sixPlayerRef.current
+      ? clampPaddleRange(raw, getPaddleLen(p), WALL_MARGIN, size / 2)
+      : clampPaddle(raw, getPaddleLen(p), size);
+    paddleAnims[BOTTOM].setValue(p.paddleCenter);
+    if (Math.abs(p.paddleCenter - size / 2) >= 12) tutorialEvent('move');
+  });
 
   // ── Countdown + start ──
   useEffect(() => {
@@ -1369,7 +1412,6 @@ export function GameArena({
         spawnBall(gs, size, startSpeedMultRef.current);
         for (let i = 1; i < startingBallCountRef.current; i++) spawnBall(gs, size);
         gs.phase         = 'playing';
-        gs.nextBallFrame = ballSpawnFramesRef.current;
         setGamePhase('playing');
         isRunningRef.current = true;
         lastTimeRef.current  = performance.now();
@@ -1479,7 +1521,7 @@ export function GameArena({
         <Line x1={CX} y1={0} x2={CX} y2={arenaSize} stroke={tactile.courtInk + '66'} strokeWidth={1} strokeDasharray="5,4" />
         <>
           <SvgText x={CX} y={WALL_MARGIN + 20} fill={tactile.courtInk} fontSize={10} textAnchor="middle">NORTH</SvgText>
-          <SvgText x={CX} y={arenaSize - WALL_MARGIN - 12} fill={tactile.courtInk} fontSize={10} textAnchor="middle">SOUTH · YOU</SvgText>
+          <SvgText x={CX} y={arenaSize - WALL_MARGIN - 12} fill={tactile.courtInk} fontSize={10} textAnchor="middle">{demo ? 'SOUTH · BOT' : 'SOUTH · YOU'}</SvgText>
           <SvgText x={WALL_MARGIN + 13} y={CY} fill={tactile.courtInk} fontSize={10} textAnchor="middle" transform={`rotate(-90 ${WALL_MARGIN + 13} ${CY})`}>WEST</SvgText>
           <SvgText x={arenaSize - WALL_MARGIN - 13} y={CY} fill={tactile.courtInk} fontSize={10} textAnchor="middle" transform={`rotate(90 ${arenaSize - WALL_MARGIN - 13} ${CY})`}>EAST</SvgText>
         </>
@@ -1566,7 +1608,7 @@ export function GameArena({
         );
       })}
 
-      <View style={{ width: arenaSize, height: arenaSize, position:'absolute' }} {...panResponder.panHandlers}>
+      <View ref={browserCourt} testID={demo ? 'demo-court' : 'playable-court'} style={{ width: arenaSize, height: arenaSize, position:'absolute' }} {...(Platform.OS === 'web' || demo ? {} : panResponder.panHandlers)}>
         {/* Power-ups */}
         {powerUpsUI.filter(p => p.active).map(pu => (
           <View key={pu.id} style={[s.powerup, { left:pu.x-18, top:pu.y-18, borderColor:POWERUP_COLORS[pu.type], backgroundColor:POWERUP_COLORS[pu.type]+'33', shadowColor:POWERUP_COLORS[pu.type] }]}>
@@ -1773,7 +1815,7 @@ export function GameArena({
         )}
 
         {/* Player deflection score, GlowText label + CounterText value */}
-        {gamePhase === 'playing' && (
+        {!demo && gamePhase === 'playing' && (
           <View style={[s.scoreWrap, gs.players[BOTTOM].isEliminated && { opacity: 0.4 }]} pointerEvents="none">
             <GlowText style={s.scoreLabel} color={palette.foreground} intensity="soft">
               HITS
@@ -1863,7 +1905,7 @@ export function GameArena({
       </View>
 
       {/* ── Super charge bar, hidden in soloMode (supers disabled for comparability) ── */}
-      {gamePhase === 'playing' && !isSpectating && !gs.players[BOTTOM].isEliminated && !soloMode && (
+      {!demo && gamePhase === 'playing' && !isSpectating && !gs.players[BOTTOM].isEliminated && !soloMode && (
         <View style={{
           position: 'absolute',
           bottom: WALL_MARGIN + 6,

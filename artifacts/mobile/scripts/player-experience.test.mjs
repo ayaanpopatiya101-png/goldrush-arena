@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import vm from 'node:vm';
 import { collisionSteps, paddleInput } from '../utils/arenaGeometry.ts';
-import { canMovePaddle, clampPaddle, clampPaddleRange } from '../utils/courtInput.ts';
+import { canMovePaddle, clampPaddle, clampPaddleRange, reflectedIntercept } from '../utils/courtInput.ts';
 import { idleAnimation } from '../components/ui/idleAnimation.ts';
 import { rankIndexForName } from '../utils/rankIndex.ts';
 import { canClaimSeasonTier, seasonSkinForMilestone } from '../utils/seasonRewards.ts';
@@ -50,15 +50,17 @@ async function court(options = {}) {
       Animated: { Value, ValueXY, parallel: animation, sequence: animation, loop: animation,
         timing: animation, spring: animation, delay: animation },
       PanResponder: { create: handlers => handlers },
+      AppState: { currentState: 'active', addEventListener: () => ({ remove: noop }) },
     },
     '@/context/PlayerContext': { RELICS: [], getRankIndex: () => 0, MAX_RANK_INDEX: 19 },
     '@/hooks/useSettings': { getSettings: () => settings },
     '@/hooks/useReducedMotion': { useReducedMotion: () => true },
     '@/hooks/useSoundFX': { useSoundFX: () => new Proxy({}, { get: () => noop }) },
     '@/utils/arenaGeometry': { collisionSteps, paddleInput },
-    '@/utils/courtInput': { canMovePaddle, clampPaddle, clampPaddleRange },
+    '@/utils/courtInput': { canMovePaddle, clampPaddle, clampPaddleRange, reflectedIntercept },
+    '@/hooks/useBrowserCourt': { useBrowserCourt: () => ({ current: null }) },
     '@/components/ui/idleAnimation': { idleAnimation },
-    '@/constants/colors': { PLAYER_COLORS: ['a', 'b', 'c', 'd'] },
+    '@/constants/colors': { PLAYER_COLORS: ['a', 'b', 'c', 'd'], palette: {}, tactile: {} },
   };
   vm.runInNewContext(code, {
     exports, require: id => modules[id] ?? generic, __capture: data => { captured = data; },
@@ -66,6 +68,7 @@ async function court(options = {}) {
     setTimeout: fn => { callbacks.push(fn); return callbacks.length; }, clearTimeout: noop,
     setInterval: () => 1, clearInterval: noop,
     Math: Object.assign(Object.create(Math), { random: () => 0.5 }),
+    document: { addEventListener: noop, removeEventListener: noop },
   });
   exports.GameArena({
     arenaSize: 320, playerName: 'You', playerColor: 'a', playerGlowColor: 'a',

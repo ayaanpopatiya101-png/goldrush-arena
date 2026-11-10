@@ -22,6 +22,7 @@ import {
 } from '@/context/PlayerContext';
 import { useParty } from '@/context/PartyContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useArenaVisibility } from '@/hooks/useArenaVisibility';
 import { setGameConfig } from '@/store/gameSession';
 import type { GameVariant, MatchType } from '@/store/gameSession';
 import { startGauntlet } from '@/store/gauntletSession';
@@ -72,20 +73,22 @@ function opponentLabel(m: ModeDef): string {
   return 'Local bots';
 }
 
-const PREVIEW_BOTS = ['Bot North', 'Bot West', 'Bot East'];
+const DEMO_NAMES = ['OrbitAce_7', 'CedarDash', 'FinchByte', 'NovaRowan'];
+const PREVIEW_BOTS = DEMO_NAMES.slice(1);
 const PREVIEW_RANKS = ['Gold', 'Gold', 'Gold'];
 const SEAT_NAMES = ['South', 'North', 'West', 'East'];
 
-// ─── Live arena preview: the actual game engine, practice rules, no progression ─
+// ─── Spectator demo: no session, queue, rewards or inventory writes ────────────
 function ArenaPreview({ size, playerColor }: { size: number; playerColor: string }) {
   const [focused, setFocused] = useState(true);
-  // Practice is opt-in: it never mounts until the player asks, and stops when Home loses focus.
-  const [started, setStarted] = useState(false);
-  useFocusEffect(useCallback(() => { setFocused(true); return () => { setFocused(false); setStarted(false); }; }, []));
+  useFocusEffect(useCallback(() => { setFocused(true); return () => setFocused(false); }, []));
   const reduced = useReducedMotion();
+  const visibility = useArenaVisibility();
   const [run, setRun] = useState(0);
   const [userPaused, setUserPaused] = useState(false);
-  const active = started && focused;
+  const [motionAllowed, setMotionAllowed] = useState(false);
+  const stopped = userPaused || (reduced && !motionAllowed);
+  const active = focused && visibility.visible && !stopped;
   const courtSize = Math.floor(size * 0.78);
 
   const restart = useCallback(() => setRun(r => r + 1), []);
@@ -93,68 +96,57 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
   return (
     <View style={{ width: size, alignSelf: 'center' }}>
       <View style={[a.frame, { width: size, padding: Math.floor(size * 0.085) }]}>
-        <View style={[a.brassFrame, { width: courtSize + 10, height: courtSize + 10 }]}>
-        {active ? (
+        <View ref={visibility.ref} style={[a.brassFrame, { width: courtSize + 10, height: courtSize + 10 }]}>
           <GameArena
             key={run}
             arenaSize={courtSize}
             courtStyle="tactile"
-            playerName="You"
+            playerName={DEMO_NAMES[0]}
             playerColor={playerColor}
             playerGlowColor={playerColor}
             botNames={PREVIEW_BOTS}
             botRanks={PREVIEW_RANKS}
             onGameOver={restart}
+            demo
             practice
+            skipCountdown
             soundEnabled={false}
             colorBoard={false}
-            botDifficulty="easy"
-            paused={!focused || userPaused}
+            botDifficulty="normal"
+            noPowerups
+            paused={!active}
           />
-        ) : (
-          <View style={a.reducedBox}>
-            <Text style={a.reducedText}>Try a rally on the real court: you on the south wall, three easy local bots. No rank or rewards.</Text>
-            <Button testID="preview-start" label="Try a rally" size="sm" variant="secondary" icon="play"
-              accessibilityHint={reduced ? 'Starts a moving practice court. Reduce Motion is on.' : 'Starts a practice court'}
-              onPress={() => { setUserPaused(false); setStarted(true); }} />
-          </View>
-        )}
         </View>
         <View style={a.arenaLabel}>
-          <Text style={a.arenaTitle}>ARENA PRACTICE</Text>
-          <Text style={a.arenaMeta}>Live engine</Text>
+          <Text style={a.arenaTitle}>ARENA DEMO</Text>
+          <Text style={a.arenaMeta}>4 bots</Text>
         </View>
       </View>
       {/* Seat scoreboard: truthful identity for each paddle */}
-      <View style={a.seats} accessibilityLabel="Preview seats: you at south, three local bots">
+      <View style={a.seats} accessibilityLabel="Demo seats: four computer-controlled bots, no live players">
         {SEAT_NAMES.map((seat, i) => (
           <View key={seat} style={[a.seat, i < 3 && a.seatDivider]}>
             <View style={[a.seatSwatch, { backgroundColor: i === 0 ? playerColor : PLAYER_COLORS[i] }]} />
             <View style={{ flex: 1 }}>
-              <Text style={a.seatPos}>{seat}</Text>
-              <Text style={a.seatWho} numberOfLines={1}>{i === 0 ? 'You' : 'Local bot'}</Text>
+              <Text style={a.seatPos}>{seat} · Bot</Text>
+              <Text style={a.seatWho} numberOfLines={1}>{DEMO_NAMES[i]}</Text>
             </View>
           </View>
         ))}
       </View>
       <View style={a.captionRow}>
         <Text style={[a.caption, { flex: 1 }]}>
-          {active ? 'Drag along the bottom edge. On desktop, click and drag.' : 'Practice starts only when you press Try a rally.'}
+          {reduced && !motionAllowed ? 'Demo paused for Reduce Motion. Resume to watch.' : 'Watch four bots play. Repeats automatically. No rewards or lives spent.'}
         </Text>
-        {active ? (
           <Button
             testID="preview-pause"
-            label={userPaused ? 'Resume' : 'Pause'}
+            label={stopped ? 'Resume' : 'Pause'}
             size="sm"
             variant="ghost"
-            icon={userPaused ? 'play' : 'pause'}
-            accessibilityHint="Pauses or resumes the practice preview"
-            onPress={() => setUserPaused(p => !p)}
+            icon={stopped ? 'play' : 'pause'}
+            accessibilityHint="Pauses or resumes the watch-only bot demonstration"
+            onPress={() => { if (stopped) { setMotionAllowed(true); setUserPaused(false); } else setUserPaused(true); }}
           />
-        ) : null}
-        {active ? (
-          <Button label="Stop" size="sm" variant="ghost" icon="square" onPress={() => setStarted(false)} />
-        ) : null}
       </View>
       <Button label="Full-screen warm-up" variant="secondary" onPress={() => router.push('/warmup')} />
     </View>

@@ -17,6 +17,7 @@ import {THEME_FINISHES,STRIKE_FINISHES} from '@workspace/goldrush-catalog/cosmet
 import {useReducedMotion} from '@/hooks/useReducedMotion';
 import { getSettings } from '@/hooks/useSettings';
 import { paddleInput } from '@/utils/arenaGeometry';
+import { useBrowserCourt } from '@/hooks/useBrowserCourt';
 
 export type LiveMatchViewProps = {
   room: LiveRoom | null;
@@ -114,7 +115,7 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
   useEffect(() => { if (me) posRef.current = me.paddle; }, [me?.paddle]);
   const onMoveRef = useRef(onMove); onMoveRef.current = onMove;
   const ctrlRef = useRef({ horizontal, scale, enabled: false });
-  ctrlRef.current = { horizontal, scale, enabled: phase === 'playing' && !!me && me.lives > 0 };
+  ctrlRef.current = { horizontal, scale, enabled: phase === 'playing' && !!me && me.lives > 0 && !confirmLeave && connection === 'connected' };
   const startRef = useRef(500);
   const send = (v: number) => { const c = Math.round(clampPaddle(v)); posRef.current = c; onMoveRef.current(c); };
   const pan = useMemo(() => PanResponder.create({
@@ -126,12 +127,16 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
       startRef.current = v; send(paddleInput(v, COURT, PADDLE_LEN, getSettings().sensitivity));
     },
     onPanResponderMove: (_e, g) => {
+      if (!ctrlRef.current.enabled) return;
       const { horizontal: h, scale: s } = ctrlRef.current;
       send(paddleInput(startRef.current + (h ? g.dx : g.dy) / s, COURT, PADDLE_LEN, getSettings().sensitivity));
     },
     onPanResponderTerminationRequest: () => false,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
+  const browserCourt = useBrowserCourt(ctrlRef.current.enabled, (x, y) => {
+    if (ctrlRef.current.enabled) send(paddleInput((ctrlRef.current.horizontal ? x : y) * COURT, COURT, PADDLE_LEN, getSettings().sensitivity));
+  });
   const nudge = (dir: -1 | 1) => { if (ctrlRef.current.enabled) send(posRef.current + dir * KEY_STEP * getSettings().sensitivity); };
 
   useEffect(() => {
@@ -253,7 +258,7 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
             );
           })}
         </View>
-        <Text style={s.note}>Online matches cannot pause. {room?.mode === 'ranked' ? 'Ranked waits for four real players.' : 'After a wait, empty seats may be filled by players marked AI.'} Equal lives and paddles; bank lives and relic bonuses are not used.</Text>
+        <Text style={s.note}>Online matches cannot pause. {room?.mode === 'ranked' ? 'Ranked waits for four real players.' : 'After 5 seconds, eligible empty seats are filled by players marked AI. Reserved party seats wait for their members.'} Equal lives and paddles; bank lives and relic bonuses are not used.</Text>
         {room?.mode === 'ranked' && waitedMs >= CASUAL_OFFER_MS ? (
           <View style={s.panel}>
             <Text style={s.body}>Ranked queue is slow in {room.region}. Casual usually fills faster and does not change rating.</Text>
@@ -287,7 +292,7 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
             );
           })}
         </View>
-        <View testID="live-court" {...pan.panHandlers} accessibilityLabel={`Court. You defend the ${SEAT_NAMES[seat]} edge. Drag ${horizontal ? 'left and right' : 'up and down'} to move.`}
+        <View ref={browserCourt} testID="live-court" {...(isWeb ? {} : pan.panHandlers)} accessibilityLabel={`Court. You defend the ${SEAT_NAMES[seat]} edge. Drag ${horizontal ? 'left and right' : 'up and down'} to move.`}
           style={[s.court, { width: size, height: size,backgroundColor:theme.floor }]}>
           {theme.motif==='rings'?[0.3,0.5,0.7].map(n=><View key={n} pointerEvents="none" style={{position:'absolute',width:size*n,height:size*n,top:size*(1-n)/2,left:size*(1-n)/2,borderRadius:999,borderWidth:1,borderColor:theme.line,opacity:0.15}}/>):null}
           {theme.motif==='lines'?[1,2,3,4,5,6,7].map(n=><View key={n} pointerEvents="none" style={{position:'absolute',left:0,right:0,top:size*n/8,height:1,backgroundColor:theme.line,opacity:0.15}}/>):null}
