@@ -48,6 +48,10 @@
         }
       ],
       "expo-web-browser",
+      ["expo-notifications", {
+        "defaultChannel": "goldrush-event-reminders",
+        "enableBackgroundRemoteNotifications": false
+      }],
       [
         "expo-audio",
         {

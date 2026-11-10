@@ -47,6 +47,7 @@ export default function SettingsScreen() {
   const reducedMotion = useReducedMotion();
   const [practiceOpen, setPracticeOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
   const [practiceKey, setPracticeKey] = useState(0);
   const { width } = useWindowDimensions();
   const practiceSize = Math.min(width - 64, 320);
@@ -55,13 +56,17 @@ export default function SettingsScreen() {
   const topPad = Platform.OS === 'web' ? Math.max(safe.top, 67) : safe.top;
 
   function handleLogout() {
+    const signOut = () => {
+      setLogoutError(null);
+      void logout().catch(() => setLogoutError('Could not complete sign-out or cancel pending phone reminders. Retry, or turn off GoldRush notifications in your phone settings.'));
+    };
     if (Platform.OS === 'web') {
-      if (window.confirm('Sign out? You will be returned to the login screen.')) logout();
+      if (window.confirm('Sign out? You will be returned to the login screen.')) signOut();
       return;
     }
     Alert.alert('Sign Out', 'You will be returned to the login screen.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: () => logout() },
+      { text: 'Sign Out', style: 'destructive', onPress: signOut },
     ]);
   }
 
@@ -127,6 +132,7 @@ export default function SettingsScreen() {
               </View>
             </View>
             <View style={s.divider} />
+            {logoutError ? <Text accessibilityRole="alert" style={[s.rowSub, { padding: 14 }]}>{logoutError}</Text> : null}
             <Pressable onPress={handleLogout} style={s.row}>
               <View style={[s.rowIcon, { backgroundColor: palette.surface }]}>
                 <Feather name="log-out" size={18} color={palette.foreground} />
@@ -141,6 +147,22 @@ export default function SettingsScreen() {
         </View>
 
         {/* ── Audio ── */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>EVENT REMINDERS</Text>
+          <View style={s.card}>
+            <Pressable testID="open-event-notifications" accessibilityRole="button"
+              accessibilityLabel="Event notification settings" style={s.row}
+              onPress={() => router.push('/(tabs)/events')}>
+              <View style={s.rowIcon}><Feather name="bell" size={18} color={palette.primary} /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.rowTitle}>Phone event reminders</Text>
+                <Text style={s.rowSub}>Installed app: allow alerts, choose events and set how early to be reminded. Browser: in-app reminders only.</Text>
+              </View>
+              <Feather name="chevron-right" size={18} color={palette.supporting} />
+            </Pressable>
+          </View>
+        </View>
+
         <View style={s.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={s.sectionTitle}>AUDIO</Text>

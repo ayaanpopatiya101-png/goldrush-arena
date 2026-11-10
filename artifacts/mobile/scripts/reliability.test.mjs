@@ -72,6 +72,10 @@ test('unavailable sharing exits before claiming rewards', async () => {
 test('native Shop loads and renders its unavailable store without a server address', async () => {
   const require = createRequire(import.meta.url);
   const ts = require('typescript');
+  const colors = {};
+  vm.runInNewContext(ts.transpileModule(await source('constants/colors.ts'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS },
+  }).outputText, { exports: colors });
   const shop = await source('app/(tabs)/shop.tsx');
   const code = ts.transpileModule(shop, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, esModuleInterop: true },
@@ -103,6 +107,7 @@ test('native Shop loads and renders its unavailable store without a server addre
       'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
       '@/hooks/useFocusAnimation': { useFocusAnimation: () => ({ opacity: 1 }) },
       '@/hooks/useColors': { useColors: () => new Proxy({}, { get: () => '#16171A' }) },
+      '@/constants/colors': colors,
       '@/constants/season': { CURRENT_SEASON: { number: 1, label: 'Season 1' } },
       '@/context/PlayerContext': { SKINS: [{ id: 'classic', color: '#C99A2E', glowColor: '#C99A2E' }], getRankIndex: () => 0, usePlayer: () => ({ profile }) },
       '@/lib/revenuecat': { useRevenueCat: () => ({ available: false, isLoading: false, getPackage: () => null }) },

@@ -1,7 +1,10 @@
 // Product disclosures, not a legal opinion. Owner review is a release gate.
-export const PRIVACY_POLICY = `Updated 8 November 2026 · Pre-release disclosure
+export const PRIVACY_POLICY = `Updated 9 November 2026 · Pre-release disclosure
 
 This describes the current GoldRush Arena build. The publisher must confirm its legal identity, support contact, retention rules and public policy URL before public release. This text is not a claim of legal compliance.
+
+Optional event notifications
+In the installed iPhone/Android app, you can allow local device notifications, select open events and set how long before closing to be reminded. Permission is requested only when you enable them. Event choices, lead time and a random reminder identifier are stored locally; no phone number or remote push token is collected for this feature. The operating system stores upcoming notification times. Turn reminders off or clear them in Events; signing out cancels pending alerts, and deleting a profile removes its saved reminder settings. Notification text can appear on your lock screen. Device settings and Focus may delay or hide alerts. Reopen Events for new windows or timezone changes; later event changes cannot cancel an alert while the app remains closed. Browser reminders remain in-app only; SMS and background browser push are not enabled.
 
 1. Progress on your device
 Your chosen player name, avatar selection, progress, inventory, purchase fulfillment records, settings and saved match clips are stored locally. These are device profiles, not authenticated cloud accounts. Signing out does not delete a profile. Removing app data can erase progress and locally saved clips. There is no general cloud-save recovery.

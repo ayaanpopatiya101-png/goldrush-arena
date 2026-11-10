@@ -6,7 +6,7 @@ import { fonts, textScale } from '@/constants/typography';
 import * as Haptics from '@/utils/haptics';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { AccessibilityInfo, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -20,6 +20,8 @@ import {
 } from '@/store/gameSession';
 import { FEATURED_MODES, useFeaturedModeCountdown, type FeaturedMode } from '@/utils/featuredModes';
 import { deviceTimeZone, fmtLocal, fmtSpan, localChallengeWindow, scheduleWindow, useEventPrefs } from '@/utils/eventPrefs';
+import { EventNotificationPanel } from '@/components/EventNotificationPanel';
+import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 
 const MIN_RANK = RANKS[EVENT_MIN_RANK_INDEX];
 const MIN_RANK_NAME = MIN_RANK?.name ?? 'Master 1';
@@ -135,8 +137,10 @@ export default function EventsScreen() {
         </View>
       )}
 
-      <ScrollView contentContainerStyle={{ paddingTop: 4, paddingBottom: insets.bottom + 144 }} showsVerticalScrollIndicator={false}>
+      <KeyboardAwareScrollViewCompat bottomOffset={100} keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingTop: 4, paddingBottom: insets.bottom + 144 }} showsVerticalScrollIndicator={false}>
         <Shell style={{ gap: 18 }}>
+          <EventNotificationPanel />
           {isInParty && (
             <Panel style={[s.pad, s.partyBar]}>
               <Feather name="users" size={20} color={palette.foreground} />
@@ -305,7 +309,7 @@ export default function EventsScreen() {
             </Panel>
           </View>
         </Shell>
-      </ScrollView>
+      </KeyboardAwareScrollViewCompat>
     </View>
   );
 }

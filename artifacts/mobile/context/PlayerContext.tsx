@@ -10,6 +10,7 @@ import { canClaimSeasonTier, seasonSkinForMilestone } from '@/utils/seasonReward
 import { getLiveResult } from '@workspace/api-client-react';
 import { arenaRequestOptions, retireArenaProfile } from '@/utils/arenaSession';
 import { clearAvatarState } from '@/hooks/useAvatar';
+import { eventNotificationScheduler, phoneReminderStorageKey } from '@/utils/eventNotificationScheduler';
 
 // ─── Ranks & Skins ────────────────────────────────────────────────────────────
 // 20 ranks: Bronze/Silver/Gold/Diamond/Master (×3 each) + Champion (×5, top-100 leaderboard)
@@ -819,19 +820,24 @@ export async function loginAccount(username: string, avatarEmoji: string, avatar
 }
 
 export async function logoutAccount(): Promise<void> {
+  // Do not report sign-out success while this feature's alerts remain queued.
+  await eventNotificationScheduler.cancelAll();
   await AsyncStorage.removeItem(CURRENT_KEY);
 }
 
 export async function deleteAccount(username: string): Promise<void> {
+  const current = await AsyncStorage.getItem(CURRENT_KEY);
+  if (current === username) await eventNotificationScheduler.cancelAll();
   await retireArenaProfile(username);
   clearAvatarState(username);
   const accounts = await getSavedAccounts();
   const filtered = accounts.filter(a => a.username !== username);
   await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(filtered));
-  const current = await AsyncStorage.getItem(CURRENT_KEY);
   if (current === username) await AsyncStorage.removeItem(CURRENT_KEY);
   const KEY = `@goldrush_v3_${username}`;
   await AsyncStorage.removeItem(KEY);
+  const reminders = phoneReminderStorageKey(username);
+  await AsyncStorage.multiRemove([reminders, `${reminders}.owner`]);
 }
 
 export async function getLoggedInUser(): Promise<string | null> {

@@ -58,7 +58,7 @@ async function court(options = {}) {
     '@/utils/arenaGeometry': { collisionSteps, paddleInput },
     '@/utils/courtInput': { canMovePaddle, clampPaddle, clampPaddleRange },
     '@/components/ui/idleAnimation': { idleAnimation },
-    '@/constants/colors': { PLAYER_COLORS: ['a', 'b', 'c', 'd'] },
+    '@/constants/colors': { PLAYER_COLORS: ['a', 'b', 'c', 'd'], palette: new Proxy({}, { get: () => '#101410' }) },
   };
   vm.runInNewContext(code, {
     exports, require: id => modules[id] ?? generic, __capture: data => { captured = data; },

@@ -22,6 +22,7 @@ import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { initializeRevenueCat, RevenueCatProvider } from '@/lib/revenuecat';
 import { clearCompletedMatch } from '@/store/completedMatch';
 import { OverlayQueueProvider } from '@/context/OverlayQueue';
+import { EventReminderProvider } from '@/context/EventReminderContext';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initializeRevenueCat();
@@ -142,7 +143,7 @@ export default function RootLayout() {
               <PartyProvider>
               <GestureHandlerRootView style={{ flex: 1 }}>
                 <KeyboardProvider>
-                  <OverlayQueueProvider><PlayerEntry /></OverlayQueueProvider>
+                  <EventReminderProvider><OverlayQueueProvider><PlayerEntry /></OverlayQueueProvider></EventReminderProvider>
                 </KeyboardProvider>
               </GestureHandlerRootView>
               </PartyProvider>
