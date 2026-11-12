@@ -32,9 +32,9 @@ export function EventNotificationPanel() {
       </View>
       {!reminder.supported ? <>
         <Text style={s.body}>Phone alerts are available in the installed iPhone or Android app. This browser version does not send background or Home Screen notifications.</Text>
-        <Text style={s.fine}>Keep using the in-app reminder buttons below. No phone number is needed. SMS and browser push are not enabled.</Text>
+        <Text style={s.fine}>Keep using the in-app reminder buttons below. No phone number is needed here. Browser push is unavailable; text reminders are a separate optional SMS channel below.</Text>
       </> : <>
-        <Text style={s.body}>Choose open events and get a device notification before they close. No phone number, SMS or marketing messages.</Text>
+        <Text style={s.body}>Choose open events and get a device notification before they close. No phone number or marketing messages. Text reminders are a separate optional SMS channel.</Text>
         <Text style={s.fine}>Uses the local event calendar shown here. Only the upcoming alerts listed below are scheduled; reopen Events for new windows or timezone changes. Focus, device settings and battery restrictions can delay or hide alerts.</Text>
         <Button
           label={reminder.prefs.enabled ? 'Turn phone reminders off' : 'Allow phone reminders'}

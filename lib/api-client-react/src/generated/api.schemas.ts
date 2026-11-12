@@ -5,6 +5,112 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type SmsReminderInputSource = typeof SmsReminderInputSource[keyof typeof SmsReminderInputSource];
+
+
+export const SmsReminderInputSource = {
+  events: 'events',
+  settings: 'settings',
+} as const;
+
+export interface SmsReminderInput {
+  enabled: boolean;
+  /** @maxItems 10 */
+  eventIds: string[];
+  /**
+     * @minimum 5
+     * @maximum 10080
+     */
+  leadMinutes: number;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  timezone: string;
+  source: SmsReminderInputSource;
+  /** @minimum 0 */
+  expectedRevision: number;
+  /** @maxLength 50 */
+  consentVersion?: string;
+  consent?: boolean;
+  adultConfirmed?: boolean;
+}
+
+export interface SmsVerificationInput {
+  /**
+     * @minLength 7
+     * @maxLength 32
+     */
+  phone: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  timezone: string;
+  verificationConsent: true;
+  adultConfirmed: true;
+}
+
+export interface SmsCodeInput {
+  /** @pattern ^[0-9]{6}$ */
+  code: string;
+}
+
+export interface SmsReminderEvent {
+  id: string;
+  name: string;
+  available: boolean;
+  reason: string;
+  /** @nullable */
+  closesAt: string | null;
+}
+
+export type SmsReminderDeliveryStatus = typeof SmsReminderDeliveryStatus[keyof typeof SmsReminderDeliveryStatus];
+
+
+export const SmsReminderDeliveryStatus = {
+  pending: 'pending',
+  sending: 'sending',
+  unknown: 'unknown',
+  queued: 'queued',
+  sent: 'sent',
+  delivered: 'delivered',
+  failed: 'failed',
+  cancelled: 'cancelled',
+  skipped: 'skipped',
+} as const;
+
+export interface SmsReminderDelivery {
+  id: string;
+  eventId: string;
+  fireAt: string;
+  closesAt: string;
+  status: SmsReminderDeliveryStatus;
+}
+
+export interface SmsReminderState {
+  verificationAvailable: boolean;
+  remindersAvailable: boolean;
+  blockers: string[];
+  consentText: string;
+  consentVersion: string;
+  revision: number;
+  hasNumber: boolean;
+  /** @nullable */
+  maskedNumber: string | null;
+  verified: boolean;
+  suppressed: boolean;
+  verificationPending: boolean;
+  enabled: boolean;
+  eventIds: string[];
+  leadMinutes: number;
+  timezone: string;
+  /** @nullable */
+  consentedAt: string | null;
+  events: SmsReminderEvent[];
+  deliveries: SmsReminderDelivery[];
+}
+
 export type PaddleDesignMotif = typeof PaddleDesignMotif[keyof typeof PaddleDesignMotif];
 
 

@@ -11,6 +11,83 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /sms-reminders:
+    get:
+      operationId: getSmsReminders
+      responses:
+        "200":
+          description: Private SMS preferences and release gates
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SmsReminderState" }
+    put:
+      operationId: saveSmsReminders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SmsReminderInput" }
+      responses:
+        "200":
+          description: Saved preferences and current schedules
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SmsReminderState" }
+    delete:
+      operationId: removeSmsNumber
+      responses:
+        "200":
+          description: Number removed and pending texts cancelled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SmsReminderState" }
+  /sms-reminders/verification:
+    post:
+      operationId: requestSmsVerification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SmsVerificationInput" }
+      responses:
+        "200":
+          description: Verification requested, not recurring consent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SmsReminderState" }
+  /sms-reminders/verification/check:
+    post:
+      operationId: checkSmsVerification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SmsCodeInput" }
+      responses:
+        "200":
+          description: Verified ownership only
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SmsReminderState" }
+  /sms-reminders/cancel:
+    post:
+      operationId: cancelSmsReminders
+      responses:
+        "204": { description: Consent withdrawn and pending texts cancelled }
+  /sms-reminders/provider/status:
+    post:
+      operationId: smsProviderStatus
+      description: Twilio signed form callback; not a player endpoint.
+      responses:
+        "204": { description: Accepted authenticated status }
+        "403": { description: Invalid signature }
+  /sms-reminders/provider/inbound:
+    post:
+      operationId: smsProviderInbound
+      description: Twilio signed form callback for STOP, START and HELP. No client may assert opt-in.
+      responses:
+        "200": { description: TwiML response; provider manages approved keyword replies }
+        "403": { description: Invalid signature }
   /cosmetics:
     get:
       operationId: getCosmetics
@@ -263,6 +340,75 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    SmsReminderInput:
+      type: object
+      additionalProperties: false
+      required: [enabled, eventIds, leadMinutes, timezone, source, expectedRevision]
+      properties:
+        enabled: { type: boolean }
+        eventIds: { type: array, maxItems: 10, uniqueItems: true, items: { type: string, maxLength: 80 } }
+        leadMinutes: { type: integer, minimum: 5, maximum: 10080 }
+        timezone: { type: string, minLength: 1, maxLength: 80 }
+        source: { type: string, enum: [events, settings] }
+        expectedRevision: { type: integer, minimum: 0 }
+        consentVersion: { type: string, maxLength: 50 }
+        consent: { type: boolean }
+        adultConfirmed: { type: boolean }
+    SmsVerificationInput:
+      type: object
+      additionalProperties: false
+      required: [phone, timezone, verificationConsent, adultConfirmed]
+      properties:
+        phone: { type: string, minLength: 7, maxLength: 32 }
+        timezone: { type: string, minLength: 1, maxLength: 80 }
+        verificationConsent: { type: boolean, enum: [true] }
+        adultConfirmed: { type: boolean, enum: [true] }
+    SmsCodeInput:
+      type: object
+      additionalProperties: false
+      required: [code]
+      properties:
+        code: { type: string, pattern: "^[0-9]{6}$" }
+    SmsReminderEvent:
+      type: object
+      required: [id, name, available, reason, closesAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        available: { type: boolean }
+        reason: { type: string }
+        closesAt: { type: [string, "null"] }
+    SmsReminderDelivery:
+      type: object
+      required: [id, eventId, fireAt, closesAt, status]
+      properties:
+        id: { type: string }
+        eventId: { type: string }
+        fireAt: { type: string }
+        closesAt: { type: string }
+        status: { type: string, enum: [pending, sending, unknown, queued, sent, delivered, failed, cancelled, skipped] }
+    SmsReminderState:
+      type: object
+      required: [verificationAvailable, remindersAvailable, blockers, consentText, consentVersion, hasNumber, maskedNumber, verified, suppressed, verificationPending, enabled, eventIds, leadMinutes, timezone, consentedAt, events, deliveries, revision]
+      properties:
+        verificationAvailable: { type: boolean }
+        remindersAvailable: { type: boolean }
+        blockers: { type: array, items: { type: string } }
+        consentText: { type: string }
+        consentVersion: { type: string }
+        revision: { type: integer }
+        hasNumber: { type: boolean }
+        maskedNumber: { type: [string, "null"] }
+        verified: { type: boolean }
+        suppressed: { type: boolean }
+        verificationPending: { type: boolean }
+        enabled: { type: boolean }
+        eventIds: { type: array, items: { type: string } }
+        leadMinutes: { type: integer }
+        timezone: { type: string }
+        consentedAt: { type: [string, "null"] }
+        events: { type: array, items: { $ref: "#/components/schemas/SmsReminderEvent" } }
+        deliveries: { type: array, items: { $ref: "#/components/schemas/SmsReminderDelivery" } }
     PaddleDesign:
       type: object
       required: [id, name, motif, base, ink, accent, density, texture]

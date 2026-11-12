@@ -31,7 +31,7 @@ app.use(
   pinoHttp({
     logger,
     serializers: {
-      req(req) { return { id: req.id, method: req.method, url: req.url?.split("?")[0] }; },
+      req(req) { return { id: req.id, method: req.method, url: req.url?.startsWith("/api/sms-reminders") ? "/api/sms-reminders" : req.url?.split("?")[0] }; },
       res(res) { return { statusCode: res.statusCode }; },
     },
   }),
@@ -39,6 +39,10 @@ app.use(
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/api/sms-reminders", (_error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  // Body-parser errors can echo submitted JSON, including a phone or OTP.
+  res.status(400).json({ error: "Invalid SMS request." });
+});
 
 app.use("/api", router);
 

@@ -22,5 +22,16 @@ lock-screen delivery as separate evidence.
 tests cannot exercise native notification permission or system presentation.
 
 **How to apply:** Require an installed-device check before claiming actual phone
-delivery. Event schedules are device-local and reconcile when the app reopens;
-they are not a cloud cancellation or remote update service.
+delivery. Native local notification schedules are device-local and reconcile
+when the app reopens; they are not a cloud cancellation or remote update service.
+SMS requires its own durable server schedule and an approved always-on worker,
+not an open app or an HTTP service that can scale to zero.
+
+Preserve keyed SMS suppression through encryption/session-key rotation.
+
+**Why:** A deleted profile can still correspond to a legally suppressed recipient.
+Losing the old suppression key must not make that number eligible for recontact.
+
+**How to apply:** Treat key changes as an encryption-and-suppression migration,
+not routine session cleanup; keep sending disabled if old suppression cannot be
+matched safely.

@@ -8,6 +8,7 @@ import { ObjectStorageService, ObjectNotFoundError, objectStorageClient } from "
 import { RequestAvatarUploadBody, CommitAvatarBody, ShareAvatarBody } from "@workspace/api-zod";
 import { rooms } from "../lib/arenaService.js";
 import { logger } from "../lib/logger.js";
+import { removeSmsInTransaction, smsTransaction } from "../lib/smsService.js";
 
 const router: IRouter = Router();
 const storage = new ObjectStorageService();
@@ -172,9 +173,10 @@ router.patch("/multiplayer/avatar", async (req, res) => {
 });
 router.post("/multiplayer/avatar/retire", async(_req,res)=>{
   const p=res.locals.arenaPlayer;
-  const previous=await db.transaction(async tx=>{
+  const previous=await smsTransaction(async tx=>{
     const [current]=await tx.select().from(arenaPlayers).where(eq(arenaPlayers.id,p.id)).for("update");
     if(current!.tokenHash!==p.tokenHash)throw new Error("Player retired");
+    await removeSmsInTransaction(tx, p.id);
     if(current!.avatarId)await tx.insert(avatarUploads).values({id:current!.avatarId,playerId:p.id,objectPath:`/objects/avatars/${current!.avatarId}.jpg`,createdAt:new Date(0)}).onConflictDoNothing();
     await tx.update(arenaPlayers).set({avatarId:null,avatarShared:false,cosmetics:{},tokenHash:randomUUID()}).where(eq(arenaPlayers.id,p.id));
     // Keep original staging timestamps: legacy signed URLs must expire before
