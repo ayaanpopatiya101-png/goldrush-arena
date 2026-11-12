@@ -30,6 +30,6 @@ export const modules: ModuleMap = {
   "./components/mockups/warm-palette-study/EspressoPistachio.tsx": () => import("../components/mockups/warm-palette-study/EspressoPistachio.tsx"),
   "./components/mockups/warm-palette-study/OatCobalt.tsx": () => import("../components/mockups/warm-palette-study/OatCobalt.tsx"),
   "./components/mockups/warm-palette-study/TerracottaPetrol.tsx": () => import("../components/mockups/warm-palette-study/TerracottaPetrol.tsx"),
-  "./components/mockups/templates/MissionControlBentoDashboard-bYWdOB/Dashboard.tsx": () => import("../components/mockups/templates/MissionControlBentoDashboard-bYWdOB/Dashboard.tsx"),
-  "./components/mockups/templates/MissionControlBentoDashboard--urtw3/Dashboard.tsx": () => import("../components/mockups/templates/MissionControlBentoDashboard--urtw3/Dashboard.tsx")
+  "./components/mockups/templates/MissionControlBentoDashboard--urtw3/Dashboard.tsx": () => import("../components/mockups/templates/MissionControlBentoDashboard--urtw3/Dashboard.tsx"),
+  "./components/mockups/templates/MissionControlBentoDashboard-bYWdOB/Dashboard.tsx": () => import("../components/mockups/templates/MissionControlBentoDashboard-bYWdOB/Dashboard.tsx")
 };
