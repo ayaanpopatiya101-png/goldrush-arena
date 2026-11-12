@@ -75,3 +75,19 @@ Alternative palette studies are exploration, not approval to replace Carbon + Li
 **Why:** The user explicitly reaffirmed this while requesting Profile and progression polish.
 
 **How to apply:** Keep the approved palette for production screens unless the user explicitly approves a replacement.
+
+## Newest full-app screenshot direction
+
+The user explicitly asked to apply the supplied Entry/Welcome and Main Lobby
+screenshot throughout the app: dark slate surfaces, lighter raised panels, bright
+green actions, gold rewards, tactile rounded controls, blended 3D effects and
+smooth transitions.
+
+**Why:** This is a new direct full-app design request, not an alternative palette
+study. It supersedes conflicting earlier materials, including the blanket ban on
+soft corner radii. The design-tool dot grid and illustrative statistics are not
+product UI or real data.
+
+**How to apply:** Match that coherent visual language across actual app routes,
+retain real gameplay and truthful data, and honor reduced-motion and accessibility
+requirements. Do not replace purchased cosmetics merely to match a palette.

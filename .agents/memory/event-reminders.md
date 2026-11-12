@@ -1,18 +1,19 @@
 ---
 name: Event reminder scope
-description: SMS is deferred; native scheduled local notifications are the approved first delivery, not browser push.
+description: US-only SMS is now requested first; native local notifications remain separate from browser push.
 ---
 
-Defer texting. The user said to do it later and approved either native or browser
-phone notifications if supporting both is not feasible.
+The user originally deferred texting, but now explicitly requests the SMS feature
+before the next app upgrades: “United States first then plan out how to do other
+countries and what will stop us from doing that.”
 
-**Why:** The user declined the SMS connection and explicitly accepted “either
-or” for notification platform coverage.
+**Why:** The user's latest request supersedes the earlier SMS deferral.
 
-**How to apply:** Do not reconnect an SMS provider or collect phone numbers
-without a new user request. Native-first scheduled local notifications are the
-chosen delivery; preserve browser in-app reminders and never imply that installing
-the website automatically enables background browser push.
+**How to apply:** Plan/build US-only, optional verified SMS reminders first, with
+an international readiness/blocker plan. Connect the provider through the secure
+integration flow; provider connection is not permission to buy numbers or send
+test messages. Preserve native local and browser in-app reminders as separate
+channels. Never imply that installing the website automatically enables Web Push.
 
 Treat native notification exports, mocked OS scheduling checks and real
 lock-screen delivery as separate evidence.
