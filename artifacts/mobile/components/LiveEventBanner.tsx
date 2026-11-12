@@ -154,23 +154,23 @@ const cd = StyleSheet.create({
 });
 
 const tk = StyleSheet.create({
-  wrap:     { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: palette.inset, borderRadius: 3, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10 },
-  liveBadge:{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: palette.danger + '22', borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
-  liveDot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: palette.danger },
+  wrap:     { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: palette.inset, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10 },
+  liveBadge:{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: palette.danger + '22', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 },
+  liveDot:  { width: 6, height: 6, borderRadius: 8, backgroundColor: palette.danger },
   liveText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: palette.danger, letterSpacing: 1 },
   news:     { flex: 1, fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: palette.supporting },
 });
 
 const styles = StyleSheet.create({
   container:    { paddingHorizontal: 16, marginBottom: 14, gap: 0 },
-  card:         { borderRadius: 3, overflow: 'hidden', padding: 16, borderWidth: 1, gap: 10 },
-  cornerGlow:   { position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: 3 },
+  card:         { borderRadius: 8, overflow: 'hidden', padding: 16, borderWidth: 1, gap: 10 },
+  cornerGlow:   { position: 'absolute', right: -20, top: -20, width: 100, height: 100, borderRadius: 8 },
 
   topRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  modeBadge:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1 },
+  modeBadge:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1 },
   modeBadgeText:{ fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 1 },
-  liveChip:     { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: palette.primary + '18', borderRadius: 3, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: palette.primary + '33' },
-  liveDot:      { width: 5, height: 5, borderRadius: 3, backgroundColor: palette.primary },
+  liveChip:     { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: palette.primary + '18', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: palette.primary + '33' },
+  liveDot:      { width: 5, height: 5, borderRadius: 8, backgroundColor: palette.primary },
   liveText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 8, color: palette.primary, letterSpacing: 0.8 },
 
   midRow:       { flexDirection: 'row', alignItems: 'center', gap: 10 },

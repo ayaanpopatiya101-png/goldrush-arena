@@ -77,7 +77,7 @@ const s = StyleSheet.create({
   back: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, alignSelf: 'flex-start', paddingRight: 12 },
   backText: { fontFamily: fonts.bodySemiBold, fontSize: 16, color: palette.foreground },
   tabRow: { flexDirection: 'row', gap: 8 },
-  tab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: palette.border, borderRadius: 3 },
+  tab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: palette.border, borderRadius: 8 },
   tabOn: { borderColor: palette.edge, backgroundColor: palette.ochre },
   tabText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.supporting },
   tabTextOn: { color: palette.foreground },

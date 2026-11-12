@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     right: 16,
     width: 44,
     height: 44,
-    borderRadius: 3,
+    borderRadius: 8,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingVertical: 16,
-    borderRadius: 3,
+    borderRadius: 8,
     paddingHorizontal: 24,
     minWidth: 200,
     shadowColor: palette.background,
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     width: "100%",
-    borderRadius: 0,
+    borderRadius: 10,
     overflow: "hidden",
     padding: 16,
   },

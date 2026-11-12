@@ -1,14 +1,41 @@
 // Shared flat primitives for GoldRush Arena: moss plates on carbon, light type, lime action with dark ink.
 import { Feather } from '@expo/vector-icons';
-import React from 'react';
-import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
+import React, { useRef } from 'react';
+import { ActivityIndicator, Animated, Easing, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 
 import { palette, tactile } from '@/constants/colors';
 import { fonts, textScale } from '@/constants/typography';
 import { BrandMark } from '@/components/ui/BrandMark';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+
+const OUTER_KEYS = ['flex', 'flexGrow', 'flexShrink', 'flexBasis', 'alignSelf', 'width', 'maxWidth', 'minWidth', 'margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'marginHorizontal', 'marginVertical', 'position', 'top', 'left', 'right', 'bottom', 'zIndex'] as const;
+/** Layout props go to the animated wrapper; visual props stay on the plate. */
+function splitLayout(style?: StyleProp<ViewStyle>) {
+  const flat = (StyleSheet.flatten(style) ?? {}) as Record<string, unknown>;
+  const outer: Record<string, unknown> = {};
+  const inner: Record<string, unknown> = {};
+  for (const k of Object.keys(flat)) ((OUTER_KEYS as readonly string[]).includes(k) ? outer : inner)[k] = flat[k];
+  if (outer.width != null || outer.flex != null || outer.flexGrow != null || outer.alignSelf === 'stretch') inner.flexGrow = 1;
+  return { outer: outer as ViewStyle, inner: inner as ViewStyle };
+}
+
+/** Short physical press: plate sinks into its edge (90ms in, 140ms out). Instant under reduced motion. */
+export function usePressSink(depth = 3) {
+  const reduced = useReducedMotion();
+  const v = useRef(new Animated.Value(0)).current;
+  const to = (n: number, ms: number) => {
+    if (reduced) { v.setValue(n); return; }
+    Animated.timing(v, { toValue: n, duration: ms, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+  };
+  return {
+    onPressIn: () => to(1, 90),
+    onPressOut: () => to(0, 140),
+    style: { transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [0, depth] }) }] },
+  };
+}
 
 export const ui = palette;
-export const R = 0;
+export const R = 12;
 
 export function Panel({ children, style, tone = 'base' }: { children?: React.ReactNode; style?: StyleProp<ViewStyle>; tone?: 'base' | 'raised' | 'outline' | 'paper' | 'brass' }) {
   return (
@@ -49,11 +76,16 @@ type BtnProps = {
 };
 
 export function Button({ label, onPress, variant = 'primary', icon, disabled, loading, size = 'md', style, testID, accessibilityHint }: BtnProps) {
+  const sink = usePressSink(3);
+  const { outer, inner } = splitLayout(style);
   const fg = disabled && !loading ? palette.muted : variant === 'primary' ? palette.onAccent : variant === 'secondary' ? palette.foreground : variant === 'danger' ? palette.gold : palette.foreground;
   return (
+    <Animated.View style={[outer, sink.style]}>
     <Pressable
       testID={testID}
       onPress={onPress}
+      onPressIn={sink.onPressIn}
+      onPressOut={sink.onPressOut}
       disabled={disabled || loading}
       accessibilityRole="button"
       accessibilityLabel={label}
@@ -65,18 +97,19 @@ export function Button({ label, onPress, variant = 'primary', icon, disabled, lo
         p.btn,
         size === 'lg' && p.btnLg,
         size === 'sm' && p.btnSm,
-        variant === 'primary' && { backgroundColor: palette.primary, borderColor: palette.edge },
+        variant === 'primary' && { backgroundColor: palette.primary, borderColor: '#4E9A2A' },
         pressed && !(disabled || loading) && p.btnPressed,
-        variant === 'secondary' && { backgroundColor: pressed ? palette.raised : palette.surface, borderColor: palette.edge },
+        variant === 'secondary' && { backgroundColor: pressed ? palette.surface : palette.raised, borderColor: palette.border, borderBottomColor: palette.edge },
         variant === 'ghost' && { backgroundColor: pressed ? palette.raised : 'transparent', borderColor: palette.border },
         variant === 'danger' && { backgroundColor: pressed ? palette.raised : palette.inset, borderColor: palette.gold },
         (disabled && !loading) && { backgroundColor: palette.inset, borderColor: palette.border, borderBottomWidth: 2 },
-        style,
+        inner,
       ]}
     >
       {loading ? <ActivityIndicator size="small" color={fg} /> : icon ? <Feather name={icon} size={size === 'lg' ? 20 : 15} color={fg} /> : null}
       <Text style={[p.btnText, size === 'lg' && p.btnTextLg, size === 'sm' && p.btnTextSm, { color: disabled && !loading ? palette.muted : fg }]}>{label}</Text>
     </Pressable>
+    </Animated.View>
   );
 }
 
@@ -99,38 +132,43 @@ export function Stat({ label, value, style, valueStyle }: { label: string; value
 }
 
 export function IconButton({ icon, onPress, label, style }: { icon: React.ComponentProps<typeof Feather>['name']; onPress?: () => void; label: string; style?: StyleProp<ViewStyle> }) {
+  const sink = usePressSink(2);
   return (
+    <Animated.View style={sink.style}>
     <Pressable
       onPress={onPress}
+      onPressIn={sink.onPressIn}
+      onPressOut={sink.onPressOut}
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={0}
-      style={({ pressed }) => [p.iconBtn, pressed && { backgroundColor: palette.raised, borderBottomWidth: 2, transform: [{ translateY: 2 }] }, style]}
+      style={({ pressed }) => [p.iconBtn, pressed && { backgroundColor: palette.surface, borderBottomWidth: 2 }, style]}
     >
       <Feather name={icon} size={18} color={palette.foreground} />
     </Pressable>
+    </Animated.View>
   );
 }
 
 const p = StyleSheet.create({
-  panel: { backgroundColor: palette.surface, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, borderRadius: R },
+  panel: { backgroundColor: palette.surface, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge, borderRadius: R + 4 },
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   sectionTitle: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.4, color: palette.foreground, textTransform: 'uppercase' },
   sectionRule: { flex: 1, height: 1, backgroundColor: palette.line },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 2, borderBottomWidth: 5, borderRadius: R, minHeight: 48, paddingHorizontal: 16 },
   // Instant press feedback, without an animated transition.
-  btnPressed: { borderBottomWidth: 2, transform: [{ translateY: 3 }] },
+  btnPressed: { borderBottomWidth: 2 },
   btnLg: { minHeight: 60, paddingHorizontal: 20 },
   btnSm: { minHeight: 44, paddingHorizontal: 10 },
   btnText: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.2, textTransform: 'uppercase' },
   btnTextLg: { fontSize: 26, letterSpacing: 2 },
   btnTextSm: { fontSize: 14, letterSpacing: 1 },
-  chip: { borderWidth: 2, borderRadius: 0, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start' },
+  chip: { borderWidth: 2, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start' },
   chipText: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, letterSpacing: 0.8, textTransform: 'uppercase' },
   stat: { flex: 1, paddingVertical: 10, paddingHorizontal: 12, borderRightWidth: 1, borderRightColor: palette.line },
   statValue: { fontFamily: fonts.display, fontSize: 28, color: palette.foreground, fontVariant: ['tabular-nums'] },
   statLabel: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.supporting, textTransform: 'uppercase' },
-  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: R, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, backgroundColor: palette.surface },
+  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge, backgroundColor: palette.raised },
 });
 
 // Responsive shell: centers content at 1160 (wide) or 720 (prose) with 16-20 phone gutters.

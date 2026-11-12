@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   cardWrap:     { width: '100%', maxWidth: 360, gap: 10 },
 
   card: {
-    borderRadius: 3, overflow: 'hidden',
+    borderRadius: 8, overflow: 'hidden',
     borderWidth: 1.5, borderColor: palette.gold,
     backgroundColor: palette.inset,
     paddingHorizontal: 24, paddingBottom: 24, paddingTop: 0,
@@ -182,12 +182,12 @@ const styles = StyleSheet.create({
   statValue:  { fontFamily: 'SourceSans3_700Bold', fontSize: 22, color: palette.foreground },
   statLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 8, letterSpacing: 2, color: palette.foreground },
 
-  ctaRow:     { backgroundColor: palette.inset, borderRadius: 3, borderWidth: 1, borderColor: palette.gold, paddingHorizontal: 20, paddingVertical: 10, marginBottom: 12 },
+  ctaRow:     { backgroundColor: palette.inset, borderRadius: 8, borderWidth: 1, borderColor: palette.gold, paddingHorizontal: 20, paddingVertical: 10, marginBottom: 12 },
   ctaText:    { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: palette.gold, letterSpacing: 1 },
 
   playerTag:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.foreground, fontStyle: 'italic' },
 
-  shareBtn:     { borderRadius: 3, overflow: 'hidden', elevation: 0, shadowColor: palette.gold, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0, shadowRadius: 0 },
+  shareBtn:     { borderRadius: 8, overflow: 'hidden', elevation: 0, shadowColor: palette.gold, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0, shadowRadius: 0 },
   shareBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   shareBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.foreground, letterSpacing: 1 },
 

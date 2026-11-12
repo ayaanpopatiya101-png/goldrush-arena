@@ -326,10 +326,10 @@ const s = StyleSheet.create({
     flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.deepest + 'F2',
   },
   star: {
-    position: 'absolute', borderRadius: 3, backgroundColor: palette.foreground,
+    position: 'absolute', borderRadius: 8, backgroundColor: palette.foreground,
   },
   flashBurst: {
-    position: 'absolute', width: 200, height: 200, borderRadius: 3,
+    position: 'absolute', width: 200, height: 200, borderRadius: 8,
     alignSelf: 'center',
   },
   center: {
@@ -348,11 +348,11 @@ const s = StyleSheet.create({
     flexDirection: 'row', gap: 10, marginBottom: 24,
   },
   pip: {
-    width: 14, height: 14, borderRadius: 3, borderWidth: 1.5,
+    width: 14, height: 14, borderRadius: 8, borderWidth: 1.5,
   },
   upgradeToast: {
     position: 'absolute', top: -60,
-    borderWidth: 1, borderRadius: 3, paddingHorizontal: 18, paddingVertical: 9,
+    borderWidth: 1, borderRadius: 8, paddingHorizontal: 18, paddingVertical: 9,
     overflow: 'hidden',
   },
   upgradeTxt: {
@@ -368,7 +368,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   block: {
-    width: BLOCK_SIZE, height: BLOCK_SIZE, borderRadius: 3,
+    width: BLOCK_SIZE, height: BLOCK_SIZE, borderRadius: 8,
     borderWidth: 2, overflow: 'hidden',
     alignItems: 'center', justifyContent: 'center',
     shadowOffset: { width: 0, height: 0 }, shadowRadius: 0, shadowOpacity: 0,
@@ -376,7 +376,7 @@ const s = StyleSheet.create({
   },
   blockHighlight: {
     position: 'absolute', top: 10, left: 10,
-    width: 40, height: 40, borderRadius: 3,
+    width: 40, height: 40, borderRadius: 8,
     backgroundColor: palette.inset,
   },
   blockEmoji: {
@@ -392,7 +392,7 @@ const s = StyleSheet.create({
     fontSize: 13, fontFamily: 'SourceSans3_600SemiBold', letterSpacing: 1,
   },
   rewardCard: {
-    marginHorizontal: 32, padding: 32, borderRadius: 0, borderWidth: 2,
+    marginHorizontal: 32, padding: 32, borderRadius: 10, borderWidth: 2,
     alignItems: 'center', gap: 4, overflow: 'hidden',
   },
   rewardEmoji: {
@@ -406,13 +406,13 @@ const s = StyleSheet.create({
   },
   rewardRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: palette.surface, borderRadius: 0, padding: 14, borderWidth: 2,
+    backgroundColor: palette.surface, borderRadius: 10, padding: 14, borderWidth: 2,
   },
   rIcon: { fontSize: 20 },
   rLabel: { flex: 1, color: palette.supporting, fontSize: 14, fontFamily: 'SourceSans3_600SemiBold' },
   rValue: { fontSize: 18, fontFamily: 'SourceSans3_700Bold' },
   collectBtn: {
-    paddingHorizontal: 40, paddingVertical: 16, borderRadius: 0,
+    paddingHorizontal: 40, paddingVertical: 16, borderRadius: 10,
     marginTop: 4,
   },
   collectBtnTxt: {

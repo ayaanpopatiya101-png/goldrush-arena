@@ -197,7 +197,7 @@ async function playerHarness(storage = new Map(), fail = () => false, session) {
   }
   return {
     render, storage, profileKey, tiers: exports.SEASON_TIERS, road: exports.TROPHY_ROAD,
-    pass: exports.BATTLE_PASS_TIERS, quests: exports.QUESTS, receipt: () => receipt,
+    pass: exports.BATTLE_PASS_TIERS, gamesRoad: exports.GAMES_ROAD, quests: exports.QUESTS, receipt: () => receipt,
     initialize: async () => {
       effects.shift()();
       // The real initialization uses only async storage and resolved promises.
@@ -415,7 +415,64 @@ test('simultaneous callbacks, stale closures and reload/retry award a match once
   assert.equal(p.totalGames, 1);
   assert.equal(p.xp, 230);
   assert.equal(p.matchHistory.length, 1);
+  assert.equal(p.gamesRoadCompleted, 1);
   assert.equal(reloaded.receipt().id, 'match-1');
+});
+
+test('games road claims serialize with matches, survive reload and reject repeated taps', async () => {
+  const h = await playerHarness();
+  const p = h.render();
+  assert.equal(await p.claimGamesRoad('games_01'), false);
+  const before = p.profile.coins;
+  await Promise.all([
+    p.addMatchResult(award),
+    p.claimGamesRoad('games_01'),
+    p.claimGamesRoad('games_01'),
+    p.addMatchResult(award),
+  ]);
+  const saved = JSON.parse(h.storage.get(h.profileKey));
+  assert.equal(saved.gamesRoadCompleted, 1);
+  assert.equal(saved.coins, before + 30 + 100);
+  assert.deepEqual(saved.gamesRoadClaimed, ['games_01']);
+  const reloaded = await playerHarness(h.storage);
+  assert.equal(await reloaded.render().claimGamesRoad('games_01'), false);
+  assert.equal(await reloaded.render().claimGamesRoad('unknown'), false);
+  assert.equal(h.storage.get(h.profileKey), JSON.stringify(saved));
+});
+
+test('legacy totals never fabricate games-road eligibility or change XP/pass claims', async () => {
+  const seed = await playerHarness();
+  const old = { ...seed.render().profile, totalGames: 500, xp: 1200,
+    trophyRoadClaimed: ['tr_01'], battlePassClaimed: ['bp_1'], battlePassPremiumOwned: true };
+  delete old.gamesRoadCompleted;
+  delete old.gamesRoadClaimed;
+  const h = await playerHarness(new Map([[seed.profileKey, JSON.stringify(old)]]));
+  h.render();
+  await h.initialize();
+  const p = h.render();
+  assert.equal(p.profile.gamesRoadCompleted, 0);
+  assert.equal(await p.claimGamesRoad('games_01'), false);
+  assert.equal(p.profile.totalGames, 500);
+  assert.deepEqual(Array.from(p.profile.trophyRoadClaimed), ['tr_01']);
+  assert.equal(p.profile.battlePassPremiumOwned, true);
+  assert.deepEqual(Array.from(p.profile.battlePassClaimed), ['bp_1']);
+});
+
+test('failed games-road claims stay retryable and excluded modes cannot earn progression', async () => {
+  let fail = false;
+  const h = await playerHarness(new Map(), key => fail && key.includes('_v3_'));
+  const p = h.render();
+  await p.addMatchResult(award);
+  fail = true;
+  await assert.rejects(p.claimGamesRoad('games_01'), /storage full/);
+  fail = false;
+  assert.equal(await p.claimGamesRoad('games_01'), true);
+  assert.equal(await p.claimGamesRoad('games_01'), false);
+  for (const config of [{ practice: true }, { variant: 'custom' }]) {
+    const blocked = await playerHarness(new Map(), () => false, { getGameConfig: () => ({ ...config, matchId: 'excluded' }) });
+    await assert.rejects(blocked.render().addMatchResult(award), /do not earn normal progression/);
+    assert.equal(blocked.storage.has(blocked.profileKey), false);
+  }
 });
 
 test('failed profile storage preserves balances and permits one safe retry', async () => {
@@ -479,6 +536,7 @@ for (const automatic of [false, true]) test(`${automatic ? 'Automatic rematch' :
   await reloaded.render().addMatchResult(ranked); // reload/retry of the second receipt
   const p = JSON.parse(h.storage.get(h.profileKey));
   assert.equal(p.totalGames, 2);
+  assert.equal(p.gamesRoadCompleted, 2);
   assert.equal(p.matchHistory.length, 2);
   assert.equal(p.xp, 460);
   assert.equal(p.coins, 260);

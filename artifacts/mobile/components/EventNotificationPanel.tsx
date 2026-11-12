@@ -125,9 +125,9 @@ const s = StyleSheet.create({
   body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.foreground },
   fine: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: palette.supporting },
   label: { fontFamily: fonts.bodyBold, fontSize: 13, color: palette.supporting, textTransform: 'uppercase' },
-  option: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 18, borderWidth: 2, borderColor: palette.border, backgroundColor: palette.background },
+  option: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 18, borderRadius: 10, borderWidth: 2, borderColor: palette.border, backgroundColor: palette.background },
   selected: { backgroundColor: palette.primary, borderColor: palette.edge },
   optionText: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.foreground },
-  input: { minHeight: 46, minWidth: 110, flexGrow: 1, paddingHorizontal: 12, borderWidth: 2, borderColor: palette.border, color: palette.foreground, backgroundColor: palette.background, fontFamily: fonts.body, fontSize: 16 },
+  input: { minHeight: 46, minWidth: 110, flexGrow: 1, paddingHorizontal: 12, borderRadius: 10, borderWidth: 2, borderColor: palette.border, color: palette.foreground, backgroundColor: palette.background, fontFamily: fonts.body, fontSize: 16 },
   event: { gap: 3, paddingVertical: 8, borderTopWidth: 1, borderColor: palette.border },
 });

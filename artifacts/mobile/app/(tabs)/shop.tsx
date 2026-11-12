@@ -225,7 +225,7 @@ export default function ShopScreen() {
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <ScreenTitle kicker="GoldRush Arena" title="Shop" style={{ flex: 1 }} />
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-          <View style={[styles.coinDisplay, { backgroundColor: tactile.brass, borderColor: palette.edge, borderWidth: 2, borderRadius: 0 }]}>
+          <View style={[styles.coinDisplay, { backgroundColor: tactile.brass, borderColor: palette.edge, borderWidth: 2, borderRadius: 10 }]}>
             <Feather name="circle" size={14} color={palette.onAccent} />
             <Text style={[styles.coinAmount, { color: palette.onAccent }]} accessibilityLabel={`${profile.coins} device coins`}>{profile.coins} device</Text>
           </View>
@@ -267,7 +267,7 @@ export default function ShopScreen() {
           <>
             {/* Inventory badge */}
             {(profile.extraLivesInventory ?? 0) > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: palette.surface, borderRadius: 3, borderWidth: 1, borderColor: palette.border, padding: 12, marginBottom: 4 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: palette.surface, borderRadius: 8, borderWidth: 1, borderColor: palette.border, padding: 12, marginBottom: 4 }}>
                 <Glyph style={{ fontSize: 20 }} value="❤️" />
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.foreground }}>
@@ -358,7 +358,7 @@ export default function ShopScreen() {
 
             {catalogLoading && (
               <View accessibilityLabel="Loading store products" accessibilityState={{ busy: true }} style={{ gap: 12, paddingVertical: 20 }}>
-                {[0, 1, 2, 3].map(i => <View key={i} style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, minHeight: 76, padding: 16, gap: 12 }}>
+                {[0, 1, 2, 3].map(i => <View key={i} style={{ backgroundColor: colors.card, borderRadius: 10, borderWidth: 1, borderColor: colors.border, minHeight: 76, padding: 16, gap: 12 }}>
                   <View style={{ backgroundColor: colors.muted, width: '55%', height: 14 }} />
                   <View style={{ backgroundColor: colors.muted, width: '80%', height: 10 }} />
                 </View>)}
@@ -574,70 +574,70 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 12 },
   headerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 20, letterSpacing: 2 },
-  coinDisplay: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: palette.surface, borderRadius: 3, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 9, paddingVertical: 4 },
+  coinDisplay: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: palette.surface, borderRadius: 8, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 9, paddingVertical: 4 },
   coinAmount: { color: palette.foreground, fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   tabRow: { flexDirection: 'row', gap: 6, flexShrink: 0, minHeight: 48, borderBottomWidth: 2, paddingHorizontal: 16, paddingBottom: 12, marginBottom: 4 },
-  tab: { flex: 1, minHeight: 46, minWidth: 0, paddingHorizontal: 3, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
+  tab: { flex: 1, minHeight: 46, minWidth: 0, paddingHorizontal: 3, justifyContent: 'center', alignItems: 'center', borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
   tabOn: { backgroundColor: palette.primary, borderColor: palette.edge },
   tabText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, letterSpacing: 0.6 },
   sectionInfo: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18 },
   subsectionTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, letterSpacing: 1.4, marginTop: 14, marginBottom: 4, color: palette.foreground, textTransform: 'uppercase' },
   skinGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  skinCard: { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, overflow: 'hidden' },
+  skinCard: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, overflow: 'hidden' },
   skinPreview: { height: 88, alignItems: 'center', justifyContent: 'center' },
-  paddlePreview: { width: 72, height: 13, borderRadius: 3, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
-  ownedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 0, paddingHorizontal: 5, paddingVertical: 2 },
+  paddlePreview: { width: 72, height: 13, borderRadius: 8, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
+  ownedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 10, paddingHorizontal: 5, paddingVertical: 2 },
   ownedText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5 },
-  equippedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 0, paddingHorizontal: 6, paddingVertical: 2 },
+  equippedBadge: { position: 'absolute', bottom: 4, right: 6, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2 },
   equippedText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.foreground, letterSpacing: 0.5 },
   skinInfo: { padding: 10, gap: 3 },
   skinName: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   priceText: { color: palette.foreground, fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   ownedLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5 },
-  itemRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, padding: 14, gap: 12 },
-  trailDot: { width: 26, height: 26, borderRadius: 3, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
+  itemRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, padding: 14, gap: 12 },
+  trailDot: { width: 26, height: 26, borderRadius: 8, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
   itemName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
   itemDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 1 },
-  bundleCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, padding: 14, gap: 12, overflow: 'hidden' },
-  bundleIcon: { width: 48, height: 48, borderRadius: 0, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, paddingHorizontal: 10, paddingVertical: 6, minHeight: 44 },
+  bundleCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, padding: 14, gap: 12, overflow: 'hidden' },
+  bundleIcon: { width: 48, height: 48, borderRadius: 10, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, paddingHorizontal: 10, paddingVertical: 6, minHeight: 44 },
   buyBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
-  iapBtn: { borderRadius: 0, borderWidth: 2, paddingHorizontal: 10, paddingVertical: 7 },
+  iapBtn: { borderRadius: 10, borderWidth: 2, paddingHorizontal: 10, paddingVertical: 7 },
   iapText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12 },
-  earnCard: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, padding: 14, gap: 10 },
+  earnCard: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, padding: 14, gap: 10 },
   earnTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
   earnDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18, marginTop: 2 },
-  themePreview: { width: 64, height: 64, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
-  themeArena: { width: 50, height: 50, borderRadius: 3, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
-  themePaddle: { width: 30, height: 5, borderRadius: 3, opacity: 0.9 },
-  redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: palette.surface, borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, minHeight: 44, borderColor: palette.edge, paddingHorizontal: 10, paddingVertical: 6 },
+  themePreview: { width: 64, height: 64, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  themeArena: { width: 50, height: 50, borderRadius: 8, borderWidth: 1.5, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 4 },
+  themePaddle: { width: 30, height: 5, borderRadius: 8, opacity: 0.9 },
+  redeemCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, minHeight: 44, borderColor: palette.edge, paddingHorizontal: 10, paddingVertical: 6 },
   redeemCodeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5, color: palette.foreground },
 });
 
 const storeStyles = StyleSheet.create({
-  banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, padding: 14, overflow: 'hidden' },
+  banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, padding: 14, overflow: 'hidden' },
   bannerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, letterSpacing: 2, color: palette.foreground },
   bannerSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 16, marginTop: 2 },
-  errorBox: { alignItems: 'center', borderRadius: 0, borderWidth: 2, padding: 16 },
-  passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 0, borderWidth: 2, borderBottomWidth: 6, padding: 18, overflow: 'hidden' },
+  errorBox: { alignItems: 'center', borderRadius: 10, borderWidth: 2, padding: 16 },
+  passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 10, borderWidth: 2, borderBottomWidth: 6, padding: 18, overflow: 'hidden' },
   passName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.foreground, letterSpacing: 0.5, textTransform: 'uppercase' },
   passDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 17, marginTop: 2 },
-  storeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, padding: 14, gap: 10, overflow: 'hidden' },
+  storeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, padding: 14, gap: 10, overflow: 'hidden' },
   storeName: { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
   storeDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 1 },
-  usdBtn: { backgroundColor: palette.primary, borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, minHeight: 44, justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 7 },
+  usdBtn: { backgroundColor: palette.primary, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, minHeight: 44, justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 7 },
   usdBtnText: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.onAccent },
-  howItWorks: { backgroundColor: palette.surface, borderRadius: 0, borderWidth: 2, padding: 14, gap: 6 },
+  howItWorks: { backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, padding: 14, gap: 6 },
   howTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, marginBottom: 4 },
   howStep: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18 },
-  restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 0, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, paddingHorizontal: 12, paddingVertical: 8 },
+  restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, paddingHorizontal: 12, paddingVertical: 8 },
   restoreText: { color: palette.foreground, fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
   confirmBackdrop: { flex: 1, backgroundColor: palette.deepest + 'CC', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  confirmCard: { width: '100%', maxWidth: 360, borderRadius: 0, borderWidth: 2, borderBottomWidth: 6, borderColor: palette.edge, padding: 20 },
+  confirmCard: { width: '100%', maxWidth: 360, borderRadius: 10, borderWidth: 2, borderBottomWidth: 6, borderColor: palette.edge, padding: 20 },
   confirmTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, letterSpacing: 0.5, textTransform: 'uppercase' },
   confirmText: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 21, marginTop: 8 },
   confirmActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 20 },
-  confirmCancel: { borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },
-  confirmBuy: { borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, backgroundColor: palette.primary, paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },
+  confirmCancel: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },
+  confirmBuy: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, backgroundColor: palette.primary, paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },
 });

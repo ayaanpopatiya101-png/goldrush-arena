@@ -400,7 +400,7 @@ const mh = StyleSheet.create({
   headerCenter: { flex: 1, alignItems: 'center' },
   headerTitle:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: palette.gold, letterSpacing: 2 },
   headerBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
-  headerBadge:    { width: 22, height: 22, borderRadius: 0, alignItems: 'center', justifyContent: 'center' },
+  headerBadge:    { width: 22, height: 22, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   headerBadgeText:{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 11, color: palette.foreground },
   headerSub:      { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: palette.supporting, letterSpacing: 1 },
   libBtn:         { width: 64, alignItems: 'flex-end', justifyContent: 'center' },
@@ -409,15 +409,15 @@ const mh = StyleSheet.create({
   scroll: { padding: 16, gap: 14 },
 
   // Clip card
-  card:       { borderRadius: 0, overflow: 'hidden', borderWidth: 2, borderColor: palette.border },
+  card:       { borderRadius: 10, overflow: 'hidden', borderWidth: 2, borderColor: palette.border },
   cardAccent: { height: 3, width: '100%' },
   cardBody:   { flexDirection: 'row', padding: 14, gap: 14 },
 
   // Thumbnail
   thumbWrap:       { position: 'relative', width: 90, height: 90 },
-  thumb:           { width: 90, height: 90, borderRadius: 3 },
+  thumb:           { width: 90, height: 90, borderRadius: 8 },
   thumbPlaceholder:{ backgroundColor: palette.inset, alignItems: 'center', justifyContent: 'center' },
-  gradeBadge:      { position: 'absolute', top: -6, right: -6, width: 28, height: 28, borderRadius: 0, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: palette.background },
+  gradeBadge:      { position: 'absolute', top: -6, right: -6, width: 28, height: 28, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: palette.background },
   gradeText:       { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, color: palette.foreground },
 
   // Card info
@@ -434,7 +434,7 @@ const mh = StyleSheet.create({
 
   // Action row
   actions:       { flexDirection: 'row', paddingHorizontal: 14, paddingBottom: 14, gap: 8 },
-  actionBtn:     { flex: 1, paddingVertical: 9, borderRadius: 0, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
+  actionBtn:     { flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
   actionBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, letterSpacing: 0.5, color: palette.foreground },
   editBtn:       { borderColor: palette.border, backgroundColor: palette.surface },
   shareBtn:      { borderColor: 'transparent' },
@@ -443,21 +443,21 @@ const mh = StyleSheet.create({
   saveBtnDone:   { borderColor: palette.primary + '40', backgroundColor: palette.primary + '15' },
 
   // Total card
-  totalCard:  { borderRadius: 0, overflow: 'hidden', borderWidth: 2, borderColor: palette.gold + '22', padding: 18, alignItems: 'center', gap: 12 },
+  totalCard:  { borderRadius: 10, overflow: 'hidden', borderWidth: 2, borderColor: palette.gold + '22', padding: 18, alignItems: 'center', gap: 12 },
   totalTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 14, color: palette.gold, letterSpacing: 2 },
   totalRow:   { flexDirection: 'row', gap: 12 },
-  totalPill:  { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 0, backgroundColor: palette.gold + '15', borderWidth: 2, borderColor: palette.gold + '30' },
+  totalPill:  { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: palette.gold + '15', borderWidth: 2, borderColor: palette.gold + '30' },
   totalPillText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, color: palette.gold, letterSpacing: 1 },
   totalNote:  { fontFamily: 'SourceSans3_400Regular', fontSize: 10, color: palette.supporting, textAlign: 'center' },
 
   // Library button
-  libraryBtn:     { borderRadius: 0, borderWidth: 2, borderColor: palette.border, paddingVertical: 14, alignItems: 'center', backgroundColor: palette.surface },
+  libraryBtn:     { borderRadius: 10, borderWidth: 2, borderColor: palette.border, paddingVertical: 14, alignItems: 'center', backgroundColor: palette.surface },
   libraryBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 13, color: palette.supporting, letterSpacing: 1 },
 
   // Empty state
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   emptyTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: paperText.ink, marginBottom: 8 },
   emptySub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: paperText.ink, textAlign: 'center', lineHeight: 20 },
-  emptyBtn:   { marginTop: 24, paddingHorizontal: 24, paddingVertical: 12, minHeight: 44, borderRadius: 0, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold },
+  emptyBtn:   { marginTop: 24, paddingHorizontal: 24, paddingVertical: 12, minHeight: 44, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold },
   emptyBtnText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 14, color: palette.onAccent, letterSpacing: 1 },
 });

@@ -53,7 +53,7 @@ export default function InventoryScreen() {
       {/* Header */}
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
         <ScreenTitle kicker="Owned items" title="Collection" style={{ flex: 1 }} />
-        <View style={[s.countBadge, { backgroundColor: tactile.brass, borderColor: palette.edge, borderWidth: 2, borderRadius: 0 }]}>
+        <View style={[s.countBadge, { backgroundColor: tactile.brass, borderColor: palette.edge, borderWidth: 2, borderRadius: 10 }]}>
           <Text style={[s.countText, { color: palette.onAccent }]}>{totalOwned} items</Text>
         </View>
       </View>
@@ -191,51 +191,51 @@ function EmptyState({ icon, message, sub }: { icon: string; message: string; sub
 const s = StyleSheet.create({
   header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12, gap: 10 },
   title:       { fontFamily: 'SourceSans3_700Bold', fontSize: 20, letterSpacing: 2 },
-  countBadge:  { backgroundColor: palette.gold, borderRadius: 0, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 8, paddingVertical: 4 },
+  countBadge:  { backgroundColor: palette.gold, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 8, paddingVertical: 4 },
   countText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.onAccent, letterSpacing: 0.5 },
   tabRow:      { flexDirection: 'row', gap: 6, borderBottomWidth: 2, paddingHorizontal: 16, paddingBottom: 12 },
-  tab:         { flex: 1, minHeight: 44, justifyContent: 'center', paddingVertical: 10, alignItems: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
+  tab:         { flex: 1, minHeight: 44, justifyContent: 'center', paddingVertical: 10, alignItems: 'center', borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
   tabOn:       { backgroundColor: palette.primary, borderColor: palette.edge },
   tabText:     { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2 },
 
   // Skin grid
   skinGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  skinCard:    { borderRadius: 0, borderWidth: 2, overflow: 'hidden', alignItems: 'center', paddingBottom: 12 },
+  skinCard:    { borderRadius: 10, borderWidth: 2, overflow: 'hidden', alignItems: 'center', paddingBottom: 12 },
   skinPreview: { width: '100%', height: 80, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  paddlePreview: { width: 70, height: 12, borderRadius: 3, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
+  paddlePreview: { width: 70, height: 12, borderRadius: 8, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
   skinName:    { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5, marginBottom: 8 },
 
   // Theme list
-  themeRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, padding: 12, gap: 12 },
-  themeSwatch: { width: 52, height: 52, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
-  themeSwatchDot: { width: 18, height: 18, borderRadius: 3 },
+  themeRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 10, borderWidth: 2, padding: 12, gap: 12 },
+  themeSwatch: { width: 52, height: 52, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  themeSwatchDot: { width: 18, height: 18, borderRadius: 8 },
   themeName:   { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
   themeDesc:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
 
   // Shared
-  equippedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 5 },
+  equippedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
   equippedText:  { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.foreground, letterSpacing: 0.5 },
-  equipBtn:    { borderWidth: 2, borderRadius: 0, paddingHorizontal: 16, minHeight: 44, justifyContent: 'center' },
+  equipBtn:    { borderWidth: 2, borderRadius: 10, paddingHorizontal: 16, minHeight: 44, justifyContent: 'center' },
   equipBtnText:{ fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
-  hintCard:    { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 0, borderWidth: 2, padding: 12 },
+  hintCard:    { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, borderWidth: 2, padding: 12 },
   hintText:    { fontFamily: 'SourceSans3_400Regular', fontSize: 12, flex: 1 },
 
 
-  emptyState:  { alignItems: 'center', paddingVertical: 40, paddingHorizontal: 20, gap: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
+  emptyState:  { alignItems: 'center', paddingVertical: 40, paddingHorizontal: 20, gap: 10, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
   emptyTitle:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.foreground },
-  featureCard: { borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.surface, padding: 18, gap: 20, alignItems: 'center' },
+  featureCard: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.surface, padding: 18, gap: 20, alignItems: 'center' },
   featureKicker: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2, color: palette.supporting, textTransform: 'uppercase' },
   featureName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 36, color: palette.foreground, textTransform: 'uppercase' },
   featureBody: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.supporting },
   emptySub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: palette.supporting, textAlign: 'center' },
 
   // Gold Strikes tab
-  strikeBadge:     { position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 0, backgroundColor: palette.gold, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  strikeBadge:     { position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 10, backgroundColor: palette.gold, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   strikeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.onAccent, letterSpacing: 0 },
-  strikesInfoRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: palette.surface, borderRadius: 0, borderWidth: 2, borderColor: palette.border, paddingHorizontal: 12, paddingVertical: 9, marginBottom: 4 },
+  strikesInfoRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, borderColor: palette.border, paddingHorizontal: 12, paddingVertical: 9, marginBottom: 4 },
   strikesInfo:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, flex: 1 },
-  strikeCard:      { aspectRatio: 0.85, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  strikeCard:      { aspectRatio: 0.85, borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 4 },
   strikeCardNum:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 0.5 },
-  openChip:        { borderRadius: 0, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
+  openChip:        { borderRadius: 10, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
   openChipText:    { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.foreground, letterSpacing: 1 },
 });

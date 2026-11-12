@@ -19,3 +19,4 @@
 - [Event reminders](event-reminders.md) — US-only SMS is now requested first; international launch needs a readiness plan; keep notification channels separate.
 - [Court and hit customization](custom-gameplay-scope.md) — owner explicitly wants both cosmetics and gameplay changes with AI decision help.
 - [Clip export permissions](clip-export-boundaries.md) — SDK-level Photos write checks can differ from OS requirements; downloads and share sheets are not Photos-save evidence.
+- [Play-earned reward eligibility](play-earned-rewards.md) — games-played rewards start fresh; legacy totals cannot prove historical eligibility.

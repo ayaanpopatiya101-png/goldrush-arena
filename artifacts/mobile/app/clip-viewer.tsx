@@ -108,7 +108,7 @@ function FrameStrip({
           <Pressable key={si} onPress={() => onSelect(realIdx)}>
             <Image
               source={{ uri: 'data:image/jpeg;base64,' + frame }}
-              style={[cv.thumb, active && { borderColor: palette.ochre, borderWidth: 2 }]}
+              style={[cv.thumb, active && { borderColor: palette.ochre, borderRadius: 10, borderWidth: 2 }]}
             />
             {active && (
               <View style={cv.thumbActiveDot} />
@@ -349,7 +349,7 @@ export default function ClipViewer() {
           ) : (
             <>
               <ScreenTitle kicker="Clip viewer" title="No clip" />
-              <View style={{ backgroundColor: palette.surface, borderWidth: 2, borderColor: palette.edge, padding: 14 }}>
+              <View style={{ backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, padding: 14 }}>
               <Text style={[cv.stateBody, { color: paperText.ink }]}>
                 {savedClipId
                   ? 'This clip is not in your library on this device. It may have been deleted or the link is out of date.'
@@ -525,7 +525,7 @@ export default function ClipViewer() {
                   key={s}
                   onPress={() => { setSticker(prev => (prev === s ? null : s)); setActiveTool(null); }}
                   accessibilityRole="button" accessibilityState={{ selected: sticker === s }}
-                  style={[cv.stickerCell, sticker === s && { backgroundColor: palette.raised, borderColor: palette.ochre, borderWidth: 2 }]}
+                  style={[cv.stickerCell, sticker === s && { backgroundColor: palette.raised, borderColor: palette.ochre, borderRadius: 10, borderWidth: 2 }]}
                 >
                   <Glyph style={{ fontSize: 30 }} value={s} />
                 </Pressable>
@@ -632,28 +632,28 @@ const CARD_W = Math.min(SW - 32, 720);
 const cv = StyleSheet.create({
   root:   { flex: 1, backgroundColor: palette.background },
   column: { width: '100%', maxWidth: 720, paddingHorizontal: 16, gap: 12 },
-  skel:   { backgroundColor: palette.surface, borderRadius: 2 },
+  skel:   { backgroundColor: palette.surface, borderRadius: 8 },
   stateTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 32, color: palette.foreground },
   stateBody:  { fontFamily: 'SourceSans3_400Regular', fontSize: 16, lineHeight: 23, color: palette.supporting },
 
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, gap: 10, borderBottomWidth: 1, borderBottomColor: palette.border, marginBottom: 12 },
-  headerBtn:   { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 0, borderWidth: 2, borderColor: palette.border },
+  headerBtn:   { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, borderWidth: 2, borderColor: palette.border },
   headerTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.foreground, letterSpacing: 1 },
   headerSub:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted },
 
   clipCardWrap: { width: '100%' },
   cardGlow: { position: 'absolute' },
-  clipCard: { width: '100%', borderRadius: 0, overflow: 'hidden', backgroundColor: palette.surface, borderWidth: 2, borderColor: palette.border },
+  clipCard: { width: '100%', borderRadius: 10, overflow: 'hidden', backgroundColor: palette.surface, borderWidth: 2, borderColor: palette.border },
   cardStripe:   { height: 3, width: '100%' },
   gifArea:      { width: '100%', aspectRatio: 4 / 3, maxHeight: CARD_W * 0.75, backgroundColor: palette.background, position: 'relative' },
   gif:          { width: '100%', height: '100%' },
   gifPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
   encodingTxt:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 15 },
   errorTxt:     { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.supporting },
-  retryBtn:     { borderRadius: 0, borderWidth: 2, borderColor: palette.border, paddingHorizontal: 18, minHeight: 44, justifyContent: 'center', marginTop: 4 },
+  retryBtn:     { borderRadius: 10, borderWidth: 2, borderColor: palette.border, paddingHorizontal: 18, minHeight: 44, justifyContent: 'center', marginTop: 4 },
   retryTxt:     { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.supporting },
   stickerOverlay: { position: 'absolute', bottom: 10, right: 10 },
-  tierBadge: { position: 'absolute', top: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 0, borderWidth: 2, paddingHorizontal: 8, paddingVertical: 4, backgroundColor: palette.background },
+  tierBadge: { position: 'absolute', top: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 10, borderWidth: 2, paddingHorizontal: 8, paddingVertical: 4, backgroundColor: palette.background },
   tierBadgeTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.5 },
   captionBar:   { paddingHorizontal: 14, paddingVertical: 10, backgroundColor: palette.raised },
   captionTxt:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 16, color: palette.foreground, textAlign: 'center' },
@@ -661,35 +661,35 @@ const cv = StyleSheet.create({
   scoreLabel:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 14, color: palette.supporting },
 
   toolBar:    { flexDirection: 'row', gap: 8 },
-  toolPill:   { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 0, borderWidth: 2, borderColor: palette.border, minHeight: 46 },
+  toolPill:   { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 10, borderWidth: 2, borderColor: palette.border, minHeight: 46 },
   toolPillTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.foreground },
 
-  panel:        { backgroundColor: palette.surface, borderRadius: 0, borderWidth: 2, borderColor: palette.border, padding: 14, gap: 6 },
+  panel:        { backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, borderColor: palette.border, padding: 14, gap: 6 },
   panelTitle:   { fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: palette.muted, letterSpacing: 0.5 },
   panelSubLabel:{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 14, color: palette.supporting, marginTop: 6 },
   trimInfo:     { fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: palette.supporting, marginTop: 4 },
-  thumb:        { width: 60, height: 46, borderRadius: 2, overflow: 'hidden', backgroundColor: palette.background, borderWidth: 1, borderColor: palette.border },
-  thumbActiveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: palette.ochre, alignSelf: 'center', marginTop: 2 },
-  applyBtn:     { borderRadius: 0, overflow: 'hidden', marginTop: 8 },
+  thumb:        { width: 60, height: 46, borderRadius: 8, overflow: 'hidden', backgroundColor: palette.background, borderWidth: 1, borderColor: palette.border },
+  thumbActiveDot: { width: 6, height: 6, borderRadius: 8, backgroundColor: palette.ochre, alignSelf: 'center', marginTop: 2 },
+  applyBtn:     { borderRadius: 10, overflow: 'hidden', marginTop: 8 },
   applyBtnGrad: { minHeight: 46, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.ochre },
   applyBtnTxt:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.onAccent },
-  captionInput: { backgroundColor: palette.raised, borderRadius: 3, borderWidth: 1, borderColor: palette.border, color: palette.foreground, fontFamily: 'SourceSans3_400Regular', fontSize: 16, paddingHorizontal: 14, paddingVertical: 10, minHeight: 64, textAlignVertical: 'top' },
+  captionInput: { backgroundColor: palette.raised, borderRadius: 8, borderWidth: 1, borderColor: palette.border, color: palette.foreground, fontFamily: 'SourceSans3_400Regular', fontSize: 16, paddingHorizontal: 14, paddingVertical: 10, minHeight: 64, textAlignVertical: 'top' },
   charCount:    { fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: palette.muted, textAlign: 'right' },
   stickerGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 4 },
-  stickerCell:  { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', borderRadius: 0, borderWidth: 2, borderColor: palette.border },
+  stickerCell:  { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', borderRadius: 10, borderWidth: 2, borderColor: palette.border },
 
-  rewardCard: { borderRadius: 0, borderWidth: 2, borderColor: palette.ochre, backgroundColor: palette.surface, padding: 14, gap: 10 },
+  rewardCard: { borderRadius: 10, borderWidth: 2, borderColor: palette.ochre, backgroundColor: palette.surface, padding: 14, gap: 10 },
   rewardTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.foreground },
   rewardSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: palette.supporting },
   rewardRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  rewardPill:  { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 0, borderWidth: 2, borderColor: palette.border, paddingHorizontal: 12, paddingVertical: 6 },
+  rewardPill:  { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 10, borderWidth: 2, borderColor: palette.border, paddingHorizontal: 12, paddingVertical: 6 },
   rewardVal:   { fontFamily: 'SourceSans3_700Bold', fontSize: 15 },
 
   actionRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  saveBtn:     { flexGrow: 1, flexBasis: 200, borderRadius: 0, overflow: 'hidden', borderWidth: 2, borderColor: palette.border },
+  saveBtn:     { flexGrow: 1, flexBasis: 200, borderRadius: 10, overflow: 'hidden', borderWidth: 2, borderColor: palette.border },
   saveBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 50, backgroundColor: palette.surface },
   saveBtnTxt:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.foreground },
-  shareBtn:    { flexGrow: 1, flexBasis: 200, borderRadius: 0, overflow: 'hidden' },
+  shareBtn:    { flexGrow: 1, flexBasis: 200, borderRadius: 10, overflow: 'hidden' },
   shareBtnGrad:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 50, backgroundColor: palette.ochre },
   shareBtnTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.onAccent },
 

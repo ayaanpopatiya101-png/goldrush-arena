@@ -11,6 +11,7 @@ import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 import { RoadSummary, RoadZones, milestoneState } from '@/components/progression/TrophyRoadPath';
 import { RewardInspector, type InspectTarget } from '@/components/progression/RewardInspector';
 import { trophyRewardView } from '@/components/progression/rewards';
+import { GamesRoadLane } from '@/components/progression/GamesRoadLane';
 
 export default function TrophyRoadMap() {
   const router = useRouter();
@@ -83,8 +84,10 @@ export default function TrophyRoadMap() {
         <View style={s.back} />
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 100 }} showsVerticalScrollIndicator={false}>
-        <ScreenTitle kicker="25 XP milestones . 5 zones" title="Trophy Road" />
-        <Text style={s.lede}>Every match earns XP. Each milestone unlocks once your total XP reaches it, then you claim it here.</Text>
+        <ScreenTitle kicker="Games played + XP milestones" title="Trophy Road" />
+        <GamesRoadLane />
+        <Text accessibilityRole="header" style={s.headerTitle}>XP MILESTONES</Text>
+        <Text style={s.lede}>Eligible completed matches also earn XP. Your original 25 XP milestones and claimed rewards stay on this separate lane.</Text>
         <RoadSummary xp={xp} claimed={claimed} onInspect={openInspect} />
         {notice ? (
           <Pressable onPress={() => setNotice('')} accessibilityRole="button" aria-label={`${notice} Dismiss`} style={s.notice}>
@@ -118,7 +121,7 @@ const s = StyleSheet.create({
   back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center', fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, letterSpacing: 1.5, color: palette.foreground },
   lede: { fontFamily: 'SourceSans3_400Regular', fontSize: 15, lineHeight: 21, color: palette.supporting },
-  notice: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, padding: 10, backgroundColor: palette.raised, borderWidth: 2, borderColor: palette.border },
+  notice: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, padding: 10, backgroundColor: palette.raised, borderWidth: 1, borderRadius: 10, borderColor: palette.border },
   noticeTxt: { flex: 1, fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: palette.foreground },
-  done: { padding: 18, alignItems: 'center', gap: 4, backgroundColor: palette.surface, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge },
+  done: { padding: 18, alignItems: 'center', gap: 4, backgroundColor: palette.surface, borderWidth: 1, borderBottomWidth: 4, borderRadius: 12, borderColor: palette.border, borderBottomColor: palette.edge },
 });

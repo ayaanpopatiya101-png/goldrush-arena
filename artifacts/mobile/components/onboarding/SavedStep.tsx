@@ -134,14 +134,14 @@ export function SavedStep({ accounts, loaded, loadError, onRetryLoad, onBack, on
 }
 
 const s = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'stretch', borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.background, borderRadius: 0, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'stretch', borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.background, borderRadius: 10, overflow: 'hidden' },
   main: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, minHeight: 64 },
-  avatar: { width: 44, height: 44, borderWidth: 3, borderRadius: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.background },
+  avatar: { width: 44, height: 44, borderWidth: 3, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.background },
   name: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
   cont: { fontFamily: fonts.bodyBold, fontSize: 15, color: palette.foreground },
   del: { width: 52, alignItems: 'center', justifyContent: 'center', borderLeftWidth: 2, borderLeftColor: palette.edge, backgroundColor: palette.surface },
   confirm: { flex: 1, padding: 12, gap: 10 },
   confirmText: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.foreground },
-  empty: { gap: 10, alignItems: 'flex-start', padding: 16, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
-  input: { flex: 1, minHeight: 48, borderWidth: 2, borderColor: palette.edge, borderRadius: 0, backgroundColor: palette.background, color: palette.foreground, fontFamily: fonts.body, fontSize: 17, paddingHorizontal: 12 },
+  empty: { gap: 10, alignItems: 'flex-start', padding: 16, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
+  input: { flex: 1, minHeight: 48, borderWidth: 2, borderColor: palette.edge, borderRadius: 10, backgroundColor: palette.background, color: palette.foreground, fontFamily: fonts.body, fontSize: 17, paddingHorizontal: 12 },
 });

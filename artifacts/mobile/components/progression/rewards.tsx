@@ -116,7 +116,7 @@ function ChipText({ children, color }: { children: React.ReactNode; color: strin
 }
 
 export const a = StyleSheet.create({
-  plate: { alignItems: 'center', justifyContent: 'center', backgroundColor: palette.inset, borderWidth: 2, borderColor: palette.border },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', maxWidth: '100%', borderWidth: 2, paddingHorizontal: 6, paddingVertical: 2 },
+  plate: { alignItems: 'center', justifyContent: 'center', backgroundColor: palette.inset, borderRadius: 10, borderWidth: 2, borderColor: palette.border },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', maxWidth: '100%', borderRadius: 10, borderWidth: 2, paddingHorizontal: 6, paddingVertical: 2 },
   chipTxt: { flexShrink: 1, fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 0.4 },
 });

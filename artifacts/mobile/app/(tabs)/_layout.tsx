@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { palette } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 type IconName = React.ComponentProps<typeof Feather>['name'];
 
@@ -40,14 +41,16 @@ export default function TabLayout() {
   const isWeb = Platform.OS === 'web';
   const { width } = useWindowDimensions();
   const wide = width >= 900;
+  const reduced = useReducedMotion();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
+        animation: reduced ? 'none' : 'fade',
         tabBarShowLabel: false,
         tabBarPosition: wide ? 'top' : 'bottom',
         tabBarStyle: wide ? {
-          backgroundColor: palette.background,
+          backgroundColor: palette.surface,
           borderBottomWidth: 2,
           borderBottomColor: palette.edge,
           borderTopWidth: 0,
@@ -57,7 +60,7 @@ export default function TabLayout() {
           paddingHorizontal: Math.max(18, (width - 1160) / 2),
         } : {
           position: 'absolute',
-          backgroundColor: palette.background,
+          backgroundColor: palette.surface,
            borderTopWidth: 2,
            borderTopColor: palette.edge,
           elevation: 0,
@@ -89,6 +92,6 @@ const styles = StyleSheet.create({
   tabItemWide: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 12 },
   tabLabelWide: { fontSize: 16 },
   pip: { width: 18, height: 3, marginTop: 1 },
-  iconPlate: { width: 36, height: 28, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
-  iconPlateOn: { backgroundColor: palette.primary, borderColor: palette.edge },
+  iconPlate: { width: 44, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
+  iconPlateOn: { backgroundColor: palette.primary, borderColor: '#4E9A2A', borderBottomWidth: 3 },
 });

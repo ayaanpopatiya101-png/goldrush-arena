@@ -41,22 +41,25 @@ function PlayerEntry() {
 }
 
 function RootLayoutNav() {
+  const reduced = useReducedMotion();
+  // Short, smooth route changes; none under reduced motion. Game/countdown timing is untouched.
+  const nav = (a: 'fade' | 'slide_from_right') => ({ headerShown: false, animation: reduced ? 'none' as const : a, animationDuration: 200 });
   return (
     <>
     <StatusBar style="light" backgroundColor={palette.background} />
-    <Stack screenOptions={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: palette.background } }}>
+    <Stack screenOptions={{ ...nav('fade'), contentStyle: { backgroundColor: palette.background } }}>
       <Stack.Screen name="(tabs)"    options={{ headerShown: false }} />
-      <Stack.Screen name="lobby"     options={{ headerShown: false, animation: 'slide_from_right' }} />
-      <Stack.Screen name="game"      options={{ headerShown: false, animation: 'fade' }} />
-      <Stack.Screen name="postgame"  options={{ headerShown: false, animation: 'fade' }} />
-      <Stack.Screen name="gauntlet"  options={{ headerShown: false, animation: 'fade' }} />
-      <Stack.Screen name="arcade"         options={{ headerShown: false, animation: 'fade' }} />
-      <Stack.Screen name="settings"       options={{ headerShown: false, animation: 'slide_from_right' }} />
-      <Stack.Screen name="legal"          options={{ headerShown: false, animation: 'slide_from_right' }} />
-      <Stack.Screen name="onboarding-flow" options={{ headerShown: false, animation: 'fade', presentation: 'fullScreenModal' }} />
-      <Stack.Screen name="challenge"       options={{ headerShown: false, animation: 'fade' }} />
-      <Stack.Screen name="warmup"          options={{ headerShown: false, animation: 'fade' }} />
-      <Stack.Screen name="paddle-studio" options={{headerShown:false,animation:'slide_from_right'}} />
+      <Stack.Screen name="lobby"     options={{ ...nav('slide_from_right') }} />
+      <Stack.Screen name="game"      options={{ ...nav('fade') }} />
+      <Stack.Screen name="postgame"  options={{ ...nav('fade') }} />
+      <Stack.Screen name="gauntlet"  options={{ ...nav('fade') }} />
+      <Stack.Screen name="arcade"         options={{ ...nav('fade') }} />
+      <Stack.Screen name="settings"       options={{ ...nav('slide_from_right') }} />
+      <Stack.Screen name="legal"          options={{ ...nav('slide_from_right') }} />
+      <Stack.Screen name="onboarding-flow" options={{ ...nav('fade'), presentation: 'fullScreenModal' }} />
+      <Stack.Screen name="challenge"       options={{ ...nav('fade') }} />
+      <Stack.Screen name="warmup"          options={{ ...nav('fade') }} />
+      <Stack.Screen name="paddle-studio" options={{ ...nav('slide_from_right')}} />
     </Stack>
     </>
   );
