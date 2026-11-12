@@ -8,6 +8,67 @@
 import * as zod from 'zod';
 
 
+export const GetStoreOffersQueryParams = zod.object({
+  "platform": zod.enum(['web', 'ios', 'android'])
+})
+
+export const GetStoreOffersResponse = zod.object({
+  "serverTime": zod.string(),
+  "nativeCustomerId": zod.string(),
+  "nativeVerificationAvailable": zod.boolean(),
+  "offers": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "startsAt": zod.string(),
+  "endsAt": zod.string(),
+  "rewardLabel": zod.string(),
+  "skins": zod.array(zod.string()),
+  "status": zod.enum(['available', 'upcoming', 'expired', 'claimed', 'pending', 'unavailable']),
+  "reason": zod.string(),
+  "priceLabel": zod.string().nullable(),
+  "packageId": zod.string().optional(),
+  "productId": zod.string().optional()
+}))
+})
+
+
+export const startOfferCheckoutBodyOfferIdMax = 80;
+
+
+
+export const StartOfferCheckoutBody = zod.object({
+  "offerId": zod.string().max(startOfferCheckoutBodyOfferIdMax),
+  "platform": zod.enum(['web', 'ios', 'android'])
+})
+
+export const StartOfferCheckoutResponse = zod.object({
+  "reservationId": zod.string(),
+  "url": zod.string().optional(),
+  "packageId": zod.string().optional(),
+  "productId": zod.string().optional(),
+  "nativeCustomerId": zod.string().optional()
+})
+
+
+export const verifyNativePurchaseBodyProductIdentifierMax = 255;
+
+export const verifyNativePurchaseBodyTransactionIdentifierMax = 255;
+
+export const verifyNativePurchaseBodyReservationIdMax = 255;
+
+
+
+export const VerifyNativePurchaseBody = zod.object({
+  "productIdentifier": zod.string().min(1).max(verifyNativePurchaseBodyProductIdentifierMax),
+  "transactionIdentifier": zod.string().min(1).max(verifyNativePurchaseBodyTransactionIdentifierMax),
+  "reservationId": zod.string().max(verifyNativePurchaseBodyReservationIdMax).optional()
+})
+
+export const VerifyNativePurchaseResponse = zod.object({
+  "code": zod.string()
+})
+
+
 export const GetSmsRemindersResponse = zod.object({
   "verificationAvailable": zod.boolean(),
   "remindersAvailable": zod.boolean(),

@@ -2,6 +2,9 @@ import { Router, type IRouter } from 'express';
 import { storage } from '../storage.js';
 import { getUncachableStripeClient } from '../stripeClient.js';
 import { WebhookHandlers } from '../webhookHandlers.js';
+import { requireArenaIdentity } from '../lib/arenaIdentity.js';
+import { storeCampaigns } from '../lib/storeCampaigns.js';
+import { standardProductMatches } from '../lib/storeRewards.js';
 
 const router: IRouter = Router();
 const ALLOWED_REWARD_TYPES = new Set(['coins', 'skins', 'season_pass', 'battle_pass', 'extra_lives']);
@@ -22,7 +25,7 @@ router.get('/store/products', async (_req, res) => {
     const stripe   = await getUncachableStripeClient();
     const products = await stripe.products.list({ active: true, limit: 50 });
     const result   = await Promise.all(
-      products.data.map(async (product) => {
+      products.data.filter(p => !p.metadata.store_campaign && standardProductMatches(p.name, p.metadata)).map(async (product) => {
         const prices = await stripe.prices.list({ product: product.id, active: true, limit: 10 });
         return {
           id:          product.id,
@@ -46,7 +49,7 @@ router.get('/store/products', async (_req, res) => {
     result.sort((a, b) => order(a) - order(b) || (a.prices[0]?.unit_amount ?? 0) - (b.prices[0]?.unit_amount ?? 0));
     res.json({ data: result });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(503).json({ error: 'The Stripe store is unavailable or not connected. No purchase can start. Check the Stripe integration or retry later.' });
   }
 });
 
@@ -66,6 +69,12 @@ router.post('/store/checkout', async (req, res) => {
     const meta    = product?.metadata ?? {};
     if (!price.active || !product || product.deleted || !product.active) {
       res.status(400).json({ error: 'This product is not available.' }); return;
+    }
+    if (meta.store_campaign || storeCampaigns.some(c => c.stripePriceId === priceId)) {
+      res.status(409).json({ error: 'Limited offers require the owner-bound offer checkout.' }); return;
+    }
+    if (!standardProductMatches(product.name, meta)) {
+      res.status(409).json({ error: 'This product does not match the included rewards shown in the catalog.' }); return;
     }
     if (!ALLOWED_REWARD_TYPES.has(meta.reward_type)) {
       res.status(400).json({ error: 'This product is not configured for an in-game reward.' }); return;
@@ -101,12 +110,12 @@ router.post('/store/checkout', async (req, res) => {
 });
 
 // ── Verify + claim a purchase code ────────────────────────────────────────────
-router.post('/store/verify-code', async (req, res) => {
+router.post('/store/verify-code', requireArenaIdentity, async (req, res) => {
   try {
     const { code } = req.body as { code: string };
     if (!code) { res.status(400).json({ error: 'code is required' }); return; }
 
-    const result = await storage.verifyAndClaimCode(code.trim().toUpperCase());
+    const result = await storage.verifyAndClaimCode(code.trim().toUpperCase(), res.locals.arenaPlayer.id);
     if (!result) {
       res.status(404).json({ error: 'Code not found or already used.' }); return;
     }
@@ -129,8 +138,7 @@ router.get('/store/purchase-status', async (req, res) => {
       res.json({ paid: false, ready: false }); return;
     }
 
-    const code = session.metadata?.purchase_code
-      ?? await WebhookHandlers.fulfillCheckoutSession(session);
+    const code = await WebhookHandlers.fulfillCheckoutSession(session);
     res.json({
       paid: true,
       ready: Boolean(code),
@@ -152,7 +160,11 @@ router.get('/store/success', async (req, res) => {
     try {
       const stripe  = await getUncachableStripeClient();
       const session = await stripe.checkout.sessions.retrieve(sessionId);
-      code  = (session.metadata?.purchase_code ?? '').toUpperCase();
+      if (session.payment_status !== 'paid') {
+        res.status(409).type('html').send('<h1>Payment is not complete</h1><p>No reward has been granted. Return to the store or check your payment status.</p>');
+        return;
+      }
+      code = (await WebhookHandlers.fulfillCheckoutSession(session) ?? '').toUpperCase();
       label = escapeHtml(session.metadata?.reward_label ?? label);
     } catch { /* best-effort */ }
   }
@@ -222,8 +234,8 @@ router.get('/store/success', async (req, res) => {
 <body>
 <div class="card">
   <div class="trophy">🏆</div>
-  <h1>PAYMENT COMPLETE!</h1>
-  <p class="sub">Thank you for supporting GoldRush Arena — ${label}</p>
+   <h1>PAYMENT STATUS</h1>
+<p class="sub">Your reward is available only after payment is verified — ${label}</p>
   ${codeHtml}
   <div class="steps">
     <strong>How to claim:</strong><br>
@@ -253,7 +265,7 @@ ${!code && sessionId ? `<script>
     } catch {}
     if (attempts >= 15) {
       document.getElementById('purchase-status').textContent =
-        'Your payment is complete, but fulfillment is taking longer than expected. Refresh this page shortly.';
+         'Payment or reward delivery is still being verified. Keep this checkout link and refresh it later; do not buy again.';
       clearInterval(timer);
     }
   }, 2000);

@@ -21,6 +21,8 @@ import { apiUrl } from '@/utils/api';
 import { withTimeout } from '@/utils/withTimeout';
 import { Glyph } from '@/components/ui/Glyph';
 import { useLocalSearchParams } from 'expo-router';
+import { LimitedOffers, identifyNativeCustomer } from '@/components/store/LimitedOffers';
+import { SKINS } from '@/context/PlayerContext';
 
 const NATIVE_PACKAGE_IDS: Record<string, string> = {
   'Starter Sack': 'starter_sack',
@@ -36,26 +38,26 @@ const NATIVE_PACKAGE_IDS: Record<string, string> = {
   'GoldRush Battle Pass Premium': 'battle_pass_premium_s1',
 };
 
+const DURABLE_SUFFIXES = ['inferno_pack', 'void_striker_pack', 'elite_bundle', 'battle_pass_premium_s1', 'season_pass'];
+
 const STORE_COIN_PACKS = [
-  { key: 'Starter Sack',    emoji: '🪙', name: 'Starter Sack',    desc: '1,000 Coins',                   usd: '$0.99',  highlight: false },
-  { key: 'Gold Pouch',      emoji: '💰', name: 'Gold Pouch',      desc: '5,000 Coins',                   usd: '$3.99',  highlight: false },
-  { key: 'Treasure Chest',  emoji: '🎁', name: 'Treasure Chest',  desc: '15,000 Coins, best deal!',     usd: '$9.99',  highlight: true  },
-  { key: 'Dragon Vault',    emoji: '🐉', name: 'Dragon Vault',    desc: '50,000 Coins',                  usd: '$24.99', highlight: false },
+  { key: 'Starter Sack',    emoji: '🪙', name: 'Starter Sack',    desc: '1,000 device coins',  highlight: false },
+  { key: 'Gold Pouch',      emoji: '💰', name: 'Gold Pouch',      desc: '5,000 device coins',  highlight: false },
+  { key: 'Treasure Chest',  emoji: '🎁', name: 'Treasure Chest',  desc: '15,000 device coins', highlight: false },
+  { key: 'Dragon Vault',    emoji: '🐉', name: 'Dragon Vault',    desc: '50,000 device coins', highlight: false },
 ];
 const STORE_SKIN_PACKS = [
-  { key: 'Void Striker Pack', emoji: '🌑', name: 'Void Striker Pack', desc: 'Exclusive Void paddle skin',         usd: '$1.99' },
-  { key: 'Inferno Pack',      emoji: '🔥', name: 'Inferno Pack',      desc: 'Blazing Inferno paddle skin',         usd: '$1.99' },
-  { key: 'Elite Bundle',      emoji: '💎', name: 'Elite Bundle',      desc: 'Chrome + Cosmic skins (2 for 1)',     usd: '$4.99' },
+  { key: 'Void Striker Pack', emoji: '🌑', name: 'Void Striker Pack', desc: 'Void paddle skin',            skins: ['void'] },
+  { key: 'Inferno Pack',      emoji: '🔥', name: 'Inferno Pack',      desc: 'Inferno paddle skin',         skins: ['inferno'] },
+  { key: 'Elite Bundle',      emoji: '💎', name: 'Elite Bundle',      desc: 'Chrome and Cosmic paddle skins', skins: ['chrome', 'cosmic'] },
 ];
 const STORE_SEASON_PASS = {
   key: 'GoldRush Season Pass', emoji: '🌟', name: 'GoldRush Season Pass',
   desc: 'Supporter purchase. In this build it records ownership only and does not unlock Pass tiers or items.',
-  usd: '$4.99',
 };
 const STORE_BATTLE_PASS = {
   key: 'GoldRush Battle Pass Premium', emoji: '👑', name: 'GoldRush Battle Pass Premium',
   desc: `${CURRENT_SEASON.label} only. Unlocks the premium reward track on the 50 Pass tiers; rewards are still earned by reaching each tier.`,
-  usd: '$4.99',
 };
 
 
@@ -66,7 +68,8 @@ export default function ShopScreen() {
   const { section } = useLocalSearchParams<{ section?: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { profile, applyStorePurchases } = usePlayer();
+  const { profile, applyStorePurchases, replayPendingStorePurchases, currentUsername } = usePlayer();
+  const buyLock = useRef(false);
   const revenueCat = useRevenueCat();
   const [activeTab, setActiveTab] = useState<'skins' | 'themes' | 'extras' | 'store'>('skins');
   useEffect(() => {
@@ -119,15 +122,23 @@ export default function ShopScreen() {
         setWebPrices(display);
         setStoreLoading(false);
       })
-      .catch(() => {
-        setStoreError('Could not load store. Check your connection.');
+      .catch((error: unknown) => {
+        setStoreError(error instanceof Error ? error.message : 'Could not load the Stripe store. No purchase can start; try again later.');
         setStoreLoading(false);
       });
   }, [activeTab, catalogAttempt]);
 
-  function nativePrice(productName: string, _webFallback: string) {
+  function nativePrice(productName: string) {
     if (Platform.OS === 'web') return webPrices[productName] ?? 'Unavailable';
     return revenueCat.getPackage(NATIVE_PACKAGE_IDS[productName])?.product.priceString ?? 'Unavailable';
+  }
+  function productReady(productName: string) {
+    if (Platform.OS === 'web') return !!webPrices[productName] && !!priceCache.current[productName];
+    return revenueCat.available && !revenueCat.error && !!revenueCat.getPackage(NATIVE_PACKAGE_IDS[productName]);
+  }
+  /** One lock for every purchase button; also blocks when the provider has no product. */
+  function buyDisabled(productName: string) {
+    return !!checkingOut || revenueCat.isRestoring || !productReady(productName);
   }
 
   async function completeNativePurchase(productName: string) {
@@ -137,9 +148,12 @@ export default function ShopScreen() {
       xAlert('Store unavailable', 'This item is not available from your app store yet.');
       return;
     }
+    if (checkingOut || buyLock.current) return;
+    buyLock.current = true;
     setCheckingOut(productName);
     trackEvent('store_checkout_started', { product: productName, provider: 'revenuecat' });
     try {
+      await identifyNativeCustomer(revenueCat, currentUsername);
       const result = await revenueCat.purchase(pkg);
       const transactionIdentifier = result.transaction.transactionIdentifier;
       if (!transactionIdentifier) throw new Error('The app store did not return a transaction receipt.');
@@ -152,11 +166,15 @@ export default function ShopScreen() {
     } catch (error: any) {
       if (!error?.userCancelled) xAlert('Purchase failed', error?.message ?? 'Could not complete this purchase.');
     } finally {
+      buyLock.current = false;
       setCheckingOut(null);
     }
   }
 
   async function handleBuyFromStore(productName: string) {
+    if (checkingOut || !productReady(productName)) return;
+    const skinPack = STORE_SKIN_PACKS.find(p => p.key === productName);
+    if (skinPack && skinPack.skins.every(id => profile.ownedSkins.includes(id))) return;
     if (productName === STORE_BATTLE_PASS.key && profile.battlePassPremiumOwned) return;
     if (Platform.OS !== 'web') {
       if (__DEV__) {
@@ -171,6 +189,8 @@ export default function ShopScreen() {
       xAlert('Store unavailable', 'Could not find product. Try again in a moment.');
       return;
     }
+    if (buyLock.current) return;
+    buyLock.current = true;
     setCheckingOut(productName);
     trackEvent('store_checkout_started', { product: productName });
     try {
@@ -187,6 +207,7 @@ export default function ShopScreen() {
       trackEvent('store_checkout_failed', { product: productName });
       xAlert('Checkout failed', err.message ?? 'Could not open checkout.');
     } finally {
+      buyLock.current = false;
       setCheckingOut(null);
     }
   }
@@ -287,13 +308,13 @@ export default function ShopScreen() {
             </View>
 
             {[
-              { storeKey: '1 Extra Life',  emoji: '❤️',  name: '1 Extra Life',  desc: 'Start your next match with 1 bonus life',          usd: '$1.99' },
-              { storeKey: '3 Extra Lives', emoji: '💖',  name: '3 Extra Lives', desc: 'Start your next 3 matches each with 1 bonus life',   usd: '$2.99' },
+              { storeKey: '1 Extra Life',  emoji: '❤️',  name: '1 Extra Life',  desc: 'Start your next match with 1 bonus life' },
+              { storeKey: '3 Extra Lives', emoji: '💖',  name: '3 Extra Lives', desc: 'Start your next 3 matches each with 1 bonus life' },
             ].map(item => (
               <Pressable
                 key={item.storeKey}
                 onPress={() => handleBuyFromStore(item.storeKey)}
-                disabled={checkingOut === item.storeKey}
+                disabled={buyDisabled(item.storeKey)}
                 style={({ pressed }) => [styles.bundleCard, {
                   backgroundColor: colors.card, borderColor: palette.border, borderBottomWidth: pressed ? 2 : 5, transform: [{ translateY: pressed ? 3 : 0 }],
                 }]}
@@ -309,7 +330,7 @@ export default function ShopScreen() {
                 <ShimmerCard active={!checkingOut} borderRadius={3} shimmerColor="rgba(255,255,255,0.1)">
                   <View style={[storeStyles.usdBtn, { backgroundColor: palette.primary, borderColor: palette.edge }]}>
                     <Text style={[storeStyles.usdBtnText, { color: palette.onAccent }]}>
-                      {checkingOut === item.storeKey ? '…' : nativePrice(item.storeKey, item.usd)}
+                      {checkingOut === item.storeKey ? '…' : nativePrice(item.storeKey)}
                     </Text>
                   </View>
                 </ShimmerCard>
@@ -333,7 +354,7 @@ export default function ShopScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.itemName, { color: palette.foreground }]}>Coin Packs</Text>
-                <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>From $0.99, up to 50,000 coins</Text>
+                <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>Up to 50,000 device coins, priced by your store</Text>
               </View>
               <View style={[styles.buyBtn, { backgroundColor: palette.primary, borderColor: palette.edge }]}>
                 <Text style={[styles.buyBtnText, { color: palette.onAccent }]}>STORE →</Text>
@@ -355,6 +376,11 @@ export default function ShopScreen() {
                 </Text>
               </View>
             </View>
+
+            <View style={storeStyles.boundary}>
+              <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>Coins, skins and lives are saved on this device for your current player, including guest players. Device coins are separate from any verified online balance, and clearing app data or switching devices can lose items that are not store-verified. Limited offers contain cosmetics only; extra lives are a gameplay item.</Text>
+            </View>
+            <LimitedOffers busyKey={checkingOut} setBusyKey={setCheckingOut} />
 
             {catalogLoading && (
               <View accessibilityLabel="Loading store products" accessibilityState={{ busy: true }} style={{ gap: 12, paddingVertical: 20 }}>
@@ -387,11 +413,9 @@ export default function ShopScreen() {
                 <HolographicShimmer borderRadius={3}>
                   <Pressable
                     onPress={() => handleBuyFromStore(STORE_BATTLE_PASS.key)}
-                    disabled={checkingOut === STORE_BATTLE_PASS.key || !!profile.battlePassPremiumOwned
-                      || (Platform.OS === 'web' ? !priceCache.current[STORE_BATTLE_PASS.key]
-                        : !revenueCat.available || !!revenueCat.error || !revenueCat.getPackage(NATIVE_PACKAGE_IDS[STORE_BATTLE_PASS.key]))}
+                    disabled={buyDisabled(STORE_BATTLE_PASS.key) || !!profile.battlePassPremiumOwned}
                     accessibilityRole="button"
-                    accessibilityLabel={profile.battlePassPremiumOwned ? 'Battle Pass Plus owned' : `Battle Pass Plus, ${nativePrice(STORE_BATTLE_PASS.key, STORE_BATTLE_PASS.usd)}`}
+                    accessibilityLabel={profile.battlePassPremiumOwned ? 'Battle Pass Plus owned' : `Battle Pass Plus, ${nativePrice(STORE_BATTLE_PASS.key)}`}
                     style={({ pressed }) => [storeStyles.passCard, { opacity: pressed ? 0.8 : 1, borderColor: palette.border, backgroundColor: palette.surface }]}
                   >
                     <LinearGradient colors={[palette.inset, palette.inset]} style={StyleSheet.absoluteFill} />
@@ -405,7 +429,7 @@ export default function ShopScreen() {
                     </View>
                     {!profile.battlePassPremiumOwned && (
                       <View style={[storeStyles.usdBtn, { backgroundColor: palette.primary, borderColor: palette.edge }]}>
-                        <Text style={[storeStyles.usdBtnText, { color: palette.onAccent }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : nativePrice(STORE_BATTLE_PASS.key, STORE_BATTLE_PASS.usd)}</Text>
+                        <Text style={[storeStyles.usdBtnText, { color: palette.onAccent }]}>{checkingOut === STORE_BATTLE_PASS.key ? '…' : nativePrice(STORE_BATTLE_PASS.key)}</Text>
                       </View>
                     )}
                   </Pressable>
@@ -449,7 +473,7 @@ export default function ShopScreen() {
                     <Pressable
                       key={pack.key}
                       onPress={() => handleBuyFromStore(pack.key)}
-                      disabled={checkingOut === pack.key}
+                      disabled={buyDisabled(pack.key)}
                       style={({ pressed }) => [storeStyles.storeCard, {
                         borderColor: pack.highlight ? palette.primary : colors.border,
                         backgroundColor: colors.card,
@@ -464,7 +488,7 @@ export default function ShopScreen() {
                       </View>
                       <View style={[storeStyles.usdBtn, pack.highlight && { backgroundColor: palette.background, borderColor: palette.edge }]}>
                         <Text style={[storeStyles.usdBtnText, pack.highlight && { color: palette.foreground }]}>
-                          {checkingOut === pack.key ? '…' : nativePrice(pack.key, pack.usd)}
+                          {checkingOut === pack.key ? '…' : nativePrice(pack.key)}
                         </Text>
                       </View>
                     </Pressable>
@@ -480,25 +504,39 @@ export default function ShopScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 2 }}>
                   <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: palette.foreground }}>SKIN PACKS</Text>
                 </View>
-                {STORE_SKIN_PACKS.map(pack => (
-                  <Pressable
-                    key={pack.key}
-                    onPress={() => handleBuyFromStore(pack.key)}
-                    disabled={checkingOut === pack.key}
-                    style={({ pressed }) => [storeStyles.storeCard, { borderColor: palette.border, backgroundColor: colors.card, opacity: pressed ? 0.82 : 1 }]}
-                  >
-                    <Glyph style={{ fontSize: 26, width: 36, textAlign: 'center' }} value={pack.emoji} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={[storeStyles.storeName, { color: colors.foreground }]}>{pack.name}</Text>
-                      <Text style={[storeStyles.storeDesc, { color: colors.mutedForeground }]}>{pack.desc}</Text>
-                    </View>
-                    <ShimmerCard active={!checkingOut} borderRadius={3} shimmerColor="rgba(255,255,255,0.1)">
-                      <View style={storeStyles.usdBtn}>
-                        <Text style={storeStyles.usdBtnText}>{checkingOut === pack.key ? '…' : nativePrice(pack.key, pack.usd)}</Text>
+                {STORE_SKIN_PACKS.map(pack => {
+                  const allOwned = pack.skins.every(id => profile.ownedSkins.includes(id));
+                  const off = allOwned || buyDisabled(pack.key);
+                  return (
+                    <Pressable
+                      key={pack.key}
+                      onPress={() => handleBuyFromStore(pack.key)}
+                      disabled={off}
+                      accessibilityRole="button"
+                      accessibilityState={{ disabled: off }}
+                      accessibilityLabel={allOwned ? `${pack.name}, all skins owned` : `${pack.name}, ${nativePrice(pack.key)}`}
+                      style={({ pressed }) => [storeStyles.storeCard, { borderColor: palette.border, backgroundColor: colors.card, opacity: pressed ? 0.82 : 1 }]}
+                    >
+                      <View style={{ gap: 4 }}>
+                        {pack.skins.map(id => (
+                          <View key={id} style={storeStyles.packCourt}>
+                            <View style={[storeStyles.packPaddle, { backgroundColor: SKINS.find(k => k.id === id)?.color ?? palette.muted }]} />
+                          </View>
+                        ))}
                       </View>
-                    </ShimmerCard>
-                  </Pressable>
-                ))}
+                      <View style={{ flex: 1 }}>
+                        <Text style={[storeStyles.storeName, { color: colors.foreground }]}>{pack.name}</Text>
+                        <Text style={[storeStyles.storeDesc, { color: colors.mutedForeground }]}>{pack.desc}</Text>
+                        <Text style={[storeStyles.storeDesc, { color: palette.supporting }]}>
+                          {pack.skins.map(id => `${SKINS.find(k => k.id === id)?.name ?? id}${profile.ownedSkins.includes(id) ? ' (owned)' : ''}`).join(' / ')}
+                        </Text>
+                      </View>
+                      <View style={[storeStyles.usdBtn, off && { backgroundColor: palette.raised, borderColor: palette.border }]}>
+                        <Text style={[storeStyles.usdBtnText, off && { color: palette.muted }]}>{allOwned ? 'OWNED' : checkingOut === pack.key ? '...' : nativePrice(pack.key)}</Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
 
                 {/* How it works */}
                 <View style={[storeStyles.howItWorks, { borderColor: palette.border }]}>
@@ -515,24 +553,36 @@ export default function ShopScreen() {
                       <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>1. Tap a product and confirm with the App Store or Google Play</Text>
                       <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>2. Your reward is added automatically after payment</Text>
                       <Pressable
-                        disabled={revenueCat.isRestoring}
+                        disabled={revenueCat.isRestoring || !!checkingOut || !revenueCat.available}
                         style={storeStyles.restoreBtn}
                         onPress={async () => {
+                          if (checkingOut || buyLock.current) return;
+                          buyLock.current = true;
+                          setCheckingOut('restore');
                           try {
+                            await replayPendingStorePurchases();
+                            await identifyNativeCustomer(revenueCat, currentUsername);
                             const info = await revenueCat.restore();
-                            const durablePurchases = Object.values(info.entitlements.active).map((entitlement: any) => ({
-                              productIdentifier: entitlement.productIdentifier,
-                              transactionIdentifier: `RESTORE:${entitlement.productIdentifier}`,
-                            }));
-                            const restored = await applyStorePurchases(durablePurchases);
-                            xAlert('Restore complete', restored.message);
+                            const durable = info.nonSubscriptionTransactions
+                              .filter(t => !!t.transactionIdentifier && DURABLE_SUFFIXES.some(sfx => t.productIdentifier.endsWith(sfx)))
+                              .map(t => ({ productIdentifier: t.productIdentifier, transactionIdentifier: t.transactionIdentifier }));
+                            if (durable.length === 0) {
+                              xAlert('Nothing to restore', 'No restorable skin pack or pass receipts were found for this store account. Coins and extra lives are consumables and are not restored.');
+                              return;
+                            }
+                            const restored = await applyStorePurchases(durable);
+                            xAlert('Restore checked', restored.message);
                           } catch (error: any) {
                             xAlert('Restore failed', error?.message ?? 'Could not restore purchases.');
+                          } finally {
+                            buyLock.current = false;
+                            setCheckingOut(null);
                           }
                         }}
                       >
                         <Text style={storeStyles.restoreText}>{revenueCat.isRestoring ? 'RESTORING…' : 'RESTORE PURCHASES'}</Text>
                       </Pressable>
+                      <Text style={[storeStyles.howStep, { color: colors.mutedForeground }]}>Restore first retries any receipts saved on this device, then links your store account to this player and re-verifies skin pack and pass receipts with the server. Coins and extra lives are consumables and are not restored. If a receipt is still pending, tap Restore again later to retry verification.</Text>
                     </>
                   )}
                 </View>
@@ -547,9 +597,9 @@ export default function ShopScreen() {
       <Modal visible={nativeConfirmationVisible} transparent animationType="fade" onRequestClose={() => setPendingNativeProduct(null)}>
         <View style={storeStyles.confirmBackdrop}>
           <View style={[storeStyles.confirmCard, { backgroundColor: colors.card }]}>
-            <Text style={[storeStyles.confirmTitle, { color: colors.foreground }]}>Test purchase</Text>
+            <Text style={[storeStyles.confirmTitle, { color: colors.foreground }]}>Confirm store purchase</Text>
             <Text style={[storeStyles.confirmText, { color: colors.mutedForeground }]}>
-              Complete a RevenueCat test purchase for {pendingNativeProduct}?
+              Open your app store for {pendingNativeProduct}? Development mode does not guarantee a sandbox purchase. Check the store sheet for the actual price and test environment.
             </Text>
             <View style={storeStyles.confirmActions}>
               <Pressable style={storeStyles.confirmCancel} onPress={() => setPendingNativeProduct(null)}>
@@ -631,6 +681,9 @@ const storeStyles = StyleSheet.create({
   howItWorks: { backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, padding: 14, gap: 6 },
   howTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, marginBottom: 4 },
   howStep: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18 },
+  boundary: { backgroundColor: palette.inset, borderRadius: 10, borderWidth: 1, borderColor: palette.border, padding: 12 },
+  packCourt: { width: 40, height: 18, borderRadius: 5, borderWidth: 1, borderColor: palette.border, backgroundColor: palette.inset, alignItems: 'center', justifyContent: 'center' },
+  packPaddle: { width: 26, height: 6, borderRadius: 3 },
   restoreBtn: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, paddingHorizontal: 12, paddingVertical: 8 },
   restoreText: { color: palette.foreground, fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
   confirmBackdrop: { flex: 1, backgroundColor: palette.deepest + 'CC', alignItems: 'center', justifyContent: 'center', padding: 24 },

@@ -31,9 +31,13 @@ import type {
   DesignAssistInput,
   DesignAssistResult,
   GetCompetition200,
+  GetStoreOffersParams,
   HealthStatus,
   LiveResult,
   LiveRoom,
+  NativeReceiptInput,
+  OfferCheckoutInput,
+  OfferCheckoutResult,
   PaddleDesign,
   PlayerSession,
   QueueInput,
@@ -41,7 +45,9 @@ import type {
   SmsCodeInput,
   SmsReminderInput,
   SmsReminderState,
-  SmsVerificationInput
+  SmsVerificationInput,
+  StoreOfferState,
+  VerifiedPurchase
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -55,6 +61,214 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
+
+export const getGetStoreOffersUrl = (params: GetStoreOffersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/store/offers?${stringifiedParams}` : `/api/store/offers`
+}
+
+export const getStoreOffers = async (params: GetStoreOffersParams, options?: RequestInit): Promise<StoreOfferState> => {
+
+  return customFetch<StoreOfferState>(getGetStoreOffersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStoreOffersQueryKey = (params?: GetStoreOffersParams,) => {
+    return [
+    `/api/store/offers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetStoreOffersQueryOptions = <TData = Awaited<ReturnType<typeof getStoreOffers>>, TError = ErrorType<unknown>>(params: GetStoreOffersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStoreOffers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStoreOffersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStoreOffers>>> = ({ signal }) => getStoreOffers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStoreOffers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStoreOffersQueryResult = NonNullable<Awaited<ReturnType<typeof getStoreOffers>>>
+export type GetStoreOffersQueryError = ErrorType<unknown>
+
+
+
+export function useGetStoreOffers<TData = Awaited<ReturnType<typeof getStoreOffers>>, TError = ErrorType<unknown>>(
+ params: GetStoreOffersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStoreOffers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStoreOffersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getStartOfferCheckoutUrl = () => {
+
+
+
+
+  return `/api/store/offer-checkout`
+}
+
+export const startOfferCheckout = async (offerCheckoutInput: OfferCheckoutInput, options?: RequestInit): Promise<OfferCheckoutResult> => {
+
+  return customFetch<OfferCheckoutResult>(getStartOfferCheckoutUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      offerCheckoutInput,)
+  }
+);}
+
+
+
+
+export const getStartOfferCheckoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startOfferCheckout>>, TError,{data: BodyType<OfferCheckoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startOfferCheckout>>, TError,{data: BodyType<OfferCheckoutInput>}, TContext> => {
+
+const mutationKey = ['startOfferCheckout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startOfferCheckout>>, {data: BodyType<OfferCheckoutInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  startOfferCheckout(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartOfferCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof startOfferCheckout>>>
+    export type StartOfferCheckoutMutationBody = BodyType<OfferCheckoutInput>
+    export type StartOfferCheckoutMutationError = ErrorType<unknown>
+
+    export const useStartOfferCheckout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startOfferCheckout>>, TError,{data: BodyType<OfferCheckoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startOfferCheckout>>,
+        TError,
+        {data: BodyType<OfferCheckoutInput>},
+        TContext
+      > => {
+      return useMutation(getStartOfferCheckoutMutationOptions(options));
+    }
+
+export const getVerifyNativePurchaseUrl = () => {
+
+
+
+
+  return `/api/store/native-verify`
+}
+
+export const verifyNativePurchase = async (nativeReceiptInput: NativeReceiptInput, options?: RequestInit): Promise<VerifiedPurchase> => {
+
+  return customFetch<VerifiedPurchase>(getVerifyNativePurchaseUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nativeReceiptInput,)
+  }
+);}
+
+
+
+
+export const getVerifyNativePurchaseMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyNativePurchase>>, TError,{data: BodyType<NativeReceiptInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyNativePurchase>>, TError,{data: BodyType<NativeReceiptInput>}, TContext> => {
+
+const mutationKey = ['verifyNativePurchase'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyNativePurchase>>, {data: BodyType<NativeReceiptInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  verifyNativePurchase(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyNativePurchaseMutationResult = NonNullable<Awaited<ReturnType<typeof verifyNativePurchase>>>
+    export type VerifyNativePurchaseMutationBody = BodyType<NativeReceiptInput>
+    export type VerifyNativePurchaseMutationError = ErrorType<unknown>
+
+    export const useVerifyNativePurchase = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyNativePurchase>>, TError,{data: BodyType<NativeReceiptInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyNativePurchase>>,
+        TError,
+        {data: BodyType<NativeReceiptInput>},
+        TContext
+      > => {
+      return useMutation(getVerifyNativePurchaseMutationOptions(options));
+    }
 
 export const getGetSmsRemindersUrl = () => {
 
