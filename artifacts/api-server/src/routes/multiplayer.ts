@@ -1,7 +1,9 @@
 import { Router, type IRouter } from "express";
 import { db, arenaResults } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { JoinLiveQueueBody, GetLiveResultResponse, GetLiveRoomResponse } from "@workspace/api-zod";
+import { JoinLiveQueueBody, GetLiveResultResponse, GetLiveRoomResponse, CreateCustomRoomBody, JoinCustomRoomBody, AgreeCustomRoomBody } from "@workspace/api-zod";
+import { createPrivateRoom, joinPrivateRoom, agreePrivateRoom, forgetPrivateRoom, CustomRoomError } from "../lib/customRooms.js";
+import { workshopPresetSchema } from "../lib/workshopValidation.js";
 import { issueIdentity, limited, requireArenaIdentity } from "../lib/arenaIdentity.js";
 import { currentRoom, joinRoom, leaveRoom, publicRoom } from "../lib/arenaService.js";
 import { partyAllows, partyMemberIds } from "./party.js";
@@ -19,7 +21,7 @@ router.use("/multiplayer", requireArenaIdentity, (req, res, next) => {
   next();
 });
 router.post("/multiplayer/queue", (req, res) => {
-  const parsed = JoinLiveQueueBody.safeParse(req.body);
+  const parsed = JoinLiveQueueBody.strict().safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: "Invalid queue request or unsupported online mode" }); return; }
   const input = parsed.data;
   if (input.mode === "ranked" && input.variant === "rally_race") {
@@ -29,6 +31,9 @@ router.post("/multiplayer/queue", (req, res) => {
     res.status(403).json({ error: "Join the party and use its leader's selected mode first." }); return;
   }
   const identity = res.locals.arenaPlayer;
+  if(currentRoom(identity.id)?.customPreset && !["finished","void"].includes(currentRoom(identity.id)!.phase)){
+    res.status(409).json({error:"Leave your private custom room before joining a standard queue."});return;
+  }
   const rating = (identity.competitive[seasonKey()] ?? initialSeason()).rating;
   try { res.json(GetLiveRoomResponse.parse(publicRoom(joinRoom({ ...identity, rating }, input, input.partyCode ? partyMemberIds(input.partyCode) : undefined)))); }
   catch { res.status(503).json({ error: "Match server is busy. Try again." }); }
@@ -38,14 +43,36 @@ router.get("/multiplayer/competition", (_req, res) => {
   const season = seasonKey();
   res.json({ current: seasonView(season, history[season]), history: Object.keys(history).filter(k => k !== season).sort().reverse().map(k => seasonView(k, history[k])) });
 });
+const customWrap=(fn:(req:any,res:any)=>Promise<void>)=>async(req:any,res:any)=>{
+  try{await fn(req,res);}catch(e){res.status(e instanceof CustomRoomError?e.status:503).json({error:e instanceof CustomRoomError?e.message:"Private room could not be saved. Retry."});}
+};
+router.post("/multiplayer/custom",customWrap(async(req,res)=>{
+  const parsed=CreateCustomRoomBody.extend({preset:workshopPresetSchema}).strict().safeParse(req.body);
+  if(!parsed.success){res.status(400).json({error:"Invalid custom preset or player details."});return;}
+  res.json(GetLiveRoomResponse.parse(publicRoom(await createPrivateRoom(res.locals.arenaPlayer,parsed.data))));
+}));
+router.post("/multiplayer/custom/join",customWrap(async(req,res)=>{
+  const parsed=JoinCustomRoomBody.strict().safeParse(req.body);
+  if(!parsed.success){res.status(400).json({error:"Enter an eight-character private room code."});return;}
+  res.json(GetLiveRoomResponse.parse(publicRoom(await joinPrivateRoom(res.locals.arenaPlayer,parsed.data))));
+}));
+router.post("/multiplayer/custom/agree",customWrap(async(req,res)=>{
+  const parsed=AgreeCustomRoomBody.strict().safeParse(req.body);
+  if(!parsed.success){res.status(400).json({error:"Review and agree to the current configuration."});return;}
+  res.json(GetLiveRoomResponse.parse(publicRoom(agreePrivateRoom(res.locals.arenaPlayer,parsed.data.roomId,parsed.data.configHash))));
+}));
 router.get("/multiplayer/current", (_req, res) => {
   const room = currentRoom(res.locals.arenaPlayer.id);
+  if(!room && res.locals.arenaPlayer.cosmetics.lastCustomRoom){
+    res.json(GetLiveRoomResponse.parse(res.locals.arenaPlayer.cosmetics.lastCustomRoom));return;
+  }
   if (!room) { res.status(404).json({ error: "No active match. Server interruption never creates a win." }); return; }
   res.json(GetLiveRoomResponse.parse(publicRoom(room)));
 });
-router.delete("/multiplayer/queue", (_req, res) => {
+router.delete("/multiplayer/queue", customWrap(async(_req, res) => {
+  await forgetPrivateRoom(res.locals.arenaPlayer);
   leaveRoom(res.locals.arenaPlayer.id); res.sendStatus(204);
-});
+}));
 router.get("/multiplayer/result/:matchId", async (req, res) => {
   const [row] = await db.select().from(arenaResults).where(eq(arenaResults.id, `${req.params.matchId}:${res.locals.arenaPlayer.id}`));
   if (!row) { res.status(404).json({ error: "No verified result exists for this player and match." }); return; }

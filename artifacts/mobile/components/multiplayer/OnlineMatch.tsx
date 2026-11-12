@@ -123,6 +123,11 @@ export default function OnlineMatch() {
         catch (e) {
           if ((e as { status?: number }).status !== 404) throw e;
         }
+        // Private configurations never enter the normal result/progression flow.
+        if (active?.customPreset) {
+          if (!disposed) router.replace("/paddle-studio?workshop=1");
+          return;
+        }
         if (!active) {
           const pending = await AsyncStorage.getItem(pendingKey);
           if (pending) {

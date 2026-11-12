@@ -28,6 +28,9 @@ import type {
   CosmeticOfferInput,
   CosmeticPurchaseInput,
   CosmeticState,
+  CustomAgreementInput,
+  CustomJoinInput,
+  CustomRoomInput,
   DesignAssistInput,
   DesignAssistResult,
   GetCompetition200,
@@ -47,7 +50,12 @@ import type {
   SmsReminderState,
   SmsVerificationInput,
   StoreOfferState,
-  VerifiedPurchase
+  VerifiedPurchase,
+  WorkshopAssistInput,
+  WorkshopAssistResult,
+  WorkshopEquipInput,
+  WorkshopPreset,
+  WorkshopState
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -796,6 +804,531 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSmsProviderInboundMutationOptions(options));
+    }
+
+export const getGetWorkshopUrl = () => {
+
+
+
+
+  return `/api/cosmetics/workshop`
+}
+
+export const getWorkshop = async ( options?: RequestInit): Promise<WorkshopState> => {
+
+  return customFetch<WorkshopState>(getGetWorkshopUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWorkshopQueryKey = () => {
+    return [
+    `/api/cosmetics/workshop`
+    ] as const;
+    }
+
+
+export const getGetWorkshopQueryOptions = <TData = Awaited<ReturnType<typeof getWorkshop>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkshop>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWorkshopQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorkshop>>> = ({ signal }) => getWorkshop({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWorkshop>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWorkshopQueryResult = NonNullable<Awaited<ReturnType<typeof getWorkshop>>>
+export type GetWorkshopQueryError = ErrorType<unknown>
+
+
+
+export function useGetWorkshop<TData = Awaited<ReturnType<typeof getWorkshop>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkshop>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWorkshopQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveWorkshopPresetUrl = () => {
+
+
+
+
+  return `/api/cosmetics/workshop`
+}
+
+export const saveWorkshopPreset = async (workshopPreset: WorkshopPreset, options?: RequestInit): Promise<WorkshopState> => {
+
+  return customFetch<WorkshopState>(getSaveWorkshopPresetUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      workshopPreset,)
+  }
+);}
+
+
+
+
+export const getSaveWorkshopPresetMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveWorkshopPreset>>, TError,{data: BodyType<WorkshopPreset>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveWorkshopPreset>>, TError,{data: BodyType<WorkshopPreset>}, TContext> => {
+
+const mutationKey = ['saveWorkshopPreset'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveWorkshopPreset>>, {data: BodyType<WorkshopPreset>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveWorkshopPreset(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveWorkshopPresetMutationResult = NonNullable<Awaited<ReturnType<typeof saveWorkshopPreset>>>
+    export type SaveWorkshopPresetMutationBody = BodyType<WorkshopPreset>
+    export type SaveWorkshopPresetMutationError = ErrorType<unknown>
+
+    export const useSaveWorkshopPreset = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveWorkshopPreset>>, TError,{data: BodyType<WorkshopPreset>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveWorkshopPreset>>,
+        TError,
+        {data: BodyType<WorkshopPreset>},
+        TContext
+      > => {
+      return useMutation(getSaveWorkshopPresetMutationOptions(options));
+    }
+
+export const getDeleteWorkshopPresetUrl = (id: string,) => {
+
+
+
+
+  return `/api/cosmetics/workshop/${id}`
+}
+
+export const deleteWorkshopPreset = async (id: string, options?: RequestInit): Promise<WorkshopState> => {
+
+  return customFetch<WorkshopState>(getDeleteWorkshopPresetUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteWorkshopPresetMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkshopPreset>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteWorkshopPreset>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteWorkshopPreset'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteWorkshopPreset>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteWorkshopPreset(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteWorkshopPresetMutationResult = NonNullable<Awaited<ReturnType<typeof deleteWorkshopPreset>>>
+
+    export type DeleteWorkshopPresetMutationError = ErrorType<unknown>
+
+    export const useDeleteWorkshopPreset = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkshopPreset>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteWorkshopPreset>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteWorkshopPresetMutationOptions(options));
+    }
+
+export const getEquipWorkshopPresetUrl = () => {
+
+
+
+
+  return `/api/cosmetics/workshop/equip`
+}
+
+export const equipWorkshopPreset = async (workshopEquipInput: WorkshopEquipInput, options?: RequestInit): Promise<WorkshopState> => {
+
+  return customFetch<WorkshopState>(getEquipWorkshopPresetUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      workshopEquipInput,)
+  }
+);}
+
+
+
+
+export const getEquipWorkshopPresetMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof equipWorkshopPreset>>, TError,{data: BodyType<WorkshopEquipInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof equipWorkshopPreset>>, TError,{data: BodyType<WorkshopEquipInput>}, TContext> => {
+
+const mutationKey = ['equipWorkshopPreset'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof equipWorkshopPreset>>, {data: BodyType<WorkshopEquipInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  equipWorkshopPreset(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EquipWorkshopPresetMutationResult = NonNullable<Awaited<ReturnType<typeof equipWorkshopPreset>>>
+    export type EquipWorkshopPresetMutationBody = BodyType<WorkshopEquipInput>
+    export type EquipWorkshopPresetMutationError = ErrorType<unknown>
+
+    export const useEquipWorkshopPreset = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof equipWorkshopPreset>>, TError,{data: BodyType<WorkshopEquipInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof equipWorkshopPreset>>,
+        TError,
+        {data: BodyType<WorkshopEquipInput>},
+        TContext
+      > => {
+      return useMutation(getEquipWorkshopPresetMutationOptions(options));
+    }
+
+export const getAssistWorkshopUrl = () => {
+
+
+
+
+  return `/api/openai/workshop`
+}
+
+export const assistWorkshop = async (workshopAssistInput: WorkshopAssistInput, options?: RequestInit): Promise<WorkshopAssistResult> => {
+
+  return customFetch<WorkshopAssistResult>(getAssistWorkshopUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      workshopAssistInput,)
+  }
+);}
+
+
+
+
+export const getAssistWorkshopMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assistWorkshop>>, TError,{data: BodyType<WorkshopAssistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof assistWorkshop>>, TError,{data: BodyType<WorkshopAssistInput>}, TContext> => {
+
+const mutationKey = ['assistWorkshop'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assistWorkshop>>, {data: BodyType<WorkshopAssistInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  assistWorkshop(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AssistWorkshopMutationResult = NonNullable<Awaited<ReturnType<typeof assistWorkshop>>>
+    export type AssistWorkshopMutationBody = BodyType<WorkshopAssistInput>
+    export type AssistWorkshopMutationError = ErrorType<unknown>
+
+    export const useAssistWorkshop = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assistWorkshop>>, TError,{data: BodyType<WorkshopAssistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof assistWorkshop>>,
+        TError,
+        {data: BodyType<WorkshopAssistInput>},
+        TContext
+      > => {
+      return useMutation(getAssistWorkshopMutationOptions(options));
+    }
+
+export const getCreateCustomRoomUrl = () => {
+
+
+
+
+  return `/api/multiplayer/custom`
+}
+
+export const createCustomRoom = async (customRoomInput: CustomRoomInput, options?: RequestInit): Promise<LiveRoom> => {
+
+  return customFetch<LiveRoom>(getCreateCustomRoomUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      customRoomInput,)
+  }
+);}
+
+
+
+
+export const getCreateCustomRoomMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCustomRoom>>, TError,{data: BodyType<CustomRoomInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCustomRoom>>, TError,{data: BodyType<CustomRoomInput>}, TContext> => {
+
+const mutationKey = ['createCustomRoom'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCustomRoom>>, {data: BodyType<CustomRoomInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCustomRoom(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCustomRoomMutationResult = NonNullable<Awaited<ReturnType<typeof createCustomRoom>>>
+    export type CreateCustomRoomMutationBody = BodyType<CustomRoomInput>
+    export type CreateCustomRoomMutationError = ErrorType<unknown>
+
+    export const useCreateCustomRoom = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCustomRoom>>, TError,{data: BodyType<CustomRoomInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCustomRoom>>,
+        TError,
+        {data: BodyType<CustomRoomInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCustomRoomMutationOptions(options));
+    }
+
+export const getJoinCustomRoomUrl = () => {
+
+
+
+
+  return `/api/multiplayer/custom/join`
+}
+
+export const joinCustomRoom = async (customJoinInput: CustomJoinInput, options?: RequestInit): Promise<LiveRoom> => {
+
+  return customFetch<LiveRoom>(getJoinCustomRoomUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      customJoinInput,)
+  }
+);}
+
+
+
+
+export const getJoinCustomRoomMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof joinCustomRoom>>, TError,{data: BodyType<CustomJoinInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof joinCustomRoom>>, TError,{data: BodyType<CustomJoinInput>}, TContext> => {
+
+const mutationKey = ['joinCustomRoom'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof joinCustomRoom>>, {data: BodyType<CustomJoinInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  joinCustomRoom(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type JoinCustomRoomMutationResult = NonNullable<Awaited<ReturnType<typeof joinCustomRoom>>>
+    export type JoinCustomRoomMutationBody = BodyType<CustomJoinInput>
+    export type JoinCustomRoomMutationError = ErrorType<unknown>
+
+    export const useJoinCustomRoom = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof joinCustomRoom>>, TError,{data: BodyType<CustomJoinInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof joinCustomRoom>>,
+        TError,
+        {data: BodyType<CustomJoinInput>},
+        TContext
+      > => {
+      return useMutation(getJoinCustomRoomMutationOptions(options));
+    }
+
+export const getAgreeCustomRoomUrl = () => {
+
+
+
+
+  return `/api/multiplayer/custom/agree`
+}
+
+export const agreeCustomRoom = async (customAgreementInput: CustomAgreementInput, options?: RequestInit): Promise<LiveRoom> => {
+
+  return customFetch<LiveRoom>(getAgreeCustomRoomUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      customAgreementInput,)
+  }
+);}
+
+
+
+
+export const getAgreeCustomRoomMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof agreeCustomRoom>>, TError,{data: BodyType<CustomAgreementInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof agreeCustomRoom>>, TError,{data: BodyType<CustomAgreementInput>}, TContext> => {
+
+const mutationKey = ['agreeCustomRoom'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof agreeCustomRoom>>, {data: BodyType<CustomAgreementInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  agreeCustomRoom(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AgreeCustomRoomMutationResult = NonNullable<Awaited<ReturnType<typeof agreeCustomRoom>>>
+    export type AgreeCustomRoomMutationBody = BodyType<CustomAgreementInput>
+    export type AgreeCustomRoomMutationError = ErrorType<unknown>
+
+    export const useAgreeCustomRoom = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof agreeCustomRoom>>, TError,{data: BodyType<CustomAgreementInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof agreeCustomRoom>>,
+        TError,
+        {data: BodyType<CustomAgreementInput>},
+        TContext
+      > => {
+      return useMutation(getAgreeCustomRoomMutationOptions(options));
     }
 
 export const getGetCosmeticsUrl = () => {

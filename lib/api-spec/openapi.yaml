@@ -127,6 +127,109 @@ paths:
       responses:
         "200": { description: TwiML response; provider manages approved keyword replies }
         "403": { description: Invalid signature }
+  /cosmetics/workshop:
+    get:
+      operationId: getWorkshop
+      responses:
+        "200":
+          description: Private synchronized workshop
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkshopState" }
+    post:
+      operationId: saveWorkshopPreset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkshopPreset" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkshopState" }
+  /cosmetics/workshop/{id}:
+    delete:
+      operationId: deleteWorkshopPreset
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkshopState" }
+  /cosmetics/workshop/equip:
+    post:
+      operationId: equipWorkshopPreset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkshopEquipInput" }
+      responses:
+        "200":
+          description: Equipped visual only
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkshopState" }
+  /openai/workshop:
+    post:
+      operationId: assistWorkshop
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkshopAssistInput" }
+      responses:
+        "200":
+          description: Proposal only
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkshopAssistResult" }
+  /multiplayer/custom:
+    post:
+      operationId: createCustomRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomRoomInput" }
+      responses:
+        "200":
+          description: Private immutable room
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiveRoom" }
+  /multiplayer/custom/join:
+    post:
+      operationId: joinCustomRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomJoinInput" }
+      responses:
+        "200":
+          description: Review rules before agreeing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiveRoom" }
+  /multiplayer/custom/agree:
+    post:
+      operationId: agreeCustomRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomAgreementInput" }
+      responses:
+        "200":
+          description: Agreement recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiveRoom" }
   /cosmetics:
     get:
       operationId: getCosmetics
@@ -500,6 +603,108 @@ components:
         consentedAt: { type: [string, "null"] }
         events: { type: array, items: { $ref: "#/components/schemas/SmsReminderEvent" } }
         deliveries: { type: array, items: { $ref: "#/components/schemas/SmsReminderDelivery" } }
+    WorkshopEquipInput:
+      type: object
+      additionalProperties: false
+      required: [kind, id]
+      properties:
+        kind: { type: string, enum: [court, hit] }
+        id: { type: [string, "null"] }
+    CustomRoomInput:
+      type: object
+      additionalProperties: false
+      required: [preset, name, color]
+      properties:
+        preset: { $ref: "#/components/schemas/WorkshopPreset" }
+        name: { type: string, minLength: 1, maxLength: 24 }
+        color: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+    CustomJoinInput:
+      type: object
+      additionalProperties: false
+      required: [code, name, color]
+      properties:
+        code: { type: string, pattern: "^[A-Z2-9]{8}$" }
+        name: { type: string, minLength: 1, maxLength: 24 }
+        color: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+    CustomAgreementInput:
+      type: object
+      additionalProperties: false
+      required: [roomId, configHash]
+      properties:
+        roomId: { type: string }
+        configHash: { type: string, maxLength: 64 }
+    CustomRules:
+      type: object
+      additionalProperties: false
+      required: [paddleScale, ballSpeed, bounce, lives, balls, maxBalls]
+      properties:
+        paddleScale: { type: number, enum: [0.8, 1, 1.2] }
+        ballSpeed: { type: number, enum: [0.75, 1, 1.25] }
+        bounce: { type: string, enum: [gentle, standard, lively] }
+        lives: { type: integer, minimum: 1, maximum: 12 }
+        balls: { type: integer, minimum: 1, maximum: 4 }
+        maxBalls: { type: integer, minimum: 1, maximum: 8 }
+    CourtAppearance:
+      type: object
+      additionalProperties: false
+      required: [floor, lines, markings, texture]
+      properties:
+        floor: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+        lines: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+        markings: { type: string, enum: [classic, rings, lanes] }
+        texture: { type: string, enum: [flat, grain, beveled] }
+    HitAppearance:
+      type: object
+      additionalProperties: false
+      required: [color, shape, size, duration]
+      properties:
+        color: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+        shape: { type: string, enum: [ring, diamond, burst] }
+        size: { type: integer, minimum: 8, maximum: 28 }
+        duration: { type: integer, minimum: 150, maximum: 500 }
+    WorkshopPreset:
+      type: object
+      additionalProperties: false
+      required: [id, name, court, hit, rules]
+      properties:
+        id: { type: string, pattern: "^workshop_[a-f0-9-]{36}$" }
+        name: { type: string, minLength: 1, maxLength: 32 }
+        court: { $ref: "#/components/schemas/CourtAppearance" }
+        hit: { $ref: "#/components/schemas/HitAppearance" }
+        rules: { $ref: "#/components/schemas/CustomRules" }
+    WorkshopState:
+      type: object
+      required: [presets, equippedCourtId, equippedHitId]
+      properties:
+        presets: { type: array, maxItems: 20, items: { $ref: "#/components/schemas/WorkshopPreset" } }
+        equippedCourtId: { type: [string, "null"] }
+        equippedHitId: { type: [string, "null"] }
+    WorkshopAssistInput:
+      type: object
+      additionalProperties: false
+      required: [prompt, current, history]
+      properties:
+        prompt: { type: string, minLength: 3, maxLength: 600 }
+        current: { $ref: "#/components/schemas/WorkshopPreset" }
+        history:
+          type: array
+          maxItems: 6
+          items:
+            type: object
+            additionalProperties: false
+            required: [role, text]
+            properties:
+              role: { type: string, enum: [user, assistant] }
+              text: { type: string, maxLength: 600 }
+    WorkshopAssistResult:
+      type: object
+      additionalProperties: false
+      required: [proposal, explanation, question, remaining]
+      properties:
+        proposal: { $ref: "#/components/schemas/WorkshopPreset" }
+        explanation: { type: string, maxLength: 600 }
+        question: { type: string, maxLength: 200 }
+        remaining: { type: integer }
     PaddleDesign:
       type: object
       required: [id, name, motif, base, ink, accent, density, texture]
@@ -635,6 +840,10 @@ components:
       type: object
       required: [id, phase, mode, variant, region, players, balls, tick, serverTime, startAt, createdAt, reason]
       properties:
+        customPreset: { $ref: "#/components/schemas/WorkshopPreset" }
+        customCode: { type: string }
+        configHash: { type: string }
+        agreedIds: { type: array, items: { type: string } }
         id: { type: string }
         phase: { type: string, enum: [waiting, countdown, playing, saving, finished, void] }
         mode: { type: string, enum: [ranked, casual] }

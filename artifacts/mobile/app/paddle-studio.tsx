@@ -1,5 +1,5 @@
 // Paddle Studio: manual artwork editor, saved designs rack, and AI revision bench.
-// Purely cosmetic; paddle size and physics are untouched.
+// Paddle artwork stays cosmetic; the separate workshop isolates custom rules to practice/private play.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
@@ -12,6 +12,7 @@ import { ColorPicker } from '@/components/appearance/ColorPicker';
 import { PaddleArt, sanitizeArtwork } from '@/components/cosmetics/PaddleArt';
 import { AssistPanel } from '@/components/cosmetics/AssistPanel';
 import { ColorSlotTabs, DensityStepper, MotifGrid, Notice, PlateButton, SectionLabel, TextureRow, type ColorSlot } from '@/components/cosmetics/StudioControls';
+import { WorkshopPanel } from '@/components/cosmetics/WorkshopPanel';
 import { cosmeticErrorMessage, MAX_DESIGNS, newDesignId, useCosmetics } from '@/hooks/useCosmetics';
 
 const PRESETS = ['#F36B3F', '#EDBA3C', '#23344B', '#252A2B', '#575D5C', '#EEE9DE', '#E3DFD3', '#B4533A', '#7F9065', '#A9D3D5', '#C27E49', '#594824'] as const;
@@ -24,7 +25,10 @@ const same = (a: PaddleDesign, b: PaddleDesign) =>
   a.name === b.name && a.motif === b.motif && a.base === b.base && a.ink === b.ink && a.accent === b.accent && a.density === b.density && a.texture === b.texture;
 
 export default function PaddleStudio() {
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; workshop?: string }>();
+  const fromRoom = params.workshop === '1';
+  const [section, setSection] = useState<'paddle' | 'workshop'>(fromRoom ? 'workshop' : 'paddle');
+  useEffect(() => { if (fromRoom) setSection('workshop'); }, [fromRoom]);
   const { state, loading, error, reload, saveDesign, deleteDesign, equip, assist } = useCosmetics();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -93,19 +97,39 @@ export default function PaddleStudio() {
       </Pressable>
       <View style={{ flex: 1 }}>
         <Text style={s.kicker}>Equipment workshop</Text>
-        <Text style={s.title} accessibilityRole="header">Paddle Studio</Text>
+        <Text style={s.title} accessibilityRole="header">{section === 'paddle' ? 'Paddle Studio' : 'Court Workshop'}</Text>
       </View>
       {state ? (
         <View style={s.coins} accessibilityLabel={`${state.balance} verified online coins`}>
           <Text style={s.coinNum}>{state.balance}</Text><Text style={s.coinLbl}>online coins</Text>
         </View>
       ) : null}
+      <View style={[s.switcher, {width:'100%'}]} accessibilityRole="tablist">
+        {(['paddle', 'workshop'] as const).map(k => (
+          <Pressable key={k} onPress={() => setSection(k)} accessibilityRole="tab" accessibilityState={{ selected: section === k }} aria-selected={section === k} testID={`studio-tab-${k}`}
+            style={[s.switchTab, {flex:1}, section === k && s.switchOn]}>
+            <Text style={[s.switchText, section === k && { color: palette.onAccent }]}>{k === 'paddle' ? 'Paddle' : 'Court, hits, rules'}</Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 
   if (!draft) {
     return <View style={s.screen}><Stack.Screen options={{ headerShown: false }} />{header}
       <View style={s.pad}><Notice tone="error" text="This device cannot create a secure design id, so designs cannot be saved here." /></View></View>;
+  }
+
+  if (section === 'workshop') {
+    return (
+      <View style={s.screen}>
+        <Stack.Screen options={{ headerShown: false }} />
+        {header}
+        <ScrollView contentContainerStyle={[s.pad, { paddingBottom: bottom + 24 }]} keyboardShouldPersistTaps="handled">
+          <WorkshopPanel initialMode={fromRoom ? 'private' : 'preview'} />
+        </ScrollView>
+      </View>
+    );
   }
 
   const preview = (
@@ -239,7 +263,7 @@ export default function PaddleStudio() {
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.background },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: palette.surface, borderBottomWidth: 3, borderColor: palette.edge },
+  header: { flexDirection: 'row', flexWrap:'wrap', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: palette.surface, borderBottomWidth: 3, borderColor: palette.edge },
   back: { minHeight: 44, minWidth: 64, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: palette.edge, borderRadius: 8, backgroundColor: palette.background },
   backText: { fontFamily: fonts.display, fontSize: 16, letterSpacing: 1, color: palette.foreground, textTransform: 'uppercase' },
   kicker: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: palette.supporting, textTransform: 'uppercase' },
@@ -272,5 +296,9 @@ const s = StyleSheet.create({
   scrim: { flex: 1, backgroundColor: 'rgba(37,42,43,0.55)' },
   drawer: { maxHeight: '85%', flexGrow: 0, backgroundColor: palette.surface, borderTopWidth: 3, borderColor: palette.edge },
   dialog: { backgroundColor: palette.background, borderWidth: 3, borderBottomWidth: 7, borderColor: palette.edge, padding: 18, gap: 14, alignItems: 'stretch', maxWidth: 420, width: '100%', alignSelf: 'center', borderRadius: 8 },
+  switcher: { flexDirection: 'row', gap: 6, marginTop: 6 },
+  switchTab: { minHeight: 36, paddingHorizontal: 10, justifyContent: 'center', borderWidth: 2, borderColor: palette.edge, borderRadius: 8, backgroundColor: palette.background },
+  switchOn: { backgroundColor: palette.gold },
+  switchText: { fontFamily: fonts.bodyBold, fontSize: 13, color: palette.foreground, textTransform: 'uppercase', letterSpacing: 0.8 },
   dialogTitle: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground },
 });

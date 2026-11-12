@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:workshop": "node scripts/test-workshop.mjs",
+    "test:workshop-api": "node scripts/test-workshop.mjs --api",
     "test:store": "node scripts/test-store.mjs",
     "dev": "export NODE_ENV=development && pnpm run build && pnpm run start",
     "build": "node ./build.mjs",

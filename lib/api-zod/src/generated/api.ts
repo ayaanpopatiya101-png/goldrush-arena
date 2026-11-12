@@ -287,6 +287,698 @@ export const CheckSmsVerificationResponse = zod.object({
 })
 
 
+export const getWorkshopResponsePresetsItemIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const getWorkshopResponsePresetsItemNameMax = 32;
+
+export const getWorkshopResponsePresetsItemCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const getWorkshopResponsePresetsItemCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const getWorkshopResponsePresetsItemHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const getWorkshopResponsePresetsItemHitSizeMin = 8;
+export const getWorkshopResponsePresetsItemHitSizeMax = 28;
+
+export const getWorkshopResponsePresetsItemHitDurationMin = 150;
+export const getWorkshopResponsePresetsItemHitDurationMax = 500;
+
+export const getWorkshopResponsePresetsItemRulesLivesMax = 12;
+
+export const getWorkshopResponsePresetsItemRulesBallsMax = 4;
+
+export const getWorkshopResponsePresetsItemRulesMaxBallsMax = 8;
+
+export const getWorkshopResponsePresetsMax = 20;
+
+
+
+export const GetWorkshopResponse = zod.object({
+  "presets": zod.array(zod.object({
+  "id": zod.string().regex(getWorkshopResponsePresetsItemIdRegExp),
+  "name": zod.string().min(1).max(getWorkshopResponsePresetsItemNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(getWorkshopResponsePresetsItemCourtFloorRegExp),
+  "lines": zod.string().regex(getWorkshopResponsePresetsItemCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(getWorkshopResponsePresetsItemHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(getWorkshopResponsePresetsItemHitSizeMin).max(getWorkshopResponsePresetsItemHitSizeMax),
+  "duration": zod.number().min(getWorkshopResponsePresetsItemHitDurationMin).max(getWorkshopResponsePresetsItemHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(getWorkshopResponsePresetsItemRulesLivesMax),
+  "balls": zod.number().min(1).max(getWorkshopResponsePresetsItemRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(getWorkshopResponsePresetsItemRulesMaxBallsMax)
+})
+})).max(getWorkshopResponsePresetsMax),
+  "equippedCourtId": zod.string().nullable(),
+  "equippedHitId": zod.string().nullable()
+})
+
+
+export const saveWorkshopPresetBodyIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const saveWorkshopPresetBodyNameMax = 32;
+
+export const saveWorkshopPresetBodyCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const saveWorkshopPresetBodyCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const saveWorkshopPresetBodyHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const saveWorkshopPresetBodyHitSizeMin = 8;
+export const saveWorkshopPresetBodyHitSizeMax = 28;
+
+export const saveWorkshopPresetBodyHitDurationMin = 150;
+export const saveWorkshopPresetBodyHitDurationMax = 500;
+
+export const saveWorkshopPresetBodyRulesLivesMax = 12;
+
+export const saveWorkshopPresetBodyRulesBallsMax = 4;
+
+export const saveWorkshopPresetBodyRulesMaxBallsMax = 8;
+
+
+
+export const SaveWorkshopPresetBody = zod.object({
+  "id": zod.string().regex(saveWorkshopPresetBodyIdRegExp),
+  "name": zod.string().min(1).max(saveWorkshopPresetBodyNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(saveWorkshopPresetBodyCourtFloorRegExp),
+  "lines": zod.string().regex(saveWorkshopPresetBodyCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(saveWorkshopPresetBodyHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(saveWorkshopPresetBodyHitSizeMin).max(saveWorkshopPresetBodyHitSizeMax),
+  "duration": zod.number().min(saveWorkshopPresetBodyHitDurationMin).max(saveWorkshopPresetBodyHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(saveWorkshopPresetBodyRulesLivesMax),
+  "balls": zod.number().min(1).max(saveWorkshopPresetBodyRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(saveWorkshopPresetBodyRulesMaxBallsMax)
+})
+})
+
+export const saveWorkshopPresetResponsePresetsItemIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const saveWorkshopPresetResponsePresetsItemNameMax = 32;
+
+export const saveWorkshopPresetResponsePresetsItemCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const saveWorkshopPresetResponsePresetsItemCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const saveWorkshopPresetResponsePresetsItemHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const saveWorkshopPresetResponsePresetsItemHitSizeMin = 8;
+export const saveWorkshopPresetResponsePresetsItemHitSizeMax = 28;
+
+export const saveWorkshopPresetResponsePresetsItemHitDurationMin = 150;
+export const saveWorkshopPresetResponsePresetsItemHitDurationMax = 500;
+
+export const saveWorkshopPresetResponsePresetsItemRulesLivesMax = 12;
+
+export const saveWorkshopPresetResponsePresetsItemRulesBallsMax = 4;
+
+export const saveWorkshopPresetResponsePresetsItemRulesMaxBallsMax = 8;
+
+export const saveWorkshopPresetResponsePresetsMax = 20;
+
+
+
+export const SaveWorkshopPresetResponse = zod.object({
+  "presets": zod.array(zod.object({
+  "id": zod.string().regex(saveWorkshopPresetResponsePresetsItemIdRegExp),
+  "name": zod.string().min(1).max(saveWorkshopPresetResponsePresetsItemNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(saveWorkshopPresetResponsePresetsItemCourtFloorRegExp),
+  "lines": zod.string().regex(saveWorkshopPresetResponsePresetsItemCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(saveWorkshopPresetResponsePresetsItemHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(saveWorkshopPresetResponsePresetsItemHitSizeMin).max(saveWorkshopPresetResponsePresetsItemHitSizeMax),
+  "duration": zod.number().min(saveWorkshopPresetResponsePresetsItemHitDurationMin).max(saveWorkshopPresetResponsePresetsItemHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(saveWorkshopPresetResponsePresetsItemRulesLivesMax),
+  "balls": zod.number().min(1).max(saveWorkshopPresetResponsePresetsItemRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(saveWorkshopPresetResponsePresetsItemRulesMaxBallsMax)
+})
+})).max(saveWorkshopPresetResponsePresetsMax),
+  "equippedCourtId": zod.string().nullable(),
+  "equippedHitId": zod.string().nullable()
+})
+
+
+export const DeleteWorkshopPresetParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const deleteWorkshopPresetResponsePresetsItemIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const deleteWorkshopPresetResponsePresetsItemNameMax = 32;
+
+export const deleteWorkshopPresetResponsePresetsItemCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const deleteWorkshopPresetResponsePresetsItemCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const deleteWorkshopPresetResponsePresetsItemHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const deleteWorkshopPresetResponsePresetsItemHitSizeMin = 8;
+export const deleteWorkshopPresetResponsePresetsItemHitSizeMax = 28;
+
+export const deleteWorkshopPresetResponsePresetsItemHitDurationMin = 150;
+export const deleteWorkshopPresetResponsePresetsItemHitDurationMax = 500;
+
+export const deleteWorkshopPresetResponsePresetsItemRulesLivesMax = 12;
+
+export const deleteWorkshopPresetResponsePresetsItemRulesBallsMax = 4;
+
+export const deleteWorkshopPresetResponsePresetsItemRulesMaxBallsMax = 8;
+
+export const deleteWorkshopPresetResponsePresetsMax = 20;
+
+
+
+export const DeleteWorkshopPresetResponse = zod.object({
+  "presets": zod.array(zod.object({
+  "id": zod.string().regex(deleteWorkshopPresetResponsePresetsItemIdRegExp),
+  "name": zod.string().min(1).max(deleteWorkshopPresetResponsePresetsItemNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(deleteWorkshopPresetResponsePresetsItemCourtFloorRegExp),
+  "lines": zod.string().regex(deleteWorkshopPresetResponsePresetsItemCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(deleteWorkshopPresetResponsePresetsItemHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(deleteWorkshopPresetResponsePresetsItemHitSizeMin).max(deleteWorkshopPresetResponsePresetsItemHitSizeMax),
+  "duration": zod.number().min(deleteWorkshopPresetResponsePresetsItemHitDurationMin).max(deleteWorkshopPresetResponsePresetsItemHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(deleteWorkshopPresetResponsePresetsItemRulesLivesMax),
+  "balls": zod.number().min(1).max(deleteWorkshopPresetResponsePresetsItemRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(deleteWorkshopPresetResponsePresetsItemRulesMaxBallsMax)
+})
+})).max(deleteWorkshopPresetResponsePresetsMax),
+  "equippedCourtId": zod.string().nullable(),
+  "equippedHitId": zod.string().nullable()
+})
+
+
+export const EquipWorkshopPresetBody = zod.object({
+  "kind": zod.enum(['court', 'hit']),
+  "id": zod.string().nullable()
+})
+
+export const equipWorkshopPresetResponsePresetsItemIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const equipWorkshopPresetResponsePresetsItemNameMax = 32;
+
+export const equipWorkshopPresetResponsePresetsItemCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const equipWorkshopPresetResponsePresetsItemCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const equipWorkshopPresetResponsePresetsItemHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const equipWorkshopPresetResponsePresetsItemHitSizeMin = 8;
+export const equipWorkshopPresetResponsePresetsItemHitSizeMax = 28;
+
+export const equipWorkshopPresetResponsePresetsItemHitDurationMin = 150;
+export const equipWorkshopPresetResponsePresetsItemHitDurationMax = 500;
+
+export const equipWorkshopPresetResponsePresetsItemRulesLivesMax = 12;
+
+export const equipWorkshopPresetResponsePresetsItemRulesBallsMax = 4;
+
+export const equipWorkshopPresetResponsePresetsItemRulesMaxBallsMax = 8;
+
+export const equipWorkshopPresetResponsePresetsMax = 20;
+
+
+
+export const EquipWorkshopPresetResponse = zod.object({
+  "presets": zod.array(zod.object({
+  "id": zod.string().regex(equipWorkshopPresetResponsePresetsItemIdRegExp),
+  "name": zod.string().min(1).max(equipWorkshopPresetResponsePresetsItemNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(equipWorkshopPresetResponsePresetsItemCourtFloorRegExp),
+  "lines": zod.string().regex(equipWorkshopPresetResponsePresetsItemCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(equipWorkshopPresetResponsePresetsItemHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(equipWorkshopPresetResponsePresetsItemHitSizeMin).max(equipWorkshopPresetResponsePresetsItemHitSizeMax),
+  "duration": zod.number().min(equipWorkshopPresetResponsePresetsItemHitDurationMin).max(equipWorkshopPresetResponsePresetsItemHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(equipWorkshopPresetResponsePresetsItemRulesLivesMax),
+  "balls": zod.number().min(1).max(equipWorkshopPresetResponsePresetsItemRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(equipWorkshopPresetResponsePresetsItemRulesMaxBallsMax)
+})
+})).max(equipWorkshopPresetResponsePresetsMax),
+  "equippedCourtId": zod.string().nullable(),
+  "equippedHitId": zod.string().nullable()
+})
+
+
+export const assistWorkshopBodyPromptMin = 3;
+export const assistWorkshopBodyPromptMax = 600;
+
+export const assistWorkshopBodyCurrentIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const assistWorkshopBodyCurrentNameMax = 32;
+
+export const assistWorkshopBodyCurrentCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistWorkshopBodyCurrentCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistWorkshopBodyCurrentHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistWorkshopBodyCurrentHitSizeMin = 8;
+export const assistWorkshopBodyCurrentHitSizeMax = 28;
+
+export const assistWorkshopBodyCurrentHitDurationMin = 150;
+export const assistWorkshopBodyCurrentHitDurationMax = 500;
+
+export const assistWorkshopBodyCurrentRulesLivesMax = 12;
+
+export const assistWorkshopBodyCurrentRulesBallsMax = 4;
+
+export const assistWorkshopBodyCurrentRulesMaxBallsMax = 8;
+
+export const assistWorkshopBodyHistoryItemTextMax = 600;
+
+export const assistWorkshopBodyHistoryMax = 6;
+
+
+
+export const AssistWorkshopBody = zod.object({
+  "prompt": zod.string().min(assistWorkshopBodyPromptMin).max(assistWorkshopBodyPromptMax),
+  "current": zod.object({
+  "id": zod.string().regex(assistWorkshopBodyCurrentIdRegExp),
+  "name": zod.string().min(1).max(assistWorkshopBodyCurrentNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(assistWorkshopBodyCurrentCourtFloorRegExp),
+  "lines": zod.string().regex(assistWorkshopBodyCurrentCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(assistWorkshopBodyCurrentHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(assistWorkshopBodyCurrentHitSizeMin).max(assistWorkshopBodyCurrentHitSizeMax),
+  "duration": zod.number().min(assistWorkshopBodyCurrentHitDurationMin).max(assistWorkshopBodyCurrentHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(assistWorkshopBodyCurrentRulesLivesMax),
+  "balls": zod.number().min(1).max(assistWorkshopBodyCurrentRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(assistWorkshopBodyCurrentRulesMaxBallsMax)
+})
+}),
+  "history": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant']),
+  "text": zod.string().max(assistWorkshopBodyHistoryItemTextMax)
+})).max(assistWorkshopBodyHistoryMax)
+})
+
+export const assistWorkshopResponseProposalIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const assistWorkshopResponseProposalNameMax = 32;
+
+export const assistWorkshopResponseProposalCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistWorkshopResponseProposalCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistWorkshopResponseProposalHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const assistWorkshopResponseProposalHitSizeMin = 8;
+export const assistWorkshopResponseProposalHitSizeMax = 28;
+
+export const assistWorkshopResponseProposalHitDurationMin = 150;
+export const assistWorkshopResponseProposalHitDurationMax = 500;
+
+export const assistWorkshopResponseProposalRulesLivesMax = 12;
+
+export const assistWorkshopResponseProposalRulesBallsMax = 4;
+
+export const assistWorkshopResponseProposalRulesMaxBallsMax = 8;
+
+export const assistWorkshopResponseExplanationMax = 600;
+
+export const assistWorkshopResponseQuestionMax = 200;
+
+
+
+export const AssistWorkshopResponse = zod.object({
+  "proposal": zod.object({
+  "id": zod.string().regex(assistWorkshopResponseProposalIdRegExp),
+  "name": zod.string().min(1).max(assistWorkshopResponseProposalNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(assistWorkshopResponseProposalCourtFloorRegExp),
+  "lines": zod.string().regex(assistWorkshopResponseProposalCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(assistWorkshopResponseProposalHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(assistWorkshopResponseProposalHitSizeMin).max(assistWorkshopResponseProposalHitSizeMax),
+  "duration": zod.number().min(assistWorkshopResponseProposalHitDurationMin).max(assistWorkshopResponseProposalHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(assistWorkshopResponseProposalRulesLivesMax),
+  "balls": zod.number().min(1).max(assistWorkshopResponseProposalRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(assistWorkshopResponseProposalRulesMaxBallsMax)
+})
+}),
+  "explanation": zod.string().max(assistWorkshopResponseExplanationMax),
+  "question": zod.string().max(assistWorkshopResponseQuestionMax),
+  "remaining": zod.number()
+})
+
+
+export const createCustomRoomBodyPresetIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const createCustomRoomBodyPresetNameMax = 32;
+
+export const createCustomRoomBodyPresetCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const createCustomRoomBodyPresetCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const createCustomRoomBodyPresetHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const createCustomRoomBodyPresetHitSizeMin = 8;
+export const createCustomRoomBodyPresetHitSizeMax = 28;
+
+export const createCustomRoomBodyPresetHitDurationMin = 150;
+export const createCustomRoomBodyPresetHitDurationMax = 500;
+
+export const createCustomRoomBodyPresetRulesLivesMax = 12;
+
+export const createCustomRoomBodyPresetRulesBallsMax = 4;
+
+export const createCustomRoomBodyPresetRulesMaxBallsMax = 8;
+
+export const createCustomRoomBodyNameMax = 24;
+
+export const createCustomRoomBodyColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+
+
+export const CreateCustomRoomBody = zod.object({
+  "preset": zod.object({
+  "id": zod.string().regex(createCustomRoomBodyPresetIdRegExp),
+  "name": zod.string().min(1).max(createCustomRoomBodyPresetNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(createCustomRoomBodyPresetCourtFloorRegExp),
+  "lines": zod.string().regex(createCustomRoomBodyPresetCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(createCustomRoomBodyPresetHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(createCustomRoomBodyPresetHitSizeMin).max(createCustomRoomBodyPresetHitSizeMax),
+  "duration": zod.number().min(createCustomRoomBodyPresetHitDurationMin).max(createCustomRoomBodyPresetHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(createCustomRoomBodyPresetRulesLivesMax),
+  "balls": zod.number().min(1).max(createCustomRoomBodyPresetRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(createCustomRoomBodyPresetRulesMaxBallsMax)
+})
+}),
+  "name": zod.string().min(1).max(createCustomRoomBodyNameMax),
+  "color": zod.string().regex(createCustomRoomBodyColorRegExp)
+})
+
+export const createCustomRoomResponseCustomPresetIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const createCustomRoomResponseCustomPresetNameMax = 32;
+
+export const createCustomRoomResponseCustomPresetCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const createCustomRoomResponseCustomPresetCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const createCustomRoomResponseCustomPresetHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const createCustomRoomResponseCustomPresetHitSizeMin = 8;
+export const createCustomRoomResponseCustomPresetHitSizeMax = 28;
+
+export const createCustomRoomResponseCustomPresetHitDurationMin = 150;
+export const createCustomRoomResponseCustomPresetHitDurationMax = 500;
+
+export const createCustomRoomResponseCustomPresetRulesLivesMax = 12;
+
+export const createCustomRoomResponseCustomPresetRulesBallsMax = 4;
+
+export const createCustomRoomResponseCustomPresetRulesMaxBallsMax = 8;
+
+
+
+export const CreateCustomRoomResponse = zod.object({
+  "customPreset": zod.object({
+  "id": zod.string().regex(createCustomRoomResponseCustomPresetIdRegExp),
+  "name": zod.string().min(1).max(createCustomRoomResponseCustomPresetNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(createCustomRoomResponseCustomPresetCourtFloorRegExp),
+  "lines": zod.string().regex(createCustomRoomResponseCustomPresetCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(createCustomRoomResponseCustomPresetHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(createCustomRoomResponseCustomPresetHitSizeMin).max(createCustomRoomResponseCustomPresetHitSizeMax),
+  "duration": zod.number().min(createCustomRoomResponseCustomPresetHitDurationMin).max(createCustomRoomResponseCustomPresetHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(createCustomRoomResponseCustomPresetRulesLivesMax),
+  "balls": zod.number().min(1).max(createCustomRoomResponseCustomPresetRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(createCustomRoomResponseCustomPresetRulesMaxBallsMax)
+})
+}).optional(),
+  "customCode": zod.string().optional(),
+  "configHash": zod.string().optional(),
+  "agreedIds": zod.array(zod.string()).optional(),
+  "id": zod.string(),
+  "phase": zod.enum(['waiting', 'countdown', 'playing', 'saving', 'finished', 'void']),
+  "mode": zod.enum(['ranked', 'casual']),
+  "variant": zod.string(),
+  "region": zod.string(),
+  "players": zod.array(zod.object({
+  "avatarUrl": zod.string().nullish(),
+  "id": zod.string(),
+  "name": zod.string(),
+  "color": zod.string(),
+  "seat": zod.number(),
+  "isBot": zod.boolean(),
+  "connected": zod.boolean(),
+  "paddle": zod.number(),
+  "lives": zod.number(),
+  "hits": zod.number(),
+  "goals": zod.number(),
+  "place": zod.number(),
+  "rating": zod.number()
+})),
+  "balls": zod.array(zod.object({
+  "id": zod.number(),
+  "x": zod.number(),
+  "y": zod.number()
+})),
+  "tick": zod.number(),
+  "serverTime": zod.number(),
+  "startAt": zod.number(),
+  "createdAt": zod.number(),
+  "reason": zod.string()
+})
+
+
+export const joinCustomRoomBodyCodeRegExp = new RegExp('^[A-Z2-9]{8}$');
+export const joinCustomRoomBodyNameMax = 24;
+
+export const joinCustomRoomBodyColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+
+
+export const JoinCustomRoomBody = zod.object({
+  "code": zod.string().regex(joinCustomRoomBodyCodeRegExp),
+  "name": zod.string().min(1).max(joinCustomRoomBodyNameMax),
+  "color": zod.string().regex(joinCustomRoomBodyColorRegExp)
+})
+
+export const joinCustomRoomResponseCustomPresetIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const joinCustomRoomResponseCustomPresetNameMax = 32;
+
+export const joinCustomRoomResponseCustomPresetCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const joinCustomRoomResponseCustomPresetCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const joinCustomRoomResponseCustomPresetHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const joinCustomRoomResponseCustomPresetHitSizeMin = 8;
+export const joinCustomRoomResponseCustomPresetHitSizeMax = 28;
+
+export const joinCustomRoomResponseCustomPresetHitDurationMin = 150;
+export const joinCustomRoomResponseCustomPresetHitDurationMax = 500;
+
+export const joinCustomRoomResponseCustomPresetRulesLivesMax = 12;
+
+export const joinCustomRoomResponseCustomPresetRulesBallsMax = 4;
+
+export const joinCustomRoomResponseCustomPresetRulesMaxBallsMax = 8;
+
+
+
+export const JoinCustomRoomResponse = zod.object({
+  "customPreset": zod.object({
+  "id": zod.string().regex(joinCustomRoomResponseCustomPresetIdRegExp),
+  "name": zod.string().min(1).max(joinCustomRoomResponseCustomPresetNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(joinCustomRoomResponseCustomPresetCourtFloorRegExp),
+  "lines": zod.string().regex(joinCustomRoomResponseCustomPresetCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(joinCustomRoomResponseCustomPresetHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(joinCustomRoomResponseCustomPresetHitSizeMin).max(joinCustomRoomResponseCustomPresetHitSizeMax),
+  "duration": zod.number().min(joinCustomRoomResponseCustomPresetHitDurationMin).max(joinCustomRoomResponseCustomPresetHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(joinCustomRoomResponseCustomPresetRulesLivesMax),
+  "balls": zod.number().min(1).max(joinCustomRoomResponseCustomPresetRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(joinCustomRoomResponseCustomPresetRulesMaxBallsMax)
+})
+}).optional(),
+  "customCode": zod.string().optional(),
+  "configHash": zod.string().optional(),
+  "agreedIds": zod.array(zod.string()).optional(),
+  "id": zod.string(),
+  "phase": zod.enum(['waiting', 'countdown', 'playing', 'saving', 'finished', 'void']),
+  "mode": zod.enum(['ranked', 'casual']),
+  "variant": zod.string(),
+  "region": zod.string(),
+  "players": zod.array(zod.object({
+  "avatarUrl": zod.string().nullish(),
+  "id": zod.string(),
+  "name": zod.string(),
+  "color": zod.string(),
+  "seat": zod.number(),
+  "isBot": zod.boolean(),
+  "connected": zod.boolean(),
+  "paddle": zod.number(),
+  "lives": zod.number(),
+  "hits": zod.number(),
+  "goals": zod.number(),
+  "place": zod.number(),
+  "rating": zod.number()
+})),
+  "balls": zod.array(zod.object({
+  "id": zod.number(),
+  "x": zod.number(),
+  "y": zod.number()
+})),
+  "tick": zod.number(),
+  "serverTime": zod.number(),
+  "startAt": zod.number(),
+  "createdAt": zod.number(),
+  "reason": zod.string()
+})
+
+
+export const agreeCustomRoomBodyConfigHashMax = 64;
+
+
+
+export const AgreeCustomRoomBody = zod.object({
+  "roomId": zod.string(),
+  "configHash": zod.string().max(agreeCustomRoomBodyConfigHashMax)
+})
+
+export const agreeCustomRoomResponseCustomPresetIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const agreeCustomRoomResponseCustomPresetNameMax = 32;
+
+export const agreeCustomRoomResponseCustomPresetCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const agreeCustomRoomResponseCustomPresetCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const agreeCustomRoomResponseCustomPresetHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const agreeCustomRoomResponseCustomPresetHitSizeMin = 8;
+export const agreeCustomRoomResponseCustomPresetHitSizeMax = 28;
+
+export const agreeCustomRoomResponseCustomPresetHitDurationMin = 150;
+export const agreeCustomRoomResponseCustomPresetHitDurationMax = 500;
+
+export const agreeCustomRoomResponseCustomPresetRulesLivesMax = 12;
+
+export const agreeCustomRoomResponseCustomPresetRulesBallsMax = 4;
+
+export const agreeCustomRoomResponseCustomPresetRulesMaxBallsMax = 8;
+
+
+
+export const AgreeCustomRoomResponse = zod.object({
+  "customPreset": zod.object({
+  "id": zod.string().regex(agreeCustomRoomResponseCustomPresetIdRegExp),
+  "name": zod.string().min(1).max(agreeCustomRoomResponseCustomPresetNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(agreeCustomRoomResponseCustomPresetCourtFloorRegExp),
+  "lines": zod.string().regex(agreeCustomRoomResponseCustomPresetCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(agreeCustomRoomResponseCustomPresetHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(agreeCustomRoomResponseCustomPresetHitSizeMin).max(agreeCustomRoomResponseCustomPresetHitSizeMax),
+  "duration": zod.number().min(agreeCustomRoomResponseCustomPresetHitDurationMin).max(agreeCustomRoomResponseCustomPresetHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(agreeCustomRoomResponseCustomPresetRulesLivesMax),
+  "balls": zod.number().min(1).max(agreeCustomRoomResponseCustomPresetRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(agreeCustomRoomResponseCustomPresetRulesMaxBallsMax)
+})
+}).optional(),
+  "customCode": zod.string().optional(),
+  "configHash": zod.string().optional(),
+  "agreedIds": zod.array(zod.string()).optional(),
+  "id": zod.string(),
+  "phase": zod.enum(['waiting', 'countdown', 'playing', 'saving', 'finished', 'void']),
+  "mode": zod.enum(['ranked', 'casual']),
+  "variant": zod.string(),
+  "region": zod.string(),
+  "players": zod.array(zod.object({
+  "avatarUrl": zod.string().nullish(),
+  "id": zod.string(),
+  "name": zod.string(),
+  "color": zod.string(),
+  "seat": zod.number(),
+  "isBot": zod.boolean(),
+  "connected": zod.boolean(),
+  "paddle": zod.number(),
+  "lives": zod.number(),
+  "hits": zod.number(),
+  "goals": zod.number(),
+  "place": zod.number(),
+  "rating": zod.number()
+})),
+  "balls": zod.array(zod.object({
+  "id": zod.number(),
+  "x": zod.number(),
+  "y": zod.number()
+})),
+  "tick": zod.number(),
+  "serverTime": zod.number(),
+  "startAt": zod.number(),
+  "createdAt": zod.number(),
+  "reason": zod.string()
+})
+
+
 export const getCosmeticsResponseDesignsItemIdRegExp = new RegExp('^custom_[a-f0-9-]{36}$');
 export const getCosmeticsResponseDesignsItemNameMax = 32;
 
@@ -688,7 +1380,54 @@ export const JoinLiveQueueBody = zod.object({
   "partyCode": zod.string().regex(joinLiveQueueBodyPartyCodeRegExp).optional()
 })
 
+export const joinLiveQueueResponseCustomPresetIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const joinLiveQueueResponseCustomPresetNameMax = 32;
+
+export const joinLiveQueueResponseCustomPresetCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const joinLiveQueueResponseCustomPresetCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const joinLiveQueueResponseCustomPresetHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const joinLiveQueueResponseCustomPresetHitSizeMin = 8;
+export const joinLiveQueueResponseCustomPresetHitSizeMax = 28;
+
+export const joinLiveQueueResponseCustomPresetHitDurationMin = 150;
+export const joinLiveQueueResponseCustomPresetHitDurationMax = 500;
+
+export const joinLiveQueueResponseCustomPresetRulesLivesMax = 12;
+
+export const joinLiveQueueResponseCustomPresetRulesBallsMax = 4;
+
+export const joinLiveQueueResponseCustomPresetRulesMaxBallsMax = 8;
+
+
+
 export const JoinLiveQueueResponse = zod.object({
+  "customPreset": zod.object({
+  "id": zod.string().regex(joinLiveQueueResponseCustomPresetIdRegExp),
+  "name": zod.string().min(1).max(joinLiveQueueResponseCustomPresetNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(joinLiveQueueResponseCustomPresetCourtFloorRegExp),
+  "lines": zod.string().regex(joinLiveQueueResponseCustomPresetCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(joinLiveQueueResponseCustomPresetHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(joinLiveQueueResponseCustomPresetHitSizeMin).max(joinLiveQueueResponseCustomPresetHitSizeMax),
+  "duration": zod.number().min(joinLiveQueueResponseCustomPresetHitDurationMin).max(joinLiveQueueResponseCustomPresetHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(joinLiveQueueResponseCustomPresetRulesLivesMax),
+  "balls": zod.number().min(1).max(joinLiveQueueResponseCustomPresetRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(joinLiveQueueResponseCustomPresetRulesMaxBallsMax)
+})
+}).optional(),
+  "customCode": zod.string().optional(),
+  "configHash": zod.string().optional(),
+  "agreedIds": zod.array(zod.string()).optional(),
   "id": zod.string(),
   "phase": zod.enum(['waiting', 'countdown', 'playing', 'saving', 'finished', 'void']),
   "mode": zod.enum(['ranked', 'casual']),
@@ -722,7 +1461,54 @@ export const JoinLiveQueueResponse = zod.object({
 })
 
 
+export const getLiveRoomResponseCustomPresetIdRegExp = new RegExp('^workshop_[a-f0-9-]{36}$');
+export const getLiveRoomResponseCustomPresetNameMax = 32;
+
+export const getLiveRoomResponseCustomPresetCourtFloorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const getLiveRoomResponseCustomPresetCourtLinesRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const getLiveRoomResponseCustomPresetHitColorRegExp = new RegExp('^#[0-9a-fA-F]{6}$');
+export const getLiveRoomResponseCustomPresetHitSizeMin = 8;
+export const getLiveRoomResponseCustomPresetHitSizeMax = 28;
+
+export const getLiveRoomResponseCustomPresetHitDurationMin = 150;
+export const getLiveRoomResponseCustomPresetHitDurationMax = 500;
+
+export const getLiveRoomResponseCustomPresetRulesLivesMax = 12;
+
+export const getLiveRoomResponseCustomPresetRulesBallsMax = 4;
+
+export const getLiveRoomResponseCustomPresetRulesMaxBallsMax = 8;
+
+
+
 export const GetLiveRoomResponse = zod.object({
+  "customPreset": zod.object({
+  "id": zod.string().regex(getLiveRoomResponseCustomPresetIdRegExp),
+  "name": zod.string().min(1).max(getLiveRoomResponseCustomPresetNameMax),
+  "court": zod.object({
+  "floor": zod.string().regex(getLiveRoomResponseCustomPresetCourtFloorRegExp),
+  "lines": zod.string().regex(getLiveRoomResponseCustomPresetCourtLinesRegExp),
+  "markings": zod.enum(['classic', 'rings', 'lanes']),
+  "texture": zod.enum(['flat', 'grain', 'beveled'])
+}),
+  "hit": zod.object({
+  "color": zod.string().regex(getLiveRoomResponseCustomPresetHitColorRegExp),
+  "shape": zod.enum(['ring', 'diamond', 'burst']),
+  "size": zod.number().min(getLiveRoomResponseCustomPresetHitSizeMin).max(getLiveRoomResponseCustomPresetHitSizeMax),
+  "duration": zod.number().min(getLiveRoomResponseCustomPresetHitDurationMin).max(getLiveRoomResponseCustomPresetHitDurationMax)
+}),
+  "rules": zod.object({
+  "paddleScale": zod.union([zod.literal(0.8),zod.literal(1),zod.literal(1.2)]),
+  "ballSpeed": zod.union([zod.literal(0.75),zod.literal(1),zod.literal(1.25)]),
+  "bounce": zod.enum(['gentle', 'standard', 'lively']),
+  "lives": zod.number().min(1).max(getLiveRoomResponseCustomPresetRulesLivesMax),
+  "balls": zod.number().min(1).max(getLiveRoomResponseCustomPresetRulesBallsMax),
+  "maxBalls": zod.number().min(1).max(getLiveRoomResponseCustomPresetRulesMaxBallsMax)
+})
+}).optional(),
+  "customCode": zod.string().optional(),
+  "configHash": zod.string().optional(),
+  "agreedIds": zod.array(zod.string()).optional(),
   "id": zod.string(),
   "phase": zod.enum(['waiting', 'countdown', 'playing', 'saving', 'finished', 'void']),
   "mode": zod.enum(['ranked', 'casual']),

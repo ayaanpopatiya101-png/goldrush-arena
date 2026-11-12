@@ -8,6 +8,7 @@ import challengeRouter from "./challenge.js";
 import multiplayerRouter from "./multiplayer.js";
 import avatarsRouter from "./avatars.js";
 import cosmeticsRouter from "./cosmetics.js";
+import workshopRouter from "./workshop.js";
 import smsRemindersRouter from "./smsReminders.js";
 
 const router: IRouter = Router();
@@ -15,6 +16,7 @@ const router: IRouter = Router();
 router.use(healthRouter);
 router.use(smsRemindersRouter);
 router.use(avatarsRouter);
+router.use(workshopRouter);
 router.use(cosmeticsRouter);
 router.use(multiplayerRouter);
 router.use("/matchmaking", (_req, res) => {
