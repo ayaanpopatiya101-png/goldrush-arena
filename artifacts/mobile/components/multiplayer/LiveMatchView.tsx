@@ -18,6 +18,7 @@ import {useReducedMotion} from '@/hooks/useReducedMotion';
 import { getSettings } from '@/hooks/useSettings';
 import { paddleInput } from '@/utils/arenaGeometry';
 import { useBrowserCourt } from '@/hooks/useBrowserCourt';
+import { CourtDecor, HitMark } from '@/components/cosmetics/WorkshopCourt';
 
 export type LiveMatchViewProps = {
   room: LiveRoom | null;
@@ -72,11 +73,12 @@ function paddleRect(p: LivePlayer, s: number) {
 export function LiveMatchView({ room, playerId, connection, error, saved, ratingChange, onMove, onLeave, onRetry, onCasual, onResults, onAgain, captureTarget, captureStatus, momentCaptured, onCapture }: LiveMatchViewProps) {
   const insets = useSafeAreaInsets();
   const appearance=useEquippedCosmetics();
-  const theme=THEME_FINISHES.find(t=>t.id===appearance.arenaTheme)??THEME_FINISHES[0];
+  const theme=appearance.customCourt ? {floor:appearance.customCourt.floor,line:appearance.customCourt.lines,motif:'plain'} : THEME_FINISHES.find(t=>t.id===appearance.arenaTheme)??THEME_FINISHES[0];
   const strike=STRIKE_FINISHES.find(t=>t.id===appearance.strikeEffect)??STRIKE_FINISHES[0];
   const reduced=useReducedMotion();
   const [impact,setImpact]=useState(false);
   const previousScore=useRef<number|null>(null);
+  const lastImpact=useRef(0);
   const { width, height } = useWindowDimensions();
   const isWeb = Platform.OS === 'web';
   const topPad = (isWeb ? 67 : insets.top) + 8;
@@ -89,8 +91,9 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
     const score=(me?.hits??0)+(me?.goals??0);
     const changed=previousScore.current!==null && score>previousScore.current;
     previousScore.current=score;
-    if(!changed||reduced)return;
-    setImpact(true);const timer=setTimeout(()=>setImpact(false),450);
+    if(!changed||reduced||Date.now()-lastImpact.current<500)return;
+    lastImpact.current=Date.now();
+    setImpact(true);const timer=setTimeout(()=>setImpact(false),appearance.customHit?.duration??450);
     return ()=>{clearTimeout(timer);setImpact(false);};
   },[me?.hits,me?.goals,reduced]);
   const humans = room?.players.filter(p => !p.isBot).length ?? 0;
@@ -303,9 +306,12 @@ export function LiveMatchView({ room, playerId, connection, error, saved, rating
         </View>
         <View ref={node => { browserCourt.current = node; if (captureTarget) captureTarget.current = node; }} collapsable={false} testID="live-court" {...(isWeb ? {} : pan.panHandlers)} accessibilityLabel={`Court. You defend the ${SEAT_NAMES[seat]} edge. Drag ${horizontal ? 'left and right' : 'up and down'} to move.`}
           style={[s.court, { width: size, height: size,backgroundColor:theme.floor }]}>
+          {appearance.customCourt ? <CourtDecor court={appearance.customCourt} size={size} /> : null}
           {theme.motif==='rings'?[0.3,0.5,0.7].map(n=><View key={n} pointerEvents="none" style={{position:'absolute',width:size*n,height:size*n,top:size*(1-n)/2,left:size*(1-n)/2,borderRadius:999,borderWidth:1,borderColor:theme.line,opacity:0.15}}/>):null}
           {theme.motif==='lines'?[1,2,3,4,5,6,7].map(n=><View key={n} pointerEvents="none" style={{position:'absolute',left:0,right:0,top:size*n/8,height:1,backgroundColor:theme.line,opacity:0.15}}/>):null}
-          {impact?<View pointerEvents="none" style={{position:'absolute',inset:4,borderWidth:strike.motif==='rings'?4:2,borderColor:strike.color}}/>:null}
+          {impact && !reduced ? appearance.customHit && me ?
+            <HitMark hit={appearance.customHit} size={appearance.customHit.size*2} x={(seat<2?me.paddle:seat===2?40:960)*scale} y={(seat>=2?me.paddle:seat===0?960:40)*scale}/>
+            : <View pointerEvents="none" style={{position:'absolute',inset:4,borderWidth:strike.motif==='rings'?4:2,borderColor:strike.color}}/>:null}
           {/* walls */}
           <View pointerEvents="none" style={[s.wall, { left: WALL_MIN * scale, top: WALL_MIN * scale, width: (WALL_MAX - WALL_MIN) * scale, height: (WALL_MAX - WALL_MIN) * scale }]} />
           {/* own edge highlight */}

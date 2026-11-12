@@ -23,7 +23,7 @@ async function mutate(player:Player,fn:(s:CosmeticState,tx:Parameters<Parameters
     const state=cosmeticState(p);
     await fn(state,tx,p);
     const {balance,...data}=state;
-    await tx.update(arenaPlayers).set({cosmetics:data,spentCoins:p.earnedCoins-balance}).where(eq(arenaPlayers.id,p.id));
+    await tx.update(arenaPlayers).set({cosmetics:{...p.cosmetics,...data},spentCoins:p.earnedCoins-balance}).where(eq(arenaPlayers.id,p.id));
     return state;
   });
 }

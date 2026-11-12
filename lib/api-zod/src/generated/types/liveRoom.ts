@@ -9,8 +9,13 @@ import type { LiveBall } from './liveBall';
 import type { LivePlayer } from './livePlayer';
 import type { LiveRoomMode } from './liveRoomMode';
 import type { LiveRoomPhase } from './liveRoomPhase';
+import type { WorkshopPreset } from './workshopPreset';
 
 export interface LiveRoom {
+  customPreset?: WorkshopPreset;
+  customCode?: string;
+  configHash?: string;
+  agreedIds?: string[];
   id: string;
   phase: LiveRoomPhase;
   mode: LiveRoomMode;

@@ -25,6 +25,10 @@ successful single-item purchases, at most once per 24 hours, with a persistent
 dismissal. Fixed catalogue purchases still require confirmation.
 
 ## Studio and AI
+
+The court/hit/rules extension is documented in [workshop.md](workshop.md).
+Its visual overrides preserve these paid and paddle selections. Its explicit
+practice/private gameplay settings never alter standard queues or normal rewards.
 Twenty private designs per guest; create/revise/save/equip/delete are server
 owned. Deleting the active custom design restores Classic. Local profile
 retirement clears the server designs and invalidates the username's cache epoch.

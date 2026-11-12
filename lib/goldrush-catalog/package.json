@@ -3,6 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts", "./cosmetics": "./src/cosmetics.ts" },
+  "exports": { ".": "./src/index.ts", "./cosmetics": "./src/cosmetics.ts", "./arenaSimulation": "./src/arenaSimulation.ts" },
   "scripts": { "typecheck": "tsc --noEmit" }
 }

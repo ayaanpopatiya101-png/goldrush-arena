@@ -32,3 +32,9 @@ Cosmetic purchases must use verified online earnings, not imported device coin b
 **Why:** Existing cash entitlements and local progress must survive upgrades, but editable device balances cannot become spendable server currency. A visual legacy selection does not prove server ownership.
 
 **How to apply:** Label the two balances clearly; keep new purchases atomic and server priced, and never debit both wallets or charge again for a previously owned local item.
+
+Persisting a custom room's configuration is not permission to resume an interrupted match from guessed physics state.
+
+**Why:** A preset and participant agreement do not contain an authoritative simulation checkpoint. Treating them as one could fabricate standings or rewards after a restart.
+
+**How to apply:** Preserve the immutable configuration for recovery, explicitly void interrupted rounds, and require a fresh room and agreement to play anew unless full authoritative recovery is deliberately implemented.

@@ -43,7 +43,7 @@ export function installArenaSocket(server: Server) {
         if (message.type === "input" && room.phase === "playing" && p.lives > 0 &&
           typeof message.position === "number" && Number.isFinite(message.position) &&
           Number.isSafeInteger(message.seq) && message.seq > p.seq) {
-          p.target = clamp(message.position); p.seq = message.seq; p.seen = now;
+          p.target = clamp(message.position,room.customPreset?.rules.paddleScale??1); p.seq = message.seq; p.seen = now;
         }
       } catch { socket.close(1008, "Invalid message"); }
     });

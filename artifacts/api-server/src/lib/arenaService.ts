@@ -3,7 +3,7 @@ import { advanceSeason, initialSeason, seasonKey } from "./competition.js";
 import { db, arenaPlayers, arenaResults } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import type { LiveResult, QueueInput } from "@workspace/api-zod";
-import { RULES, stepArena, spawnBall, eliminate, finishIfNeeded, type ArenaRoom, type SimPlayer } from "./arenaSimulation.js";
+import { RULES, rulesFor, stepArena, spawnBall, eliminate, finishIfNeeded, type ArenaRoom, type SimPlayer } from "./arenaSimulation.js";
 import type { ArenaIdentity } from "./arenaIdentity.js";
 import { logger } from "./logger.js";
 
@@ -15,6 +15,7 @@ export function publicRoom(room: ArenaRoom) {
   return { id: room.id, mode: room.mode, variant: room.variant, region: room.region,
     phase: room.phase, startAt: room.startAt, serverTime: Date.now(), createdAt: room.createdAt,
     tick: room.tick, reason: room.reason,
+    ...(room.customPreset ? {customPreset:room.customPreset,customCode:room.customCode,configHash:room.configHash,agreedIds:room.agreedIds??[]} : {}),
     players: room.players.map(({ target, seen, nextThink, seq, ...p }) => p),
     balls: room.balls.map(({ id, x, y }) => ({ id, x, y })) };
 }
@@ -23,7 +24,7 @@ export function joinRoom(identity: ArenaIdentity, input: QueueInput, reservedIds
   if (previous && !["finished", "void"].includes(previous.phase)) return previous;
   if (rooms.size >= 1000) throw new Error("Match server is busy. Please try again.");
   const now = Date.now();
-  let room = [...rooms.values()].find(r => r.phase === "waiting" && r.players.length < 4 &&
+  let room = [...rooms.values()].find(r => !r.customPreset && r.phase === "waiting" && r.players.length < 4 &&
     r.mode === input.mode && r.variant === input.variant &&
     (input.partyCode ? r.partyCode === input.partyCode :
       r.players.length + (r.reservedIds?.filter(id => !r.players.some(p => p.id === id)).length ?? 0) < 4) &&
@@ -53,6 +54,7 @@ export function leaveRoom(id: string) {
     playerRooms.delete(id);
     room.reservedIds = room.reservedIds?.filter(v => v !== id);
     room.players = room.players.filter(p => p.id !== id && !p.isBot);
+    if(room.customPreset)room.agreedIds=room.agreedIds?.filter(v=>v!==id);
     room.players.forEach((p, seat) => { p.seat = seat; });
     room.phase = "waiting"; room.startAt = 0; room.createdAt = Date.now();
   } else if (room.phase === "playing") {
@@ -65,6 +67,11 @@ export function leaveRoom(id: string) {
   if (!room.players.some(p => !p.isBot)) rooms.delete(room.id);
 }
 export async function persistResults(room: ArenaRoom) {
+  // A custom match has no normal receipt, ledger writes, XP, currency or rating.
+  if (room.customPreset) {
+    room.phase = "finished"; room.finishedAt = Date.now(); room.reason = "Custom match finished. No progression or currency awarded.";
+    return;
+  }
   if (room.saving || room.phase !== "saving") return;
   room.saving = true;
   try {
@@ -110,7 +117,7 @@ export function tickRooms(now = Date.now()) {
       const connected = room.players.length > 0 && room.players.every(p => p.isBot || p.connected);
       const reserved = room.reservedIds?.some(id => !room.players.some(p => p.id === id));
       // Parties get time for everyone; server party membership is checked by the join route.
-      if (room.mode === "casual" && now-room.createdAt >= 5000 && connected && !reserved) {
+      if (!room.customPreset && room.mode === "casual" && now-room.createdAt >= 5000 && connected && !reserved) {
         const names = ["Cedar", "Marlow", "Finch", "Rowan"];
         while (room.players.length < 4) {
           const seat = room.players.length;
@@ -119,12 +126,13 @@ export function tickRooms(now = Date.now()) {
             hits: 0, goals: 0, place: 0, rating: room.createdRating, seen: now, nextThink: 0, seq: -1 });
         }
       }
-      if (room.players.length === 4 && connected) { room.phase = "countdown"; room.startAt = now + 3000; }
+      const agreed = !room.customPreset || room.players.every(p => room.agreedIds?.includes(p.id));
+      if (room.players.length === 4 && connected && agreed) { room.phase = "countdown"; room.startAt = now + 3000; }
     } else if (room.phase === "countdown") {
       if (room.players.some(p => !p.isBot && !p.connected)) { room.phase = "waiting"; room.startAt = 0; }
       else if (now >= room.startAt) {
         room.phase = "playing";
-        for (let i = 0; i < RULES[room.variant]!.balls; i++) spawnBall(room);
+        for (let i = 0; i < rulesFor(room).balls; i++) spawnBall(room);
       }
     } else if (room.phase === "playing") {
       if (!room.players.some(p => !p.isBot && now-p.seen < 20000)) {

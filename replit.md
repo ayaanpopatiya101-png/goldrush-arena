@@ -32,7 +32,7 @@ A 4-player air-hockey "last-one-standing" mobile game built with Expo SDK 54. Pl
 ## Architecture decisions
 
 - **Progress is device-local, not all features.** AsyncStorage key `@goldrush_v3_{username}`. No authenticated player/cloud-save system. Parties, matchmaking, referrals, challenges and web purchases call the API server. Native digital purchases use RevenueCat/app stores; web checkout uses Stripe.
-- **The arena is local bot gameplay.** Party coordination and matchmaking do not synchronize paddle inputs or ball state between human devices. Do not market this build as real four-human PvP.
+- **Supported online variants are server controlled.** Ranked/Casual use synchronized paddle inputs and ball state; Ranked waits for humans and Casual can fill labeled AI. Legacy unsupported modes and practice remain device-local bots. Private workshop rooms require four human clients and explicit agreement to immutable custom rules; never claim browser/protocol checks prove four physical humans played.
 - **PlayerContext is the single store.** All game state (XP, coins, skins, relics, Trophy Road, supers) flows through one context + `save()` fn that persists atomically to AsyncStorage.
 - **Expo Router file-based navigation.** Tabs live in `(tabs)/`, full-screen flows (game, postgame, settings, legal) are Stack screens registered in `app/_layout.tsx`.
 - **Trophy Road bypasses rank gates.** Relics and skins earned via Trophy Road are added to `trophyUnlockedRelics[]` / `ownedSkins[]`, and `equipRelic` + `upgradeRelic` check both rank AND Trophy Road unlocks.
@@ -68,6 +68,7 @@ Key config in `app.json`:
 - **Native audio warm-up:** On first launch, `useSoundFX` and `BackgroundMusic` write WAV files to `expo-file-system`'s cache directory. There is a brief delay on the very first note/hit — subsequent plays are instant (cached).
 - **Rate button (Settings):** Uses `expo-store-review` for native in-app review. Shows a "coming soon" alert on web or before the app is published.
 - Browser verification is not native-device evidence. Use the managed phone preview for development; store builds need their own device checks.
+- Workshop presets are private to the existing guest credential, not linked by username. Local drafts are labeled separately from server saves. Custom rules run only in isolated practice/private rooms and never grant normal rewards. See `docs/arena/workshop.md`.
 - In constrained workspaces, export platforms sequentially with `--max-workers 1`, separately from the browser pass. An interrupted concurrent export is not a passing build.
 
 ## User preferences

@@ -21,6 +21,8 @@ import { useSoundFX } from '@/hooks/useSoundFX';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { THEME_FINISHES, STRIKE_FINISHES, type Artwork } from '@workspace/goldrush-catalog/cosmetics';
 import { PaddleArt } from '@/components/cosmetics/PaddleArt';
+import type { CourtAppearance, HitAppearance } from '@workspace/api-client-react';
+import { CourtDecor, HitMark } from '@/components/cosmetics/WorkshopCourt';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const WALL_MARGIN = 24;
@@ -192,6 +194,8 @@ interface GameArenaProps {
   arenaTheme?: string;
   /** STRIKE_FINISHES id; cosmetic hit/goal mark. Omit for existing effects only. */
   strikeEffect?: string;
+  customCourt?: CourtAppearance;
+  customHit?: HitAppearance;
 }
 interface StrikeMark { id:number; x:number; y:number; big:boolean; anim:Animated.Value }
 
@@ -247,10 +251,12 @@ export function GameArena({
   phantomBalls = false, playerBonusLives = 0, practice = false,
   onHighlight,
   arcadeMode = false, onScoreChange,
-  artwork, arenaTheme, strikeEffect,
+  artwork, arenaTheme, strikeEffect, customCourt, customHit,
 }: GameArenaProps) {
-  const theme = arenaTheme ? THEME_FINISHES.find(t => t.id === arenaTheme) : undefined;
-  const strike = strikeEffect ? STRIKE_FINISHES.find(t => t.id === strikeEffect) : undefined;
+  const theme = customCourt ? {floor:customCourt.floor,line:customCourt.lines,motif:'plain'} : arenaTheme ? THEME_FINISHES.find(t => t.id === arenaTheme) : undefined;
+  const strike = customHit ? {color:customHit.color,motif:customHit.shape==='ring'?'rings':'rays'} : strikeEffect ? STRIKE_FINISHES.find(t => t.id === strikeEffect) : undefined;
+  const customHitRef=useRef(customHit);customHitRef.current=customHit;
+  const lastCustomStrike=useRef(0);
   const strikeRef = useRef(strike);
   strikeRef.current = strike;
   const [strikeMarks, setStrikeMarks] = useState<StrikeMark[]>([]);
@@ -258,10 +264,12 @@ export function GameArena({
   // Cosmetic only: reads ball position, never writes simulation state.
   function spawnStrike(x: number, y: number, big: boolean) {
     if (!strikeRef.current || reducedRef.current) return;
+    if(customHitRef.current && Date.now()-lastCustomStrike.current<500)return;
+    lastCustomStrike.current=Date.now();
     const anim = new Animated.Value(0);
     const id = ++strikeIdRef.current;
     setStrikeMarks(prev => [...prev.slice(-5), { id, x, y, big, anim }]);
-    Animated.timing(anim, { toValue: 1, duration: big ? 520 : 340, useNativeDriver: true }).start(() => {
+    Animated.timing(anim, { toValue: 1, duration: customHitRef.current?.duration ?? (big ? 520 : 340), useNativeDriver: true }).start(() => {
       setStrikeMarks(prev => prev.filter(m => m.id !== id));
     });
   }
@@ -1483,6 +1491,7 @@ export function GameArena({
     <ScreenShake ref={screenShakeRef} style={{ width: arenaSize, height: arenaSize, overflow: 'hidden', borderRadius: courtStyle === 'tactile' ? 0 : 6 }}>
       {/* Background */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme ? theme.floor : courtStyle === 'tactile' ? tactile.court : courtColor }]} />
+      {customCourt ? <CourtDecor court={customCourt} size={arenaSize} /> : null}
 
       {/* Ambient floating orbs, behind all gameplay elements */}
       <FloatingOrbs orbs={gameOrbs} opacity={0.4} />
@@ -1664,22 +1673,22 @@ export function GameArena({
         ))}
 
         {/* Strike finish marks (cosmetic, bounded count) */}
-        {strike && strikeMarks.map(m => {
-          const R = m.big ? 34 : 20;
+        {strike && !reducedEffects && strikeMarks.map(m => {
+          const R = customHit ? customHit.size : m.big ? 34 : 20;
           return (
             <Animated.View key={m.id} pointerEvents="none" style={{
               position:'absolute', left:m.x - R, top:m.y - R, width:R*2, height:R*2,
               opacity:m.anim.interpolate({ inputRange:[0,1], outputRange:[0.9,0] }),
               transform:[{ scale:m.anim.interpolate({ inputRange:[0,1], outputRange:[0.4,1] }) }],
             }}>
-              <Svg width={R*2} height={R*2}>
+              {customHit ? <HitMark x={R} y={R} size={R*2} hit={customHit} /> : <Svg width={R*2} height={R*2}>
                 {strike.motif === 'rings'
                   ? [0.45, 0.75, 0.98].map(f => <Circle key={f} cx={R} cy={R} r={R*f - 1} stroke={strike.color} strokeWidth={m.big ? 2.5 : 1.75} fill="none" />)
                   : Array.from({ length: 8 }, (_, i) => {
                       const a = (i / 8) * Math.PI * 2;
                       return <Line key={i} x1={R + Math.cos(a)*R*0.35} y1={R + Math.sin(a)*R*0.35} x2={R + Math.cos(a)*(R-1)} y2={R + Math.sin(a)*(R-1)} stroke={strike.color} strokeWidth={m.big ? 3 : 2} />;
                     })}
-              </Svg>
+              </Svg>}
             </Animated.View>
           );
         })}

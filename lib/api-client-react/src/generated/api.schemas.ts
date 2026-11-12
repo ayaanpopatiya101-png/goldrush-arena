@@ -187,6 +187,205 @@ export interface SmsReminderState {
   deliveries: SmsReminderDelivery[];
 }
 
+export type WorkshopEquipInputKind = typeof WorkshopEquipInputKind[keyof typeof WorkshopEquipInputKind];
+
+
+export const WorkshopEquipInputKind = {
+  court: 'court',
+  hit: 'hit',
+} as const;
+
+export interface WorkshopEquipInput {
+  kind: WorkshopEquipInputKind;
+  /** @nullable */
+  id: string | null;
+}
+
+export type CourtAppearanceMarkings = typeof CourtAppearanceMarkings[keyof typeof CourtAppearanceMarkings];
+
+
+export const CourtAppearanceMarkings = {
+  classic: 'classic',
+  rings: 'rings',
+  lanes: 'lanes',
+} as const;
+
+export type CourtAppearanceTexture = typeof CourtAppearanceTexture[keyof typeof CourtAppearanceTexture];
+
+
+export const CourtAppearanceTexture = {
+  flat: 'flat',
+  grain: 'grain',
+  beveled: 'beveled',
+} as const;
+
+export interface CourtAppearance {
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  floor: string;
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  lines: string;
+  markings: CourtAppearanceMarkings;
+  texture: CourtAppearanceTexture;
+}
+
+export type HitAppearanceShape = typeof HitAppearanceShape[keyof typeof HitAppearanceShape];
+
+
+export const HitAppearanceShape = {
+  ring: 'ring',
+  diamond: 'diamond',
+  burst: 'burst',
+} as const;
+
+export interface HitAppearance {
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  color: string;
+  shape: HitAppearanceShape;
+  /**
+     * @minimum 8
+     * @maximum 28
+     */
+  size: number;
+  /**
+     * @minimum 150
+     * @maximum 500
+     */
+  duration: number;
+}
+
+export type CustomRulesPaddleScale = typeof CustomRulesPaddleScale[keyof typeof CustomRulesPaddleScale];
+
+
+export const CustomRulesPaddleScale = {
+  '08': 0.8,
+  NUMBER_1: 1,
+  '12': 1.2,
+} as const;
+
+export type CustomRulesBallSpeed = typeof CustomRulesBallSpeed[keyof typeof CustomRulesBallSpeed];
+
+
+export const CustomRulesBallSpeed = {
+  '075': 0.75,
+  NUMBER_1: 1,
+  '125': 1.25,
+} as const;
+
+export type CustomRulesBounce = typeof CustomRulesBounce[keyof typeof CustomRulesBounce];
+
+
+export const CustomRulesBounce = {
+  gentle: 'gentle',
+  standard: 'standard',
+  lively: 'lively',
+} as const;
+
+export interface CustomRules {
+  paddleScale: CustomRulesPaddleScale;
+  ballSpeed: CustomRulesBallSpeed;
+  bounce: CustomRulesBounce;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
+  lives: number;
+  /**
+     * @minimum 1
+     * @maximum 4
+     */
+  balls: number;
+  /**
+     * @minimum 1
+     * @maximum 8
+     */
+  maxBalls: number;
+}
+
+export interface WorkshopPreset {
+  /** @pattern ^workshop_[a-f0-9-]{36}$ */
+  id: string;
+  /**
+     * @minLength 1
+     * @maxLength 32
+     */
+  name: string;
+  court: CourtAppearance;
+  hit: HitAppearance;
+  rules: CustomRules;
+}
+
+export interface CustomRoomInput {
+  preset: WorkshopPreset;
+  /**
+     * @minLength 1
+     * @maxLength 24
+     */
+  name: string;
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  color: string;
+}
+
+export interface CustomJoinInput {
+  /** @pattern ^[A-Z2-9]{8}$ */
+  code: string;
+  /**
+     * @minLength 1
+     * @maxLength 24
+     */
+  name: string;
+  /** @pattern ^#[0-9a-fA-F]{6}$ */
+  color: string;
+}
+
+export interface CustomAgreementInput {
+  roomId: string;
+  /** @maxLength 64 */
+  configHash: string;
+}
+
+export interface WorkshopState {
+  /** @maxItems 20 */
+  presets: WorkshopPreset[];
+  /** @nullable */
+  equippedCourtId: string | null;
+  /** @nullable */
+  equippedHitId: string | null;
+}
+
+export type WorkshopAssistInputHistoryItemRole = typeof WorkshopAssistInputHistoryItemRole[keyof typeof WorkshopAssistInputHistoryItemRole];
+
+
+export const WorkshopAssistInputHistoryItemRole = {
+  user: 'user',
+  assistant: 'assistant',
+} as const;
+
+export type WorkshopAssistInputHistoryItem = {
+  role: WorkshopAssistInputHistoryItemRole;
+  /** @maxLength 600 */
+  text: string;
+};
+
+export interface WorkshopAssistInput {
+  /**
+     * @minLength 3
+     * @maxLength 600
+     */
+  prompt: string;
+  current: WorkshopPreset;
+  /** @maxItems 6 */
+  history: WorkshopAssistInputHistoryItem[];
+}
+
+export interface WorkshopAssistResult {
+  proposal: WorkshopPreset;
+  /** @maxLength 600 */
+  explanation: string;
+  /** @maxLength 200 */
+  question: string;
+  remaining: number;
+}
+
 export type PaddleDesignMotif = typeof PaddleDesignMotif[keyof typeof PaddleDesignMotif];
 
 
@@ -431,6 +630,10 @@ export const LiveRoomMode = {
 } as const;
 
 export interface LiveRoom {
+  customPreset?: WorkshopPreset;
+  customCode?: string;
+  configHash?: string;
+  agreedIds?: string[];
   id: string;
   phase: LiveRoomPhase;
   mode: LiveRoomMode;
