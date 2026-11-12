@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:store": "node scripts/test-store.mjs",
     "dev": "export NODE_ENV=development && pnpm run build && pnpm run start",
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
@@ -13,6 +14,7 @@
     "@google-cloud/storage": "^8.4.0",
     "@js-temporal/polyfill": "^0.5.1",
     "@opentelemetry/api": "^1.10.0",
+    "@replit/connectors-sdk": "^0.7.0",
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
     "@workspace/goldrush-catalog": "workspace:*",

@@ -3,6 +3,7 @@
 - [Lives Bank system](lives-bank.md) — extraLivesInventory is the bank; player picks 0–cap in lobby; Champion+ cap=2, others cap=3; consumed in game.tsx at handleGameStart.
 - [Stripe fulfillment](stripe-fulfillment.md) — use paid Checkout sessions as the fulfillment authority; do not depend solely on stripe-replit-sync or webhook delivery.
 - [Cross-platform payments](cross-platform-payments.md) — Stripe serves web checkout; RevenueCat serves native iOS/Android digital purchases.
+- [Shop campaign boundaries](shop-campaign-boundaries.md) — approve actual prices, rewards and UTC windows; dedicated SKUs and guest limits, never example-price activation.
 - [Visual constraints](design-constraints.md) — explicit user avoidance list supersedes older Inter and glow-heavy styling preferences.
 - [Page design references](page-design-references.md) — user-selected game references for each screen; Duolingo now leads onboarding.
 - [Browser and native releases](browser-release.md) — the main domain should open the playable game while native Expo access remains separate.

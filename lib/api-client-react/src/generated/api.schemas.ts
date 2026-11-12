@@ -5,6 +5,82 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type StoreOfferStatus = typeof StoreOfferStatus[keyof typeof StoreOfferStatus];
+
+
+export const StoreOfferStatus = {
+  available: 'available',
+  upcoming: 'upcoming',
+  expired: 'expired',
+  claimed: 'claimed',
+  pending: 'pending',
+  unavailable: 'unavailable',
+} as const;
+
+export interface StoreOffer {
+  id: string;
+  title: string;
+  startsAt: string;
+  endsAt: string;
+  rewardLabel: string;
+  skins: string[];
+  status: StoreOfferStatus;
+  reason: string;
+  /** @nullable */
+  priceLabel: string | null;
+  packageId?: string;
+  productId?: string;
+}
+
+export interface StoreOfferState {
+  serverTime: string;
+  nativeCustomerId: string;
+  nativeVerificationAvailable: boolean;
+  offers: StoreOffer[];
+}
+
+export type OfferCheckoutInputPlatform = typeof OfferCheckoutInputPlatform[keyof typeof OfferCheckoutInputPlatform];
+
+
+export const OfferCheckoutInputPlatform = {
+  web: 'web',
+  ios: 'ios',
+  android: 'android',
+} as const;
+
+export interface OfferCheckoutInput {
+  /** @maxLength 80 */
+  offerId: string;
+  platform: OfferCheckoutInputPlatform;
+}
+
+export interface OfferCheckoutResult {
+  reservationId: string;
+  url?: string;
+  packageId?: string;
+  productId?: string;
+  nativeCustomerId?: string;
+}
+
+export interface NativeReceiptInput {
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  productIdentifier: string;
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  transactionIdentifier: string;
+  /** @maxLength 255 */
+  reservationId?: string;
+}
+
+export interface VerifiedPurchase {
+  code: string;
+}
+
 export type SmsReminderInputSource = typeof SmsReminderInputSource[keyof typeof SmsReminderInputSource];
 
 
@@ -395,6 +471,19 @@ export interface LiveResult {
 export interface HealthStatus {
   status: string;
 }
+
+export type GetStoreOffersParams = {
+platform: GetStoreOffersPlatform;
+};
+
+export type GetStoreOffersPlatform = typeof GetStoreOffersPlatform[keyof typeof GetStoreOffersPlatform];
+
+
+export const GetStoreOffersPlatform = {
+  web: 'web',
+  ios: 'ios',
+  android: 'android',
+} as const;
 
 export type RequestAvatarUpload200 = {
   id: string;

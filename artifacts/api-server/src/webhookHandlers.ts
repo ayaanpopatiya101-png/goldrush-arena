@@ -1,7 +1,10 @@
 import { getStripeWebhookSecret, getUncachableStripeClient } from './stripeClient.js';
-import { db, purchaseCodes } from '@workspace/db';
+import { db, purchaseCodes, storeReservations } from '@workspace/db';
+import { eq } from 'drizzle-orm';
 import { createHmac } from 'crypto';
 import { logger } from './lib/logger.js';
+import { deliverVerifiedPurchase } from './lib/storeDelivery.js';
+import { rewardFromMetadata } from './lib/storeRewards.js';
 
 function generateCode(sessionId: string): string {
   const secret = process.env.SESSION_SECRET;
@@ -13,21 +16,34 @@ function generateCode(sessionId: string): string {
 export class WebhookHandlers {
   static async fulfillCheckoutSession(session: any): Promise<string | null> {
     if (!session?.id || session.payment_status !== 'paid') return null;
-
+    // Never trust a webhook body (including local development payloads) as payment authority.
+    const stripe = await getUncachableStripeClient();
+    session = await stripe.checkout.sessions.retrieve(session.id);
+    if (session.payment_status !== 'paid' || session.status !== 'complete') return null;
     const meta = session.metadata ?? {};
-    const rewardJson = JSON.stringify({
-      rewardType:   meta.reward_type   ?? 'coins',
-      rewardAmount: meta.reward_amount ? Number(meta.reward_amount) : undefined,
-      rewardSkins:  meta.reward_skins  ? (meta.reward_skins as string).split(',') : undefined,
-      seasonPass:   meta.reward_type === 'season_pass',
-      label:        meta.reward_label  ?? 'Purchase reward',
-    });
+    if (meta.store_reservation) {
+      const [reservation] = await db.select().from(storeReservations).where(eq(storeReservations.id, meta.store_reservation));
+      if (!reservation || reservation.provider !== 'stripe' || reservation.providerSession !== session.id)
+        throw new Error('Checkout does not match its reserved offer.');
+      const items = await stripe.checkout.sessions.listLineItems(session.id, { limit: 2 });
+      if (items.data.length !== 1 || items.data[0]?.price?.id !== reservation.productId || items.data[0]?.quantity !== 1)
+        throw new Error('Checkout product does not match the reserved offer.');
+      if (typeof session.payment_intent !== 'string') throw new Error('Offer payment has no verified payment intent.');
+      const intent = await stripe.paymentIntents.retrieve(session.payment_intent, { expand: ['latest_charge'] });
+      const charge = intent.latest_charge;
+      if (intent.status !== 'succeeded' || !charge || typeof charge === 'string' || !charge.paid || charge.refunded
+        || charge.created * 1000 < reservation.startsAt.getTime() || charge.created * 1000 >= reservation.endsAt.getTime())
+        throw new Error('Payment was not completed within the reserved offer window. Contact support with this checkout receipt.');
+      return deliverVerifiedPurchase({
+        receiptId: `stripe:${session.id}`, playerId: reservation.playerId, reward: reservation.reward, reservationId: reservation.id,
+      });
+    }
+    const rewardJson = JSON.stringify(rewardFromMetadata(meta));
 
     const code = generateCode(session.id);
     await db.insert(purchaseCodes).values({ code, rewardJson }).onConflictDoNothing();
 
     if (meta.purchase_code !== code) {
-      const stripe = await getUncachableStripeClient();
       await stripe.checkout.sessions.update(session.id, {
         metadata: { ...meta, purchase_code: code },
       });
@@ -46,22 +62,16 @@ export class WebhookHandlers {
 
     const stripe = await getUncachableStripeClient();
 
-    // Stripe's signature is mandatory outside local development.
+    // Signature verification is required in every environment.
     let event: any;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? await getStripeWebhookSecret();
     if (webhookSecret) {
       event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
-    } else if (process.env.NODE_ENV === 'development') {
-      try {
-        event = JSON.parse(payload.toString());
-      } catch {
-        throw new Error('Invalid Stripe webhook payload');
-      }
     } else {
-      throw new Error('STRIPE_WEBHOOK_SECRET is required outside development');
+      throw new Error('A Stripe webhook signing secret is required');
     }
 
-    if (event?.type === 'checkout.session.completed') {
+    if (event?.type === 'checkout.session.completed' || event?.type === 'checkout.session.async_payment_succeeded') {
       const session = event.data?.object;
       if (session?.payment_status === 'paid') {
         try {

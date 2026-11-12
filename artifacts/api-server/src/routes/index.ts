@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import healthRouter from "./health.js";
 import partyRouter from "./party.js";
 import stripeRouter from "./stripe.js";
+import storeOffersRouter from "./storeOffers.js";
 import referralRouter from "./referral.js";
 import challengeRouter from "./challenge.js";
 import multiplayerRouter from "./multiplayer.js";
@@ -21,6 +22,7 @@ router.use("/matchmaking", (_req, res) => {
 });
 router.use(partyRouter);
 router.use(stripeRouter);
+router.use(storeOffersRouter);
 router.use(referralRouter);
 router.use(challengeRouter);
 

@@ -60,6 +60,11 @@ function useRevenueCatState() {
     isPurchasing: purchaseMutation.isPending,
     isRestoring: restoreMutation.isPending,
     getPackage: (identifier: string) => packages.find(pkg => pkg.identifier === identifier),
+    identify: async (customerId: string) => {
+      if (!enabled || !customerId.startsWith('arena_')) throw new Error('Store purchase identity is unavailable.');
+      await Purchases.logIn(customerId);
+      await queryClient.invalidateQueries({ queryKey: ['revenuecat'] });
+    },
     purchase: purchaseMutation.mutateAsync,
     restore: restoreMutation.mutateAsync,
     retry: () => offeringsQuery.refetch(),

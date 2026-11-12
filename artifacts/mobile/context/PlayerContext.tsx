@@ -7,7 +7,7 @@ import { setCompletedMatch, type CompletedMatch } from '@/store/completedMatch';
 import { trackEvent } from '@/utils/analytics';
 import { rankIndexForName } from '@/utils/rankIndex';
 import { canClaimSeasonTier, seasonSkinForMilestone } from '@/utils/seasonRewards';
-import { getLiveResult } from '@workspace/api-client-react';
+import { getLiveResult, verifyNativePurchase } from '@workspace/api-client-react';
 import { arenaRequestOptions, cancelArenaSms, retireArenaProfile } from '@/utils/arenaSession';
 import { clearAvatarState } from '@/hooks/useAvatar';
 import { eventNotificationScheduler, phoneReminderStorageKey } from '@/utils/eventNotificationScheduler';
@@ -1108,7 +1108,8 @@ interface PlayerContextType {
     rounds: QualifierRoundDef[],
   ) => Promise<{ qpEarned: number; totalQP: number; advanced: boolean; nextRoundName: string }>;
   redeemCode: (code: string) => Promise<{ success: boolean; message: string }>;
-  applyStorePurchases: (purchases: { productIdentifier: string; transactionIdentifier: string }[]) => Promise<{ applied: number; message: string }>;
+  applyStorePurchases: (purchases: { productIdentifier: string; transactionIdentifier: string; reservationId?: string }[]) => Promise<{ applied: number; message: string }>;
+  replayPendingStorePurchases: () => Promise<{ applied: number; message: string }>;
   consumeExtraLives: (count: number) => Promise<void>;
   claimBattlePassTier: (slot: number, isPremium: boolean) => Promise<LuckyBlock | null>;
   claimQuestReward: (questId: string) => Promise<{ success: boolean; bppEarned: number }>;
@@ -1133,6 +1134,7 @@ export function PlayerProvider({ username, onLogout, children }: {
   // All receipt/road/pass claims share one transaction queue to avoid losing a
   // completed game when a different reward is claimed during its storage write.
   const seasonClaimQueue = matchQueue;
+  const nativePurchaseQueue = useRef<Promise<void>>(Promise.resolve());
   const [isLoaded, setIsLoaded]           = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -1624,7 +1626,9 @@ export function PlayerProvider({ username, onLogout, children }: {
     });
   }, [profile, save]);
 
-  const redeemCode = useCallback(async (code: string): Promise<{ success: boolean; message: string }> => {
+  const redeemCode = useCallback((code: string): Promise<{ success: boolean; message: string }> => {
+    const claim = matchQueue.current.then(async () => {
+    const profile = profileRef.current;
     const normalized = code.trim().toUpperCase();
     if ((profile.redeemedCodes ?? []).includes(normalized)) {
       return { success: false, message: 'Code already redeemed.' };
@@ -1660,9 +1664,11 @@ export function PlayerProvider({ username, onLogout, children }: {
           const apiBase = typeof window !== 'undefined' && window.location
             ? '/api'
             : `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
+          const identity = await arenaRequestOptions(username);
           const resp = await fetch(`${apiBase}/store/verify-code`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { ...identity.headers, 'Content-Type': 'application/json' },
+            signal: identity.signal,
             body: JSON.stringify({ code: normalized }),
           });
           if (!resp.ok) {
@@ -1734,70 +1740,50 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save(updated);
     trackEvent('purchase_code_redeemed', { source: 'promo', reward_type: 'promo' });
     return { success: true, message: reward.label };
-  }, [profile, save]);
+    });
+    matchQueue.current = claim.then(() => undefined, () => undefined);
+    return claim;
+  }, [save, username]);
 
-  const applyStorePurchases = useCallback(async (
-    purchases: { productIdentifier: string; transactionIdentifier: string }[],
+  const applyStorePurchases = useCallback((
+    purchases: { productIdentifier: string; transactionIdentifier: string; reservationId?: string }[],
   ): Promise<{ applied: number; message: string }> => {
-    let updated = { ...profile };
+    const claim = nativePurchaseQueue.current.then(async () => {
+    const pendingKey = `${KEY}:pending-store-receipts`;
+    type Receipt = { productIdentifier: string; transactionIdentifier: string; reservationId?: string };
+    const previous = JSON.parse(await AsyncStorage.getItem(pendingKey) ?? '[]') as Receipt[];
+    const pending = [...previous];
+    for (const receipt of purchases) {
+      if (!pending.some(p => p.transactionIdentifier === receipt.transactionIdentifier)) pending.push(receipt);
+    }
+    // Save receipts before any server call, so pending purchases survive app restarts.
+    await AsyncStorage.setItem(pendingKey, JSON.stringify(pending));
     let applied = 0;
     const labels: string[] = [];
-
-    for (const purchase of purchases) {
-      const marker = `RC:${purchase.transactionIdentifier}`;
-      if ((updated.redeemedCodes ?? []).includes(marker)) continue;
-      const id = purchase.productIdentifier;
-
-      if (id.endsWith('.starter_sack')) {
-        updated = { ...updated, coins: updated.coins + 1_000 };
-        labels.push('1,000 Coins');
-      } else if (id.endsWith('.gold_pouch')) {
-        updated = { ...updated, coins: updated.coins + 5_000 };
-        labels.push('5,000 Coins');
-      } else if (id.endsWith('.treasure_chest')) {
-        updated = { ...updated, coins: updated.coins + 15_000 };
-        labels.push('15,000 Coins');
-      } else if (id.endsWith('.dragon_vault')) {
-        updated = { ...updated, coins: updated.coins + 50_000 };
-        labels.push('50,000 Coins');
-      } else if (id.endsWith('.season_pass')) {
-        updated = { ...updated, seasonPassPurchased: true };
-        labels.push('Season Pass');
-      } else if (id.endsWith('.inferno_pack')) {
-        updated = { ...updated, ownedSkins: [...new Set([...updated.ownedSkins, 'inferno'])] };
-        labels.push('Inferno Skin');
-      } else if (id.endsWith('.void_striker_pack')) {
-        updated = { ...updated, ownedSkins: [...new Set([...updated.ownedSkins, 'void'])] };
-        labels.push('Void Striker Skin');
-      } else if (id.endsWith('.elite_bundle')) {
-        updated = { ...updated, ownedSkins: [...new Set([...updated.ownedSkins, 'chrome', 'cosmic'])] };
-        labels.push('Elite Skin Bundle');
-      } else if (id.endsWith('.extra_life_1')) {
-        updated = { ...updated, extraLivesInventory: (updated.extraLivesInventory ?? 0) + 1 };
-        labels.push('1 Extra Life');
-      } else if (id.endsWith('.extra_lives_3')) {
-        updated = { ...updated, extraLivesInventory: (updated.extraLivesInventory ?? 0) + 3 };
-        labels.push('3 Extra Lives');
-      } else if (id.endsWith('.battle_pass_premium_s1')) {
-        updated = { ...updated, battlePassPremiumOwned: true };
-        labels.push('Battle Pass Premium');
-      } else {
-        continue;
-      }
-
-      updated = { ...updated, redeemedCodes: [...(updated.redeemedCodes ?? []), marker] };
-      applied++;
+    let failure: unknown;
+    for (const receipt of [...pending]) {
+      try {
+        // Historical local markers remain honored. Never retroactively award them again.
+        const marker = `RC:${receipt.transactionIdentifier}`;
+        if (!(profileRef.current.redeemedCodes ?? []).includes(marker)) {
+          const verified = await verifyNativePurchase(receipt, await arenaRequestOptions(username));
+          if (!(profileRef.current.redeemedCodes ?? []).includes(verified.code)) {
+            const result = await redeemCode(verified.code);
+            if (!result.success && result.message !== 'Code already redeemed.') throw new Error(result.message);
+            if (result.success) { applied++; labels.push(result.message); }
+          }
+        }
+        pending.splice(pending.findIndex(p => p.transactionIdentifier === receipt.transactionIdentifier), 1);
+        await AsyncStorage.setItem(pendingKey, JSON.stringify(pending));
+      } catch (error) { failure = error; }
     }
-
-    if (applied > 0) {
-      await save(updated);
-      trackEvent('native_purchase_fulfilled', { item_count: applied });
-    }
-    return {
-      applied,
-      message: applied > 0 ? `${labels.join(', ')} added!` : 'These purchases are already restored.',
-    };
-  }, [profile, save]);
+    if (failure) throw new Error(`${applied ? `${applied} purchase(s) delivered. ` : ''}Some receipts are awaiting verification. Do not buy again. Use Retry delivery or Restore purchases. ${failure instanceof Error ? failure.message : ''}`);
+    return { applied, message: applied ? labels.join(', ') : 'These verified purchases are already delivered.' };
+    });
+    nativePurchaseQueue.current = claim.then(() => undefined, () => undefined);
+    return claim;
+  }, [KEY, username, redeemCode]);
+  const replayPendingStorePurchases = useCallback(() => applyStorePurchases([]), [applyStorePurchases]);
 
   const consumeExtraLives = useCallback(async (count: number) => {
     if (!count) return;
@@ -1918,7 +1904,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, claimGamesRoad, completeTutorial,
       setSelectedSuper, setSkillTier, purchaseForgeAbility, equipForgeAbility,
       spendEventPlay, claimEventBonus, spendQualifierPlay, earnQualifierPoints,
-      openLuckyBlock, redeemCode, applyStorePurchases, consumeExtraLives,
+      openLuckyBlock, redeemCode, applyStorePurchases, replayPendingStorePurchases, consumeExtraLives,
       claimBattlePassTier, claimQuestReward, claimReferralReward, logout,
     }}>
       {children}

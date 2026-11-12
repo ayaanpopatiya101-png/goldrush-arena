@@ -11,6 +11,45 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /store/offers:
+    get:
+      operationId: getStoreOffers
+      parameters:
+        - { name: platform, in: query, required: true, schema: { type: string, enum: [web, ios, android] } }
+      responses:
+        "200":
+          description: Server time, guest purchase identity and approved campaign availability
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StoreOfferState" }
+  /store/offer-checkout:
+    post:
+      operationId: startOfferCheckout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OfferCheckoutInput" }
+      responses:
+        "200":
+          description: Reserved hosted checkout or native package authorization
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OfferCheckoutResult" }
+  /store/native-verify:
+    post:
+      operationId: verifyNativePurchase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NativeReceiptInput" }
+      responses:
+        "200":
+          description: Server verified purchase code; retries return the same code
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VerifiedPurchase" }
   /sms-reminders:
     get:
       operationId: getSmsReminders
@@ -340,6 +379,58 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    StoreOfferState:
+      type: object
+      required: [serverTime, nativeCustomerId, nativeVerificationAvailable, offers]
+      properties:
+        serverTime: { type: string }
+        nativeCustomerId: { type: string }
+        nativeVerificationAvailable: { type: boolean }
+        offers: { type: array, items: { $ref: "#/components/schemas/StoreOffer" } }
+    StoreOffer:
+      type: object
+      required: [id, title, startsAt, endsAt, rewardLabel, skins, status, reason, priceLabel]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        startsAt: { type: string }
+        endsAt: { type: string }
+        rewardLabel: { type: string }
+        skins: { type: array, items: { type: string } }
+        status: { type: string, enum: [available, upcoming, expired, claimed, pending, unavailable] }
+        reason: { type: string }
+        priceLabel: { type: [string, "null"] }
+        packageId: { type: string }
+        productId: { type: string }
+    OfferCheckoutInput:
+      type: object
+      additionalProperties: false
+      required: [offerId, platform]
+      properties:
+        offerId: { type: string, maxLength: 80 }
+        platform: { type: string, enum: [web, ios, android] }
+    OfferCheckoutResult:
+      type: object
+      required: [reservationId]
+      properties:
+        reservationId: { type: string }
+        url: { type: string }
+        packageId: { type: string }
+        productId: { type: string }
+        nativeCustomerId: { type: string }
+    NativeReceiptInput:
+      type: object
+      additionalProperties: false
+      required: [productIdentifier, transactionIdentifier]
+      properties:
+        productIdentifier: { type: string, minLength: 1, maxLength: 255 }
+        transactionIdentifier: { type: string, minLength: 1, maxLength: 255 }
+        reservationId: { type: string, maxLength: 255 }
+    VerifiedPurchase:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string }
     SmsReminderInput:
       type: object
       additionalProperties: false
