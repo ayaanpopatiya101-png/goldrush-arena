@@ -217,7 +217,7 @@ export default function EventsScreen() {
           {/* Rally Race */}
           <View style={{ gap: 8 }}>
             <SectionLabel title="Always on" right={<Chip label="Casual online" />} />
-            <Panel tone="raised" style={[s.pad, { gap: 10, borderWidth: 3, borderColor: palette.edge }]}>
+            <Panel tone="raised" style={[s.pad, { gap: 10, borderRadius: 10, borderWidth: 3, borderColor: palette.edge }]}>
               <Text style={s.h2}>Rally Race</Text>
               <Text style={s.body}>Sixty seconds. Keep the ball alive and stack points.</Text>
               <View style={s.ruleGrid}>
@@ -244,7 +244,7 @@ export default function EventsScreen() {
               const w = scheduleWindow(m.startDay, m.endDay);
               const live = m.id === liveMode?.id;
               return (
-                <Panel key={m.id} style={[s.pad, { gap: 8 }, live && { borderColor: palette.primary, borderWidth: 3 }]}>
+                <Panel key={m.id} style={[s.pad, { gap: 8 }, live && { borderColor: palette.primary, borderRadius: 10, borderWidth: 3 }]}>
                   <View style={s.rowBetween}>
                     <View style={{ flex: 1 }}>
                       <Text style={s.h3}>{m.name}</Text>
@@ -449,7 +449,7 @@ const s = StyleSheet.create({
   sub: { fontFamily: fonts.body, fontSize: textScale.caption, color: palette.supporting },
   pad: { padding: 14 },
   partyBar: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
-  featured: { borderWidth: 3, borderBottomWidth: 6, borderColor: palette.edge, overflow: 'hidden' },
+  featured: { borderRadius: 10, borderWidth: 3, borderBottomWidth: 6, borderColor: palette.edge, overflow: 'hidden' },
   band: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 9, backgroundColor: palette.inset },
   bandText: { fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', color: palette.foreground },
   hero: { fontFamily: fonts.display, fontSize: 40, color: palette.foreground, textTransform: 'uppercase', letterSpacing: -0.5 },
@@ -461,16 +461,16 @@ const s = StyleSheet.create({
   fine: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: palette.supporting },
   rowWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-  mod: { borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold, paddingHorizontal: 8, paddingVertical: 3 },
+  mod: { borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold, paddingHorizontal: 8, paddingVertical: 3 },
   modText: { fontFamily: fonts.bodyBold, fontSize: 13, color: palette.onAccent },
-  ruleGrid: { flexDirection: 'row', borderWidth: 2, borderColor: palette.edge },
+  ruleGrid: { flexDirection: 'row', borderRadius: 10, borderWidth: 2, borderColor: palette.edge },
   rule: { flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: palette.border, backgroundColor: palette.background },
   ruleK: { fontFamily: fonts.display, fontSize: 26, color: palette.foreground, fontVariant: ['tabular-nums'] },
-  toggle: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.background },
+  toggle: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 12, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.background },
   toggleText: { fontFamily: fonts.bodyBold, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.6 },
-  toast: { position: 'absolute', zIndex: 10, left: 18, right: 18, bottom: 110, flexDirection: 'row', gap: 10, alignItems: 'center', padding: 12, backgroundColor: palette.gold, borderWidth: 2, borderColor: palette.edge },
+  toast: { position: 'absolute', zIndex: 10, left: 18, right: 18, bottom: 110, flexDirection: 'row', gap: 10, alignItems: 'center', padding: 12, backgroundColor: palette.gold, borderRadius: 10, borderWidth: 2, borderColor: palette.edge },
   toastText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.onAccent },
-  track: { height: 16, padding: 2, backgroundColor: palette.background, borderWidth: 2, borderColor: palette.edge },
+  track: { height: 16, padding: 2, backgroundColor: palette.background, borderRadius: 10, borderWidth: 2, borderColor: palette.edge },
   fill: { height: '100%', backgroundColor: palette.gold },
   detail: { borderTopWidth: 2, borderTopColor: palette.border, backgroundColor: palette.background, padding: 14, gap: 10 },
 });

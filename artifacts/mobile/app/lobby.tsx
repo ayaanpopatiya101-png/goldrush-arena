@@ -205,12 +205,12 @@ function CountdownOverlay({ countdown }: { countdown: number }) {
   return (
     <View style={styles.countdownOverlay} pointerEvents="none">
       <Animated.View style={{
-        position: 'absolute', width: 100, height: 100, borderRadius: 3,
+        position: 'absolute', width: 100, height: 100, borderRadius: 8,
         borderWidth: 3, borderColor: palette.gold,
         opacity: ring1Opacity, transform: [{ scale: ring1Scale }],
       }} />
       <Animated.View style={{
-        position: 'absolute', width: 100, height: 100, borderRadius: 3,
+        position: 'absolute', width: 100, height: 100, borderRadius: 8,
         borderWidth: 2, borderColor: palette.gold,
         opacity: ring2Opacity, transform: [{ scale: ring2Scale }],
       }} />
@@ -628,7 +628,7 @@ function OfflineLobbyScreen() {
         )}
 
         {/* Lives bank: shown only when it can be used */}
-        {bankLives > 0 ? <View style={{ marginBottom: 8, backgroundColor: palette.danger + '10', borderRadius: 3, borderWidth: 1, borderColor: palette.danger + '33', padding: 14, gap: 10 }}>
+        {bankLives > 0 ? <View style={{ marginBottom: 8, backgroundColor: palette.danger + '10', borderRadius: 8, borderWidth: 1, borderColor: palette.danger + '33', padding: 14, gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, color: palette.danger }}>LIVES BANK</Text>
             <View style={{ flex: 1 }} />
@@ -659,7 +659,7 @@ function OfflineLobbyScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Pressable
                   onPress={() => { setLivesUsed(v => Math.max(0, v - 1)); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                  style={[{ width: 32, height: 32, borderRadius: 3, backgroundColor: palette.danger + '20', borderWidth: 1, borderColor: palette.danger + '44', alignItems: 'center', justifyContent: 'center' }, livesUsed === 0 && { opacity: 0.35 }]}
+                  style={[{ width: 32, height: 32, borderRadius: 8, backgroundColor: palette.danger + '20', borderWidth: 1, borderColor: palette.danger + '44', alignItems: 'center', justifyContent: 'center' }, livesUsed === 0 && { opacity: 0.35 }]}
                   disabled={livesUsed === 0}
                 >
                   <Text style={{ color: palette.danger, fontFamily: 'SourceSans3_700Bold', fontSize: 20, lineHeight: 22 }}>−</Text>
@@ -667,7 +667,7 @@ function OfflineLobbyScreen() {
                 <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 24, color: palette.danger, minWidth: 22, textAlign: 'center' }}>{livesUsed}</Text>
                 <Pressable
                   onPress={() => { setLivesUsed(v => Math.min(livesCap, v + 1)); if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                  style={[{ width: 32, height: 32, borderRadius: 3, backgroundColor: palette.danger + '20', borderWidth: 1, borderColor: palette.danger + '44', alignItems: 'center', justifyContent: 'center' }, livesUsed >= livesCap && { opacity: 0.35 }]}
+                  style={[{ width: 32, height: 32, borderRadius: 8, backgroundColor: palette.danger + '20', borderWidth: 1, borderColor: palette.danger + '44', alignItems: 'center', justifyContent: 'center' }, livesUsed >= livesCap && { opacity: 0.35 }]}
                   disabled={livesUsed >= livesCap}
                 >
                   <Text style={{ color: palette.danger, fontFamily: 'SourceSans3_700Bold', fontSize: 20, lineHeight: 22 }}>+</Text>
@@ -683,7 +683,7 @@ function OfflineLobbyScreen() {
 
         {/* Party panel, only visible when player is in a party */}
         {isInParty && (
-          <View style={{ marginBottom: 8, backgroundColor: palette.border, borderRadius: 3, borderWidth: 1, borderColor: palette.border, padding: 12, gap: 8 }}>
+          <View style={{ marginBottom: 8, backgroundColor: palette.border, borderRadius: 8, borderWidth: 1, borderColor: palette.border, padding: 12, gap: 8 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2, color: palette.supporting }}>YOUR PARTY</Text>
               <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 10, color: palette.supporting, letterSpacing: 1.5 }}>· {partyCode}</Text>
@@ -692,7 +692,7 @@ function OfflineLobbyScreen() {
             </View>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {partyMembers.map(m => (
-                <View key={m.playerId} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: palette.inset, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 5 }}>
+                <View key={m.playerId} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: palette.inset, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }}>
                   <Glyph style={{ fontSize: 14 }} value={m.avatarEmoji} />
                   <View>
                     <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: palette.foreground }}>{m.name}</Text>
@@ -847,31 +847,31 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingBottom: 12, width: '100%', maxWidth: 760, alignSelf: 'center' },
   backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 2 },
-  modeBadge:   { borderRadius: 3, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 4 },
+  modeBadge:   { borderRadius: 8, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 4 },
   modeBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 1.5 },
   content: { paddingHorizontal: 18, paddingBottom: 40, gap: 20, width: '100%', maxWidth: 760, alignSelf: 'center' },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface },
   dot: { width: 8, height: 8, borderRadius: 4 },
   statusText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
   section: { gap: 10 },
   sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 2 },
   playersList: { gap: 8 },
-  emptySlot: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 3, borderWidth: 1, borderStyle: 'dashed' },
+  emptySlot: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 8, borderWidth: 1, borderStyle: 'dashed' },
   emptyText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
-  mapCard: { width: 144, padding: 12, borderRadius: 0, borderWidth: 2, gap: 5, overflow: 'hidden' },
+  mapCard: { width: 144, padding: 12, borderRadius: 10, borderWidth: 2, gap: 5, overflow: 'hidden' },
   mapIcon: { fontSize: 24 },
   mapName: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   mapDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 10, lineHeight: 14, minHeight: 42 },
-  mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
+  mapBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
   mapBadgeText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, color: palette.foreground, letterSpacing: 0.5 },
-  mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 3, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
+  mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
   mapLockText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
-  rulesCard: { borderRadius: 0, borderWidth: 2, padding: 16, gap: 10 },
+  rulesCard: { borderRadius: 10, borderWidth: 2, padding: 16, gap: 10 },
   rulesTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 23, letterSpacing: 1 },
   rulesList: { gap: 8 },
   ruleItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  ruleDot: { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
+  ruleDot: { width: 6, height: 6, borderRadius: 8, marginTop: 6 },
   ruleText: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, flex: 1, lineHeight: 19 },
   countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: palette.deepest + 'EE', alignItems: 'center', justifyContent: 'center' },
   countdownText: { color: palette.gold, fontSize: 96, fontFamily: 'SourceSans3_700Bold', textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },

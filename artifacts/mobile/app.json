@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/images/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#101410"
+      "backgroundColor": "#151C27"
     },
     "ios": {
       "bundleIdentifier": "com.goldrush.arena",
@@ -29,7 +29,7 @@
       "package": "com.goldrush.arena",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#101410"
+        "backgroundColor": "#151C27"
       },
       "permissions": [],
       "blockedPermissions": [
@@ -53,7 +53,7 @@
           "image": "./assets/images/scorecard-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#101410"
+          "backgroundColor": "#151C27"
         }
       ],
       "expo-web-browser",

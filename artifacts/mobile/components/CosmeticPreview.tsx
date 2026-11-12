@@ -47,8 +47,8 @@ export function CosmeticPreview({ skin, artwork, size = 120, showLabel = true }:
 }
 
 const c = StyleSheet.create({
-  frame: { borderWidth: 3, borderColor: palette.edge, backgroundColor: tactile.brass, padding: 3 },
-  court: { flex: 1, backgroundColor: palette.inset, borderWidth: 1, borderColor: palette.border, overflow: 'hidden' },
+  frame: { borderRadius: 10, borderWidth: 3, borderColor: palette.edge, backgroundColor: tactile.brass, padding: 3 },
+  court: { flex: 1, backgroundColor: palette.inset, borderRadius: 10, borderWidth: 1, borderColor: palette.border, overflow: 'hidden' },
   midH: { position: 'absolute', left: 0, right: 0, top: '50%', height: 1, backgroundColor: tactile.courtLine },
   circle: { position: 'absolute', left: '50%', top: '50%', borderWidth: 1, borderColor: palette.border, borderRadius: 999 },
   botN: { position: 'absolute', top: 4, alignSelf: 'center', height: 4, opacity: 0.7 },

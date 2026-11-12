@@ -160,7 +160,7 @@ export default function ProfileScreen() {
       >
         <Shell style={{ gap: 16 }}>
         <ScreenTitle kicker="Player" title="Profile" />
-        <View style={{ alignSelf: 'flex-start', maxWidth: '100%', backgroundColor: tactile.brass, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 8, paddingVertical: 4 }}>
+        <View style={{ alignSelf: 'flex-start', maxWidth: '100%', backgroundColor: tactile.brass, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, paddingHorizontal: 8, paddingVertical: 4 }}>
           <Text style={{ color: palette.onAccent, fontFamily: 'SourceSans3_700Bold', fontSize: 12 }}>{profile.coins.toLocaleString()} COINS</Text>
         </View>
         <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -203,7 +203,7 @@ export default function ProfileScreen() {
               const tierColor = profile.skillTier === 'Pro' ? palette.gold : profile.skillTier === 'Veteran' ? palette.border : palette.gold;
               const tierIcon = profile.skillTier === 'Pro' ? 'trophy-outline' as const : 'medal-outline' as const;
               return (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: tierColor + '1E', borderRadius: 3, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: tierColor + '44' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: tierColor + '1E', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: tierColor + '44' }}>
                   <MaterialCommunityIcons name={tierIcon} size={14} color={palette.gold} />
                   <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.foreground, letterSpacing: 0.8 }}>{profile.skillTier.toUpperCase()}</Text>
                 </View>
@@ -216,6 +216,9 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        <Button label={avatarEditing ? 'Photo and avatar editor open' : 'Upload or change profile photo'}
+          icon="image" variant="secondary" testID="profile-edit-photo"
+          onPress={() => { setTempEmoji(profile.avatarEmoji); setTempColor(profile.avatarFrameColor); setAvatarEditing(true); }} />
         {/* ── Avatar picker (expanded when editing) ── */}
         {avatarEditing && (
           <View style={[styles.section, { borderColor: tempColor + '55', backgroundColor: tempColor + '08' }]}>
@@ -241,6 +244,9 @@ export default function ProfileScreen() {
 
             <Text style={[styles.pickerLabel, { color: colors.mutedForeground }]}>PHOTO</Text>
             {currentUsername ? <PhotoAvatarEditor testID="profile-photo" username={currentUsername} frameColor={tempColor} /> : null}
+            <Text style={{ color: palette.supporting, fontFamily: 'SourceSans3_400Regular', fontSize: 14 }}>
+              Photo changes save separately with Save photo. The controls below save or cancel only your emblem and frame.
+            </Text>
 
             {/* Preview */}
             <View style={styles.avatarPreview}>
@@ -266,7 +272,7 @@ export default function ProfileScreen() {
         )}
 
         {/* ── XP bar ── */}
-        <Panel tone="paper" style={[styles.xpSection, { borderRadius: 0 }]}>
+        <Panel tone="paper" style={[styles.xpSection, { borderRadius: 10 }]}>
           <View style={styles.xpHeader}>
             <Text style={[styles.xpTitle, { color: paperText.ink }]}>{profile.rank}</Text>
             <Text style={[styles.xpTotal, { color: paperText.muted }]}>{profile.xp} XP total</Text>
@@ -274,7 +280,7 @@ export default function ProfileScreen() {
               <Text style={[styles.xpRemaining, { color: paperText.ink }]}>{rankInfo.remaining} to {rankInfo.next}</Text>
             )}
           </View>
-          <View style={[styles.xpTrack, { backgroundColor: palette.surface, borderRadius: 0 }]}>
+          <View style={[styles.xpTrack, { backgroundColor: palette.surface, borderRadius: 10 }]}>
             <View style={[styles.xpFill, { width: `${rankInfo.progress * 100}%` as never, backgroundColor: palette.gold }]} />
           </View>
         </Panel>
@@ -343,7 +349,7 @@ export default function ProfileScreen() {
         )}
 
         {/* ── Lives Bank summary ── */}
-        <View style={{ backgroundColor: palette.surface, borderRadius: 3, borderWidth: 1, borderColor: palette.border, padding: 14, gap: 8 }}>
+        <View style={{ backgroundColor: palette.surface, borderRadius: 8, borderWidth: 1, borderColor: palette.border, padding: 14, gap: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
             <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: palette.foreground }}>LIVES BANK</Text>
           </View>
@@ -408,7 +414,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* ── Referral ── */}
-        <View style={{ backgroundColor: palette.surface, borderRadius: 3, borderWidth: 1, borderColor: palette.border, padding: 14, gap: 10 }}>
+        <View style={{ backgroundColor: palette.surface, borderRadius: 8, borderWidth: 1, borderColor: palette.border, padding: 14, gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
             <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: palette.foreground }}>REFER A FRIEND</Text>
           </View>
@@ -419,7 +425,7 @@ export default function ProfileScreen() {
               onPress={handleClaimReferralReward}
               accessibilityRole="button"
               accessibilityLabel="Claim referral reward"
-              style={{ backgroundColor: palette.gold, borderRadius: 3, borderWidth: 1, borderColor: palette.edge, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}
+              style={{ backgroundColor: palette.gold, borderRadius: 8, borderWidth: 1, borderColor: palette.edge, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}
             >
               <Feather name="gift" size={18} color={palette.onAccent} />
               <View style={{ flex: 1 }}>
@@ -436,7 +442,7 @@ export default function ProfileScreen() {
           <View style={{ gap: 4 }}>
             <Text style={{ fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.supporting, letterSpacing: 1.5 }}>YOUR CODE</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <View style={{ flex: 1, backgroundColor: palette.background, borderRadius: 3, borderWidth: 1, borderColor: palette.border, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}>
+              <View style={{ flex: 1, backgroundColor: palette.background, borderRadius: 8, borderWidth: 1, borderColor: palette.border, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}>
                 <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 20, color: palette.foreground, letterSpacing: 4 }}>
                   {myReferralCode ?? '···'}
                 </Text>
@@ -449,7 +455,7 @@ export default function ProfileScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Share referral code"
                 accessibilityState={{ disabled: !myReferralCode }}
-                style={{ backgroundColor: palette.gold, borderRadius: 3, borderWidth: 1, borderColor: palette.edge, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+                style={{ backgroundColor: palette.gold, borderRadius: 8, borderWidth: 1, borderColor: palette.edge, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
               >
                 <Feather name="share" size={18} color={palette.onAccent} />
               </Pressable>
@@ -470,7 +476,7 @@ export default function ProfileScreen() {
                 placeholderTextColor={palette.supporting}
                 autoCapitalize="characters"
                 accessibilityLabel="Friend's referral code"
-                style={{ flex: 1, minHeight: 44, backgroundColor: palette.background, borderRadius: 3, borderWidth: 1, borderColor: palette.border, color: palette.foreground, fontFamily: 'SourceSans3_700Bold', fontSize: 15, letterSpacing: 3, textAlign: 'center', paddingVertical: 10 }}
+                style={{ flex: 1, minHeight: 44, backgroundColor: palette.background, borderRadius: 8, borderWidth: 1, borderColor: palette.border, color: palette.foreground, fontFamily: 'SourceSans3_700Bold', fontSize: 15, letterSpacing: 3, textAlign: 'center', paddingVertical: 10 }}
               />
               <Pressable
                 onPress={handleRedeemReferral}
@@ -478,7 +484,7 @@ export default function ProfileScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Apply friend's code"
                 accessibilityState={{ disabled: loadingReferral || referralInput.length < 4, busy: loadingReferral }}
-                style={{ backgroundColor: palette.primary, borderRadius: 3, paddingHorizontal: 16, justifyContent: 'center', opacity: referralInput.length < 4 ? 0.8 : 1 }}
+                style={{ backgroundColor: palette.primary, borderRadius: 8, paddingHorizontal: 16, justifyContent: 'center', opacity: referralInput.length < 4 ? 0.8 : 1 }}
               >
                 <Text style={{ fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.onAccent }}>{loadingReferral ? '...' : 'APPLY'}</Text>
               </Pressable>
@@ -510,10 +516,10 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   identityBand:   { position: 'absolute', top: 0, left: 0, right: 0, height: 66, backgroundColor: palette.inset, borderBottomWidth: 4, borderBottomColor: palette.gold },
-  profileCard:    { borderRadius: 0, borderWidth: 2, borderBottomWidth: 6, paddingTop: 26, paddingBottom: 22, paddingHorizontal: 20, alignItems: 'center', gap: 14, overflow: 'hidden' },
-  bigAvatar:      { width: 76, height: 76, borderRadius: 0, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
+  profileCard:    { borderRadius: 10, borderWidth: 2, borderBottomWidth: 6, paddingTop: 26, paddingBottom: 22, paddingHorizontal: 20, alignItems: 'center', gap: 14, overflow: 'hidden' },
+  bigAvatar:      { width: 76, height: 76, borderRadius: 10, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
   bigAvatarEmoji: { fontSize: 36 },
-  editBadge:      { position: 'absolute', bottom: -4, right: -4, width: 24, height: 24, borderRadius: 0, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold, alignItems: 'center', justifyContent: 'center' },
+  editBadge:      { position: 'absolute', bottom: -4, right: -4, width: 24, height: 24, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold, alignItems: 'center', justifyContent: 'center' },
   profileInfo:    { gap: 5, width: '100%', minWidth: 0 },
   profileName:    { width: '100%', flexShrink: 1, fontFamily: 'BarlowCondensed_700Bold', fontSize: 34, textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'center' },
   levelBadge:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, letterSpacing: 0.5 },
@@ -522,68 +528,68 @@ const styles = StyleSheet.create({
   streakText:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
 
   // Avatar editor
-  section:      { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, padding: 16, gap: 12 },
+  section:      { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, padding: 16, gap: 12 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionTitle:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 1.2, flex: 1, textTransform: 'uppercase' },
   sectionCount:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
   pickerLabel:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 1.5 },
   emojiGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  emojiBtn:      { width: 44, height: 44, borderRadius: 0, borderWidth: 2, borderColor: palette.border, backgroundColor: palette.surface, alignItems: 'center', justifyContent: 'center' },
+  emojiBtn:      { width: 44, height: 44, borderRadius: 10, borderWidth: 2, borderColor: palette.border, backgroundColor: palette.surface, alignItems: 'center', justifyContent: 'center' },
   emojiBtnText:  { fontSize: 22 },
   colorGrid:     { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
-  colorDot:      { width: 32, height: 32, borderRadius: 3, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
-  avatarPreview: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: palette.surface, borderRadius: 3, padding: 12 },
-  previewCircle: { width: 52, height: 52, borderRadius: 3, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  colorDot:      { width: 32, height: 32, borderRadius: 8, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  avatarPreview: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: palette.surface, borderRadius: 8, padding: 12 },
+  previewCircle: { width: 52, height: 52, borderRadius: 8, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   previewEmoji:  { fontSize: 26 },
   previewName:   { fontFamily: 'SourceSans3_700Bold', fontSize: 17 },
   row:           { flexDirection: 'row', gap: 8 },
-  saveBtn:       { borderRadius: 0, paddingVertical: 11, alignItems: 'center' },
+  saveBtn:       { borderRadius: 10, paddingVertical: 11, alignItems: 'center' },
   saveBtnText:   { fontFamily: 'SourceSans3_700Bold', fontSize: 13, letterSpacing: 0.5 },
-  cancelBtn:     { borderRadius: 0, borderWidth: 2, paddingVertical: 11, alignItems: 'center' },
+  cancelBtn:     { borderRadius: 10, borderWidth: 2, paddingVertical: 11, alignItems: 'center' },
   cancelBtnText: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
 
   // XP
-  xpSection: { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, padding: 14, gap: 8 },
+  xpSection: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, padding: 14, gap: 8 },
   xpHeader:  { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
   xpTitle:   { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 0.8, textTransform: 'uppercase', flex: 1 },
   xpTotal:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
   xpRemaining: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
-  xpTrack:   { height: 16, borderRadius: 0, borderWidth: 2, borderColor: palette.edge, padding: 2, overflow: 'hidden' },
-  xpFill:    { height: '100%', borderRadius: 0 },
+  xpTrack:   { height: 16, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, padding: 2, overflow: 'hidden' },
+  xpFill:    { height: '100%', borderRadius: 10 },
 
   // Share card
-  shareCard:  { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  shareCard:  { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   shareLeft:  { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   shareTitle: { color: palette.foreground, fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
   shareSub:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 2 },
-  shareMiniCard: { backgroundColor: palette.surface, borderRadius: 0, padding: 10, alignItems: 'center', gap: 2 },
+  shareMiniCard: { backgroundColor: palette.surface, borderRadius: 10, padding: 10, alignItems: 'center', gap: 2 },
   shareMiniRank: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   shareMiniWins: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
 
   // Challenge code
-  codeSection: { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  codeSection: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
   codeLabel:   { color: palette.foreground, fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.5 },
   codeSub:     { color: palette.supporting, fontFamily: 'SourceSans3_400Regular', fontSize: 12, marginTop: 2 },
-  codeBox:     { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: palette.surface, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 2, borderColor: palette.border },
+  codeBox:     { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: palette.surface, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 2, borderColor: palette.border },
   codeText:    { color: palette.foreground, fontFamily: 'SourceSans3_700Bold', fontSize: 14, letterSpacing: 3 },
 
   // Stats
   statsGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  statCard:   { width: '30%', flex: 1, minWidth: 90, alignItems: 'flex-start', paddingVertical: 12, paddingHorizontal: 12, borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, gap: 2 },
+  statCard:   { width: '30%', flex: 1, minWidth: 90, alignItems: 'flex-start', paddingVertical: 12, paddingHorizontal: 12, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, gap: 2 },
   statValue:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 30, fontVariant: ['tabular-nums'] },
   statLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2 },
 
   // Achievements
   sectionWrap: { gap: 10 },
   achieveGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  achCard:     { width: '47%', flex: 1, minWidth: 140, borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, padding: 10, gap: 4 },
+  achCard:     { width: '47%', flex: 1, minWidth: 140, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, padding: 10, gap: 4 },
   achName:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
   achDesc:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 14 },
 
   // History
   historyList: { gap: 6 },
-  historyRow:  { flexDirection: 'row', alignItems: 'center', borderRadius: 0, borderWidth: 2, padding: 10, gap: 10 },
-  histResult:  { width: 32, height: 32, borderRadius: 0, borderWidth: 2, borderColor: palette.edge, alignItems: 'center', justifyContent: 'center' },
+  historyRow:  { flexDirection: 'row', alignItems: 'center', borderRadius: 10, borderWidth: 2, padding: 10, gap: 10 },
+  histResult:  { width: 32, height: 32, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, alignItems: 'center', justifyContent: 'center' },
   histResultText: { fontFamily: 'SourceSans3_700Bold', fontSize: 13 },
   histMain:    { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13 },
   histSub:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
@@ -591,7 +597,7 @@ const styles = StyleSheet.create({
   histTime:    { fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
 
   // Logout
-  logoutBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, minHeight: 48, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.border, backgroundColor: palette.surface },
+  logoutBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, minHeight: 48, borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.border, backgroundColor: palette.surface },
   logoutText: { color: palette.foreground, fontFamily: 'SourceSans3_600SemiBold', fontSize: 14 },
   footer:     { fontFamily: 'SourceSans3_400Regular', fontSize: 12, textAlign: 'center' },
 });

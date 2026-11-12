@@ -24,14 +24,14 @@ const contrast = (a, b) => {
   return (light + 0.05) / (dark + 0.05);
 };
 
-test('approved Carbon + Lime roles are used without changing player colours', () => {
-  assert.equal(theme.background, '#101410');
-  assert.equal(theme.card, '#263129');
-  assert.equal(theme.foreground, '#F0F4EC');
-  assert.equal(theme.mutedForeground, '#B6C4B7');
-  assert.equal(theme.primary, '#A3F547');
-  assert.equal(theme.primaryForeground, '#101410');
-  assert.equal(palette.gold, '#EDBA3C');
+test('screenshot slate arcade roles are used without changing player colours', () => {
+  assert.equal(theme.background, '#151C27');
+  assert.equal(theme.card, '#222C3A');
+  assert.equal(theme.foreground, '#F1F4F8');
+  assert.equal(theme.mutedForeground, '#AEB9C8');
+  assert.equal(theme.primary, '#6CCB3C');
+  assert.equal(theme.primaryForeground, '#151C27');
+  assert.equal(palette.gold, '#F5C531');
   assert.equal(PLAYER_COLORS[0], '#F36B3F');
   assert.deepEqual(Array.from(PLAYER_COLORS), ['#F36B3F', '#EDBA3C', '#EEE9DE', '#E3DFD3']);
 });
@@ -43,21 +43,21 @@ test('dark surfaces retain accessible heading, body and supporting text', () => 
   }
 });
 
-test('60/30/10 roles use carbon, moss charcoal and lime', () => {
+test('background, panel and action roles keep the intended visual hierarchy', () => {
   assert.equal(colorBalance.main.share, 60);
   assert.equal(colorBalance.secondary.share, 30);
   assert.equal(colorBalance.accent.share, 10);
   assert.equal(colorBalance.main.color, theme.background);
   assert.equal(colorBalance.secondary.color, theme.secondary);
   assert.equal(colorBalance.accent.color, theme.accent);
-  assert.equal(theme.secondary, '#263129');
-  assert.equal(theme.accent, '#A3F547');
-  assert.equal(palette.gold, '#EDBA3C');
+  assert.equal(theme.secondary, '#222C3A');
+  assert.equal(theme.accent, '#6CCB3C');
+  assert.equal(palette.gold, '#F5C531');
   assert.ok(contrast(theme.secondaryForeground, theme.secondary) >= 7);
   assert.ok(contrast(theme.accentForeground, theme.accent) >= 4.5);
 });
 
-test('lime actions, gold rewards and dark court have readable foregrounds', () => {
+test('green actions, gold rewards and dark court have readable foregrounds', () => {
   for (const [fg, bg, label] of [
     [theme.primaryForeground, theme.primary, 'Play'],
     [theme.primaryForeground, palette.gold, 'gold reward'],

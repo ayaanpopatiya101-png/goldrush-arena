@@ -44,7 +44,9 @@ async function sizeOf(asset: ImagePicker.ImagePickerAsset): Promise<number | nul
 }
 
 export async function pickAvatarPhoto(): Promise<PickOutcome> {
-  if (Platform.OS !== 'web') {
+  // Android uses the system photo picker, which grants access to the chosen
+  // image without broad media-library permission (intentionally not declared).
+  if (Platform.OS === 'ios') {
     const current = await ImagePicker.getMediaLibraryPermissionsAsync();
     let perm = current;
     if (!current.granted && current.canAskAgain) perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -57,7 +59,7 @@ export async function pickAvatarPhoto(): Promise<PickOutcome> {
   const asset = res.assets[0];
   const mime = mimeFrom(asset);
   if (!mime || !ALLOWED.includes(mime as AvatarMime)) {
-    return { kind: 'invalid', message: 'That file type is not supported. Choose a JPEG, PNG or WebP photo.' };
+    return { kind: 'invalid', message: 'Choose a JPEG, PNG or WebP photo. HEIC/HEIF is supported only when your photo library converts it to one of these formats; otherwise export a JPEG first. SVG, documents and animated formats are not supported.' };
   }
   const size = await sizeOf(asset);
   if (size == null) return { kind: 'invalid', message: 'The photo size could not be read. Try a different photo.' };
@@ -66,12 +68,22 @@ export async function pickAvatarPhoto(): Promise<PickOutcome> {
   if (asset.width * asset.height > AVATAR_MAX_PIXELS) {
     return { kind: 'invalid', message: `That photo is ${asset.width} x ${asset.height}. The limit is 16 megapixels.` };
   }
-  return { kind: 'picked', photo: { uri: asset.uri, width: asset.width, height: asset.height, mime: mime as AvatarMime, size } };
+  // Do not trust a file extension or picker-provided dimensions alone. Decode
+  // locally before exposing the crop editor; the server validates again on save.
+  try {
+    const decoded = await ImageManipulator.manipulate(asset.uri).renderAsync();
+    if (!decoded.width || !decoded.height || decoded.width * decoded.height > AVATAR_MAX_PIXELS) {
+      return { kind: 'invalid', message: 'The decoded photo exceeds the 16 megapixel limit.' };
+    }
+    return { kind: 'picked', photo: { uri: asset.uri, width: decoded.width, height: decoded.height, mime: mime as AvatarMime, size } };
+  } catch {
+    return { kind: 'invalid', message: 'This image could not be decoded. Choose a different JPEG, PNG or WebP photo.' };
+  }
 }
 
 export async function openAppSettings() {
   if (Platform.OS === 'web') return;
-  try { await Linking.openSettings(); } catch { /* settings unavailable */ }
+  await Linking.openSettings();
 }
 
 /** Real square crop + resize to 512 JPEG. Re-encoding drops EXIF/location metadata. */

@@ -101,19 +101,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    borderRadius: 3,
+    borderRadius: 8,
     borderWidth: 1,
     gap: 10,
   },
   cardSmall: {
     padding: 8,
-    borderRadius: 3,
+    borderRadius: 8,
     gap: 7,
   },
   avatar: {
     width: 44,
     height: 44,
-    borderRadius: 3,
+    borderRadius: 8,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   },
   botBadge: {
     borderWidth: 1,
-    borderRadius: 2,
+    borderRadius: 8,
     paddingHorizontal: 4,
     paddingVertical: 1,
   },
@@ -164,6 +164,6 @@ const styles = StyleSheet.create({
   readyDot: {
     width: 10,
     height: 10,
-    borderRadius: 3,
+    borderRadius: 8,
   },
 });

@@ -11,6 +11,7 @@ import { AvatarPhoto } from '@/components/appearance/PhotoAvatarEditor';
 import { GameArena } from '@/components/GameArena';
 import { LiveEventBanner } from '@/components/LiveEventBanner';
 import { Glyph } from '@/components/ui/Glyph';
+import { RankBadge } from '@/components/RankBadge';
 import { Button, Chip, IconButton, Panel, SectionLabel, Shell, Stat, ui } from '@/components/ui/Primitives';
 import { PLAYER_COLORS, palette } from '@/constants/colors';
 import { tactile } from '@/constants/colors';
@@ -385,14 +386,32 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* XP line */}
-        <View style={s.xpWrap}>
-          <View style={s.xpTrack}>
-            <View style={[s.xpFill, { width: `${Math.round(rankInfo.progress * 100)}%` as never }]} />
+        {/* Rank button: account XP rank (separate from seasonal skill rating) */}
+        <Pressable
+          testID="home-rank"
+          onPress={() => router.push('/leaderboard')}
+          accessibilityRole="button"
+          accessibilityLabel={`XP rank ${profile.rank}. ${rankInfo.next ? `${rankInfo.remaining.toLocaleString()} XP to ${rankInfo.next}` : 'Top rank reached'}. Opens rankings.`}
+          style={({ pressed }) => [s.rankBtn, pressed && s.rankBtnPressed]}
+        >
+          <RankBadge rank={profile.rank} size="md" showLabel={false} />
+          <View style={{ flex: 1, gap: 4 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+              <Text style={s.rankName} numberOfLines={1}>{profile.rank}</Text>
+              <Text style={s.rankKicker}>Account XP rank</Text>
+            </View>
+            <View style={s.xpTrack}>
+              <View style={[s.xpFill, { width: `${Math.round(rankInfo.progress * 100)}%` as never }]} />
+            </View>
+            <Text style={s.xpText}>{rankInfo.next ? `${rankInfo.remaining.toLocaleString()} XP to ${rankInfo.next}` : 'Top rank reached'} · Season skill is tracked separately</Text>
           </View>
-          <Text style={s.xpText}>{rankInfo.next ? `${rankInfo.remaining.toLocaleString()} XP to ${rankInfo.next}` : 'Top rank reached'}</Text>
-        </View>
+          <Feather name="chevron-right" size={20} color={palette.gold} />
+        </Pressable>
 
+        <View style={{ paddingHorizontal: 18, marginTop: 10, gap: 4 }}>
+          <Button testID="home-trophy-road" label="Trophy Road" icon="map" variant="secondary" onPress={() => router.push('/trophyroad-map')} />
+          <Text style={s.xpText}>{profile.gamesRoadCompleted ?? 0} completed games on the play-earned track · XP milestones also kept</Text>
+        </View>
         <View style={s.brandRow}>
           <View style={s.brandMark}><BrandMark size={52} /></View>
           <View style={{ flex: 1 }}>
@@ -636,14 +655,14 @@ export default function HomeScreen() {
 }
 
 const a = StyleSheet.create({
-  frame: { borderWidth: 3, borderColor: palette.edge, backgroundColor: palette.surface, alignItems: 'center', borderRadius: 0 },
-  brassFrame: { borderWidth: 2, borderColor: palette.edge, padding: 3, backgroundColor: tactile.brass },
+  frame: { borderWidth: 3, borderColor: palette.edge, backgroundColor: palette.surface, alignItems: 'center', borderRadius: 10 },
+  brassFrame: { borderRadius: 10, borderWidth: 2, borderColor: palette.edge, padding: 3, backgroundColor: tactile.brass },
   arenaLabel: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6, paddingTop: 10 },
   arenaTitle: { fontFamily: fonts.display, fontSize: 15, color: palette.foreground, letterSpacing: 1 },
   arenaMeta: { fontFamily: fonts.body, fontSize: 12, color: palette.supporting },
   reducedBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 },
   reducedText: { fontFamily: fonts.body, fontSize: 14, color: palette.supporting, textAlign: 'center' },
-  seats: { flexDirection: 'row', borderWidth: 2, borderTopWidth: 0, borderColor: palette.edge, backgroundColor: palette.raised },
+  seats: { flexDirection: 'row', borderRadius: 10, borderWidth: 2, borderTopWidth: 0, borderColor: palette.edge, backgroundColor: palette.raised },
   seat: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 10, paddingHorizontal: 5 },
   seatsWrap: { flexWrap: 'wrap' },
   seatCompact: { flexBasis: '50%', flexGrow: 0, flexShrink: 0 },
@@ -658,33 +677,36 @@ const a = StyleSheet.create({
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.background },
-  skel: { backgroundColor: palette.surface, borderRadius: 2 },
+  skel: { backgroundColor: palette.surface, borderRadius: 8 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, gap: 8 },
   identity: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
-  avatar: { width: 44, height: 44, borderWidth: 2, borderRadius: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.primary },
+  avatar: { width: 44, height: 44, borderWidth: 2, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.primary },
   name: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, letterSpacing: 0.5 },
   meta: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.muted },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  wallet: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 2, borderColor: palette.edge, borderRadius: 0, paddingHorizontal: 8, height: 40, backgroundColor: palette.surface },
-  headerIcon: { borderRadius: 0 },
+  wallet: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 2, borderColor: palette.edge, borderRadius: 10, paddingHorizontal: 8, height: 40, backgroundColor: palette.surface },
+  headerIcon: { borderRadius: 22 },
   walletText: { fontFamily: fonts.display, fontSize: 17, color: palette.foreground, fontVariant: ['tabular-nums'] },
-  xpWrap: { paddingHorizontal: 18, marginTop: 12, gap: 4 },
-  xpTrack: { height: 14, padding: 2, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface },
-  xpFill: { height: 6, backgroundColor: palette.inset },
-  xpText: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.foreground },
+  rankBtn: { marginHorizontal: 18, marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 16, backgroundColor: palette.surface, borderWidth: 1.5, borderColor: palette.border, borderBottomWidth: 5, borderBottomColor: palette.edge },
+  rankBtnPressed: { borderBottomWidth: 2, transform: [{ translateY: 3 }], backgroundColor: palette.raised },
+  rankName: { fontFamily: fonts.display, fontSize: 22, color: palette.gold, textTransform: 'uppercase', letterSpacing: 0.6 },
+  rankKicker: { fontFamily: fonts.bodyBold, fontSize: 11, color: palette.supporting, textTransform: 'uppercase', letterSpacing: 1 },
+  xpTrack: { height: 12, padding: 2, borderRadius: 6, borderWidth: 1, borderColor: palette.edge, backgroundColor: palette.inset },
+  xpFill: { height: 6, borderRadius: 8, backgroundColor: palette.primary },
+  xpText: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.supporting },
   block: { paddingHorizontal: 18, marginTop: 18 },
   playArea: { paddingHorizontal: 18, marginTop: 14, flexDirection: 'column', gap: 24 },
   playAreaWide: { flexDirection: 'row', alignItems: 'flex-start', gap: 24 },
   playPanel: {},
   ruleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
-  expandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48, paddingHorizontal: 12, marginTop: 8, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderRadius: 0, backgroundColor: palette.surface },
+  expandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48, paddingHorizontal: 12, marginTop: 8, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderRadius: 10, backgroundColor: palette.surface },
   expandText: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.foreground },
-  selectedPanel: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 10, backgroundColor: palette.inset, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, borderRadius: 0 },
+  selectedPanel: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 10, backgroundColor: palette.inset, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, borderRadius: 10 },
   kicker: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1.2, color: palette.supporting, textTransform: 'uppercase' },
   selectedName: { fontFamily: fonts.display, fontSize: 32, color: palette.foreground, letterSpacing: 0.5, textTransform: 'uppercase' },
   selectedDesc: { fontFamily: fonts.body, fontSize: 15, lineHeight: 20, color: palette.foreground },
-  paperRule: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.foreground, borderWidth: 1, borderColor: ui.gold, paddingHorizontal: 6, paddingVertical: 2 },
-  playButton: { marginTop: 12, borderRadius: 0, minHeight: 64 },
+  paperRule: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.foreground, borderRadius: 10, borderWidth: 1, borderColor: ui.gold, paddingHorizontal: 6, paddingVertical: 2 },
+  playButton: { marginTop: 12, borderRadius: 10, minHeight: 64 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, marginTop: 26, marginBottom: 4 },
   brandMark: { transform: [{ rotate: '-4deg' }] },
   wordmark: { fontFamily: fonts.display, fontSize: 36, color: palette.foreground, letterSpacing: -1, lineHeight: 40 },
@@ -696,21 +718,21 @@ const s = StyleSheet.create({
   errorRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   errorText: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.supporting },
   modeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
-  modeCell: { borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderRadius: 0, paddingHorizontal: 10, paddingVertical: 9, backgroundColor: palette.background, minHeight: 56 },
+  modeCell: { borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, backgroundColor: palette.background, minHeight: 56 },
   modeCellOn: { borderColor: palette.primary, backgroundColor: palette.background },
   modeName: { fontFamily: fonts.display, fontSize: 17, color: palette.foreground, letterSpacing: 0.5, textTransform: 'uppercase' },
   modeSub: { fontFamily: fonts.body, fontSize: 12, color: palette.muted },
-  superCell: { minHeight: 44, flexBasis: '31%', flexGrow: 1, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderRadius: 0, padding: 10, gap: 2, backgroundColor: palette.background },
+  superCell: { minHeight: 44, flexBasis: '31%', flexGrow: 1, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderRadius: 10, padding: 10, gap: 2, backgroundColor: palette.background },
   body: { fontFamily: fonts.body, fontSize: 14, color: palette.supporting, lineHeight: 19 },
-  codeInput: { flex: 1, height: 48, borderWidth: 2, borderColor: palette.edge, borderRadius: 0, backgroundColor: palette.raised, color: palette.foreground, fontFamily: fonts.display, fontSize: 20, letterSpacing: 4, paddingHorizontal: 12 },
+  codeInput: { flex: 1, height: 48, borderWidth: 2, borderColor: palette.edge, borderRadius: 10, backgroundColor: palette.raised, color: palette.foreground, fontFamily: fonts.display, fontSize: 20, letterSpacing: 4, paddingHorizontal: 12 },
   codeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderBottomWidth: 1, borderBottomColor: palette.border },
   partyCode: { fontFamily: fonts.display, fontSize: 30, letterSpacing: 6, color: palette.foreground },
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, paddingVertical: 10 },
-  memberAvatar: { width: 32, height: 32, borderRadius: 3, borderWidth: 1, borderColor: palette.border, alignItems: 'center', justifyContent: 'center' },
+  memberAvatar: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: palette.border, alignItems: 'center', justifyContent: 'center' },
   memberName: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.foreground },
   memberMeta: { fontFamily: fonts.body, fontSize: 12, color: palette.muted },
-  tier: { width: 132, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderRadius: 0, padding: 10, gap: 4, backgroundColor: palette.surface },
+  tier: { width: 132, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderRadius: 10, padding: 10, gap: 4, backgroundColor: palette.surface },
   tierReward: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.supporting, minHeight: 32 },
-  linkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderRadius: 0, padding: 12, backgroundColor: palette.surface },
-  streakCell: { width: 18, height: 6, borderWidth: 1, borderColor: palette.border },
+  linkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderRadius: 10, padding: 12, backgroundColor: palette.surface },
+  streakCell: { width: 18, height: 6, borderRadius: 10, borderWidth: 1, borderColor: palette.border },
 });

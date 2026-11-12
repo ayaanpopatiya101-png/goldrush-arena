@@ -648,6 +648,17 @@ export const TROPHY_ROAD: TrophyMilestone[] = [
   { id: 'tr_25', xp: 200000, reward: { type: 'relic', id: 'midas'       } },
 ];
 
+/** Additive lane. Never infer eligibility from legacy game totals without receipts. */
+export const GAMES_ROAD = [
+  { id: 'games_01', games: 1, coins: 100 },
+  { id: 'games_03', games: 3, coins: 150 },
+  { id: 'games_05', games: 5, coins: 200 },
+  { id: 'games_10', games: 10, coins: 300 },
+  { id: 'games_25', games: 25, coins: 500 },
+  { id: 'games_50', games: 50, coins: 750 },
+  { id: 'games_100', games: 100, coins: 1000 },
+] as const;
+
 // ─── Battle Pass ──────────────────────────────────────────────────────────────
 export const BATTLE_PASS_SEASON = 1;
 export const BATTLE_PASS_POINTS_PER_TIER = 100; // 100 BPP per slot, 5000 BPP for all 50
@@ -894,6 +905,9 @@ export interface PlayerProfile {
   equippedForgeAbility?: string | null;
   // Trophy Road claimed milestone IDs
   trophyRoadClaimed?: string[];
+  /** Completed, reward-eligible matches since this lane was introduced. */
+  gamesRoadCompleted?: number;
+  gamesRoadClaimed?: string[];
   // Relics unlocked via Trophy Road (bypass rank requirement)
   trophyUnlockedRelics?: string[];
   // Event plays used: key = periodKey (e.g. "w_2026_28"), value = plays consumed
@@ -959,6 +973,8 @@ const DEFAULT_PROFILE: PlayerProfile = {
   tutorialComplete: false,
   selectedSuper: 1,
   trophyRoadClaimed: [],
+  gamesRoadCompleted: 0,
+  gamesRoadClaimed: [],
   trophyUnlockedRelics: [],
   credits: 0,
   ownedForgeAbilities: [],
@@ -1075,6 +1091,7 @@ interface PlayerContextType {
   claimDailyStreak: () => Promise<number>;
   claimSeasonTier: (tierIdx: number) => Promise<LuckyBlock | null>;
   claimTrophyRoad: (id: string) => Promise<LuckyBlock | null>;
+  claimGamesRoad: (id: string) => Promise<boolean>;
   openLuckyBlock: (blockId: string, reward: LuckyBlockReward) => Promise<void>;
   completeTutorial: () => Promise<void>;
   setSelectedSuper: (type: 1 | 2 | 3) => Promise<void>;
@@ -1113,7 +1130,9 @@ export function PlayerProvider({ username, onLogout, children }: {
   profileRef.current = profile;
   const matchSaves = useRef(new Map<string, Promise<void>>());
   const matchQueue = useRef<Promise<void>>(Promise.resolve());
-  const seasonClaimQueue = useRef<Promise<void>>(Promise.resolve());
+  // All receipt/road/pass claims share one transaction queue to avoid losing a
+  // completed game when a different reward is claimed during its storage write.
+  const seasonClaimQueue = matchQueue;
   const [isLoaded, setIsLoaded]           = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -1209,6 +1228,12 @@ export function PlayerProvider({ username, onLogout, children }: {
   }, [profile, save]);
 
   const addMatchResult = useCallback(async (result: Omit<MatchResult, 'id'|'timestamp'> & { eventBonus?: { xp: number; coins: number; credits: number } }) => {
+    // These callers must never become a second progression entry point.
+    const config = getGameConfig();
+    const standardVariants = ['classic', 'rally_race', 'duos', 'blitz', 'chaos', 'survival', 'sudden_death', 'turbo', 'pinball', 'six_player', 'storm_surge', 'ghost_protocol', 'warlord'];
+    if (config.practice || (config.variant && !standardVariants.includes(config.variant))) {
+      throw new Error('Practice and custom matches do not earn normal progression.');
+    }
     const onlineId = result.serverMatchId ?? getGameConfig().onlineMatchId;
     if (onlineId) {
       const verified = await getLiveResult(onlineId, await arenaRequestOptions(username));
@@ -1313,6 +1338,7 @@ export function PlayerProvider({ username, onLogout, children }: {
       wins:  result.won ? profile.wins + 1 : profile.wins,
       losses: !result.won ? profile.losses + 1 : profile.losses,
       totalGames: profile.totalGames + 1,
+      gamesRoadCompleted: (profile.gamesRoadCompleted ?? 0) + 1,
       totalDeflections: profile.totalDeflections + result.deflections,
       winStreak: newWinStreak, bestStreak: Math.max(profile.bestStreak, newWinStreak),
       matchHistory: [match, ...profile.matchHistory].slice(0, 50),
@@ -1436,7 +1462,7 @@ export function PlayerProvider({ username, onLogout, children }: {
   }, [profile, save]);
 
   const claimTrophyRoad = useCallback((id: string): Promise<LuckyBlock | null> => {
-    const claim = seasonClaimQueue.current.then(async () => {
+    const claim = matchQueue.current.then(async () => {
     const profile = profileRef.current;
     if ((profile.trophyRoadClaimed ?? []).includes(id)) return null;
     const milestone = TROPHY_ROAD.find(m => m.id === id);
@@ -1466,7 +1492,26 @@ export function PlayerProvider({ username, onLogout, children }: {
     await save(updated);
     return earnedBlock;
     });
-    seasonClaimQueue.current = claim.then(() => undefined, () => undefined);
+    matchQueue.current = claim.then(() => undefined, () => undefined);
+    return claim;
+  }, [save]);
+
+  const claimGamesRoad = useCallback((id: string): Promise<boolean> => {
+    // Serialize with completed matches and XP-road claims; read current state
+    // inside the queue so repeated taps and stale closures cannot double-grant.
+    const claim = matchQueue.current.then(async () => {
+      const current = profileRef.current;
+      const milestone = GAMES_ROAD.find(m => m.id === id);
+      if (!milestone || (current.gamesRoadCompleted ?? 0) < milestone.games
+        || (current.gamesRoadClaimed ?? []).includes(id)) return false;
+      await save({
+        ...current,
+        coins: current.coins + milestone.coins,
+        gamesRoadClaimed: [...(current.gamesRoadClaimed ?? []), id],
+      });
+      return true;
+    });
+    matchQueue.current = claim.then(() => undefined, () => undefined);
     return claim;
   }, [save]);
 
@@ -1870,7 +1915,7 @@ export function PlayerProvider({ username, onLogout, children }: {
     <PlayerContext.Provider value={{
       profile, isLoaded, currentUsername: username, showStreakModal, dismissStreakModal,
       updateName, addMatchResult, unlockAchievement, purchaseSkin, equipSkin, equipTheme, equipRelic, upgradeRelic,
-      addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, completeTutorial,
+      addCoins, spendCoins, setAvatar, claimDailyStreak, claimSeasonTier, claimTrophyRoad, claimGamesRoad, completeTutorial,
       setSelectedSuper, setSkillTier, purchaseForgeAbility, equipForgeAbility,
       spendEventPlay, claimEventBonus, spendQualifierPlay, earnQualifierPoints,
       openLuckyBlock, redeemCode, applyStorePurchases, consumeExtraLives,

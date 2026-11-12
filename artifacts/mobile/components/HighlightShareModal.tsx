@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    borderRadius: 3,
+    borderRadius: 8,
     borderWidth: 1,
     paddingVertical: 10,
     paddingHorizontal: 14,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   rewardBox: {
     backgroundColor: palette.surface,
-    borderRadius: 3,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: palette.primary + '55',
     padding: 14,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     maxHeight: 240,
     backgroundColor: palette.background,
-    borderRadius: 3,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: palette.border,
     alignItems: 'center',
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   capDot: {
     width: 8,
     height: 8,
-    borderRadius: 2,
+    borderRadius: 8,
   },
   capText: {
     fontFamily: 'SourceSans3_400Regular',
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
   },
   actions: { gap: 8 },
   shareBtn: {
-    borderRadius: 3,
+    borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',
   },

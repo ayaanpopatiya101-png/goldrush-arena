@@ -26,6 +26,8 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
   const [denied, setDenied] = useState<null | { canAskAgain: boolean }>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const busyRef = useRef(false);
+  const [viewport, setViewport] = useState(VIEW);
 
   const geo = useMemo(() => {
     if (!source) return null;
@@ -34,9 +36,9 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
     const rangeY = (source.height - side) / 2;
     const originX = rangeX * (1 + pan.x);
     const originY = rangeY * (1 + pan.y);
-    const s = VIEW / side;
+    const s = viewport / side;
     return { side, rangeX, rangeY, originX, originY, s };
-  }, [source, zoom, pan]);
+  }, [source, zoom, pan, viewport]);
 
   const geoRef = useRef(geo); geoRef.current = geo;
   const startPan = useRef({ x: 0, y: 0 });
@@ -55,25 +57,28 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
   }), []);
 
   async function onPick() {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setError(null); setNotice(null); setDenied(null); setBusy('pick');
     try {
       const out = await pickAvatarPhoto();
-      if (out.kind === 'picked') { setSource(out.photo); setZoom(1); setPan({ x: 0, y: 0 }); setStaged(null); }
+      if (out.kind === 'picked') { setSource(out.photo); setZoom(1); setPan({ x: 0, y: 0 }); setStaged(null); setShareDraft(false); setConfirmRemove(false); }
       else if (out.kind === 'denied') setDenied({ canAskAgain: out.canAskAgain });
       else if (out.kind === 'invalid') setError(out.message);
     } catch {
       setError('The photo picker could not open. Try again.');
-    } finally { setBusy(null); }
+    } finally { setBusy(null); busyRef.current = false; }
   }
 
   async function onApplyCrop() {
-    if (!source || !geo) return;
+    if (!source || !geo || busyRef.current) return;
+    busyRef.current = true;
     setBusy('crop'); setError(null);
     try {
       const uri = await renderSquareCrop(source.uri, { originX: geo.originX, originY: geo.originY, width: geo.side, height: geo.side });
       setStaged(uri);
     } catch { setError('That photo could not be cropped. Try another photo.'); }
-    finally { setBusy(null); }
+    finally { setBusy(null); busyRef.current = false; }
   }
 
   function cancelDraft() {
@@ -82,32 +87,37 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
   }
 
   async function onSave() {
-    if (!staged) return;
+    if (!staged || busyRef.current) return;
+    busyRef.current = true;
     setBusy('save'); setError(null);
     try {
       await avatar.save(staged, shareDraft);
-      setSource(null); setStaged(null);
+      setSource(null); setStaged(null); setShareDraft(false);
       setNotice(shareDraft ? 'Photo saved and published to opponents.' : 'Photo saved. It stays private to you.');
     } catch {
       setError('Photo saving could not be confirmed. A failed upload keeps your old photo. Reload to check whether the server finished saving, or retry.');
-    } finally { setBusy(null); }
+    } finally { setBusy(null); busyRef.current = false; }
   }
 
   async function onToggleShared() {
+    if (busyRef.current) return;
+    busyRef.current = true;
     const next = !avatar.info?.shared;
     setBusy('share'); setError(null);
     try {
       await avatar.setShared(next);
       setNotice(next ? 'Published. Opponents now see your photo.' : 'Now private. Opponents see your default player marker.');
     } catch { setError('Sharing could not be changed. Your current setting is kept.'); }
-    finally { setBusy(null); }
+    finally { setBusy(null); busyRef.current = false; }
   }
 
   async function onRemove() {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setBusy('remove'); setError(null); setConfirmRemove(false);
     try { await avatar.remove(); setNotice('Photo removed. Your emblem is back.'); }
-    catch { setError('The photo could not be removed. It is still saved.'); }
-    finally { setBusy(null); }
+    catch { setError('Removal could not be confirmed. Retry or reload to check the saved photo.'); }
+    finally { setBusy(null); busyRef.current = false; }
   }
 
   const step = (dx: number, dy: number) => setPan(p => ({ x: clamp(p.x + dx, -1, 1), y: clamp(p.y + dy, -1, 1) }));
@@ -116,7 +126,7 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
   const shared = !!avatar.info?.shared;
 
   return (
-    <View testID={testID} style={st.root}>
+    <View testID={testID} style={st.root} onLayout={event => setViewport(Math.max(120, Math.min(VIEW, event.nativeEvent.layout.width - 32)))}>
       <View style={st.headRow}>
         <View style={[st.thumb, { borderColor: frameColor }]}>
           {avatar.loading && !avatar.uri ? <View style={st.skeleton} /> :
@@ -135,25 +145,26 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
       <Text style={st.help}>
         Opponents only see your photo if you publish it. Otherwise it stays private and they see your emblem. Sharing is off by default.
       </Text>
+      <Text style={st.meta}>JPEG, PNG or WebP · up to 5 MB / 16 MP. For unsupported HEIC photos, export a JPEG first.</Text>
 
       {avatar.error && !source ? (
         <View style={st.row}>
           <Text style={[st.help, { flex: 1 }]} accessibilityRole="alert">{avatar.error}</Text>
-          <Button testID={`${testID}-reload`} label="Retry" icon="refresh-cw" size="sm" variant="ghost" onPress={() => void avatar.reload()} />
+          <Button testID={`${testID}-reload`} label="Retry" icon="refresh-cw" size="sm" variant="ghost" disabled={!!busy} onPress={() => void avatar.reload()} />
         </View>
       ) : null}
 
       {!source ? (
         <View style={st.wrapRow}>
-          <Button testID={`${testID}-pick`} label={saved ? 'Choose a new photo' : 'Choose a photo'} icon="image" size="sm"
-            variant="secondary" loading={busy === 'pick'} disabled={!!busy && busy !== 'pick'} onPress={onPick} />
+          <Button testID={`${testID}-pick`} label={saved ? 'Change photo' : 'Upload photo'} icon="image" size="sm"
+            variant="secondary" loading={busy === 'pick'} disabled={avatar.loading || (!!busy && busy !== 'pick')} onPress={onPick} />
           {saved ? (
             <Button testID={`${testID}-share`} label={shared ? 'Make private' : 'Publish to opponents'} icon={shared ? 'eye-off' : 'eye'}
-              size="sm" variant="ghost" loading={busy === 'share'} disabled={!!busy && busy !== 'share'} onPress={onToggleShared} />
+              size="sm" variant="ghost" loading={busy === 'share'} disabled={avatar.loading || (!!busy && busy !== 'share')} onPress={onToggleShared} />
           ) : null}
           {saved && !confirmRemove ? (
             <Button testID={`${testID}-remove`} label="Remove saved photo" icon="trash-2" size="sm" variant="danger"
-              loading={busy === 'remove'} disabled={!!busy && busy !== 'remove'} onPress={() => setConfirmRemove(true)} />
+              loading={busy === 'remove'} disabled={avatar.loading || (!!busy && busy !== 'remove')} onPress={() => setConfirmRemove(true)} />
           ) : null}
         </View>
       ) : null}
@@ -177,7 +188,7 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
           <View style={st.row}>
             {denied.canAskAgain || Platform.OS === 'web'
               ? <Button testID={`${testID}-ask-again`} label="Ask again" size="sm" variant="secondary" onPress={onPick} />
-              : <Button testID={`${testID}-settings`} label="Open Settings" icon="settings" size="sm" variant="secondary" onPress={() => void openAppSettings()} />}
+              : <Button testID={`${testID}-settings`} label="Open Settings" icon="settings" size="sm" variant="secondary" onPress={() => void openAppSettings().catch(() => setError('Settings could not open. Open your device Settings, find GoldRush Arena, and allow photo access.'))} />}
             <Button testID={`${testID}-denied-dismiss`} label="Not now" size="sm" variant="ghost" onPress={() => setDenied(null)} />
           </View>
         </View>
@@ -186,7 +197,7 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
       {source && geo && !staged ? (
         <View style={{ gap: 10, alignItems: 'center' }}>
           <Text style={st.label}>Frame your photo</Text>
-          <View style={[st.viewport, { borderColor: frameColor }]} {...responder.panHandlers}
+          <View style={[st.viewport, { borderColor: frameColor, width: viewport, height: viewport }]} {...responder.panHandlers}
             accessibilityLabel="Crop area. Drag to move, or use the buttons below.">
             <Image source={{ uri: source.uri }} style={{
               position: 'absolute', width: source.width * geo.s, height: source.height * geo.s,
@@ -223,6 +234,7 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
             </View>
           </View>
           <Pressable testID={`${testID}-share-draft`} onPress={() => setShareDraft(v => !v)} accessibilityRole="switch"
+            disabled={!!busy}
             accessibilityState={{ checked: shareDraft }} aria-checked={shareDraft}
             accessibilityLabel="Publish photo to opponents" style={st.switchRow}>
             <View style={[st.switchTrack, shareDraft && { backgroundColor: palette.primary }]}>
@@ -262,9 +274,9 @@ export function AvatarPhoto({ username, size, children }: { username: string; si
 }
 
 const st = StyleSheet.create({
-  root: { gap: 10, padding: 14, backgroundColor: palette.surface, borderWidth: 2, borderColor: tactile.brass },
+  root: { gap: 10, padding: 14, backgroundColor: palette.surface, borderWidth: 1, borderRadius: 12, borderColor: tactile.brass },
   headRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
   wrapRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   thumb: { width: 56, height: 56, borderWidth: 3, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: palette.background },
   fill: { width: '100%', height: '100%' },
@@ -276,8 +288,8 @@ const st = StyleSheet.create({
   error: { fontFamily: fonts.bodySemiBold, fontSize: 15, lineHeight: 21, color: palette.foreground, borderLeftWidth: 4, borderLeftColor: palette.primary, paddingLeft: 10 },
   confirm: { gap: 8, padding: 10, borderWidth: 1, borderColor: palette.border, backgroundColor: palette.background },
   viewport: { width: VIEW, height: VIEW, overflow: 'hidden', borderWidth: 3, backgroundColor: palette.inset },
-  controls: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  ctl: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface },
+  controls: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 8 },
+  ctl: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 8, borderColor: palette.border, backgroundColor: palette.raised },
   readout: { fontFamily: fonts.display, fontSize: 20, color: palette.foreground, minWidth: 56, textAlign: 'center' },
   staged: { width: 96, height: 96, borderWidth: 3 },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44 },

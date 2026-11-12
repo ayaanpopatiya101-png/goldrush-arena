@@ -35,7 +35,7 @@ export default function PracticeScreen() {
               botNames={['North bot', 'West bot', 'East bot']} botRanks={['Bronze 1', 'Bronze 1', 'Bronze 1']}
               practice botDifficulty="easy" botSkill={0} sensitivity={settings.sensitivity} soundEnabled={settings.soundEnabled}
               paused={paused} onGameOver={setResult} />
-            <View pointerEvents="none" style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderWidth: 3, borderColor: tactile.brass }} />
+            <View pointerEvents="none" style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 10, borderWidth: 3, borderColor: tactile.brass }} />
           </View>
           <Button label={paused ? 'Resume practice' : 'Pause practice'} variant="secondary" onPress={() => setPaused(value => !value)} />
         </>}

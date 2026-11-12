@@ -1,6 +1,6 @@
 # GoldRush Arena
 
-A 4-player air-hockey "last-one-standing" mobile game built with Expo SDK 54. Players deflect a ball to eliminate opponents. The last player wins XP, coins, and climbs a deep progression system featuring ranks, relics, skins, super abilities, and a 25-milestone Trophy Road.
+A 4-player air-hockey "last-one-standing" mobile game built with Expo SDK 54. Players deflect a ball to eliminate opponents. Completed eligible matches earn local XP and coins, with ranks, relics, skins, super abilities, an XP Trophy Road and a separate games-played reward lane.
 
 ## Run & Operate
 
@@ -72,7 +72,7 @@ Key config in `app.json`:
 
 ## User preferences
 
-- Use flat graphite, off-white and restrained ochre, near-square geometry and the sports-scoreboard identity in `docs/arena/visual-rules.md`.
-- The explicit avoidance list supersedes the former space/glow-heavy styling and Inter preferences. Do not reintroduce decorative gradients, emoji UI, neon, glass, or soft panels.
+- The newest supplied Entry/Welcome and Main Lobby screenshot supersedes conflicting older palettes: blue-slate canvas, lighter slate panels, layered edges, restrained rounded raised controls, green primary actions, gold identity/rewards and condensed scoreboard headings.
+- Preserve the explicit avoidance list except where that newer screenshot overrides it. Do not introduce decorative gradients, emoji UI, liquid glass, dot grids or invented live-player/season statistics.
 - Preserve saved avatar strings, inventory IDs, reward values, prices, progression, lives-bank caps and hidden Relics/Forge migration data.
 - Never force-push or rewrite Git history. Task work stays on its branch until merged; no production publishing from a task fork.

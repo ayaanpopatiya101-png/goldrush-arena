@@ -163,7 +163,7 @@ const s = StyleSheet.create({
   giftIconWrap: {
     width: 38,
     height: 38,
-    borderRadius: 3,
+    borderRadius: 8,
     backgroundColor: palette.gold + '18',
     borderWidth: 1,
     borderColor: palette.gold + '44',
@@ -186,7 +186,7 @@ const s = StyleSheet.create({
     padding: 4,
   },
   inputWrap: {
-    borderRadius: 3,
+    borderRadius: 8,
     borderWidth: 1.5,
     borderColor: palette.border,
     backgroundColor: palette.inset,
@@ -206,7 +206,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     borderWidth: 1,
-    borderRadius: 3,
+    borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 11,
   },
@@ -224,7 +224,7 @@ const s = StyleSheet.create({
     flex: 1,
   },
   btn: {
-    borderRadius: 3,
+    borderRadius: 8,
     overflow: 'hidden',
     marginTop: 2,
   },

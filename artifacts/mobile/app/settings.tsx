@@ -117,7 +117,7 @@ export default function SettingsScreen() {
           </View>
           <View style={s.card}>
             <View style={s.accountCard}>
-              <GlowBorder color={profile.avatarFrameColor} borderRadius={3} spread={5} pulse style={{ borderRadius: 3 }}>
+              <GlowBorder color={profile.avatarFrameColor} borderRadius={3} spread={5} pulse style={{ borderRadius: 8 }}>
                 <View style={[s.accountAvatar, { backgroundColor: profile.avatarFrameColor + '22', borderColor: profile.avatarFrameColor }]}>
                   <Glyph style={s.accountEmoji} value={profile.avatarEmoji} />
                 </View>
@@ -434,18 +434,18 @@ export default function SettingsScreen() {
 
 const s = StyleSheet.create({
   header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 16 },
-  back:      { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, backgroundColor: palette.background },
+  back:      { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, backgroundColor: palette.background },
   title:     { fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 2, color: palette.foreground },
   section:   { gap: 8 },
   sectionTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, letterSpacing: 1.6, color: palette.supporting, textTransform: 'uppercase' },
-  card:      { borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.surface, overflow: 'hidden' },
+  card:      { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.surface, overflow: 'hidden' },
   divider:   { height: 2, backgroundColor: palette.background },
   row:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 14, minHeight: 60, gap: 14 },
-  rowIcon:   { width: 36, height: 36, borderRadius: 0, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.background, alignItems: 'center', justifyContent: 'center' },
+  rowIcon:   { width: 36, height: 36, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.background, alignItems: 'center', justifyContent: 'center' },
   rowTitle:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 16, color: palette.foreground },
   rowSub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.muted, marginTop: 2 },
   accountCard: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12, backgroundColor: palette.surface, borderTopWidth: 6, borderTopColor: palette.navy },
-  accountAvatar: { width: 52, height: 52, borderRadius: 0, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
+  accountAvatar: { width: 52, height: 52, borderRadius: 10, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
   accountEmoji: { fontSize: 22 },
   accountName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, textTransform: 'uppercase', color: palette.foreground },
   accountSub:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.supporting, marginTop: 2 },
@@ -453,7 +453,7 @@ const s = StyleSheet.create({
   accountStatVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.foreground },
   accountStatLbl: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.supporting, letterSpacing: 0.5 },
   sensitivityRow: { flexDirection: 'row', padding: 12, gap: 8 },
-  sensBtn:   { flex: 1, minHeight: 64, borderRadius: 0, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.border, backgroundColor: palette.background, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  sensBtn:   { flex: 1, minHeight: 64, borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.border, backgroundColor: palette.background, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 3 },
   sensBtnActive: { borderColor: palette.edge, backgroundColor: palette.primary },
   sensBtnLabel: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: palette.foreground },
   sensBtnDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.foreground, textAlign: 'center' },

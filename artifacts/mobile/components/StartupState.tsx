@@ -23,6 +23,6 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.dark.background, justifyContent: 'center', alignItems: 'center', padding: 28, gap: 20 },
   title: { fontSize: 24, fontWeight: '700', color: colors.dark.foreground, letterSpacing: 2 },
   body: { color: colors.dark.foreground, textAlign: 'center', fontSize: 16, maxWidth: 380 },
-  retry: { backgroundColor: colors.dark.primary, minHeight: 48, paddingHorizontal: 28, justifyContent: 'center', borderRadius: 2 },
+  retry: { backgroundColor: colors.dark.primary, minHeight: 48, paddingHorizontal: 28, justifyContent: 'center', borderRadius: 8 },
   retryText: { color: colors.dark.primaryForeground, fontWeight: '700' },
 });

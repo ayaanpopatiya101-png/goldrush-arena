@@ -186,7 +186,7 @@ export default function Warmup() {
   );
 }
 const s = StyleSheet.create({
-  trial: { width: "100%", maxWidth: 480, marginTop: 12, marginHorizontal: 16, padding: 12, gap: 4, backgroundColor: palette.inset, borderWidth: 2, borderColor: palette.edge },
+  trial: { width: "100%", maxWidth: 480, marginTop: 12, marginHorizontal: 16, padding: 12, gap: 4, backgroundColor: palette.inset, borderRadius: 10, borderWidth: 2, borderColor: palette.edge },
   trialKicker: { fontFamily: "SourceSans3_700Bold", fontSize: 12, letterSpacing: 1.4, color: palette.gold, textTransform: "uppercase" },
   trialName: { fontFamily: "BarlowCondensed_700Bold", fontSize: 26, color: palette.foreground, textTransform: "uppercase" },
   trialBody: { fontFamily: "SourceSans3_400Regular", fontSize: 14, lineHeight: 19, color: palette.foreground },

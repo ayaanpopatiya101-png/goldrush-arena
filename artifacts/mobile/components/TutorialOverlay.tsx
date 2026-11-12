@@ -131,7 +131,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.background },
   content: { width: '100%', maxWidth: 720, alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 8, gap: 12 },
   heading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  track: { height: 14, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, padding: 2 },
+  track: { height: 14, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, padding: 2 },
   trackFill: { height: '100%', backgroundColor: palette.gold },
   kicker: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.4, color: palette.supporting, textTransform: 'uppercase', flexShrink: 1 },
   title: { fontFamily: fonts.display, fontSize: 32, lineHeight: 34, color: palette.foreground, textTransform: 'uppercase', marginTop: 4 },

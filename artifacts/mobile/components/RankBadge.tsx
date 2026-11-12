@@ -1,10 +1,13 @@
-import { Text } from '@/components/ui/Text';
-import { palette } from '@/constants/colors';
+// Physical rank medallion: vector tier icon on a raised coin with a hard bottom edge.
+// No emoji and no looping glow. Rank names, colors and tier numbers come from RANKS.
+import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+
+import { Text } from '@/components/ui/Text';
+import { palette } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import { RANKS } from '@/context/PlayerContext';
-import { PulseRing, GlowBorder } from '@/components/effects';
-import { Glyph } from '@/components/ui/Glyph';
 
 interface RankBadgeProps {
   rank: string;
@@ -12,81 +15,45 @@ interface RankBadgeProps {
   showLabel?: boolean;
 }
 
-// Tier emoji used as the main badge icon
-const RANK_ICONS: Record<string, string> = {
-  'Bronze 1':    '🥉', 'Bronze 2':    '🥉', 'Bronze 3':    '🥉',
-  'Silver 1':    '🥈', 'Silver 2':    '🥈', 'Silver 3':    '🥈',
-  'Gold 1':      '🥇', 'Gold 2':      '🥇', 'Gold 3':      '🥇',
-  'Diamond 1':   '💎', 'Diamond 2':   '💎', 'Diamond 3':   '💎',
-  'Master 1':    '⚡', 'Master 2':    '⚡', 'Master 3':    '⚡',
-  'Champion 1':  '👑', 'Champion 2':  '👑', 'Champion 3':  '👑',
-  'Champion 4':  '👑', 'Champion 5':  '🏆',
-};
-
-// Tier-level number badge (1/2/3/4/5)
-const RANK_NUM: Record<string, string> = {
-  'Bronze 1': '1', 'Bronze 2': '2', 'Bronze 3': '3',
-  'Silver 1': '1', 'Silver 2': '2', 'Silver 3': '3',
-  'Gold 1':   '1', 'Gold 2':   '2', 'Gold 3':   '3',
-  'Diamond 1':'1', 'Diamond 2':'2', 'Diamond 3':'3',
-  'Master 1': '1', 'Master 2': '2', 'Master 3': '3',
-  'Champion 1':'1','Champion 2':'2','Champion 3':'3',
-  'Champion 4':'4','Champion 5':'5',
+type IconName = React.ComponentProps<typeof Feather>['name'];
+const TIER_ICON: Record<string, IconName> = {
+  Bronze: 'shield', Silver: 'shield', Gold: 'award', Diamond: 'hexagon', Master: 'zap', Champion: 'star',
 };
 
 export function RankBadge({ rank, size = 'md', showLabel = true }: RankBadgeProps) {
   const rankData = RANKS.find(r => r.name === rank) ?? RANKS[0];
   const color = rankData.color;
+  const [tier, num = ''] = rank.split(' ');
+  const icon = TIER_ICON[tier ?? ''] ?? 'shield';
+  const elite = tier === 'Diamond' || tier === 'Master' || tier === 'Champion';
 
-  const dim       = size === 'sm' ? 28 : size === 'lg' ? 52 : 38;
-  const iconSize  = size === 'sm' ? 12 : size === 'lg' ? 20 : 16;
-  const numSize   = size === 'sm' ? 7  : size === 'lg' ? 11 : 9;
-  const labelSize = size === 'sm' ? 9  : size === 'lg' ? 13 : 11;
-
-  const icon = RANK_ICONS[rank] ?? '🎮';
-  const num  = RANK_NUM[rank]  ?? '';
-
-  const isElite    = ['Diamond', 'Master', 'Champion'].some(t => rank.startsWith(t));
-  const isChampion = rank.startsWith('Champion');
+  const dim = size === 'sm' ? 28 : size === 'lg' ? 56 : 40;
+  const iconSize = size === 'sm' ? 13 : size === 'lg' ? 24 : 18;
+  const pip = size === 'sm' ? 13 : size === 'lg' ? 20 : 16;
+  const labelSize = size === 'sm' ? 10 : size === 'lg' ? 14 : 12;
 
   return (
-    <View style={styles.wrapper}>
-      {isChampion && (
-        <View style={{ position: 'absolute', top: -(10), left: -(10), right: -(10), bottom: -(10), alignItems: 'center', justifyContent: 'center' }}>
-          <PulseRing color={color} size={dim + 20} rings={2} duration={2200} opacity={0.45} />
+    <View style={styles.wrapper} accessibilityLabel={`Rank ${rank}`}>
+      <View style={[styles.coin, { width: dim, height: dim, borderRadius: dim / 2, backgroundColor: color, borderBottomWidth: size === 'sm' ? 3 : 4 }]}>
+        <View style={[styles.face, { width: dim - (size === 'sm' ? 8 : 10), height: dim - (size === 'sm' ? 8 : 10), borderRadius: dim, borderWidth: elite ? 2 : 1.5 }]}>
+          <Feather name={icon} size={iconSize} color={color} />
         </View>
-      )}
-      <GlowBorder color={color} borderRadius={dim / 2} spread={isElite ? 10 : 5} pulse={isElite} borderWidth={2}>
-        <View style={[styles.badge, {
-          width: dim, height: dim, borderRadius: dim / 2,
-          borderColor: color, backgroundColor: color + '22', shadowColor: color,
-        }]}>
-          <Glyph style={{ fontSize: iconSize, lineHeight: iconSize + 4 }} value={icon} />
-          {num ? (
-            <View style={[styles.numPip, { backgroundColor: color, borderColor: color + '66' }]}>
-              <Text style={[styles.numTxt, { fontSize: numSize, color: palette.deepest + 'CC' }]}>{num}</Text>
-            </View>
-          ) : null}
-        </View>
-      </GlowBorder>
-      {showLabel && (
-        <Text style={[styles.label, { color, fontSize: labelSize }]}>{rank.toUpperCase()}</Text>
-      )}
+        {num ? (
+          <View style={[styles.pip, { minWidth: pip, height: pip, borderRadius: pip / 2 }]}>
+            <Text style={[styles.pipTxt, { fontSize: pip - 5, lineHeight: pip - 2 }]}>{num}</Text>
+          </View>
+        ) : null}
+      </View>
+      {showLabel ? <Text style={[styles.label, { color, fontSize: labelSize }]}>{rank.toUpperCase()}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: { alignItems: 'center', gap: 3, position: 'relative' },
-  badge: {
-    borderWidth: 2, alignItems: 'center', justifyContent: 'center',
-    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0,
-  },
-  numPip: {
-    position: 'absolute', bottom: -2, right: -2,
-    minWidth: 13, height: 13, borderRadius: 3, borderWidth: 1,
-    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2,
-  },
-  numTxt: { fontFamily: 'SourceSans3_700Bold', letterSpacing: 0 },
-  label:  { fontFamily: 'SourceSans3_700Bold', letterSpacing: 1.5 },
+  wrapper: { alignItems: 'center', gap: 4 },
+  coin: { alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: palette.edge },
+  face: { alignItems: 'center', justifyContent: 'center', backgroundColor: palette.inset, borderColor: palette.edge },
+  pip: { position: 'absolute', bottom: -4, right: -4, paddingHorizontal: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.gold, borderWidth: 1.5, borderColor: palette.edge },
+  pipTxt: { fontFamily: fonts.display, color: palette.onGold },
+  label: { fontFamily: fonts.display, letterSpacing: 1.2 },
 });

@@ -1,4 +1,4 @@
-// GoldRush Arena: Carbon + Lime. 60% carbon, 30% moss charcoal, 10% bright lime.
+// GoldRush Arena: Slate Arcade. Blue-slate canvas, lighter slate panels, green action, gold identity.
 // Surfaces and foregrounds are paired by explicit role. Lime fills always carry dark ink.
 // PLAYER_COLORS are user/seat cosmetic defaults and intentionally unchanged.
 const PLAYER_COLORS = ['#F36B3F', '#EDBA3C', '#EEE9DE', '#E3DFD3'] as const;
@@ -7,33 +7,33 @@ const PLAYER_GLOW = PLAYER_COLORS;
 
 const role = {
   /** 60%: app canvas. */
-  background: '#101410',
+  background: '#151C27',
   /** Deepest wells, hard cabinet edges, modal scrims. */
-  deepest: '#090D0A',
+  deepest: '#0B1018',
   /** Inset wells, court, tracks, inputs. */
-  inset: '#19211B',
+  inset: '#111823',
   /** 30%: panels, cards, sheets, tab bar. */
-  surface: '#263129',
+  surface: '#222C3A',
   /** Raised plates, pressed/hovered secondary controls. */
-  raised: '#334038',
+  raised: '#2D3949',
   /** Hairlines and outlines. */
-  border: '#4A5D50',
+  border: '#3B485A',
   /** Heavy bevel edge under plates and buttons. */
-  edge: '#090D0A',
+  edge: '#0B1018',
   /** Primary text on carbon/moss/inset/raised. */
-  foreground: '#F0F4EC',
+  foreground: '#F1F4F8',
   /** Supporting text on carbon/moss/inset/raised. */
-  supporting: '#B6C4B7',
+  supporting: '#AEB9C8',
   /** Disabled / tertiary text (only on dark surfaces). */
-  muted: '#8D9C8F',
+  muted: '#8492A5',
   /** 10%: primary CTA, selected state, meaningful progress. */
-  primary: '#A3F547',
+  primary: '#6CCB3C',
   /** Dark ink for text/icons on lime or gold fills. */
-  onAccent: '#101410',
+  onAccent: '#151C27',
   /** Errors, losses and destructive states. */
-  danger: '#E8735A',
+  danger: '#EF5D57',
   /** Brand and reward detail only. */
-  gold: '#EDBA3C',
+  gold: '#F5C531',
 } as const;
 
 export const palette = {
@@ -111,7 +111,7 @@ const gameTheme = {
 const colors = {
   light: gameTheme,
   dark: gameTheme,
-  radius: 3,
+  radius: 12,
 };
 
 export default colors;

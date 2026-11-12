@@ -334,7 +334,7 @@ const s = StyleSheet.create({
   },
   star: {
     position: 'absolute',
-    borderRadius: 3,
+    borderRadius: 8,
     backgroundColor: palette.foreground,
   },
   stage: {
@@ -366,7 +366,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    borderRadius: 0,
+    borderRadius: 10,
   },
   shimmer: {
     position: 'absolute',
@@ -400,7 +400,7 @@ const s = StyleSheet.create({
   claimBtn: {
     paddingHorizontal: 52,
     paddingVertical: 16,
-    borderRadius: 0,
+    borderRadius: 10,
   },
   claimBtnText: {
     fontFamily: 'SourceSans3_700Bold',
