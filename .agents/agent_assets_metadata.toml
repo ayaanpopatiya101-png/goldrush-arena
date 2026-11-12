@@ -211,3 +211,31 @@ mtime_ms = 1794270820822
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:c3199f00-0b97-4a6a-8d55-e6f39d4aa04e/b85a69e4-586d-4089-8ff1-d5910d697b4d/bfaf13b0-fcc8-4749-b08e-a9eeceae20e4"
 storage_version_token = "1794270836672304"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "NJ-N7QeU2scgJB3zIuPI8"
+uri = "file://docs/sms-international-rollout.md"
+type = "text"
+title = "International SMS rollout matrix"
+description = "Country-by-country sender, consent, timing, cost and launch blockers. All international destinations remain disabled."
+logical_id = "6403c107-1766-4e47-9f3c-f04999de142a"
+content_hash = "sha256:5ded0122eed6a02a94c931d04a3e473c79feb5ff174900403d12e5ae57e3e398"
+size = 15412
+mtime_ms = 1794459026351
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:c3199f00-0b97-4a6a-8d55-e6f39d4aa04e/6403c107-1766-4e47-9f3c-f04999de142a/5ef42752-54a1-4c4f-918a-377efe139bd0"
+storage_version_token = "1794459500418593"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "1D9MlZbolrR4iB6qiacUh"
+uri = "file://docs/sms-operations.md"
+type = "text"
+title = "US SMS launch checklist"
+description = "Security, sender choices, retention, durable scheduling and the approval steps required before any live text."
+logical_id = "4576ff72-1e55-4f0f-b912-2d6d63edb8cc"
+content_hash = "sha256:6bd344f7a9c0c148c980841a5cb11c98a90209fe50e5fec24021a1443b5eae81"
+size = 17320
+mtime_ms = 1794458823062
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:c3199f00-0b97-4a6a-8d55-e6f39d4aa04e/4576ff72-1e55-4f0f-b912-2d6d63edb8cc/8ac7da18-2f17-46e3-b2cd-8d380ccf33f6"
+storage_version_token = "1794459501087526"
+content_type = "text/markdown"

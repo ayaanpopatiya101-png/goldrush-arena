@@ -7,10 +7,12 @@ import challengeRouter from "./challenge.js";
 import multiplayerRouter from "./multiplayer.js";
 import avatarsRouter from "./avatars.js";
 import cosmeticsRouter from "./cosmetics.js";
+import smsRemindersRouter from "./smsReminders.js";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(smsRemindersRouter);
 router.use(avatarsRouter);
 router.use(cosmeticsRouter);
 router.use(multiplayerRouter);

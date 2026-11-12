@@ -3,6 +3,7 @@ import { logger } from "./lib/logger.js";
 import { getUncachableStripeClient } from "./stripeClient.js";
 import { installArenaSocket } from "./lib/arenaSocket.js";
 import { startAvatarCleanup } from "./routes/avatars.js";
+import { startSmsWorker } from "./lib/smsWorker.js";
 
 async function initStripe() {
   try {
@@ -26,3 +27,4 @@ const server = app.listen(port, (err) => {
 });
 installArenaSocket(server);
 startAvatarCleanup();
+void startSmsWorker().catch(() => logger.warn("SMS scheduler could not start; texts remain unavailable until the database and worker are ready"));

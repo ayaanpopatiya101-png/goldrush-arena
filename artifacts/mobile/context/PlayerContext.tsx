@@ -8,7 +8,7 @@ import { trackEvent } from '@/utils/analytics';
 import { rankIndexForName } from '@/utils/rankIndex';
 import { canClaimSeasonTier, seasonSkinForMilestone } from '@/utils/seasonRewards';
 import { getLiveResult } from '@workspace/api-client-react';
-import { arenaRequestOptions, retireArenaProfile } from '@/utils/arenaSession';
+import { arenaRequestOptions, cancelArenaSms, retireArenaProfile } from '@/utils/arenaSession';
 import { clearAvatarState } from '@/hooks/useAvatar';
 import { eventNotificationScheduler, phoneReminderStorageKey } from '@/utils/eventNotificationScheduler';
 
@@ -822,6 +822,8 @@ export async function loginAccount(username: string, avatarEmoji: string, avatar
 export async function logoutAccount(): Promise<void> {
   // Do not report sign-out success while this feature's alerts remain queued.
   await eventNotificationScheduler.cancelAll();
+  const username = await AsyncStorage.getItem(CURRENT_KEY);
+  if (username) await cancelArenaSms(username);
   await AsyncStorage.removeItem(CURRENT_KEY);
 }
 

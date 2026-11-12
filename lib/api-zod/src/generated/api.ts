@@ -8,6 +8,224 @@
 import * as zod from 'zod';
 
 
+export const GetSmsRemindersResponse = zod.object({
+  "verificationAvailable": zod.boolean(),
+  "remindersAvailable": zod.boolean(),
+  "blockers": zod.array(zod.string()),
+  "consentText": zod.string(),
+  "consentVersion": zod.string(),
+  "revision": zod.number(),
+  "hasNumber": zod.boolean(),
+  "maskedNumber": zod.string().nullable(),
+  "verified": zod.boolean(),
+  "suppressed": zod.boolean(),
+  "verificationPending": zod.boolean(),
+  "enabled": zod.boolean(),
+  "eventIds": zod.array(zod.string()),
+  "leadMinutes": zod.number(),
+  "timezone": zod.string(),
+  "consentedAt": zod.string().nullable(),
+  "events": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "available": zod.boolean(),
+  "reason": zod.string(),
+  "closesAt": zod.string().nullable()
+})),
+  "deliveries": zod.array(zod.object({
+  "id": zod.string(),
+  "eventId": zod.string(),
+  "fireAt": zod.string(),
+  "closesAt": zod.string(),
+  "status": zod.enum(['pending', 'sending', 'unknown', 'queued', 'sent', 'delivered', 'failed', 'cancelled', 'skipped'])
+}))
+})
+
+
+export const saveSmsRemindersBodyEventIdsItemMax = 80;
+
+export const saveSmsRemindersBodyEventIdsMax = 10;
+
+export const saveSmsRemindersBodyLeadMinutesMin = 5;
+export const saveSmsRemindersBodyLeadMinutesMax = 10080;
+
+export const saveSmsRemindersBodyTimezoneMax = 80;
+
+export const saveSmsRemindersBodyExpectedRevisionMin = 0;
+
+export const saveSmsRemindersBodyConsentVersionMax = 50;
+
+
+
+export const SaveSmsRemindersBody = zod.object({
+  "enabled": zod.boolean(),
+  "eventIds": zod.array(zod.string().max(saveSmsRemindersBodyEventIdsItemMax)).max(saveSmsRemindersBodyEventIdsMax),
+  "leadMinutes": zod.number().min(saveSmsRemindersBodyLeadMinutesMin).max(saveSmsRemindersBodyLeadMinutesMax),
+  "timezone": zod.string().min(1).max(saveSmsRemindersBodyTimezoneMax),
+  "source": zod.enum(['events', 'settings']),
+  "expectedRevision": zod.number().min(saveSmsRemindersBodyExpectedRevisionMin),
+  "consentVersion": zod.string().max(saveSmsRemindersBodyConsentVersionMax).optional(),
+  "consent": zod.boolean().optional(),
+  "adultConfirmed": zod.boolean().optional()
+})
+
+export const SaveSmsRemindersResponse = zod.object({
+  "verificationAvailable": zod.boolean(),
+  "remindersAvailable": zod.boolean(),
+  "blockers": zod.array(zod.string()),
+  "consentText": zod.string(),
+  "consentVersion": zod.string(),
+  "revision": zod.number(),
+  "hasNumber": zod.boolean(),
+  "maskedNumber": zod.string().nullable(),
+  "verified": zod.boolean(),
+  "suppressed": zod.boolean(),
+  "verificationPending": zod.boolean(),
+  "enabled": zod.boolean(),
+  "eventIds": zod.array(zod.string()),
+  "leadMinutes": zod.number(),
+  "timezone": zod.string(),
+  "consentedAt": zod.string().nullable(),
+  "events": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "available": zod.boolean(),
+  "reason": zod.string(),
+  "closesAt": zod.string().nullable()
+})),
+  "deliveries": zod.array(zod.object({
+  "id": zod.string(),
+  "eventId": zod.string(),
+  "fireAt": zod.string(),
+  "closesAt": zod.string(),
+  "status": zod.enum(['pending', 'sending', 'unknown', 'queued', 'sent', 'delivered', 'failed', 'cancelled', 'skipped'])
+}))
+})
+
+
+export const RemoveSmsNumberResponse = zod.object({
+  "verificationAvailable": zod.boolean(),
+  "remindersAvailable": zod.boolean(),
+  "blockers": zod.array(zod.string()),
+  "consentText": zod.string(),
+  "consentVersion": zod.string(),
+  "revision": zod.number(),
+  "hasNumber": zod.boolean(),
+  "maskedNumber": zod.string().nullable(),
+  "verified": zod.boolean(),
+  "suppressed": zod.boolean(),
+  "verificationPending": zod.boolean(),
+  "enabled": zod.boolean(),
+  "eventIds": zod.array(zod.string()),
+  "leadMinutes": zod.number(),
+  "timezone": zod.string(),
+  "consentedAt": zod.string().nullable(),
+  "events": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "available": zod.boolean(),
+  "reason": zod.string(),
+  "closesAt": zod.string().nullable()
+})),
+  "deliveries": zod.array(zod.object({
+  "id": zod.string(),
+  "eventId": zod.string(),
+  "fireAt": zod.string(),
+  "closesAt": zod.string(),
+  "status": zod.enum(['pending', 'sending', 'unknown', 'queued', 'sent', 'delivered', 'failed', 'cancelled', 'skipped'])
+}))
+})
+
+
+export const requestSmsVerificationBodyPhoneMin = 7;
+export const requestSmsVerificationBodyPhoneMax = 32;
+
+export const requestSmsVerificationBodyTimezoneMax = 80;
+
+
+
+export const RequestSmsVerificationBody = zod.object({
+  "phone": zod.string().min(requestSmsVerificationBodyPhoneMin).max(requestSmsVerificationBodyPhoneMax),
+  "timezone": zod.string().min(1).max(requestSmsVerificationBodyTimezoneMax),
+  "verificationConsent": zod.literal(true),
+  "adultConfirmed": zod.literal(true)
+})
+
+export const RequestSmsVerificationResponse = zod.object({
+  "verificationAvailable": zod.boolean(),
+  "remindersAvailable": zod.boolean(),
+  "blockers": zod.array(zod.string()),
+  "consentText": zod.string(),
+  "consentVersion": zod.string(),
+  "revision": zod.number(),
+  "hasNumber": zod.boolean(),
+  "maskedNumber": zod.string().nullable(),
+  "verified": zod.boolean(),
+  "suppressed": zod.boolean(),
+  "verificationPending": zod.boolean(),
+  "enabled": zod.boolean(),
+  "eventIds": zod.array(zod.string()),
+  "leadMinutes": zod.number(),
+  "timezone": zod.string(),
+  "consentedAt": zod.string().nullable(),
+  "events": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "available": zod.boolean(),
+  "reason": zod.string(),
+  "closesAt": zod.string().nullable()
+})),
+  "deliveries": zod.array(zod.object({
+  "id": zod.string(),
+  "eventId": zod.string(),
+  "fireAt": zod.string(),
+  "closesAt": zod.string(),
+  "status": zod.enum(['pending', 'sending', 'unknown', 'queued', 'sent', 'delivered', 'failed', 'cancelled', 'skipped'])
+}))
+})
+
+
+export const checkSmsVerificationBodyCodeRegExp = new RegExp('^[0-9]{6}$');
+
+
+export const CheckSmsVerificationBody = zod.object({
+  "code": zod.string().regex(checkSmsVerificationBodyCodeRegExp)
+})
+
+export const CheckSmsVerificationResponse = zod.object({
+  "verificationAvailable": zod.boolean(),
+  "remindersAvailable": zod.boolean(),
+  "blockers": zod.array(zod.string()),
+  "consentText": zod.string(),
+  "consentVersion": zod.string(),
+  "revision": zod.number(),
+  "hasNumber": zod.boolean(),
+  "maskedNumber": zod.string().nullable(),
+  "verified": zod.boolean(),
+  "suppressed": zod.boolean(),
+  "verificationPending": zod.boolean(),
+  "enabled": zod.boolean(),
+  "eventIds": zod.array(zod.string()),
+  "leadMinutes": zod.number(),
+  "timezone": zod.string(),
+  "consentedAt": zod.string().nullable(),
+  "events": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "available": zod.boolean(),
+  "reason": zod.string(),
+  "closesAt": zod.string().nullable()
+})),
+  "deliveries": zod.array(zod.object({
+  "id": zod.string(),
+  "eventId": zod.string(),
+  "fireAt": zod.string(),
+  "closesAt": zod.string(),
+  "status": zod.enum(['pending', 'sending', 'unknown', 'queued', 'sent', 'delivered', 'failed', 'cancelled', 'skipped'])
+}))
+})
+
+
 export const getCosmeticsResponseDesignsItemIdRegExp = new RegExp('^custom_[a-f0-9-]{36}$');
 export const getCosmeticsResponseDesignsItemNameMax = 32;
 

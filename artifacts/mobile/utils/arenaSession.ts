@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createPlayerSession, setBaseUrl, type PlayerSession } from "@workspace/api-client-react";
+import { cancelSmsReminders, createPlayerSession, setBaseUrl, type PlayerSession } from "@workspace/api-client-react";
 import { getApiBase } from "./api";
 import { readCredential, writeCredential, removeCredential } from "./arenaCredentials";
 
@@ -8,6 +8,14 @@ const retiring = new Set<string>();
 const profileEpochs=new Map<string,number>();
 export const arenaProfileEpoch=(username:string)=>profileEpochs.get(username)??0;
 const keyFor=(user:string)=>"arena_session_" + Array.from(user).map(c => c.codePointAt(0)!.toString(16)).join("_");
+export async function cancelArenaSms(username: string) {
+  // Do not create a new identity just to sign out a local-only profile.
+  const saved = await readCredential(keyFor(username));
+  if (!saved) return;
+  const session = JSON.parse(saved) as PlayerSession;
+  setBaseUrl(getApiBase());
+  await cancelSmsReminders({ headers: { Authorization: `Bearer ${session.token}` }, signal: arenaTimeout() });
+}
 export async function retireArenaProfile(username:string) {
   const key=keyFor(username);
   retiring.add(key);

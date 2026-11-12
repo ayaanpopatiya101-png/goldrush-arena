@@ -15,6 +15,16 @@ could not unify an exact catalog pin with a newer transitive peer.
 inspect the full peer-context paths in the diagnostic and align the conflicting
 tool version, including aliases, before changing application configuration.
 
+The same peer-context rule applies to Drizzle's private SQL types across server
+and database packages.
+
+**Why:** Introducing a durable queue brought newer PostgreSQL and optional
+OpenTelemetry peers into one package only, generating incompatible nominal SQL
+types despite identical Drizzle versions.
+
+**How to apply:** Align both PostgreSQL and optional instrumentation peers across
+the packages; do not cast away hundreds of downstream SQL-type errors.
+
 Use a CommonJS-compatible patched UUID line for legacy Expo Node tooling unless
 the parent itself migrates; do not apply an ESM-only UUID major indiscriminately.
 

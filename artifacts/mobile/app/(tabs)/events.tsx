@@ -21,6 +21,7 @@ import {
 import { FEATURED_MODES, useFeaturedModeCountdown, type FeaturedMode } from '@/utils/featuredModes';
 import { deviceTimeZone, fmtLocal, fmtSpan, localChallengeWindow, scheduleWindow, useEventPrefs } from '@/utils/eventPrefs';
 import { EventNotificationPanel } from '@/components/EventNotificationPanel';
+import { SmsReminderPanel } from '@/components/SmsReminderPanel';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 
 const MIN_RANK = RANKS[EVENT_MIN_RANK_INDEX];
@@ -141,6 +142,7 @@ export default function EventsScreen() {
         contentContainerStyle={{ paddingTop: 4, paddingBottom: insets.bottom + 144 }} showsVerticalScrollIndicator={false}>
         <Shell style={{ gap: 18 }}>
           <EventNotificationPanel />
+          <SmsReminderPanel source="events" />
           {isInParty && (
             <Panel style={[s.pad, s.partyBar]}>
               <Feather name="users" size={20} color={palette.foreground} />

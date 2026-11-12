@@ -8,7 +8,7 @@ import { LinearGradient } from '@/components/ui/Flat';
 import { router } from 'expo-router';
 import * as StoreReview from 'expo-store-review';
 import React, { useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, View, useWindowDimensions } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, Switch, View, useWindowDimensions } from 'react-native';
 import Reanimated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettings } from '@/hooks/useSettings';
@@ -17,6 +17,8 @@ import { FloatingOrbs, GlowBorder } from '@/components/effects';
 import { Glyph } from '@/components/ui/Glyph';
 import { SupportHelp } from '@/components/SupportHelp';
 import { cancelAutomaticRematch } from '@/store/rematch';
+import { SmsReminderPanel } from '@/components/SmsReminderPanel';
+import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const SENSITIVITY_OPTIONS = [
@@ -58,7 +60,7 @@ export default function SettingsScreen() {
   function handleLogout() {
     const signOut = () => {
       setLogoutError(null);
-      void logout().catch(() => setLogoutError('Could not complete sign-out or cancel pending phone reminders. Retry, or turn off GoldRush notifications in your phone settings.'));
+      void logout().catch(() => setLogoutError('Could not complete sign-out or cancel reminders. Connect and retry. For SMS, reply STOP to the GoldRush sender; device settings only stop device notifications.'));
     };
     if (Platform.OS === 'web') {
       if (window.confirm('Sign out? You will be returned to the login screen.')) signOut();
@@ -100,7 +102,9 @@ export default function SettingsScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
+      <KeyboardAwareScrollViewCompat
+        bottomOffset={60}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingBottom: safe.bottom + 40 }}
         showsVerticalScrollIndicator={false}
       >
@@ -156,11 +160,12 @@ export default function SettingsScreen() {
               <View style={s.rowIcon}><Feather name="bell" size={18} color={palette.primary} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.rowTitle}>Phone event reminders</Text>
-                <Text style={s.rowSub}>Installed app: allow alerts, choose events and set how early to be reminded. Browser: in-app reminders only.</Text>
+                <Text style={s.rowSub}>Installed app: allow alerts, choose events and set how early to be reminded. Browser: in-app reminders only. Texts are managed separately below.</Text>
               </View>
               <Feather name="chevron-right" size={18} color={palette.supporting} />
             </Pressable>
           </View>
+          <SmsReminderPanel source="settings" />
         </View>
 
         <View style={s.section}>
@@ -422,7 +427,7 @@ export default function SettingsScreen() {
           </View>
         </View>
         </Shell>
-      </ScrollView>
+      </KeyboardAwareScrollViewCompat>
     </Reanimated.View>
   );
 }

@@ -37,7 +37,11 @@ import type {
   PaddleDesign,
   PlayerSession,
   QueueInput,
-  RequestAvatarUpload200
+  RequestAvatarUpload200,
+  SmsCodeInput,
+  SmsReminderInput,
+  SmsReminderState,
+  SmsVerificationInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -51,6 +55,534 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
+
+export const getGetSmsRemindersUrl = () => {
+
+
+
+
+  return `/api/sms-reminders`
+}
+
+export const getSmsReminders = async ( options?: RequestInit): Promise<SmsReminderState> => {
+
+  return customFetch<SmsReminderState>(getGetSmsRemindersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSmsRemindersQueryKey = () => {
+    return [
+    `/api/sms-reminders`
+    ] as const;
+    }
+
+
+export const getGetSmsRemindersQueryOptions = <TData = Awaited<ReturnType<typeof getSmsReminders>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSmsReminders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSmsRemindersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSmsReminders>>> = ({ signal }) => getSmsReminders({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSmsReminders>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSmsRemindersQueryResult = NonNullable<Awaited<ReturnType<typeof getSmsReminders>>>
+export type GetSmsRemindersQueryError = ErrorType<unknown>
+
+
+
+export function useGetSmsReminders<TData = Awaited<ReturnType<typeof getSmsReminders>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSmsReminders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSmsRemindersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveSmsRemindersUrl = () => {
+
+
+
+
+  return `/api/sms-reminders`
+}
+
+export const saveSmsReminders = async (smsReminderInput: SmsReminderInput, options?: RequestInit): Promise<SmsReminderState> => {
+
+  return customFetch<SmsReminderState>(getSaveSmsRemindersUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      smsReminderInput,)
+  }
+);}
+
+
+
+
+export const getSaveSmsRemindersMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveSmsReminders>>, TError,{data: BodyType<SmsReminderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveSmsReminders>>, TError,{data: BodyType<SmsReminderInput>}, TContext> => {
+
+const mutationKey = ['saveSmsReminders'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveSmsReminders>>, {data: BodyType<SmsReminderInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveSmsReminders(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveSmsRemindersMutationResult = NonNullable<Awaited<ReturnType<typeof saveSmsReminders>>>
+    export type SaveSmsRemindersMutationBody = BodyType<SmsReminderInput>
+    export type SaveSmsRemindersMutationError = ErrorType<unknown>
+
+    export const useSaveSmsReminders = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveSmsReminders>>, TError,{data: BodyType<SmsReminderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveSmsReminders>>,
+        TError,
+        {data: BodyType<SmsReminderInput>},
+        TContext
+      > => {
+      return useMutation(getSaveSmsRemindersMutationOptions(options));
+    }
+
+export const getRemoveSmsNumberUrl = () => {
+
+
+
+
+  return `/api/sms-reminders`
+}
+
+export const removeSmsNumber = async ( options?: RequestInit): Promise<SmsReminderState> => {
+
+  return customFetch<SmsReminderState>(getRemoveSmsNumberUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getRemoveSmsNumberMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeSmsNumber>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeSmsNumber>>, TError,void, TContext> => {
+
+const mutationKey = ['removeSmsNumber'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeSmsNumber>>, void> = () => {
+
+
+          return  removeSmsNumber(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveSmsNumberMutationResult = NonNullable<Awaited<ReturnType<typeof removeSmsNumber>>>
+
+    export type RemoveSmsNumberMutationError = ErrorType<unknown>
+
+    export const useRemoveSmsNumber = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeSmsNumber>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeSmsNumber>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRemoveSmsNumberMutationOptions(options));
+    }
+
+export const getRequestSmsVerificationUrl = () => {
+
+
+
+
+  return `/api/sms-reminders/verification`
+}
+
+export const requestSmsVerification = async (smsVerificationInput: SmsVerificationInput, options?: RequestInit): Promise<SmsReminderState> => {
+
+  return customFetch<SmsReminderState>(getRequestSmsVerificationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      smsVerificationInput,)
+  }
+);}
+
+
+
+
+export const getRequestSmsVerificationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestSmsVerification>>, TError,{data: BodyType<SmsVerificationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestSmsVerification>>, TError,{data: BodyType<SmsVerificationInput>}, TContext> => {
+
+const mutationKey = ['requestSmsVerification'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestSmsVerification>>, {data: BodyType<SmsVerificationInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  requestSmsVerification(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestSmsVerificationMutationResult = NonNullable<Awaited<ReturnType<typeof requestSmsVerification>>>
+    export type RequestSmsVerificationMutationBody = BodyType<SmsVerificationInput>
+    export type RequestSmsVerificationMutationError = ErrorType<unknown>
+
+    export const useRequestSmsVerification = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestSmsVerification>>, TError,{data: BodyType<SmsVerificationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof requestSmsVerification>>,
+        TError,
+        {data: BodyType<SmsVerificationInput>},
+        TContext
+      > => {
+      return useMutation(getRequestSmsVerificationMutationOptions(options));
+    }
+
+export const getCheckSmsVerificationUrl = () => {
+
+
+
+
+  return `/api/sms-reminders/verification/check`
+}
+
+export const checkSmsVerification = async (smsCodeInput: SmsCodeInput, options?: RequestInit): Promise<SmsReminderState> => {
+
+  return customFetch<SmsReminderState>(getCheckSmsVerificationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      smsCodeInput,)
+  }
+);}
+
+
+
+
+export const getCheckSmsVerificationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkSmsVerification>>, TError,{data: BodyType<SmsCodeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof checkSmsVerification>>, TError,{data: BodyType<SmsCodeInput>}, TContext> => {
+
+const mutationKey = ['checkSmsVerification'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof checkSmsVerification>>, {data: BodyType<SmsCodeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  checkSmsVerification(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CheckSmsVerificationMutationResult = NonNullable<Awaited<ReturnType<typeof checkSmsVerification>>>
+    export type CheckSmsVerificationMutationBody = BodyType<SmsCodeInput>
+    export type CheckSmsVerificationMutationError = ErrorType<unknown>
+
+    export const useCheckSmsVerification = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkSmsVerification>>, TError,{data: BodyType<SmsCodeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof checkSmsVerification>>,
+        TError,
+        {data: BodyType<SmsCodeInput>},
+        TContext
+      > => {
+      return useMutation(getCheckSmsVerificationMutationOptions(options));
+    }
+
+export const getCancelSmsRemindersUrl = () => {
+
+
+
+
+  return `/api/sms-reminders/cancel`
+}
+
+export const cancelSmsReminders = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCancelSmsRemindersUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCancelSmsRemindersMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSmsReminders>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelSmsReminders>>, TError,void, TContext> => {
+
+const mutationKey = ['cancelSmsReminders'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelSmsReminders>>, void> = () => {
+
+
+          return  cancelSmsReminders(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelSmsRemindersMutationResult = NonNullable<Awaited<ReturnType<typeof cancelSmsReminders>>>
+
+    export type CancelSmsRemindersMutationError = ErrorType<unknown>
+
+    export const useCancelSmsReminders = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSmsReminders>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelSmsReminders>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCancelSmsRemindersMutationOptions(options));
+    }
+
+export const getSmsProviderStatusUrl = () => {
+
+
+
+
+  return `/api/sms-reminders/provider/status`
+}
+
+/**
+ * Twilio signed form callback; not a player endpoint.
+ */
+export const smsProviderStatus = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getSmsProviderStatusUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSmsProviderStatusMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof smsProviderStatus>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof smsProviderStatus>>, TError,void, TContext> => {
+
+const mutationKey = ['smsProviderStatus'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof smsProviderStatus>>, void> = () => {
+
+
+          return  smsProviderStatus(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SmsProviderStatusMutationResult = NonNullable<Awaited<ReturnType<typeof smsProviderStatus>>>
+
+    export type SmsProviderStatusMutationError = ErrorType<void>
+
+    export const useSmsProviderStatus = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof smsProviderStatus>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof smsProviderStatus>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSmsProviderStatusMutationOptions(options));
+    }
+
+export const getSmsProviderInboundUrl = () => {
+
+
+
+
+  return `/api/sms-reminders/provider/inbound`
+}
+
+/**
+ * Twilio signed form callback for STOP, START and HELP. No client may assert opt-in.
+ */
+export const smsProviderInbound = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getSmsProviderInboundUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSmsProviderInboundMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof smsProviderInbound>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof smsProviderInbound>>, TError,void, TContext> => {
+
+const mutationKey = ['smsProviderInbound'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof smsProviderInbound>>, void> = () => {
+
+
+          return  smsProviderInbound(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SmsProviderInboundMutationResult = NonNullable<Awaited<ReturnType<typeof smsProviderInbound>>>
+
+    export type SmsProviderInboundMutationError = ErrorType<void>
+
+    export const useSmsProviderInbound = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof smsProviderInbound>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof smsProviderInbound>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSmsProviderInboundMutationOptions(options));
+    }
 
 export const getGetCosmeticsUrl = () => {
 
