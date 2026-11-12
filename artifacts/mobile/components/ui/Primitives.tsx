@@ -35,7 +35,7 @@ export function usePressSink(depth = 3) {
 }
 
 export const ui = palette;
-export const R = 12;
+export const R = 14;
 
 export function Panel({ children, style, tone = 'base' }: { children?: React.ReactNode; style?: StyleProp<ViewStyle>; tone?: 'base' | 'raised' | 'outline' | 'paper' | 'brass' }) {
   return (
@@ -44,7 +44,7 @@ export function Panel({ children, style, tone = 'base' }: { children?: React.Rea
       tone === 'raised' && { backgroundColor: palette.raised },
       tone === 'outline' && { backgroundColor: 'transparent' },
       tone === 'paper' && { backgroundColor: palette.inset, borderColor: palette.edge },
-      tone === 'brass' && { backgroundColor: tactile.brass, borderColor: tactile.brassEdge },
+      tone === 'brass' && { backgroundColor: tactile.brass, borderColor: tactile.brass, borderBottomColor: palette.goldEdge },
       style,
     ]}>
       {children}
@@ -65,7 +65,7 @@ export function SectionLabel({ title, right, style }: { title: string; right?: R
 type BtnProps = {
   label: string;
   onPress?: () => void;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'gold';
   icon?: React.ComponentProps<typeof Feather>['name'];
   disabled?: boolean;
   loading?: boolean;
@@ -78,7 +78,7 @@ type BtnProps = {
 export function Button({ label, onPress, variant = 'primary', icon, disabled, loading, size = 'md', style, testID, accessibilityHint }: BtnProps) {
   const sink = usePressSink(3);
   const { outer, inner } = splitLayout(style);
-  const fg = disabled && !loading ? palette.muted : variant === 'primary' ? palette.onAccent : variant === 'secondary' ? palette.foreground : variant === 'danger' ? palette.gold : palette.foreground;
+  const fg = disabled && !loading ? palette.muted : variant === 'primary' || variant === 'gold' ? palette.onAccent : variant === 'secondary' ? palette.foreground : variant === 'danger' ? palette.gold : palette.foreground;
   return (
     <Animated.View style={[outer, sink.style]}>
     <Pressable
@@ -97,7 +97,8 @@ export function Button({ label, onPress, variant = 'primary', icon, disabled, lo
         p.btn,
         size === 'lg' && p.btnLg,
         size === 'sm' && p.btnSm,
-        variant === 'primary' && { backgroundColor: palette.primary, borderColor: '#4E9A2A' },
+        variant === 'primary' && { backgroundColor: palette.primary, borderColor: palette.primary, borderBottomColor: palette.primaryEdge },
+        variant === 'gold' && { backgroundColor: palette.gold, borderColor: palette.gold, borderBottomColor: palette.goldEdge },
         pressed && !(disabled || loading) && p.btnPressed,
         variant === 'secondary' && { backgroundColor: pressed ? palette.surface : palette.raised, borderColor: palette.border, borderBottomColor: palette.edge },
         variant === 'ghost' && { backgroundColor: pressed ? palette.raised : 'transparent', borderColor: palette.border },
@@ -155,10 +156,10 @@ const p = StyleSheet.create({
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   sectionTitle: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.4, color: palette.foreground, textTransform: 'uppercase' },
   sectionRule: { flex: 1, height: 1, backgroundColor: palette.line },
-  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 2, borderBottomWidth: 5, borderRadius: R, minHeight: 48, paddingHorizontal: 16 },
+  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 2, borderBottomWidth: 5, borderRadius: 999, minHeight: 48, paddingHorizontal: 16 },
   // Instant press feedback, without an animated transition.
   btnPressed: { borderBottomWidth: 2 },
-  btnLg: { minHeight: 60, paddingHorizontal: 20 },
+  btnLg: { minHeight: 60, paddingHorizontal: 20, borderRadius: R + 4 },
   btnSm: { minHeight: 44, paddingHorizontal: 10 },
   btnText: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.2, textTransform: 'uppercase' },
   btnTextLg: { fontSize: 26, letterSpacing: 2 },
@@ -195,7 +196,7 @@ export function ScreenTitle({ title, kicker, right, style, tone = 'light' }: { t
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         {kicker ? <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.supporting, textTransform: 'uppercase' }}>{kicker}</Text> : null}
-        <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 34, letterSpacing: -0.5, color: palette.foreground, textTransform: 'uppercase' }}>{title}</Text>
+        <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 34, letterSpacing: 0.4, color: palette.foreground, textTransform: 'uppercase' }}>{title}</Text>
       </View>
       {right}
     </View>

@@ -1,43 +1,53 @@
-// GoldRush Arena: Slate Arcade. Blue-slate canvas, lighter slate panels, green action, gold identity.
+// GoldRush Arena: Slate Arcade. Green-tinted slate canvas, lighter slate panels, green action, gold identity.
 // Surfaces and foregrounds are paired by explicit role. Lime fills always carry dark ink.
 // PLAYER_COLORS are user/seat cosmetic defaults and intentionally unchanged.
 const PLAYER_COLORS = ['#F36B3F', '#EDBA3C', '#EEE9DE', '#E3DFD3'] as const;
 // Kept for API compatibility; no glow is rendered. Same as seat colors.
 const PLAYER_GLOW = PLAYER_COLORS;
 
+/** Reference court diagram rival colours (sampled). Used only for illustrative diagrams, not player cosmetics. */
+export const diagram = { rivalTop: '#F6CA45', rivalLeft: '#EC5A53', rivalRight: '#53ADF0', you: '#78C93D' } as const;
+
 const role = {
   /** 60%: app canvas. */
-  background: '#151C27',
+  background: '#161F23',
   /** Deepest wells, hard cabinet edges, modal scrims. */
-  deepest: '#0B1018',
+  deepest: '#0B1114',
   /** Inset wells, court, tracks, inputs. */
-  inset: '#111823',
+  inset: '#0F161A',
   /** 30%: panels, cards, sheets, tab bar. */
-  surface: '#222C3A',
+  surface: '#233037',
   /** Raised plates, pressed/hovered secondary controls. */
-  raised: '#2D3949',
+  raised: '#2C3A42',
   /** Hairlines and outlines. */
-  border: '#3B485A',
+  border: '#3C4D59',
   /** Heavy bevel edge under plates and buttons. */
-  edge: '#0B1018',
+  edge: '#0B1114',
   /** Primary text on carbon/moss/inset/raised. */
-  foreground: '#F1F4F8',
+  foreground: '#F2F5F4',
   /** Supporting text on carbon/moss/inset/raised. */
-  supporting: '#AEB9C8',
+  supporting: '#A9B8BF',
   /** Disabled / tertiary text (only on dark surfaces). */
-  muted: '#8492A5',
+  muted: '#8697A0',
   /** 10%: primary CTA, selected state, meaningful progress. */
-  primary: '#6CCB3C',
+  primary: '#78C93D',
   /** Dark ink for text/icons on lime or gold fills. */
-  onAccent: '#151C27',
+  onAccent: '#161F23',
+  /** Lower bevel edge under lime fills. */
+  primaryEdge: '#5FA12F',
+  /** Lower bevel edge under gold fills. */
+  goldEdge: '#C99A1E',
   /** Errors, losses and destructive states. */
   danger: '#EF5D57',
   /** Brand and reward detail only. */
-  gold: '#F5C531',
+  gold: '#F6CA45',
 } as const;
 
 export const palette = {
   ...role,
+  /** Reference rival accents for icons on dark surfaces only. */
+  rivalRed: '#EC5A53',
+  rivalBlue: '#53ADF0',
   onPrimary: role.onAccent,
   onGold: role.onAccent,
   // Legacy names, remapped by role. Remaining references are context-specific

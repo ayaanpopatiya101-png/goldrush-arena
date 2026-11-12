@@ -1,20 +1,22 @@
 // Photo avatar editor: pick, square crop (drag, zoom, or buttons), stage, save, share, remove.
-import React, { useMemo, useRef, useState } from 'react';
-import { Image, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Image, Modal, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
 import { Button } from '@/components/ui/Primitives';
-import { palette, tactile } from '@/constants/colors';
+import { palette } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { useAvatar } from '@/hooks/useAvatar';
-import { clamp, openAppSettings, pickAvatarPhoto, renderSquareCrop, type PickedPhoto } from '@/utils/avatarImage';
+import { clamp, openAppSettings, pickAvatarPhoto, renderSquareCrop, type PhotoSource, type PickedPhoto, type PickOutcome } from '@/utils/avatarImage';
 
 const VIEW = 240;
 const MAX_ZOOM = 4;
 
-interface Props { username: string; frameColor: string; testID?: string }
+interface Props { username: string; frameColor: string; testID?: string; /** External chooser request; a new nonce opens that picker source. */ pickRequest?: PhotoPickRequest | null }
+/** A chooser request. On web, `pending` is started synchronously inside the user's tap so the browser keeps user activation. */
+export type PhotoPickRequest = { source: PhotoSource; nonce: number; pending?: Promise<PickOutcome> };
 
-export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar' }: Props) {
+export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar', pickRequest }: Props) {
   const avatar = useAvatar(username);
   const [source, setSource] = useState<PickedPhoto | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -56,12 +58,19 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
     },
   }), []);
 
-  async function onPick() {
-    if (busyRef.current) return;
+  const pickRef = useRef<(src?: PhotoSource, pending?: Promise<PickOutcome>) => Promise<void>>(async () => {});
+  useEffect(() => {
+    // Native: open after the menu modal has closed. Web: only await the picker already opened in the tap.
+    if (pickRequest) void pickRef.current(pickRequest.source, pickRequest.pending);
+  }, [pickRequest?.nonce]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function onPick(src: PhotoSource = 'library', pending?: Promise<PickOutcome>) {
+    if (busyRef.current) { pending?.catch(() => {}); return; }
     busyRef.current = true;
     setError(null); setNotice(null); setDenied(null); setBusy('pick');
     try {
-      const out = await pickAvatarPhoto();
+      const out = await (pending ?? pickAvatarPhoto(src));
+      if (out.kind === 'cancelled') setNotice('No photo chosen. Your saved look is unchanged.');
       if (out.kind === 'picked') { setSource(out.photo); setZoom(1); setPan({ x: 0, y: 0 }); setStaged(null); setShareDraft(false); setConfirmRemove(false); }
       else if (out.kind === 'denied') setDenied({ canAskAgain: out.canAskAgain });
       else if (out.kind === 'invalid') setError(out.message);
@@ -69,6 +78,8 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
       setError('The photo picker could not open. Try again.');
     } finally { setBusy(null); busyRef.current = false; }
   }
+
+  pickRef.current = onPick;
 
   async function onApplyCrop() {
     if (!source || !geo || busyRef.current) return;
@@ -157,7 +168,7 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
       {!source ? (
         <View style={st.wrapRow}>
           <Button testID={`${testID}-pick`} label={saved ? 'Change photo' : 'Upload photo'} icon="image" size="sm"
-            variant="secondary" loading={busy === 'pick'} disabled={avatar.loading || (!!busy && busy !== 'pick')} onPress={onPick} />
+            variant="secondary" loading={busy === 'pick'} disabled={avatar.loading || (!!busy && busy !== 'pick')} onPress={() => void onPick()} />
           {saved ? (
             <Button testID={`${testID}-share`} label={shared ? 'Make private' : 'Publish to opponents'} icon={shared ? 'eye-off' : 'eye'}
               size="sm" variant="ghost" loading={busy === 'share'} disabled={avatar.loading || (!!busy && busy !== 'share')} onPress={onToggleShared} />
@@ -187,7 +198,7 @@ export function PhotoAvatarEditor({ username, frameColor, testID = 'photo-avatar
           </Text>
           <View style={st.row}>
             {denied.canAskAgain || Platform.OS === 'web'
-              ? <Button testID={`${testID}-ask-again`} label="Ask again" size="sm" variant="secondary" onPress={onPick} />
+              ? <Button testID={`${testID}-ask-again`} label="Ask again" size="sm" variant="secondary" onPress={() => void onPick()} />
               : <Button testID={`${testID}-settings`} label="Open Settings" icon="settings" size="sm" variant="secondary" onPress={() => void openAppSettings().catch(() => setError('Settings could not open. Open your device Settings, find GoldRush Arena, and allow photo access.'))} />}
             <Button testID={`${testID}-denied-dismiss`} label="Not now" size="sm" variant="ghost" onPress={() => setDenied(null)} />
           </View>
@@ -274,11 +285,15 @@ export function AvatarPhoto({ username, size, children }: { username: string; si
 }
 
 const st = StyleSheet.create({
-  root: { gap: 10, padding: 14, backgroundColor: palette.surface, borderWidth: 1, borderRadius: 12, borderColor: tactile.brass },
+  scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(17,21,23,0.72)' },
+  side: { position: 'absolute', top: 0, bottom: 0, right: 0, width: '84%', maxWidth: 360, padding: 18, paddingTop: Platform.OS === 'web' ? 67 : 56, gap: 12, backgroundColor: palette.surface, borderLeftWidth: 2, borderLeftColor: palette.border, borderTopLeftRadius: 22, borderBottomLeftRadius: 22 },
+  option: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 64, padding: 12, borderRadius: 16, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge, backgroundColor: palette.raised },
+  optionIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.primary },
+  root: { gap: 10, padding: 14, backgroundColor: palette.surface, borderWidth: 1.5, borderBottomWidth: 4, borderRadius: 16, borderColor: palette.border, borderBottomColor: palette.edge },
   headRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
   wrapRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  thumb: { width: 56, height: 56, borderWidth: 3, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: palette.background },
+  thumb: { width: 56, height: 56, borderRadius: 14, borderWidth: 3, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: palette.background },
   fill: { width: '100%', height: '100%' },
   skeleton: { width: '100%', height: '100%', backgroundColor: palette.surface },
   title: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
@@ -286,13 +301,52 @@ const st = StyleSheet.create({
   meta: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.supporting },
   help: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.foreground },
   error: { fontFamily: fonts.bodySemiBold, fontSize: 15, lineHeight: 21, color: palette.foreground, borderLeftWidth: 4, borderLeftColor: palette.primary, paddingLeft: 10 },
-  confirm: { gap: 8, padding: 10, borderWidth: 1, borderColor: palette.border, backgroundColor: palette.background },
-  viewport: { width: VIEW, height: VIEW, overflow: 'hidden', borderWidth: 3, backgroundColor: palette.inset },
+  confirm: { gap: 8, padding: 10, borderRadius: 12, borderWidth: 1, borderColor: palette.border, backgroundColor: palette.background },
+  viewport: { width: VIEW, height: VIEW, borderRadius: 16, overflow: 'hidden', borderWidth: 3, backgroundColor: palette.inset },
   controls: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 8 },
   ctl: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 8, borderColor: palette.border, backgroundColor: palette.raised },
   readout: { fontFamily: fonts.display, fontSize: 20, color: palette.foreground, minWidth: 56, textAlign: 'center' },
-  staged: { width: 96, height: 96, borderWidth: 3 },
+  staged: { width: 96, height: 96, borderRadius: 16, borderWidth: 3 },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44 },
-  switchTrack: { width: 52, height: 30, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.background, padding: 2, justifyContent: 'center' },
-  switchKnob: { width: 22, height: 22, backgroundColor: palette.deepest },
+  switchTrack: { width: 52, height: 30, borderRadius: 15, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.background, padding: 2, justifyContent: 'center' },
+  switchKnob: { width: 22, height: 22, borderRadius: 11, backgroundColor: palette.foreground },
 });
+
+/** Side action sheet: choose where a new profile photo comes from. Web offers library and file; native offers the system photo library. */
+export function PhotoSourceMenu({ open, onClose, onChoose }: { open: boolean; onClose: () => void; onChoose: (req: PhotoPickRequest) => void }) {
+  const options: { src: PhotoSource; icon: React.ComponentProps<typeof Feather>['name']; title: string; sub: string }[] = [
+    { src: 'library', icon: 'image', title: 'Photo library', sub: 'Pick a photo you already have' },
+    ...(Platform.OS === 'web' ? [{ src: 'file' as const, icon: 'upload' as const, title: 'Upload image file', sub: 'JPEG, PNG or WebP up to 5 MB' }] : []),
+  ];
+  return (
+    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={st.scrim} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close photo menu" />
+      <View style={st.side} accessibilityViewIsModal aria-modal>
+        <View style={st.headRow}>
+          <Text style={[st.title, { flex: 1 }]} accessibilityRole="header">Profile photo</Text>
+          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close photo menu" style={st.ctl}>
+            <Feather name="x" size={18} color={palette.foreground} />
+          </Pressable>
+        </View>
+        <Text style={st.meta}>Photos stay private unless you publish them.</Text>
+        {options.map(o => (
+          <Pressable key={o.src} testID={`photo-source-${o.src}`} onPress={() => {
+              // Web: open the browser picker synchronously in this tap (user activation); hand the result to the crop editor.
+              const pending = Platform.OS === 'web' ? pickAvatarPhoto(o.src) : undefined;
+              onClose();
+              onChoose({ source: o.src, nonce: Date.now(), pending });
+            }}
+            accessibilityRole="button" accessibilityLabel={o.title} accessibilityHint={o.sub}
+            style={({ pressed }) => [st.option, pressed && { borderBottomWidth: 1.5, transform: [{ translateY: 2 }] }]}>
+            <View style={st.optionIcon}><Feather name={o.icon} size={20} color={palette.onAccent} /></View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={st.label}>{o.title}</Text>
+              <Text style={st.meta}>{o.sub}</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color={palette.supporting} />
+          </Pressable>
+        ))}
+      </View>
+    </Modal>
+  );
+}

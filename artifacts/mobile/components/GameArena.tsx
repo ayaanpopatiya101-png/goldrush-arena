@@ -34,6 +34,8 @@ const SUPER_MAX_CHARGE      = 10;
 const SUPER_DURATION_FRAMES = 180; // 3 s @ 60 fps
 const POWERUP_SPAWN_FRAMES = 420;
 const INITIAL_LIVES = 5;
+/** Engine default lives per player, exported so marketing copy stays accurate. */
+export const DEFAULT_LIVES = INITIAL_LIVES;
 const INITIAL_SPEED = 5.2;
 const MAX_SPEED = 14;
 const DUEL_TIME_LIMIT = 60;     // seconds before sudden-death winner declared

@@ -11,12 +11,9 @@ import { AvatarPhoto } from '@/components/appearance/PhotoAvatarEditor';
 import { GameArena } from '@/components/GameArena';
 import { LiveEventBanner } from '@/components/LiveEventBanner';
 import { Glyph } from '@/components/ui/Glyph';
-import { RankBadge } from '@/components/RankBadge';
 import { Button, Chip, IconButton, Panel, SectionLabel, Shell, Stat, ui } from '@/components/ui/Primitives';
 import { PLAYER_COLORS, palette } from '@/constants/colors';
-import { tactile } from '@/constants/colors';
 import { CURRENT_SEASON } from '@/constants/season';
-import { BrandMark } from '@/components/ui/BrandMark';
 import { fonts } from '@/constants/typography';
 import {
   RANKS, getRankIndex, SEASON_TIERS, SKINS, SUPERS, usePlayer, xpForNextRank, xpToLevel,
@@ -80,7 +77,7 @@ const PREVIEW_RANKS = ['Gold', 'Gold', 'Gold'];
 const SEAT_NAMES = ['South', 'North', 'West', 'East'];
 
 // ─── Spectator demo: no session, queue, rewards or inventory writes ────────────
-function ArenaPreview({ size, playerColor }: { size: number; playerColor: string }) {
+function ArenaPreview({ size, playerColor, skinName }: { size: number; playerColor: string; skinName: string }) {
   const [focused, setFocused] = useState(true);
   useFocusEffect(useCallback(() => { setFocused(true); return () => setFocused(false); }, []));
   const reduced = useReducedMotion();
@@ -90,14 +87,28 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
   const [motionAllowed, setMotionAllowed] = useState(false);
   const stopped = userPaused || (reduced && !motionAllowed);
   const active = focused && visibility.visible && !stopped;
-  const courtSize = Math.floor(size * 0.78);
+  const courtSize = Math.floor(Math.min(size - 40, 200));
 
   const restart = useCallback(() => setRun(r => r + 1), []);
 
   return (
-    <View style={{ width: size, alignSelf: 'center' }}>
-      <View style={[a.frame, { width: size, padding: Math.floor(size * 0.085) }]}>
-        <View ref={visibility.ref} style={[a.brassFrame, { width: courtSize + 10, height: courtSize + 10 }]}>
+    <View style={a.frame}>
+      <View style={a.arenaLabel}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={[a.dot, stopped && { backgroundColor: palette.muted }]} />
+          <Text style={a.arenaTitle}>{stopped ? 'DEMO PAUSED' : 'ARENA DEMO'}</Text>
+        </View>
+        <Text style={a.arenaMeta} accessibilityLabel="Demo seats: four computer-controlled bots, no live players">4 BOTS · WATCH ONLY</Text>
+      </View>
+      <Pressable
+        testID="preview-pause"
+        onPress={() => { if (stopped) { setMotionAllowed(true); setUserPaused(false); } else setUserPaused(true); }}
+        accessibilityRole="button"
+        accessibilityLabel={stopped ? 'Resume bot demo' : 'Pause bot demo'}
+        accessibilityHint="Pauses or resumes the watch-only bot demonstration"
+        style={{ alignSelf: 'center' }}
+      >
+        <View ref={visibility.ref} style={[a.court, { width: courtSize + 6, height: courtSize + 6 }]}>
           <GameArena
             key={run}
             arenaSize={courtSize}
@@ -117,41 +128,38 @@ function ArenaPreview({ size, playerColor }: { size: number; playerColor: string
             noPowerups
             paused={!active}
           />
-        </View>
-        <View style={a.arenaLabel}>
-          <Text style={a.arenaTitle}>ARENA DEMO</Text>
-          <Text style={a.arenaMeta}>4 bots</Text>
-        </View>
-      </View>
-      {/* Seat scoreboard: truthful identity for each paddle */}
-      <View style={a.seats} accessibilityLabel="Demo seats: four computer-controlled bots, no live players">
-        {SEAT_NAMES.map((seat, i) => (
-          <View key={seat} style={[a.seat, i < 3 && a.seatDivider]}>
-            <View style={[a.seatSwatch, { backgroundColor: i === 0 ? playerColor : PLAYER_COLORS[i] }]} />
-            <View style={{ flex: 1 }}>
-              <Text style={a.seatPos}>{seat} · Bot</Text>
-              <Text style={a.seatWho} numberOfLines={1}>{DEMO_NAMES[i]}</Text>
+          {stopped ? (
+            <View style={a.pausedVeil} pointerEvents="none">
+              <Feather name="play" size={26} color={palette.foreground} />
             </View>
+          ) : null}
+        </View>
+      </Pressable>
+      <Text style={a.caption}>
+        {reduced && !motionAllowed ? 'Paused for Reduce Motion. Tap the court to watch.' : 'Four bots, normal pace. Tap the court to pause. No rewards or lives spent.'}
+      </Text>
+      <View style={a.equipRow}>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={a.equipKicker}>EQUIPPED PADDLE</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={[a.swatch, { backgroundColor: playerColor }]} />
+            <Text style={a.equipName} numberOfLines={1}>{skinName}</Text>
           </View>
-        ))}
+        </View>
+        <Pressable testID="home-studio" onPress={() => router.push('/paddle-studio')} accessibilityRole="button" accessibilityLabel="Open paddle studio"
+          style={({ pressed }) => [a.studioBtn, pressed && { transform: [{ translateY: 2 }], borderBottomWidth: 1.5 }]}>
+          <Feather name="aperture" size={15} color={palette.rivalBlue} />
+          <Text style={a.studioTxt}>STUDIO</Text>
+        </Pressable>
       </View>
-      <View style={a.captionRow}>
-        <Text style={[a.caption, { flex: 1 }]}>
-          {reduced && !motionAllowed ? 'Demo paused for Reduce Motion. Resume to watch.' : 'Watch four bots play. Repeats automatically. No rewards or lives spent.'}
-        </Text>
-          <Button
-            testID="preview-pause"
-            label={stopped ? 'Resume' : 'Pause'}
-            size="sm"
-            variant="ghost"
-            icon={stopped ? 'play' : 'pause'}
-            accessibilityHint="Pauses or resumes the watch-only bot demonstration"
-            onPress={() => { if (stopped) { setMotionAllowed(true); setUserPaused(false); } else setUserPaused(true); }}
-          />
-      </View>
-      <Button label="Full-screen warm-up" variant="secondary" onPress={() => router.push('/warmup')} />
     </View>
   );
+}
+
+function StatPill({ icon, color, value, label, onPress, testID }: { icon: React.ComponentProps<typeof Feather>['name']; color: string; value: string; label: string; onPress?: () => void; testID?: string }) {
+  const body = (<><Feather name={icon} size={14} color={color} /><Text style={s.pillTxt}>{value}</Text></>);
+  if (!onPress) return <View style={s.pill} accessible accessibilityLabel={label}>{body}</View>;
+  return <Pressable testID={testID} onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={({ pressed }) => [s.pill, pressed && { transform: [{ translateY: 2 }], borderBottomWidth: 1.5 }]}>{body}</Pressable>;
 }
 
 // ─── Home ────────────────────────────────────────────────────────────────────
@@ -175,7 +183,6 @@ export default function HomeScreen() {
 
   const playerRankIdx = getRankIndex(profile.rank);
   const rankInfo = xpForNextRank(profile.xp);
-  const rankData = RANKS.find(r => r.name === profile.rank) ?? RANKS[0];
   const skin = SKINS.find(s => s.id === profile.currentSkin) ?? SKINS[0]!;
   const winRate = profile.totalGames > 0 ? ((profile.wins / profile.totalGames) * 100).toFixed(1) : null;
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
@@ -252,13 +259,15 @@ export default function HomeScreen() {
     }
   }
 
-  function handlePlay() {
-    if (selectedLocked) return;
-    switch (selected.kind) {
+  function handlePlay() { launch(selected); }
+
+  function launch(m: ModeDef) {
+    if (isLocked(m)) return;
+    switch (m.kind) {
       case 'ranked': return launchMatch('ranked', 'classic');
       case 'casual': return launchMatch('casual', 'classic');
-      case 'variant': return launchMatch('casual', selected.variant!);
-      case 'elite': return launchMatch('ranked', selected.variant!);
+      case 'variant': return launchMatch('casual', m.variant!);
+      case 'elite': return launchMatch('ranked', m.variant!);
       case 'gauntlet': return startGauntletRun();
       case 'challenge': return void startChallenge();
       case 'arcade': return router.push('/arcade');
@@ -360,76 +369,135 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Shell style={{ paddingHorizontal: 0 }}>
-        {/* Header: player identity and wallet */}
-        <View style={s.header}>
-          <Pressable
-            onPress={() => router.push('/profile')}
-            accessibilityRole="button"
-            accessibilityLabel={`Profile, ${profile.name}, level ${xpToLevel(profile.xp)}`}
-            style={s.identity}
-          >
-            <View style={[s.avatar, { borderColor: profile.avatarFrameColor }]}>
-              <AvatarPhoto username={currentUsername} size={32}><Glyph value={profile.avatarEmoji} size={22} color={palette.onAccent} /></AvatarPhoto>
-            </View>
-            <View style={{ flexShrink: 1 }}>
-              <Text style={s.name} numberOfLines={1}>{profile.name}</Text>
-              <Text style={s.meta}>LV {xpToLevel(profile.xp)} · {profile.rank}</Text>
-            </View>
+        {/* Top stats: real device balances only */}
+        <View style={s.statsBar}>
+          <Pressable onPress={() => router.push('/profile')} accessibilityRole="button" accessibilityLabel={`Profile, ${profile.name}, level ${xpToLevel(profile.xp)}`}
+            style={[s.avatar, { borderColor: profile.avatarFrameColor }]}>
+            <AvatarPhoto username={currentUsername} size={34}><Glyph value={profile.avatarEmoji} size={20} color={palette.onAccent} /></AvatarPhoto>
           </Pressable>
-          <View style={s.headerRight}>
-            <View style={s.wallet} accessibilityLabel={`${profile.coins} coins`}>
-              <Feather name="disc" size={13} color={ui.ochre} />
-              <Text style={s.walletText}>{profile.coins.toLocaleString()}</Text>
-            </View>
-            <IconButton icon="award" label="Ranks" style={s.headerIcon} onPress={() => router.push('/leaderboard')} />
-            <IconButton icon="settings" label="Settings" style={s.headerIcon} onPress={() => router.push('/settings')} />
-          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, alignItems: 'center' }} style={{ flex: 1 }}>
+            <StatPill icon="zap" color={palette.rivalRed} value={String(profile.loginStreak)} label={`${profile.loginStreak} day login streak`} />
+            <StatPill icon="disc" color={palette.gold} value={profile.coins.toLocaleString()} label={`${profile.coins} coins`} />
+            <StatPill icon="award" color={palette.rivalBlue} value={profile.xp.toLocaleString()} label={`${profile.xp} XP, ${profile.rank}. Opens rankings.`} onPress={() => router.push('/leaderboard')} testID="home-rank" />
+            <StatPill icon="heart" color={palette.rivalRed} value={String(profile.extraLivesInventory ?? 0)} label={`${profile.extraLivesInventory ?? 0} bank lives`} />
+          </ScrollView>
+          <IconButton icon="settings" label="Settings" style={s.headerIcon} onPress={() => router.push('/settings')} />
         </View>
 
-        {/* Rank button: account XP rank (separate from seasonal skill rating) */}
-        <Pressable
-          testID="home-rank"
-          onPress={() => router.push('/leaderboard')}
-          accessibilityRole="button"
-          accessibilityLabel={`XP rank ${profile.rank}. ${rankInfo.next ? `${rankInfo.remaining.toLocaleString()} XP to ${rankInfo.next}` : 'Top rank reached'}. Opens rankings.`}
-          style={({ pressed }) => [s.rankBtn, pressed && s.rankBtnPressed]}
-        >
-          <RankBadge rank={profile.rank} size="md" showLabel={false} />
-          <View style={{ flex: 1, gap: 4 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-              <Text style={s.rankName} numberOfLines={1}>{profile.rank}</Text>
-              <Text style={s.rankKicker}>Account XP rank</Text>
+        {/* Season pass: real tiers by games played */}
+        {(() => {
+          const reached = SEASON_TIERS.filter(t => profile.totalGames >= t.games).length;
+          const claimable = SEASON_TIERS.findIndex((t, i) => profile.totalGames >= t.games && !profile.seasonPassClaimed.includes(i));
+          const next = SEASON_TIERS[reached];
+          const prev = reached > 0 ? SEASON_TIERS[reached - 1]!.games : 0;
+          const pct = next ? Math.min(1, (profile.totalGames - prev) / Math.max(1, next.games - prev)) : 1;
+          return (
+            <View style={[s.card, s.passCard]}>
+              <Pressable onPress={() => router.push('/trophyroad')} accessibilityRole="button" accessibilityLabel={`Open ${CURRENT_SEASON.label} pass`} style={s.passBadge}>
+                <Feather name="award" size={22} color={palette.onAccent} />
+              </Pressable>
+              <Pressable onPress={() => router.push('/trophyroad')} accessibilityRole="button" accessibilityLabel={`${CURRENT_SEASON.label} pass, tier ${reached} of ${SEASON_TIERS.length}`} style={{ flex: 1, minWidth: 0, gap: 6 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <Text style={s.passTitle}>{CURRENT_SEASON.label.toUpperCase()} PASS</Text>
+                  <View style={s.tierTag}><Text style={s.tierTagTxt}>TIER {reached}</Text></View>
+                </View>
+                <View style={s.passTrack}><View style={[s.passFill, { width: `${Math.round(pct * 100)}%` as never }]} /></View>
+                <Text style={s.passSub}>{next ? `${profile.totalGames} / ${next.games} games to ${next.name}` : 'Every tier reached'}</Text>
+              </Pressable>
+              {claimable >= 0
+                ? <Button testID="home-pass-claim" label="Claim" size="sm" variant="gold" onPress={() => claimSeasonTier(claimable)} />
+                : <Button testID="home-pass-view" label="View" size="sm" variant="secondary" onPress={() => router.push('/trophyroad')} />}
             </View>
-            <View style={s.xpTrack}>
-              <View style={[s.xpFill, { width: `${Math.round(rankInfo.progress * 100)}%` as never }]} />
-            </View>
-            <Text style={s.xpText}>{rankInfo.next ? `${rankInfo.remaining.toLocaleString()} XP to ${rankInfo.next}` : 'Top rank reached'} · Season skill is tracked separately</Text>
-          </View>
-          <Feather name="chevron-right" size={20} color={palette.gold} />
+          );
+        })()}
+
+        <Pressable testID="home-trophy-road" onPress={() => router.push('/trophyroad-map')} accessibilityRole="button"
+          accessibilityLabel={`Trophy Road, ${profile.gamesRoadCompleted ?? 0} completed games`}
+          style={({ pressed }) => [s.card, s.roadRow, pressed && { transform: [{ translateY: 2 }], borderBottomWidth: 2 }]}>
+          <Feather name="map" size={18} color={palette.gold} />
+          <Text style={s.roadTxt}>TROPHY ROAD</Text>
+          <Text style={[s.passSub, { flex: 1 }]} numberOfLines={1}>{profile.gamesRoadCompleted ?? 0} completed games</Text>
+          <Feather name="chevron-right" size={18} color={palette.supporting} />
         </Pressable>
 
-        <View style={{ paddingHorizontal: 18, marginTop: 10, gap: 4 }}>
-          <Button testID="home-trophy-road" label="Trophy Road" icon="map" variant="secondary" onPress={() => router.push('/trophyroad-map')} />
-          <Text style={s.xpText}>{profile.gamesRoadCompleted ?? 0} completed games on the play-earned track · XP milestones also kept</Text>
-        </View>
-        <View style={s.brandRow}>
-          <View style={s.brandMark}><BrandMark size={52} /></View>
-          <View style={{ flex: 1 }}>
-             <Text accessibilityRole="header" style={s.wordmark}>GOLD<Text style={{ color: palette.foreground }}>RUSH</Text></Text>
-            <Text style={s.brandCaption}>FOUR SIDES. ONE LEFT.</Text>
-          </View>
-          <Pressable accessibilityRole="button" accessibilityLabel={`Open ${CURRENT_SEASON.label} pass`} onPress={() => router.push('/trophyroad')} style={s.seasonStamp}>
-            <Text style={s.stampText}>S{CURRENT_SEASON.number}</Text>
-            <Text style={s.stampLabel}>PASS</Text>
-          </Pressable>
-        </View>
-
-        {/* Primary play task: mode, rules, opponents and Play together; preview beside on wide screens */}
+        {/* Arena demo + mode cards; side by side on wide screens */}
         <View style={[s.playArea, wide && s.playAreaWide]}>
-          <View style={[s.playPanel, wide && { flex: 1, maxWidth: 460 }]}>
+          <View style={wide ? { width: 420 } : undefined}>
+            <ArenaPreview size={Math.min(contentW, 420)} playerColor={skin.color} skinName={skin.name} />
+          </View>
+          <View style={[s.playPanel, wide && { flex: 1 }]}>
+            <View style={s.modeHead}>
+              <Text style={s.modeHeadTitle} accessibilityRole="header">CHOOSE GAME MODE</Text>
+              <Text style={s.modeHeadMeta}>4-PLAYER LOBBY</Text>
+            </View>
+
+            {/* Ranked: primary */}
+            <View style={[s.card, s.rankedCard]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={s.rankedIcon}><Feather name="crosshair" size={22} color={palette.onAccent} /></View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={s.cardTitle}>RANKED QUAD ARENA</Text>
+                  <Text style={s.cardSub}>4 seats · 5 lives · season skill rating</Text>
+                </View>
+              </View>
+              <View style={s.rankedFoot}>
+                <Text style={s.rankedMeta}>{rankInfo.next ? `${rankInfo.remaining.toLocaleString()} XP to ${rankInfo.next}` : 'Top XP rank'}</Text>
+                <Button testID="home-play-ranked" label={partyBlocks && MODES[0]!.partyLaunch ? 'Leader picks' : isInParty && isLeader ? 'Play with party' : 'Play'}
+                  icon="play" disabled={waitingOnLeader} onPress={() => { setSelectedKey('ranked'); void launch(MODES[0]!); }} />
+              </View>
+            </View>
+
+            <View style={[s.card, s.modeRow]}>
+              <View style={s.modeIcon}><Feather name="cpu" size={18} color={palette.supporting} /></View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={s.cardTitle}>PRACTICE COURT</Text>
+                <Text style={s.cardSub}>Offline warm-up vs 3 local bots</Text>
+              </View>
+              <Button testID="home-warmup" label="Warm up" size="sm" variant="secondary" onPress={() => router.push('/practice')} />
+            </View>
+
+            <View style={[s.card, s.modeRow]}>
+              <View style={s.modeIcon}><Feather name="share-2" size={18} color={palette.supporting} /></View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={s.cardTitle}>PARTY ROOM</Text>
+                <Text style={s.cardSub}>{isInParty ? `In party ${partyCode} · ${partyMembers.length}/4` : 'Private court with room codes'}</Text>
+              </View>
+              <Button testID="home-party-join" label={isInParty ? 'Share' : showJoinInput ? 'Cancel' : 'Join'} size="sm" variant="secondary"
+                onPress={() => { if (isInParty) void handleShareParty(); else { setShowJoinInput(v => !v); setJoinError(null); } }} />
+            </View>
+            {showJoinInput && !isInParty ? (
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                <TextInput
+                  value={joinCode}
+                  onChangeText={v => setJoinCode(v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
+                  placeholder="6-character code"
+                  placeholderTextColor={palette.muted}
+                  maxLength={6}
+                  autoCapitalize="characters"
+                  accessibilityLabel="Party code"
+                  style={s.codeInput}
+                />
+                <Button label="Join" onPress={handleJoinParty} loading={joiningParty} disabled={joinCode.length < 6} />
+              </View>
+            ) : null}
+            {joinError && !isInParty ? <Text style={[s.errorText, { marginTop: 6 }]}>{joinError}</Text> : null}
+
+            <Pressable
+              testID="toggle-all-modes"
+              onPress={() => setShowAllModes(v => !v)}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showAllModes }}
+              aria-expanded={showAllModes}
+              style={({ pressed }) => [s.expandRow, pressed && { borderBottomWidth: 2, transform: [{ translateY: 2 }] }]}
+            >
+              <Text style={s.expandText}>{showAllModes ? 'Hide all modes' : `All modes (${MODES.length})`}</Text>
+              <Feather name={showAllModes ? 'chevron-up' : 'chevron-down'} size={18} color={palette.supporting} />
+            </Pressable>
+            {showAllModes ? (
+            <View style={{ marginTop: 10 }}>
             <Panel style={s.selectedPanel}>
               <View style={{ flex: 1, gap: 2 }}>
-                <Text style={[s.kicker, { color: tactile.brass }]}>Selected mode</Text>
+                <Text style={[s.kicker, { color: palette.gold }]}>Selected mode</Text>
                 <Text style={s.selectedName}>{selected.name}</Text>
                 <Text style={s.selectedDesc}>{selected.desc}</Text>
                 <View style={s.ruleRow}>
@@ -443,49 +511,30 @@ export default function HomeScreen() {
               testID="home-play"
               label={playLabel}
               size="lg"
-              icon={selectedLocked ? 'lock' : undefined}
+              icon={selectedLocked ? 'lock' : 'play'}
               disabled={selectedLocked || partyBlocks}
               loading={selected.kind === 'challenge' && challengeLoading}
               onPress={handlePlay}
               style={s.playButton}
             />
+            {partyBlocks ? <Text style={s.note}>You are in a party. The leader picks the mode and launches for everyone. Solo modes stay available.</Text> : null}
+            {isInParty && (!selected.partyLaunch || localOnly) ? <Text style={s.note}>This mode starts for you only. Party members stay on their home screen.</Text> : null}
+              <View style={{ gap: 12, marginTop: 8 }}>
+                {(['MATCH', 'SOLO', 'VARIANT', 'ELITE'] as const).map(g => (
+                  <View key={g}>
+                    <SectionLabel title={g === 'MATCH' ? 'Match' : g === 'SOLO' ? 'Solo' : g === 'VARIANT' ? 'Variants' : 'Elite'} />
+                    <View style={s.modeGrid} accessibilityRole="radiogroup">{MODES.filter(m => m.group === g).map(m => renderMode(m))}</View>
+                  </View>
+                ))}
+              </View>
+            </View>
+            ) : null}
             {challengeError ? (
               <View style={s.errorRow}>
                 <Text style={s.errorText}>{challengeError}</Text>
                 <Button label="Retry" size="sm" variant="ghost" onPress={startChallenge} />
               </View>
             ) : null}
-            {partyBlocks ? <Text style={s.note}>You are in a party. The leader picks the mode and launches for everyone. Solo modes stay available.</Text> : null}
-            {isInParty && (!selected.partyLaunch || localOnly) ? <Text style={s.note}>This mode starts for you only. Party members stay on their home screen.</Text> : null}
-
-            {/* Compact initial choices */}
-            <View style={s.modeGrid} accessibilityRole="radiogroup">
-              {MODES.filter(m => PRIMARY_MODE_KINDS.includes(m.kind)).map(m => renderMode(m))}
-            </View>
-            <Pressable
-              testID="toggle-all-modes"
-              onPress={() => setShowAllModes(v => !v)}
-              accessibilityRole="button"
-              accessibilityState={{ expanded: showAllModes }}
-              aria-expanded={showAllModes}
-              style={({ pressed }) => [s.expandRow, pressed && { borderBottomWidth: 2, transform: [{ translateY: 2 }] }]}
-            >
-              <Text style={s.expandText}>{showAllModes ? 'Hide more modes' : `More modes (${MODES.filter(m => !PRIMARY_MODE_KINDS.includes(m.kind)).length})`}</Text>
-              <Feather name={showAllModes ? 'chevron-up' : 'chevron-down'} size={18} color={palette.supporting} />
-            </Pressable>
-            {showAllModes ? (
-              <View style={{ gap: 12, marginTop: 4 }}>
-                {(['SOLO', 'VARIANT', 'ELITE'] as const).map(g => (
-                  <View key={g}>
-                    <SectionLabel title={g === 'SOLO' ? 'Solo' : g === 'VARIANT' ? 'Variants' : 'Elite'} />
-                    <View style={s.modeGrid}>{MODES.filter(m => m.group === g && !PRIMARY_MODE_KINDS.includes(m.kind)).map(m => renderMode(m))}</View>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-          </View>
-          <View style={{ width: arenaSize, alignSelf: 'center' }}>
-            <ArenaPreview size={arenaSize} playerColor={skin.color} />
           </View>
         </View>
 
@@ -499,7 +548,7 @@ export default function HomeScreen() {
                 <Button label="Create party" variant="secondary" icon="users" style={{ flex: 1 }} loading={creatingParty} onPress={handleCreateParty} />
                 <Button label={showJoinInput ? 'Cancel' : 'Join with code'} variant="ghost" icon="log-in" style={{ flex: 1 }} onPress={() => { setShowJoinInput(v => !v); setJoinError(null); }} />
               </View>
-              {showJoinInput ? (
+              {false ? (
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <TextInput
                     value={joinCode}
@@ -514,7 +563,6 @@ export default function HomeScreen() {
                   <Button label="Join" onPress={handleJoinParty} loading={joiningParty} disabled={joinCode.length < 6} />
                 </View>
               ) : null}
-              {joinError ? <Text style={s.errorText}>{joinError}</Text> : null}
             </View>
           ) : (
             <Panel style={{ marginTop: 10 }}>
@@ -655,32 +703,53 @@ export default function HomeScreen() {
 }
 
 const a = StyleSheet.create({
-  frame: { borderWidth: 3, borderColor: palette.edge, backgroundColor: palette.surface, alignItems: 'center', borderRadius: 10 },
-  brassFrame: { borderRadius: 10, borderWidth: 2, borderColor: palette.edge, padding: 3, backgroundColor: tactile.brass },
-  arenaLabel: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6, paddingTop: 10 },
-  arenaTitle: { fontFamily: fonts.display, fontSize: 15, color: palette.foreground, letterSpacing: 1 },
-  arenaMeta: { fontFamily: fonts.body, fontSize: 12, color: palette.supporting },
-  reducedBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 },
-  reducedText: { fontFamily: fonts.body, fontSize: 14, color: palette.supporting, textAlign: 'center' },
-  seats: { flexDirection: 'row', borderRadius: 10, borderWidth: 2, borderTopWidth: 0, borderColor: palette.edge, backgroundColor: palette.raised },
-  seat: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 10, paddingHorizontal: 5 },
-  seatsWrap: { flexWrap: 'wrap' },
-  seatCompact: { flexBasis: '50%', flexGrow: 0, flexShrink: 0 },
-  seatRowDivider: { borderBottomWidth: 1, borderBottomColor: palette.border },
-  seatDivider: { borderRightWidth: 1, borderRightColor: palette.border },
-  seatSwatch: { width: 4, height: 24 },
-  seatPos: { fontFamily: fonts.display, fontSize: 13, letterSpacing: 0.5, color: palette.foreground, textTransform: 'uppercase' },
-  seatWho: { fontFamily: fonts.body, fontSize: 12, color: palette.foreground },
-  caption: { fontFamily: fonts.body, fontSize: 13, color: palette.muted, lineHeight: 18 },
-  captionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
+  frame: { gap: 12, padding: 14, borderRadius: 20, backgroundColor: palette.surface, borderWidth: 1.5, borderBottomWidth: 5, borderColor: palette.border, borderBottomColor: palette.edge },
+  arenaLabel: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 },
+  dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: palette.primary },
+  arenaTitle: { fontFamily: fonts.bodyBold, fontSize: 13, color: palette.primary, letterSpacing: 1 },
+  arenaMeta: { fontFamily: fonts.bodyBold, fontSize: 12, color: palette.supporting, letterSpacing: 0.6 },
+  court: { padding: 3, borderRadius: 16, borderWidth: 1.5, borderColor: palette.border, backgroundColor: palette.inset, overflow: 'hidden' },
+  pausedVeil: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(15,22,26,0.55)' },
+  caption: { fontFamily: fonts.body, fontSize: 12, color: palette.muted, lineHeight: 17, textAlign: 'center' },
+  equipRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 12, borderTopWidth: 1.5, borderTopColor: palette.border },
+  equipKicker: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, color: palette.supporting },
+  equipName: { fontFamily: fonts.display, fontSize: 20, color: palette.foreground },
+  swatch: { width: 22, height: 8, borderRadius: 4 },
+  studioBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 16, borderRadius: 22, borderWidth: 1.5, borderBottomWidth: 3.5, borderColor: palette.border, borderBottomColor: palette.edge, backgroundColor: palette.inset },
+  studioTxt: { fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 1, color: palette.rivalBlue },
 });
 
 const s = StyleSheet.create({
+  statsBar: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 18, paddingBottom: 12, borderBottomWidth: 1.5, borderBottomColor: palette.border },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: palette.surface, borderWidth: 1.5, borderBottomWidth: 3.5, borderColor: palette.border, borderBottomColor: palette.edge },
+  pillTxt: { fontFamily: fonts.bodyBold, fontSize: 14, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  card: { marginHorizontal: 18, marginTop: 12, borderRadius: 18, backgroundColor: palette.surface, borderWidth: 1.5, borderBottomWidth: 5, borderColor: palette.border, borderBottomColor: palette.edge },
+  passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
+  passBadge: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.gold, borderBottomWidth: 4, borderBottomColor: palette.goldEdge },
+  passTitle: { fontFamily: fonts.display, fontSize: 19, color: palette.foreground, letterSpacing: 0.6 },
+  tierTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, backgroundColor: palette.inset, borderWidth: 1, borderColor: palette.goldEdge },
+  tierTagTxt: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 0.8, color: palette.gold },
+  passTrack: { height: 10, borderRadius: 5, backgroundColor: palette.inset, borderWidth: 1, borderColor: palette.border, overflow: 'hidden' },
+  passFill: { height: '100%', borderRadius: 5, backgroundColor: palette.primary },
+  passSub: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.supporting },
+  roadRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, paddingHorizontal: 14, borderBottomWidth: 4 },
+  roadTxt: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 0.8, color: palette.foreground },
+  modeHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
+  modeHeadTitle: { fontFamily: fonts.display, fontSize: 20, letterSpacing: 1, color: palette.foreground },
+  modeHeadMeta: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 0.6, color: palette.supporting },
+  rankedCard: { marginHorizontal: 0, padding: 14, gap: 12, borderWidth: 2.5, borderColor: palette.primary, borderBottomColor: palette.primaryEdge },
+  rankedIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.primary },
+  rankedFoot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, paddingTop: 12, borderTopWidth: 1.5, borderTopColor: palette.border },
+  rankedMeta: { flex: 1, fontFamily: fonts.bodyBold, fontSize: 13, color: palette.gold },
+  cardTitle: { fontFamily: fonts.display, fontSize: 19, letterSpacing: 0.6, color: palette.foreground },
+  cardSub: { fontFamily: fonts.body, fontSize: 13, color: palette.supporting },
+  modeRow: { marginHorizontal: 0, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12 },
+  modeIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.inset, borderWidth: 1.5, borderColor: palette.border },
   root: { flex: 1, backgroundColor: palette.background },
   skel: { backgroundColor: palette.surface, borderRadius: 8 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, gap: 8 },
   identity: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
-  avatar: { width: 44, height: 44, borderWidth: 2, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.primary },
+  avatar: { width: 40, height: 40, borderWidth: 2, borderRadius: 20, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: palette.primary },
   name: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, letterSpacing: 0.5 },
   meta: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.muted },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -695,7 +764,7 @@ const s = StyleSheet.create({
   xpFill: { height: 6, borderRadius: 8, backgroundColor: palette.primary },
   xpText: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: palette.supporting },
   block: { paddingHorizontal: 18, marginTop: 18 },
-  playArea: { paddingHorizontal: 18, marginTop: 14, flexDirection: 'column', gap: 24 },
+  playArea: { paddingHorizontal: 18, marginTop: 14, flexDirection: 'column', gap: 18 },
   playAreaWide: { flexDirection: 'row', alignItems: 'flex-start', gap: 24 },
   playPanel: {},
   ruleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },

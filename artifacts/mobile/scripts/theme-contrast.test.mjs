@@ -25,13 +25,13 @@ const contrast = (a, b) => {
 };
 
 test('screenshot slate arcade roles are used without changing player colours', () => {
-  assert.equal(theme.background, '#151C27');
-  assert.equal(theme.card, '#222C3A');
-  assert.equal(theme.foreground, '#F1F4F8');
-  assert.equal(theme.mutedForeground, '#AEB9C8');
-  assert.equal(theme.primary, '#6CCB3C');
-  assert.equal(theme.primaryForeground, '#151C27');
-  assert.equal(palette.gold, '#F5C531');
+  assert.equal(theme.background, '#161F23');
+  assert.equal(theme.card, '#233037');
+  assert.equal(theme.foreground, '#F2F5F4');
+  assert.equal(theme.mutedForeground, '#A9B8BF');
+  assert.equal(theme.primary, '#78C93D');
+  assert.equal(theme.primaryForeground, '#161F23');
+  assert.equal(palette.gold, '#F6CA45');
   assert.equal(PLAYER_COLORS[0], '#F36B3F');
   assert.deepEqual(Array.from(PLAYER_COLORS), ['#F36B3F', '#EDBA3C', '#EEE9DE', '#E3DFD3']);
 });
@@ -50,9 +50,9 @@ test('background, panel and action roles keep the intended visual hierarchy', ()
   assert.equal(colorBalance.main.color, theme.background);
   assert.equal(colorBalance.secondary.color, theme.secondary);
   assert.equal(colorBalance.accent.color, theme.accent);
-  assert.equal(theme.secondary, '#222C3A');
-  assert.equal(theme.accent, '#6CCB3C');
-  assert.equal(palette.gold, '#F5C531');
+  assert.equal(theme.secondary, '#233037');
+  assert.equal(theme.accent, '#78C93D');
+  assert.equal(palette.gold, '#F6CA45');
   assert.ok(contrast(theme.secondaryForeground, theme.secondary) >= 7);
   assert.ok(contrast(theme.accentForeground, theme.accent) >= 4.5);
 });

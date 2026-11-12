@@ -1,12 +1,13 @@
 // The four creation-path steps: welcome, how a match works, name, look.
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 
 import { GameArena } from '@/components/GameArena';
-import { BrandMark } from '@/components/ui/BrandMark';
 import { Glyph } from '@/components/ui/Glyph';
 import { Button } from '@/components/ui/Primitives';
-import { palette, tactile , PLAYER_COLORS } from '@/constants/colors';
+import { diagram, palette, PLAYER_COLORS } from '@/constants/colors';
+import { DEFAULT_LIVES } from '@/components/GameArena';
 import { fonts } from '@/constants/typography';
 import { ColorPicker } from '@/components/appearance/ColorPicker';
 import { AvatarPhoto } from '@/components/appearance/PhotoAvatarEditor';
@@ -28,21 +29,61 @@ export function LegalLinks({ onOpen }: { onOpen: (d: 'terms' | 'privacy') => voi
   );
 }
 
+/** Lives are read from the engine default so the rule chips never drift from real play. */
+const WELCOME_RULES: { icon: React.ComponentProps<typeof Feather>['name']; label: string; color: string }[] = [
+  { icon: 'heart', label: `${DEFAULT_LIVES} lives`, color: diagram.rivalLeft },
+  { icon: 'users', label: '4 players', color: diagram.rivalRight },
+  { icon: 'award', label: '1 winner', color: diagram.rivalTop },
+];
+
 export function WelcomeStep({ onNew, onSaved, savedCount, onLegal }: {
   onNew: () => void; onSaved: () => void; savedCount: number; onLegal: (d: 'terms' | 'privacy') => void;
 }) {
   const ins = useEntryInsets();
   const { width, height } = useWindowDimensions();
-  const plate = Math.max(150, Math.min(width - 96, height * 0.32, 300));
+  const court = Math.max(170, Math.min(width - 88, height * 0.33, 300));
   return (
-    <View testID="entry-welcome" style={[k.root, { paddingTop: ins.top + 12, paddingBottom: ins.bottom + 12 }]}>
-      <View style={w.welcomeScroll}>
-        <View style={w.marquee}>
-          <BrandMark size={56} />
-          <Text style={w.brand} accessibilityRole="header">GoldRush{'\n'}Arena</Text>
-          <Text style={w.tag}>Four paddles. One court.{'\n'}Guard your edge.</Text>
+    <View testID="entry-welcome" style={[k.root, { paddingTop: ins.top + 10, paddingBottom: ins.bottom + 12 }]}>
+      <ScrollView contentContainerStyle={w.welcomeScroll} showsVerticalScrollIndicator={false}>
+        <View style={w.topBar}>
+          <View style={w.statusPill} accessible accessibilityLabel={savedCount > 0 ? `${savedCount} saved players on this device` : 'Progress saves on this device'}>
+            <View style={w.statusDot} />
+            <Text style={w.statusTxt}>{savedCount > 0 ? `${savedCount} SAVED ON DEVICE` : 'SAVES ON THIS DEVICE'}</Text>
+          </View>
+          <Pressable testID="entry-top-privacy" onPress={() => onLegal('privacy')} accessibilityRole="button" accessibilityLabel="Privacy Policy"
+            style={({ pressed }) => [w.roundBtn, pressed && w.roundBtnOn]}>
+            <Feather name="shield" size={18} color={palette.supporting} />
+          </Pressable>
         </View>
-        <CourtPlate size={plate} />
+
+        <View style={w.marquee}>
+          <View style={w.logo} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            <View style={w.logoCore}>
+              <View style={[w.logoBar, { top: 5, left: 9, right: 9, height: 4, backgroundColor: diagram.rivalTop }]} />
+              <View style={[w.logoBar, { left: 5, top: 9, bottom: 9, width: 4, backgroundColor: diagram.rivalLeft }]} />
+              <View style={[w.logoBar, { right: 5, top: 9, bottom: 9, width: 4, backgroundColor: diagram.rivalRight }]} />
+              <View style={[w.logoBar, { bottom: 5, left: 9, right: 9, height: 4, backgroundColor: diagram.you }]} />
+              <View style={w.logoPuck} />
+            </View>
+          </View>
+          <Text style={w.brand} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit>
+            GOLDRUSH <Text style={{ color: palette.gold }}>ARENA</Text>
+          </Text>
+          <Text style={w.tag}>Four paddles. One court.</Text>
+          <Text style={[w.tag, { color: palette.primary, fontFamily: fonts.bodyBold }]}>Guard your edge!</Text>
+        </View>
+
+        <WelcomeCourt size={court} />
+
+        <View style={w.ruleRow}>
+          {WELCOME_RULES.map(r => (
+            <View key={r.label} style={w.ruleChip} accessible accessibilityLabel={r.label}>
+              <Feather name={r.icon} size={18} color={r.color} />
+              <Text style={[w.ruleChipTxt, { color: r.color === diagram.rivalLeft ? palette.foreground : r.color }]}>{r.label.toUpperCase()}</Text>
+            </View>
+          ))}
+        </View>
+
         <View style={w.actions}>
           <Button testID="entry-start" label="Step up to the court" icon="play" size="lg" onPress={onNew} />
           <Button
@@ -52,6 +93,32 @@ export function WelcomeStep({ onNew, onSaved, savedCount, onLegal }: {
           />
           <LegalLinks onOpen={onLegal} />
         </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+/** Static illustration of the four-seat court; the real engine demo lives in the intro step. */
+function WelcomeCourt({ size }: { size: number }) {
+  const t = Math.max(8, size * 0.045);
+  const len = size * 0.3;
+  const lbl = { position: 'absolute' as const, fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1 };
+  return (
+    <View style={w.courtOuter} accessible accessibilityLabel="Square court with four paddles. Three rivals on the top, left and right edges; your paddle on the bottom edge.">
+      <View style={[w.court, { width: size, height: size }]}>
+        <View style={[w.courtLine, { left: 0, right: 0, top: '50%', height: 1.5 }]} />
+        <View style={[w.courtLine, { top: 0, bottom: 0, left: '50%', width: 1.5 }]} />
+        <View style={[w.courtRing, { width: size * 0.32, height: size * 0.32, right: -size * 0.12, top: size / 2 - size * 0.16 }]} />
+        <View style={[w.pad, { backgroundColor: diagram.rivalTop, width: len, height: t, top: t * 2.2, left: (size - len) / 2 }]} />
+        <Text style={[lbl, { color: diagram.rivalTop, top: 4, alignSelf: 'center' }]}>RIVAL 1</Text>
+        <View style={[w.pad, { backgroundColor: diagram.rivalLeft, width: t, height: len, left: t * 1.6, top: (size - len) / 2 }]} />
+        <View style={[w.pad, { backgroundColor: diagram.rivalRight, width: t, height: len, right: t * 1.6, top: (size - len) / 2 }]} />
+        <View style={[w.puck, { width: t * 2, height: t * 2, left: size / 2 - t, top: size / 2 - t }]} />
+        <Text style={[lbl, { color: palette.muted, bottom: t * 5.6, alignSelf: 'center' }]}>DRAG TO DEFLECT</Text>
+        <View style={[w.pad, { backgroundColor: diagram.you, width: len * 1.15, height: t * 1.3, bottom: t * 3, left: (size - len * 1.15) / 2, alignItems: 'center', justifyContent: 'center' }]}>
+          <View style={{ width: t * 0.9, height: t * 0.9, borderRadius: t, backgroundColor: palette.foreground }} />
+        </View>
+        <View style={[w.youTag, { bottom: 6 }]}><Text style={w.youTagTxt}>YOUR PADDLE</Text></View>
       </View>
     </View>
   );
@@ -215,10 +282,31 @@ export function StyleStep({ name, emoji, color, onEmoji, onColor, onBack, onCrea
 }
 
 const w = StyleSheet.create({
-  welcomeScroll: { flex: 1, width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 20, justifyContent: 'space-between', gap: 16 },
-  marquee: { alignItems: 'center', gap: 10, paddingTop: 8 },
-  brand: { fontFamily: fonts.display, fontSize: 52, lineHeight: 50, color: palette.foreground, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 1 },
-  tag: { fontFamily: fonts.bodySemiBold, fontSize: 17, lineHeight: 23, color: palette.supporting, textAlign: 'center' },
+  welcomeScroll: { flexGrow: 1, width: '100%', maxWidth: 480, alignSelf: 'center', paddingHorizontal: 20, justifyContent: 'space-between', gap: 18 },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  statusPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, minHeight: 34, borderRadius: 17, backgroundColor: palette.surface, borderWidth: 1.5, borderBottomWidth: 3, borderColor: palette.border, borderBottomColor: palette.edge },
+  statusDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: palette.primary },
+  statusTxt: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1, color: palette.supporting },
+  roundBtn: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.surface, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge },
+  roundBtnOn: { borderBottomWidth: 1.5, transform: [{ translateY: 2 }] },
+  marquee: { alignItems: 'center', gap: 6 },
+  logo: { width: 64, height: 64, borderRadius: 18, backgroundColor: palette.gold, borderBottomWidth: 5, borderBottomColor: palette.goldEdge, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  logoCore: { width: 34, height: 34, borderRadius: 9, backgroundColor: palette.deepest },
+  logoBar: { position: 'absolute', borderRadius: 2 },
+  logoPuck: { position: 'absolute', left: 14, top: 14, width: 6, height: 6, borderRadius: 3, backgroundColor: palette.foreground },
+  brand: { fontFamily: fonts.display, fontSize: 38, color: palette.foreground, textAlign: 'center', letterSpacing: 0.5 },
+  tag: { fontFamily: fonts.bodySemiBold, fontSize: 16, lineHeight: 21, color: palette.supporting, textAlign: 'center' },
+  courtOuter: { alignSelf: 'center', padding: 14, borderRadius: 26, backgroundColor: palette.surface, borderWidth: 1.5, borderBottomWidth: 5, borderColor: palette.border, borderBottomColor: palette.edge },
+  court: { borderRadius: 16, backgroundColor: palette.inset, borderWidth: 1.5, borderColor: palette.border, overflow: 'hidden' },
+  courtLine: { position: 'absolute', backgroundColor: palette.border },
+  courtRing: { position: 'absolute', borderWidth: 1.5, borderColor: palette.border, borderRadius: 999 },
+  pad: { position: 'absolute', borderRadius: 999 },
+  puck: { position: 'absolute', borderRadius: 999, backgroundColor: palette.foreground, borderBottomWidth: 2, borderBottomColor: palette.muted },
+  youTag: { position: 'absolute', alignSelf: 'center', paddingHorizontal: 10, paddingVertical: 2, borderRadius: 999, backgroundColor: diagram.you },
+  youTagTxt: { fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 1, color: palette.onAccent },
+  ruleRow: { flexDirection: 'row', gap: 10 },
+  ruleChip: { flex: 1, alignItems: 'center', gap: 6, paddingVertical: 12, borderRadius: 16, backgroundColor: palette.surface, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge },
+  ruleChipTxt: { fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 0.5 },
   actions: { gap: 10 },
   legalRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center' },
   legalLink: { minHeight: 44, justifyContent: 'center' },

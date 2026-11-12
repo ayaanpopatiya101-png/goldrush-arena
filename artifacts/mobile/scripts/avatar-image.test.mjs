@@ -7,7 +7,7 @@ const require = createRequire(import.meta.url);
 const ts = require('typescript');
 const source = readFileSync(new URL('../utils/avatarImage.ts', import.meta.url), 'utf8');
 
-function harness({ os = 'web', mime = 'image/jpeg', size = 1024, width = 800, height = 600, decodes = true, permission } = {}) {
+function harness({ os = 'web', mime = 'image/jpeg', size = 1024, width = 800, height = 600, decodes = true, permission, browser = {} } = {}) {
   const calls = [];
   const ctx = {
     crop: rect => calls.push(['crop', rect]),
@@ -19,6 +19,7 @@ function harness({ os = 'web', mime = 'image/jpeg', size = 1024, width = 800, he
   };
   const exports = {};
   vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, {
+    ...browser,
     exports, require: name => ({
       'react-native': { Platform: { OS: os }, Linking: { openSettings: async () => { throw new Error('unavailable'); } } },
       'expo-image-picker': {
@@ -63,4 +64,41 @@ test('crop always re-encodes a square 512 JPEG and Settings errors are recoverab
   assert.deepEqual(JSON.parse(JSON.stringify(h.calls.find(([name]) => name === 'resize')[1])), { width: 512, height: 512 });
   assert.equal(h.calls.find(([name]) => name === 'encode')[1].format, 'jpeg');
   await assert.rejects(harness({ os: 'ios' }).openAppSettings(), /unavailable/);
+});
+
+function fileBrowser({ cancel = false, mime = 'image/png' } = {}) {
+  const input = {
+    files: cancel ? [] : [{ type: mime, size: 1024, name: 'avatar.png' }],
+    addEventListener(name, handler) { this[name] = handler; },
+    click() { this.clicked = true; queueMicrotask(() => cancel ? this.cancel() : this.onchange()); },
+  };
+  class BrowserImage {
+    naturalWidth = 800;
+    naturalHeight = 600;
+    set src(value) { this.onload(); }
+  }
+  return {
+    input,
+    browser: {
+      document: { createElement: () => input },
+      window: { Image: BrowserImage, addEventListener() {}, removeEventListener() {} },
+      URL: { createObjectURL: () => 'blob:avatar-test' },
+      setTimeout,
+    },
+  };
+}
+
+test('image-file chooser opens immediately and validates the chosen file', async () => {
+  const b = fileBrowser();
+  const pending = harness({ browser: b.browser }).pickAvatarPhoto('file');
+  assert.equal(b.input.clicked, true, 'chooser must open during the original button event');
+  assert.equal(b.input.accept, 'image/jpeg,image/png,image/webp');
+  assert.equal((await pending).kind, 'picked');
+  const unsafe = fileBrowser({ mime: 'image/svg+xml' });
+  assert.equal((await harness({ browser: unsafe.browser }).pickAvatarPhoto('file')).kind, 'invalid');
+});
+
+test('cancelling the image-file chooser does not start a crop or upload', async () => {
+  const b = fileBrowser({ cancel: true });
+  assert.equal((await harness({ browser: b.browser }).pickAvatarPhoto('file')).kind, 'cancelled');
 });

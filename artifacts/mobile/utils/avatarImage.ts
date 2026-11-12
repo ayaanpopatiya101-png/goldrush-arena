@@ -43,7 +43,39 @@ async function sizeOf(asset: ImagePicker.ImagePickerAsset): Promise<number | nul
   } catch { return null; }
 }
 
-export async function pickAvatarPhoto(): Promise<PickOutcome> {
+export type PhotoSource = 'library' | 'file';
+
+/** Web only: opens the browser file chooser restricted to JPEG, PNG and WebP. */
+function pickWebImageFile(): Promise<ImagePicker.ImagePickerAsset | null> {
+  return new Promise(resolve => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = ALLOWED.join(',');
+    let done = false;
+    const finish = (a: ImagePicker.ImagePickerAsset | null) => { if (!done) { done = true; resolve(a); } };
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return finish(null);
+      const uri = URL.createObjectURL(file);
+      const img = new window.Image();
+      img.onload = () => finish({ uri, width: img.naturalWidth, height: img.naturalHeight, mimeType: file.type, fileSize: file.size, fileName: file.name, file } as ImagePicker.ImagePickerAsset);
+      img.onerror = () => finish({ uri, width: 0, height: 0, mimeType: file.type, fileSize: file.size, fileName: file.name, file } as ImagePicker.ImagePickerAsset);
+      img.src = uri;
+    };
+    input.addEventListener('cancel', () => finish(null));
+    // Fallback for browsers without the cancel event: window refocuses after the dialog closes.
+    const onFocus = () => { window.removeEventListener('focus', onFocus); setTimeout(() => { if (!input.files?.length) finish(null); }, 800); };
+    window.addEventListener('focus', onFocus);
+    input.click();
+  });
+}
+
+export async function pickAvatarPhoto(source: PhotoSource = 'library'): Promise<PickOutcome> {
+  if (source === 'file' && Platform.OS === 'web') {
+    const asset = await pickWebImageFile();
+    if (!asset) return { kind: 'cancelled' };
+    return validateAsset(asset);
+  }
   // Android uses the system photo picker, which grants access to the chosen
   // image without broad media-library permission (intentionally not declared).
   if (Platform.OS === 'ios') {
@@ -56,7 +88,10 @@ export async function pickAvatarPhoto(): Promise<PickOutcome> {
     mediaTypes: ['images'], allowsEditing: false, quality: 1, exif: false, base64: false, selectionLimit: 1,
   });
   if (res.canceled || !res.assets?.length) return { kind: 'cancelled' };
-  const asset = res.assets[0];
+  return validateAsset(res.assets[0]);
+}
+
+async function validateAsset(asset: ImagePicker.ImagePickerAsset): Promise<PickOutcome> {
   const mime = mimeFrom(asset);
   if (!mime || !ALLOWED.includes(mime as AvatarMime)) {
     return { kind: 'invalid', message: 'Choose a JPEG, PNG or WebP photo. HEIC/HEIF is supported only when your photo library converts it to one of these formats; otherwise export a JPEG first. SVG, documents and animated formats are not supported.' };

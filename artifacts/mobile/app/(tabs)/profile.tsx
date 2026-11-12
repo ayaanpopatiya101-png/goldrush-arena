@@ -3,7 +3,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Button, Panel, ScreenTitle, Shell, paperText } from '@/components/ui/Primitives';
 import { tactile, palette } from '@/constants/colors';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, Share, StyleSheet, TextInput, View } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useFocusAnimation } from '@/hooks/useFocusAnimation';
@@ -20,7 +20,7 @@ import { apiUrl } from '@/utils/api';
 import { useColors } from '@/hooks/useColors';
 import { Glyph } from '@/components/ui/Glyph';
 import { ColorPicker } from '@/components/appearance/ColorPicker';
-import { AvatarPhoto, PhotoAvatarEditor } from '@/components/appearance/PhotoAvatarEditor';
+import { AvatarPhoto, PhotoAvatarEditor, PhotoSourceMenu, type PhotoPickRequest } from '@/components/appearance/PhotoAvatarEditor';
 
 export default function ProfileScreen() {
   const colors    = useColors();
@@ -104,6 +104,18 @@ export default function ProfileScreen() {
   }
 
   const [avatarEditing, setAvatarEditing] = useState(false);
+  const [photoMenu, setPhotoMenu] = useState(false);
+  const [pickRequest, setPickRequest] = useState<PhotoPickRequest | null>(null);
+  const avatarBtnRef = useRef<View>(null);
+  function choosePhotoSource(req: PhotoPickRequest) {
+    setTempEmoji(profile.avatarEmoji); setTempColor(profile.avatarFrameColor); setAvatarEditing(true);
+    setPickRequest(req);
+  }
+  function closePhotoMenu() {
+    setPhotoMenu(false);
+    // Return focus to the control that opened the menu.
+    setTimeout(() => (avatarBtnRef.current as unknown as { focus?: () => void } | null)?.focus?.(), 0);
+  }
   const [avatarSaveError, setAvatarSaveError] = useState('');
   const [tempEmoji, setTempEmoji]         = useState(profile.avatarEmoji);
   const [tempColor, setTempColor]         = useState(profile.avatarFrameColor);
@@ -165,7 +177,7 @@ export default function ProfileScreen() {
         </View>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <Button label="Ranks" icon="award" variant="secondary" style={{ flex: 1 }} onPress={() => router.push('/leaderboard')} />
-          <Button label="Battle Pass" icon="gift" variant="secondary" style={{ flex: 1 }} onPress={() => router.push('/trophyroad')} />
+          <Button label="Trophy Road" icon="map" variant="secondary" style={{ flex: 1 }} onPress={() => router.push('/trophyroad-map')} />
         </View>
         {/* ── Profile card ── */}
         <View style={[styles.profileCard, { borderColor: palette.edge, backgroundColor: palette.surface }]}>
@@ -174,19 +186,19 @@ export default function ProfileScreen() {
           <View style={styles.identityBand} pointerEvents="none" />
 
           {/* Avatar, centered, tappable to edit */}
-          <Pressable accessibilityRole="button" accessibilityLabel="Edit avatar" hitSlop={8} onPress={() => { setTempEmoji(profile.avatarEmoji); setTempColor(profile.avatarFrameColor); setAvatarEditing(true); }}>
+          <Pressable ref={avatarBtnRef} testID="profile-avatar-button" accessibilityRole="button" accessibilityLabel="Change profile photo" accessibilityHint="Opens photo source options" hitSlop={8} onPress={() => setPhotoMenu(true)}>
             <View style={[styles.bigAvatar, {
               borderColor: profile.avatarFrameColor,
               backgroundColor: profile.avatarFrameColor + '33',
               overflow: 'visible',
             }]}>
-              <View style={{ width: 71, height: 71, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
-                <AvatarPhoto username={currentUsername} size={71}>
+              <View style={{ width: 84, height: 84, borderRadius: 18, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+                <AvatarPhoto username={currentUsername} size={84}>
                   <Glyph style={styles.bigAvatarEmoji} value={profile.avatarEmoji} />
                 </AvatarPhoto>
               </View>
               <View style={styles.editBadge}>
-                <Feather name="edit-2" size={9} color={palette.onAccent} />
+                <Feather name="camera" size={13} color={palette.onAccent} />
               </View>
             </View>
           </Pressable>
@@ -216,9 +228,12 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <Button label={avatarEditing ? 'Photo and avatar editor open' : 'Upload or change profile photo'}
-          icon="image" variant="secondary" testID="profile-edit-photo"
-          onPress={() => { setTempEmoji(profile.avatarEmoji); setTempColor(profile.avatarFrameColor); setAvatarEditing(true); }} />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Button label="Photo" icon="camera" testID="profile-edit-photo" style={{ flex: 1 }} onPress={() => setPhotoMenu(true)} />
+          <Button label={avatarEditing ? 'Editing' : 'Emblem'} icon="edit-2" variant="secondary" style={{ flex: 1 }}
+            onPress={() => { setTempEmoji(profile.avatarEmoji); setTempColor(profile.avatarFrameColor); setAvatarEditing(true); }} />
+        </View>
+        <PhotoSourceMenu open={photoMenu} onClose={closePhotoMenu} onChoose={choosePhotoSource} />
         {/* ── Avatar picker (expanded when editing) ── */}
         {avatarEditing && (
           <View style={[styles.section, { borderColor: tempColor + '55', backgroundColor: tempColor + '08' }]}>
@@ -243,7 +258,7 @@ export default function ProfileScreen() {
             <ColorPicker testID="profile-color-picker" value={tempColor} onChange={setTempColor} />
 
             <Text style={[styles.pickerLabel, { color: colors.mutedForeground }]}>PHOTO</Text>
-            {currentUsername ? <PhotoAvatarEditor testID="profile-photo" username={currentUsername} frameColor={tempColor} /> : null}
+            {currentUsername ? <PhotoAvatarEditor testID="profile-photo" username={currentUsername} frameColor={tempColor} pickRequest={pickRequest} /> : null}
             <Text style={{ color: palette.supporting, fontFamily: 'SourceSans3_400Regular', fontSize: 14 }}>
               Photo changes save separately with Save photo. The controls below save or cancel only your emblem and frame.
             </Text>
@@ -515,11 +530,11 @@ export default function ProfileScreen() {
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  identityBand:   { position: 'absolute', top: 0, left: 0, right: 0, height: 66, backgroundColor: palette.inset, borderBottomWidth: 4, borderBottomColor: palette.gold },
-  profileCard:    { borderRadius: 10, borderWidth: 2, borderBottomWidth: 6, paddingTop: 26, paddingBottom: 22, paddingHorizontal: 20, alignItems: 'center', gap: 14, overflow: 'hidden' },
-  bigAvatar:      { width: 76, height: 76, borderRadius: 10, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
+  identityBand:   { position: 'absolute', top: 0, left: 0, right: 0, height: 66, backgroundColor: palette.inset, borderBottomWidth: 2, borderBottomColor: palette.border },
+  profileCard:    { borderRadius: 18, borderWidth: 2, borderBottomWidth: 6, paddingTop: 26, paddingBottom: 22, paddingHorizontal: 20, alignItems: 'center', gap: 14, overflow: 'hidden' },
+  bigAvatar:      { width: 96, height: 96, borderRadius: 24, borderWidth: 4, borderBottomWidth: 6, alignItems: 'center', justifyContent: 'center' },
   bigAvatarEmoji: { fontSize: 36 },
-  editBadge:      { position: 'absolute', bottom: -4, right: -4, width: 24, height: 24, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.gold, alignItems: 'center', justifyContent: 'center' },
+  editBadge:      { position: 'absolute', bottom: -6, right: -6, width: 30, height: 30, borderRadius: 15, backgroundColor: palette.primary, borderWidth: 2, borderColor: palette.edge, alignItems: 'center', justifyContent: 'center' },
   profileInfo:    { gap: 5, width: '100%', minWidth: 0 },
   profileName:    { width: '100%', flexShrink: 1, fontFamily: 'BarlowCondensed_700Bold', fontSize: 34, textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'center' },
   levelBadge:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, letterSpacing: 0.5 },

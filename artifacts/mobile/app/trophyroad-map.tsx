@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { palette } from '@/constants/colors';
-import { ScreenTitle } from '@/components/ui/Primitives';
 import { TROPHY_ROAD, RELICS, getRankIndex, type LuckyBlock, type TrophyMilestone, usePlayer } from '@/context/PlayerContext';
 import { LuckyBlockOpener } from '@/components/LuckyBlockOpener';
 import { RoadSummary, RoadZones, milestoneState } from '@/components/progression/TrophyRoadPath';
@@ -77,16 +76,19 @@ export default function TrophyRoadMap() {
   return (
     <View style={s.root}>
       <View style={[s.header, { paddingTop: topPad + 4 }]}>
-        <Pressable onPress={() => router.replace('/(tabs)/trophyroad')} accessibilityRole="button" aria-label="Back to Battle Pass" accessibilityLabel="Back to Battle Pass" style={s.back}>
-          <Feather name="chevron-left" size={24} color={palette.foreground} />
+        <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))} accessibilityRole="button" aria-label="Back" accessibilityLabel="Back" style={s.back}>
+          <Feather name="chevron-left" size={22} color={palette.foreground} />
         </Pressable>
-        <Text style={s.headerTitle}>TROPHY ROAD</Text>
-        <View style={s.back} />
+        <View style={s.crest}><Feather name="map" size={18} color={palette.onAccent} /></View>
+        <Text style={s.headerTitle} accessibilityRole="header">TROPHY ROAD</Text>
+        <Pressable onPress={() => router.push('/(tabs)/trophyroad')} accessibilityRole="button" accessibilityLabel="Open Battle Pass" style={s.passBtn}>
+          <Feather name="gift" size={15} color={palette.onAccent} />
+          <Text style={s.passTxt}>PASS</Text>
+        </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 100 }} showsVerticalScrollIndicator={false}>
-        <ScreenTitle kicker="Games played + XP milestones" title="Trophy Road" />
         <GamesRoadLane />
-        <Text accessibilityRole="header" style={s.headerTitle}>XP MILESTONES</Text>
+        <Text accessibilityRole="header" style={s.section}>XP MILESTONES</Text>
         <Text style={s.lede}>Eligible completed matches also earn XP. Your original 25 XP milestones and claimed rewards stay on this separate lane.</Text>
         <RoadSummary xp={xp} claimed={claimed} onInspect={openInspect} />
         {notice ? (
@@ -98,7 +100,7 @@ export default function TrophyRoadMap() {
         <RoadZones xp={xp} claimed={claimed} busyId={busyId} onInspect={openInspect} onClaim={claim} />
         {claimed.length === TROPHY_ROAD.length && (
           <View style={s.done}>
-            <Text style={s.headerTitle}>ROAD COMPLETE</Text>
+            <Text style={s.section}>ROAD COMPLETE</Text>
             <Text style={s.lede}>All 25 milestones claimed.</Text>
           </View>
         )}
@@ -117,11 +119,15 @@ export default function TrophyRoadMap() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.background },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingBottom: 8, backgroundColor: palette.surface, borderBottomWidth: 2, borderBottomColor: palette.gold },
-  back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center', fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, letterSpacing: 1.5, color: palette.foreground },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingBottom: 12, backgroundColor: palette.background, borderBottomWidth: 1.5, borderBottomColor: palette.border },
+  back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge, backgroundColor: palette.surface },
+  crest: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.gold, borderBottomWidth: 3, borderBottomColor: palette.goldEdge },
+  headerTitle: { flex: 1, fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, letterSpacing: 1.2, color: palette.foreground },
+  passBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 14, borderRadius: 22, backgroundColor: palette.gold, borderBottomWidth: 4, borderBottomColor: palette.goldEdge },
+  passTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, letterSpacing: 1, color: palette.onAccent },
+  section: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, letterSpacing: 1.2, color: palette.foreground },
   lede: { fontFamily: 'SourceSans3_400Regular', fontSize: 15, lineHeight: 21, color: palette.supporting },
-  notice: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, padding: 10, backgroundColor: palette.raised, borderWidth: 1, borderRadius: 10, borderColor: palette.border },
+  notice: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, padding: 10, backgroundColor: palette.raised, borderWidth: 1.5, borderBottomWidth: 4, borderRadius: 14, borderColor: palette.border, borderBottomColor: palette.edge },
   noticeTxt: { flex: 1, fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: palette.foreground },
-  done: { padding: 18, alignItems: 'center', gap: 4, backgroundColor: palette.surface, borderWidth: 1, borderBottomWidth: 4, borderRadius: 12, borderColor: palette.border, borderBottomColor: palette.edge },
+  done: { padding: 18, alignItems: 'center', gap: 4, backgroundColor: palette.surface, borderWidth: 1, borderBottomWidth: 4, borderRadius: 18, borderColor: palette.gold, borderBottomColor: palette.goldEdge },
 });

@@ -1,8 +1,8 @@
 // Primary navigation: Play, Events, Collection, Shop, Profile.
-// Ranks (leaderboard) and Pass (trophyroad) stay registered as hidden routes,
+// Road (trophyroad: pass + Trophy Road entry) is a primary tab; Ranks stays hidden,
 // reached from contextual entry points on Home and Profile.
 import { Feather } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { Tabs, router } from 'expo-router';
 import React from 'react';
 import { Platform, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,6 +32,8 @@ const TABS: { name: string; label: string; icon: IconName }[] = [
   { name: 'index', label: 'Play', icon: 'play-circle' },
   { name: 'events', label: 'Events', icon: 'calendar' },
   { name: 'inventory', label: 'Collection', icon: 'archive' },
+  // Road opens Trophy Road directly; the Battle Pass (this route) stays reachable from Home and Trophy Road.
+  { name: 'trophyroad', label: 'Road', icon: 'map' },
   { name: 'shop', label: 'Shop', icon: 'shopping-bag' },
   { name: 'profile', label: 'Profile', icon: 'user' },
 ];
@@ -78,16 +80,16 @@ export default function TabLayout() {
             tabBarAccessibilityLabel: t.label,
             tabBarIcon: ({ focused }) => <TabIcon name={t.icon} label={t.label} focused={focused} wide={wide} />,
           }}
+          listeners={t.name === 'trophyroad' ? { tabPress: e => { e.preventDefault(); router.push('/trophyroad-map'); } } : undefined}
         />
       ))}
       <Tabs.Screen name="leaderboard" options={{ href: null, title: 'Ranks' }} />
-      <Tabs.Screen name="trophyroad" options={{ href: null, title: 'Pass' }} />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  tabItem: { alignItems: 'center', justifyContent: 'center', gap: 2, paddingTop: 6, minWidth: 64, minHeight: 44 },
+  tabItem: { alignItems: 'center', justifyContent: 'center', gap: 2, paddingTop: 6, minWidth: 52, minHeight: 44 },
   tabLabel: { fontSize: 13, textAlign: 'center' },
   tabItemWide: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 12 },
   tabLabelWide: { fontSize: 16 },

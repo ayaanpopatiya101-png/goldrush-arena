@@ -94,7 +94,7 @@ export function RoadZones({ xp, claimed, onInspect, onClaim, busyId }: {
             return (
               <View key={ms.id} style={r.msRow}>
                 <View style={r.railCol}>
-                  <View style={[r.railLine, xp >= ms.xp && { backgroundColor: palette.primary }]} />
+                  <View style={[r.railLine, xp >= ms.xp && { backgroundColor: palette.primary, borderColor: palette.primaryEdge }]} />
                   <View style={[r.node, xp >= ms.xp && r.nodeOn, current && r.nodeCurrent]}>
                     <Text style={[r.nodeTxt, xp >= ms.xp && { color: palette.onAccent }]}>{gi + 1}</Text>
                   </View>
@@ -102,7 +102,7 @@ export function RoadZones({ xp, claimed, onInspect, onClaim, busyId }: {
                 <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
                 <Pressable onPress={() => onInspect(ms)} accessibilityRole="button"
                   aria-label={`Milestone ${gi + 1}, ${view.title}, ${ms.xp} XP, ${state === 'claimable' ? 'ready to claim' : state}. Opens details.`}
-                  style={({ pressed }) => [r.msCard, state === 'claimable' && { borderColor: palette.primary }, state === 'claimed' && { backgroundColor: palette.background }, pressed && { opacity: 0.85 }]}>
+                  style={({ pressed }) => [r.msCard, state === 'claimable' && { borderColor: palette.primary, borderBottomColor: palette.primaryEdge }, state === 'claimed' && { backgroundColor: palette.inset }, pressed && { opacity: 0.85 }]}>
                   <RewardArt view={view} size={view.skinId ? 88 : 56} dim={state === 'locked'} />
                   <View style={{ flex: 1, gap: 4, minWidth: 0 }}>
                     {current && <Text style={r.here}>YOU ARE HERE</Text>}
@@ -129,30 +129,30 @@ export function RoadZones({ xp, claimed, onInspect, onClaim, busyId }: {
 }
 
 const r = StyleSheet.create({
-  card: { padding: 14, gap: 12, backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, borderBottomWidth: 6, borderColor: palette.edge },
+  card: { padding: 16, gap: 12, backgroundColor: palette.surface, borderRadius: 18, borderWidth: 1.5, borderBottomWidth: 5, borderColor: palette.border, borderBottomColor: palette.edge },
   stats: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  stat: { flexGrow: 1, flexBasis: 80, padding: 8, backgroundColor: palette.inset, borderRadius: 10, borderWidth: 2, borderColor: palette.border },
+  stat: { flexGrow: 1, flexBasis: 80, padding: 8, backgroundColor: palette.inset, borderRadius: 14, borderWidth: 1.5, borderColor: palette.border },
   statVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.foreground, fontVariant: ['tabular-nums'] },
   statLbl: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1, color: palette.supporting },
-  ready: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: palette.onAccent, backgroundColor: palette.primary, padding: 8 },
-  next: { flexDirection: 'row', gap: 12, alignItems: 'center', padding: 10, minHeight: 44, backgroundColor: palette.raised, borderRadius: 10, borderWidth: 2, borderColor: palette.border },
+  ready: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: palette.onAccent, backgroundColor: palette.primary, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, overflow: 'hidden' },
+  next: { flexDirection: 'row', gap: 12, alignItems: 'center', padding: 10, minHeight: 44, backgroundColor: palette.raised, borderRadius: 16, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge },
   kicker: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2, color: palette.gold },
   nextTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, lineHeight: 26, color: palette.foreground, textTransform: 'uppercase' },
   sub: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 19, color: palette.supporting },
-  bar: { height: 16, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.inset, padding: 2 },
-  fill: { height: '100%', backgroundColor: palette.primary },
-  zone: { paddingVertical: 10, paddingHorizontal: 12, marginBottom: 8, backgroundColor: palette.inset, borderRadius: 10, borderWidth: 2, borderColor: palette.border },
+  bar: { height: 16, borderRadius: 8, borderWidth: 1.5, borderColor: palette.border, backgroundColor: palette.inset, padding: 2, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: 6, backgroundColor: palette.primary },
+  zone: { paddingVertical: 10, paddingHorizontal: 12, marginBottom: 8, backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge, borderLeftWidth: 5, borderLeftColor: palette.gold },
   zoneName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, lineHeight: 28, letterSpacing: 1, color: palette.foreground },
   msRow: { flexDirection: 'row', alignItems: 'stretch', gap: 8, marginBottom: 8 },
   railCol: { width: 36, alignItems: 'center' },
-  railLine: { position: 'absolute', top: -8, bottom: -8, width: 4, backgroundColor: palette.border },
-  node: { marginTop: 14, width: 34, height: 34, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.inset, borderRadius: 10, borderWidth: 2, borderColor: palette.border },
-  nodeOn: { backgroundColor: palette.primary, borderColor: palette.edge },
-  nodeCurrent: { borderColor: palette.gold, borderRadius: 10, borderWidth: 3 },
+  railLine: { position: 'absolute', top: -8, bottom: -8, width: 6, borderRadius: 3, backgroundColor: palette.inset, borderWidth: 1, borderColor: palette.border },
+  node: { marginTop: 14, width: 34, height: 34, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.raised, borderRadius: 17, borderWidth: 1.5, borderBottomWidth: 3, borderColor: palette.border, borderBottomColor: palette.edge },
+  nodeOn: { backgroundColor: palette.primary, borderColor: palette.primary, borderBottomColor: palette.primaryEdge },
+  nodeCurrent: { borderColor: palette.gold, borderWidth: 3 },
   nodeTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, color: palette.foreground },
-  msCard: { minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'center', padding: 10, backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border },
+  msCard: { minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'center', padding: 10, backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge },
   here: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1, color: palette.gold },
   msTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, lineHeight: 20, color: palette.foreground },
-  claim: { minWidth: 64, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.primary, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, paddingHorizontal: 6 },
+  claim: { minWidth: 64, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.primary, borderRadius: 22, borderBottomWidth: 4, borderBottomColor: palette.primaryEdge, paddingHorizontal: 16 },
   claimTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, color: palette.onAccent },
 });
