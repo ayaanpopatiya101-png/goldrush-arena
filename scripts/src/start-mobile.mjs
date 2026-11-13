@@ -8,7 +8,11 @@ const workspaceRoot = fileURLToPath(new URL('../../', import.meta.url));
 export function createLaunchConfig(sourceEnv) {
   const env = { ...sourceEnv };
   const args = ['--filter', '@workspace/mobile', 'exec', 'expo', 'start', '--web'];
-  let previewUrl = null;
+  const port = env.CODESPACES === 'true' ? 8081 : Number(env.PORT || 8081);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error('PORT must be a whole number between 1 and 65535.');
+  }
+  let previewUrl = `http://localhost:${port}`;
   if (env.CODESPACES === 'true') {
     const name = env.CODESPACE_NAME;
     const domain = env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN;
@@ -19,8 +23,9 @@ export function createLaunchConfig(sourceEnv) {
     env.EXPO_PACKAGER_PROXY_URL = previewUrl;
     env.BROWSER = 'none'; // The forwarded-port setting opens the browser instead.
     env.CI = '1'; // Never wait on an invisible interactive port-selection prompt.
-    args.push('--host', 'localhost', '--port', '8081');
+    args.push('--host', 'localhost');
   }
+  args.push('--port', String(port));
   return { args, env, previewUrl };
 }
 
@@ -38,9 +43,9 @@ function main() {
     console.log(JSON.stringify({ command: 'pnpm', args: launch.args, previewUrl: launch.previewUrl }, null, 2));
     return;
   }
-  console.log(launch.previewUrl
+  console.log(launch.env.CODESPACES === 'true'
     ? `Starting GoldRush Arena. Open the forwarded port 8081: ${launch.previewUrl}`
-    : 'Starting GoldRush Arena. Expo will open your browser or print the preview URL.');
+    : `Starting GoldRush Arena. Once bundling finishes, open ${launch.previewUrl}`);
   const child = spawn('pnpm', launch.args, {
     cwd: workspaceRoot,
     env: launch.env,

@@ -6,10 +6,19 @@ import { createLaunchConfig } from './start-mobile.mjs';
 test('a local checkout launches the actual Expo mobile app in web mode', () => {
   const source = { PATH: '/example/bin', EXPO_PUBLIC_DOMAIN: 'api.example.com' };
   const launch = createLaunchConfig(source);
-  assert.deepEqual(launch.args, ['--filter', '@workspace/mobile', 'exec', 'expo', 'start', '--web']);
-  assert.equal(launch.previewUrl, null);
+  assert.deepEqual(launch.args, ['--filter', '@workspace/mobile', 'exec', 'expo', 'start', '--web', '--port', '8081']);
+  assert.equal(launch.previewUrl, 'http://localhost:8081');
   assert.deepEqual(launch.env, source);
   assert.notEqual(launch.env, source);
+});
+
+test('local startup supports another port and rejects invalid ports', () => {
+  const launch = createLaunchConfig({ PORT: '18081' });
+  assert.equal(launch.previewUrl, 'http://localhost:18081');
+  assert.deepEqual(launch.args.slice(-2), ['--port', '18081']);
+  for (const PORT of ['0', '-1', '65536', '8081.5', 'invalid']) {
+    assert.throws(() => createLaunchConfig({ PORT }), /PORT must/);
+  }
 });
 
 test('Codespaces uses the HTTPS forwarded URL and the configured port', () => {

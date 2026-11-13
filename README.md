@@ -40,6 +40,11 @@ pnpm install --frozen-lockfile
 pnpm start
 ```
 
+Open **http://localhost:8081** after bundling finishes. Keep the terminal running.
+If port 8081 is already occupied, use `PORT=8083 pnpm start` on macOS/Linux,
+or `$env:PORT=8083; pnpm start` in Windows PowerShell, then open http://localhost:8083.
+Codespaces always uses its configured forwarded port 8081.
+
 Local bot play, profiles and the redesigned screens work without configuring paid services.
 Online/API and real-money features still require their actual backend and provider configuration.
 The existing Replit preview workflow is unchanged.
@@ -148,7 +153,7 @@ cd goldrush-arena
 pnpm install
 
 # Start the browser preview on your own computer
-pnpm --filter @workspace/mobile run dev:web
+pnpm start
 ```
 
 Expo opens a browser or prints a local URL in the terminal. Open that exact URL in another tab. It works while the development server is running; it is not a public website hosted by GitHub.
@@ -163,9 +168,13 @@ Scan the QR code with **Expo Go** on a phone connected to the same network. Core
 
 ### Running in Replit
 
-Use the existing **artifacts/mobile: expo** workflow and open its Preview in another tab. That workflow injects the Replit routing and server-address configuration; the two local commands above are for a checkout on your computer, not replacements for the managed workflow.
+Use the existing **artifacts/goldrush-web: web** workflow for the browser game.
+The **artifacts/mobile: expo** workflow is the separate native phone preview.
+These workflows inject Replit routing and server-address configuration; local commands
+are for a checkout on your computer, not replacements for the managed workflows.
 
-Replit's development URL is for testing while the app is running. A stable public URL requires publishing. The mobile production landing page can offer phone preview rather than a browser version of the game; do not assume it is the same browser target as development.
+Replit's development URL is for testing while the app is running. A stable public URL
+requires publishing the browser release. The native phone preview is a separate target.
 
 The separate browser-local collectible shop is registered at `/goldrush-shop/` and has its own workflow. It does not automatically share your native game save or fulfill real-money purchases.
 
