@@ -1,9 +1,9 @@
-// GoldRush Arena typography: scoreboard condensed display + legible body.
+// GoldRush Arena typography: bold friendly sans display (reference match) + legible body.
 // Fonts loaded in app/_layout.tsx from @expo-google-fonts/barlow-condensed and
 // @expo-google-fonts/source-sans-3.
 export const fonts = {
-  display: 'BarlowCondensed_700Bold',
-  displayMedium: 'BarlowCondensed_600SemiBold',
+  display: 'SourceSans3_700Bold',
+  displayMedium: 'SourceSans3_700Bold',
   body: 'SourceSans3_400Regular',
   bodyMedium: 'SourceSans3_600SemiBold',
   bodySemiBold: 'SourceSans3_600SemiBold',
@@ -11,11 +11,11 @@ export const fonts = {
 } as const;
 
 export const displayScale = {
-  hero: 40,
-  title: 30,
-  heading: 22,
+  hero: 34,
+  title: 26,
+  heading: 20,
   subheading: 17,
-  stat: 26,
+  stat: 24,
 } as const;
 
 /** Minimum readable roles for controls, metadata and explanatory copy. */

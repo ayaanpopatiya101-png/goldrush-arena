@@ -21,6 +21,7 @@ import { SmsReminderPanel } from '@/components/SmsReminderPanel';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
+import { fonts } from '@/constants/typography';
 const SENSITIVITY_OPTIONS = [
   { value: 0.6,  label: 'Slow',   desc: 'Easier to control' },
   { value: 1.0,  label: 'Normal', desc: 'Default feel'      },
@@ -437,7 +438,7 @@ const s = StyleSheet.create({
   back:      { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, backgroundColor: palette.background },
   title:     { fontFamily: 'SourceSans3_700Bold', fontSize: 16, letterSpacing: 2, color: palette.foreground },
   section:   { gap: 8 },
-  sectionTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, letterSpacing: 1.6, color: palette.supporting, textTransform: 'uppercase' },
+  sectionTitle: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.6, color: palette.supporting, textTransform: 'uppercase' },
   card:      { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.surface, overflow: 'hidden' },
   divider:   { height: 2, backgroundColor: palette.background },
   row:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 14, minHeight: 60, gap: 14 },
@@ -447,15 +448,15 @@ const s = StyleSheet.create({
   accountCard: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12, backgroundColor: palette.surface, borderTopWidth: 6, borderTopColor: palette.navy },
   accountAvatar: { width: 52, height: 52, borderRadius: 10, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
   accountEmoji: { fontSize: 22 },
-  accountName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, textTransform: 'uppercase', color: palette.foreground },
+  accountName: { fontFamily: fonts.display, fontSize: 26, textTransform: 'uppercase', color: palette.foreground },
   accountSub:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.supporting, marginTop: 2 },
   accountStats: { alignItems: 'center', gap: 2, minWidth: 38 },
-  accountStatVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.foreground },
+  accountStatVal: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground },
   accountStatLbl: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.supporting, letterSpacing: 0.5 },
   sensitivityRow: { flexDirection: 'row', padding: 12, gap: 8 },
   sensBtn:   { flex: 1, minHeight: 64, borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.border, backgroundColor: palette.background, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 3 },
   sensBtnActive: { borderColor: palette.edge, backgroundColor: palette.primary },
-  sensBtnLabel: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: palette.foreground },
+  sensBtnLabel: { fontFamily: fonts.display, fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: palette.foreground },
   sensBtnDesc:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.foreground, textAlign: 'center' },
   aboutRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },
   aboutLabel:{ fontFamily: 'SourceSans3_400Regular', fontSize: 13, color: palette.muted },

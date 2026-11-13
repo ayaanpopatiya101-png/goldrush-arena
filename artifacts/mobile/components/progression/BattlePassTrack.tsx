@@ -7,6 +7,7 @@ import { palette } from '@/constants/colors';
 import type { BattlePassTier, BPReward } from '@/context/PlayerContext';
 import { RewardArt, StateChip, bpRewardView, type RewardState } from './rewards';
 
+import { fonts } from '@/constants/typography';
 export function bpCellState(tier: BattlePassTier, isPlus: boolean, bpp: number, hasPlus: boolean, freeClaimed: string[], plusClaimed: string[]): RewardState {
   const id = `bp_${tier.slot}`;
   if (isPlus) {
@@ -88,7 +89,7 @@ const t = StyleSheet.create({
   railCell: { alignItems: 'center', justifyContent: 'center', borderRadius: 10, borderWidth: 2, borderColor: palette.border, backgroundColor: palette.inset, paddingVertical: 6 },
   railReached: { backgroundColor: palette.primary, borderColor: palette.edge },
   railMilestone: { borderBottomWidth: 5 },
-  railNum: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 20, color: palette.foreground },
+  railNum: { fontFamily: fonts.display, fontSize: 20, color: palette.foreground },
   railPts: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.supporting },
   cell: { flex: 1, minWidth: 0, minHeight: 44, padding: 8, gap: 6, alignItems: 'flex-start', backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border },
   cellPlus: { backgroundColor: palette.raised },

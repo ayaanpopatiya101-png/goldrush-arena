@@ -28,6 +28,7 @@ import { ScreenTitle } from '@/components/ui/Primitives';
 import { CURRENT_SEASON } from '@/constants/season';
 import { Glyph } from '@/components/ui/Glyph';
 
+import { fonts } from '@/constants/typography';
 // ─── Emote strip ─────────────────────────────────────────────────────────────
 const EMOTES = ['🔥', '👏', '😤', '💀', '🤝', '👑'] as const;
 
@@ -66,7 +67,7 @@ export default function PostGameScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: palette.background, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <View style={{ width: '100%', maxWidth: 520, gap: 16 }}>
-          <Text accessibilityRole="header" style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 30, color: palette.foreground }}>No results to show</Text>
+          <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: 26, color: palette.foreground }}>No results to show</Text>
           <Text accessibilityRole="alert" style={{ fontFamily: 'SourceSans3_400Regular', color: palette.supporting, fontSize: 16, lineHeight: 24 }}>Results only appear right after a saved match. Refreshing or opening this page directly clears them. Your saved progress is on Profile.</Text>
           <Pressable accessibilityRole="button" onPress={() => router.replace('/')} style={{ minHeight: 48, justifyContent: 'center', alignItems: 'center', borderRadius: 8, backgroundColor: palette.ochre }}>
             <Text style={{ fontFamily: 'SourceSans3_700Bold', color: palette.onAccent, fontSize: 17 }}>Return to Play</Text>
@@ -599,11 +600,11 @@ const styles = StyleSheet.create({
   column: { width: '100%', maxWidth: 720, gap: 12 },
   resultCard: { borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, borderRadius: 10, padding: 16, gap: 4 },
   kicker: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted, letterSpacing: 1 },
-  resultText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 44, lineHeight: 48 },
+  resultText: { fontFamily: fonts.display, fontSize: 37, lineHeight: 42 },
   resultSub: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 15, color: palette.supporting },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10, borderTopWidth: 1, borderTopColor: palette.border, paddingTop: 10, rowGap: 8 },
   statItem: { minWidth: 96, flexGrow: 1, flexBasis: '18%' },
-  statValue: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: palette.foreground },
+  statValue: { fontFamily: fonts.display, fontSize: 26, color: palette.foreground },
   statLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.supporting },
   playAgainBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 52, borderRadius: 8, backgroundColor: palette.ochre },
   playAgainText: { color: palette.onAccent, fontFamily: 'SourceSans3_700Bold', fontSize: 17 },
@@ -619,7 +620,7 @@ const styles = StyleSheet.create({
   progRow: { gap: 6, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: palette.border },
   progHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 },
   progName: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.foreground },
-  progVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: palette.foreground },
+  progVal: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground },
   progSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.supporting },
   xpTrack: { height: 8, borderRadius: 8, overflow: 'hidden', backgroundColor: palette.background },
   xpFill: { height: '100%', backgroundColor: palette.ochre },

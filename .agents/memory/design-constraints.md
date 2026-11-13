@@ -78,8 +78,8 @@ Alternative palette studies are exploration, not approval to replace Carbon + Li
 
 ## Newest full-app screenshot direction
 
-The user explicitly asked to apply the supplied Entry/Welcome and Main Lobby
-screenshot throughout the app: dark slate surfaces, lighter raised panels, bright
+The user repeatedly asked to "copy the same colors and design throughout the app"
+from the supplied Entry/Welcome and Main Lobby screenshot: dark slate surfaces, lighter raised panels, bright
 green actions, gold rewards, tactile rounded controls, blended 3D effects and
 smooth transitions.
 

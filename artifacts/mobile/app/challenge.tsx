@@ -137,7 +137,7 @@ function Row({ k, v, last }: { k: string; v: string; last?: boolean }) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.background },
   kicker: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.supporting },
-  title: { fontFamily: fonts.display, fontSize: 38, color: palette.foreground },
+  title: { fontFamily: fonts.display, fontSize: 32, color: palette.foreground },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 23, color: palette.supporting },
   rules: { paddingHorizontal: 14 },
   row: { paddingVertical: 10, gap: 2 },

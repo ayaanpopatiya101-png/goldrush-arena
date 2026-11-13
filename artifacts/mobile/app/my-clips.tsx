@@ -140,7 +140,7 @@ export default function MyClipsScreen() {
 const mc = StyleSheet.create({
   root: { flex: 1, backgroundColor: palette.background },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  title: { fontFamily: fonts.display, fontSize: 32, color: palette.foreground },
+  title: { fontFamily: fonts.display, fontSize: 27, color: palette.foreground },
   meta: { fontFamily: fonts.body, fontSize: 13, color: palette.muted },
   body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 22, color: palette.supporting, textAlign: 'center' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },

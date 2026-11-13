@@ -1,4 +1,4 @@
-// Shared flat primitives for GoldRush Arena: moss plates on carbon, light type, lime action with dark ink.
+// Shared raised-slate primitives for GoldRush Arena: moss plates on carbon, light type, lime action with dark ink.
 import { Feather } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import { ActivityIndicator, Animated, Easing, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
@@ -56,7 +56,7 @@ export function SectionLabel({ title, right, style }: { title: string; right?: R
   return (
     <View style={[p.sectionRow, style]}>
       <Text style={p.sectionTitle} accessibilityRole="header">{title}</Text>
-      <View style={p.sectionRule} />
+      <View style={{ flex: 1 }} />
       {right}
     </View>
   );
@@ -154,20 +154,19 @@ export function IconButton({ icon, onPress, label, style }: { icon: React.Compon
 const p = StyleSheet.create({
   panel: { backgroundColor: palette.surface, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge, borderRadius: R + 4 },
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sectionTitle: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.4, color: palette.foreground, textTransform: 'uppercase' },
-  sectionRule: { flex: 1, height: 1, backgroundColor: palette.line },
+  sectionTitle: { fontFamily: fonts.display, fontSize: 16, letterSpacing: 0.6, color: palette.foreground, textTransform: 'uppercase' },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 2, borderBottomWidth: 5, borderRadius: 999, minHeight: 48, paddingHorizontal: 16 },
   // Instant press feedback, without an animated transition.
   btnPressed: { borderBottomWidth: 2 },
   btnLg: { minHeight: 60, paddingHorizontal: 20, borderRadius: R + 4 },
   btnSm: { minHeight: 44, paddingHorizontal: 10 },
-  btnText: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.2, textTransform: 'uppercase' },
-  btnTextLg: { fontSize: 26, letterSpacing: 2 },
-  btnTextSm: { fontSize: 14, letterSpacing: 1 },
+  btnText: { fontFamily: fonts.display, fontSize: 16, letterSpacing: 0.6, textTransform: 'uppercase' },
+  btnTextLg: { fontSize: 22, letterSpacing: 0.8 },
+  btnTextSm: { fontSize: 14, letterSpacing: 0.4 },
   chip: { borderWidth: 2, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start' },
   chipText: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, letterSpacing: 0.8, textTransform: 'uppercase' },
   stat: { flex: 1, paddingVertical: 10, paddingHorizontal: 12, borderRightWidth: 1, borderRightColor: palette.line },
-  statValue: { fontFamily: fonts.display, fontSize: 28, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  statValue: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground, fontVariant: ['tabular-nums'] },
   statLabel: { fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.supporting, textTransform: 'uppercase' },
   iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge, backgroundColor: palette.raised },
 });
@@ -196,7 +195,7 @@ export function ScreenTitle({ title, kicker, right, style, tone = 'light' }: { t
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         {kicker ? <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: textScale.caption, letterSpacing: 1, color: palette.supporting, textTransform: 'uppercase' }}>{kicker}</Text> : null}
-        <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 34, letterSpacing: 0.4, color: palette.foreground, textTransform: 'uppercase' }}>{title}</Text>
+        <Text accessibilityRole="header" numberOfLines={1} style={{ fontFamily: fonts.display, fontSize: 28, letterSpacing: 0.2, color: palette.foreground, textTransform: 'uppercase' }} adjustsFontSizeToFit minimumFontScale={0.75}>{title}</Text>
       </View>
       {right}
     </View>

@@ -5,6 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Text } from '@/components/ui/Text';
 import { palette } from '@/constants/colors';
 
+import { fonts } from '@/constants/typography';
 /* eslint-disable @typescript-eslint/no-require-imports */
 const ACH_IMAGE: Partial<Record<string, number>> = {
   first_win: require('../../assets/images/ach_first_win.png'),
@@ -60,7 +61,7 @@ export function AchievementGrid({ items, unlockedIds }: { items: { id: string; n
 
 const g = StyleSheet.create({
   head: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: 6 },
-  title: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, letterSpacing: 1.2, color: palette.foreground },
+  title: { fontFamily: fonts.display, fontSize: 22, letterSpacing: 1.2, color: palette.foreground },
   count: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.supporting },
   meter: { height: 10, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.inset },
   meterFill: { height: '100%', backgroundColor: palette.gold },

@@ -11,7 +11,7 @@
     "build": "node scripts/build.js",
     "serve": "node server/serve.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test:reliability": "node --test scripts/reliability.test.mjs scripts/lobby-recovery.test.mjs scripts/theme-contrast.test.mjs scripts/completed-match.test.mjs scripts/player-experience.test.mjs scripts/support-contact.test.mjs scripts/onboarding.test.mjs scripts/comfort.test.mjs",
+    "test:reliability": "node --test scripts/reliability.test.mjs scripts/lobby-recovery.test.mjs scripts/theme-contrast.test.mjs scripts/completed-match.test.mjs scripts/player-experience.test.mjs scripts/support-contact.test.mjs scripts/onboarding.test.mjs scripts/comfort.test.mjs scripts/reference-style.test.mjs",
     "test:notifications": "node --test scripts/event-notifications.test.mjs",
     "test:clips": "node --test scripts/clips.test.mjs",
     "test:photos": "node --test scripts/avatar-image.test.mjs",

@@ -452,7 +452,7 @@ const s = StyleSheet.create({
   featured: { borderRadius: 10, borderWidth: 3, borderBottomWidth: 6, borderColor: palette.edge, overflow: 'hidden' },
   band: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 9, backgroundColor: palette.inset },
   bandText: { fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', color: palette.foreground },
-  hero: { fontFamily: fonts.display, fontSize: 40, color: palette.foreground, textTransform: 'uppercase', letterSpacing: -0.5 },
+  hero: { fontFamily: fonts.display, fontSize: 34, color: palette.foreground, textTransform: 'uppercase', letterSpacing: -0.5 },
   h2: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground, textTransform: 'uppercase' },
   h3: { fontFamily: fonts.display, fontSize: 19, color: palette.foreground, textTransform: 'uppercase', letterSpacing: 0.5 },
   kicker: { fontFamily: fonts.bodyBold, fontSize: textScale.caption, color: palette.supporting, textTransform: 'uppercase', letterSpacing: 1 },

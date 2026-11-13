@@ -134,7 +134,7 @@ const s = StyleSheet.create({
   track: { height: 14, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.surface, padding: 2 },
   trackFill: { height: '100%', backgroundColor: palette.gold },
   kicker: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 1.4, color: palette.supporting, textTransform: 'uppercase', flexShrink: 1 },
-  title: { fontFamily: fonts.display, fontSize: 32, lineHeight: 34, color: palette.foreground, textTransform: 'uppercase', marginTop: 4 },
+  title: { fontFamily: fonts.display, fontSize: 27, lineHeight: 30, color: palette.foreground, textTransform: 'uppercase', marginTop: 4 },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22, color: palette.supporting },
   court: { alignSelf: 'center', backgroundColor: palette.inset },
   legend: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap' },

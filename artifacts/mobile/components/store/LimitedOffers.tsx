@@ -15,6 +15,7 @@ import { useRevenueCat } from '@/lib/revenuecat';
 import { arenaRequestOptions } from '@/utils/arenaSession';
 import { trackEvent } from '@/utils/analytics';
 
+import { fonts } from '@/constants/typography';
 type StorePlatform = 'web' | 'ios' | 'android';
 export const storePlatform: StorePlatform = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web';
 
@@ -269,15 +270,15 @@ const s = StyleSheet.create({
   wrap: { gap: 10, marginBottom: 6 },
   headRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   kicker: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 2, color: palette.gold },
-  rule: { flex: 1, height: 1, backgroundColor: palette.border },
+  rule: { flex: 1 },
   small: { fontFamily: 'SourceSans3_400Regular', fontSize: 11, color: palette.muted },
   card: { backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.border, padding: 14, gap: 6 },
   empty: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: palette.inset },
   skel: { backgroundColor: palette.raised, borderRadius: 4 },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   pill: { borderRadius: 6, borderWidth: 2, borderColor: palette.border, paddingHorizontal: 7, paddingVertical: 2 },
-  pillTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 13, letterSpacing: 1, color: palette.supporting },
-  title: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, letterSpacing: 0.4, color: palette.foreground, textTransform: 'uppercase' },
+  pillTxt: { fontFamily: fonts.display, fontSize: 13, letterSpacing: 1, color: palette.supporting },
+  title: { fontFamily: fonts.display, fontSize: 22, letterSpacing: 0.4, color: palette.foreground, textTransform: 'uppercase' },
   body: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18, color: palette.supporting },
   reason: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.supporting },
   skinRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
@@ -288,7 +289,7 @@ const s = StyleSheet.create({
   ownedTag: { fontFamily: 'SourceSans3_700Bold', fontSize: 10, letterSpacing: 1, color: palette.primary },
   cta: { marginTop: 6, minHeight: 46, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, backgroundColor: palette.primary, alignItems: 'center', justifyContent: 'center' },
   ctaOff: { backgroundColor: palette.raised, borderColor: palette.border },
-  ctaTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, letterSpacing: 1, color: palette.onAccent },
+  ctaTxt: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1, color: palette.onAccent },
   ghostBtn: { marginTop: 8, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, backgroundColor: palette.raised, paddingHorizontal: 14, minHeight: 44, justifyContent: 'center' },
   ghostTxt: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1, color: palette.foreground },
   pressed: { borderBottomWidth: 2, transform: [{ translateY: 2 }] },

@@ -267,7 +267,7 @@ const s = StyleSheet.create({
   back: { minHeight: 44, minWidth: 64, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: palette.edge, borderRadius: 8, backgroundColor: palette.background },
   backText: { fontFamily: fonts.display, fontSize: 16, letterSpacing: 1, color: palette.foreground, textTransform: 'uppercase' },
   kicker: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: palette.supporting, textTransform: 'uppercase' },
-  title: { fontFamily: fonts.display, fontSize: 30, color: palette.foreground, letterSpacing: 0.5 },
+  title: { fontFamily: fonts.display, fontSize: 26, color: palette.foreground, letterSpacing: 0.5 },
   coins: { backgroundColor: palette.gold, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, paddingHorizontal: 10, paddingVertical: 4, alignItems: 'center', borderRadius: 8 },
   coinNum: { fontFamily: fonts.display, fontSize: 20, color: palette.onAccent },
   coinLbl: { fontFamily: fonts.bodyBold, fontSize: 11, color: palette.onAccent, textTransform: 'uppercase' },

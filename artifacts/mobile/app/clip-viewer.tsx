@@ -44,6 +44,7 @@ import { Button, ScreenTitle, paperText } from '@/components/ui/Primitives';
 import { tactile } from '@/constants/colors';
 import { palette } from '@/constants/colors';
 
+import { fonts } from '@/constants/typography';
 const { width: SW } = Dimensions.get('window');
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -633,12 +634,12 @@ const cv = StyleSheet.create({
   root:   { flex: 1, backgroundColor: palette.background },
   column: { width: '100%', maxWidth: 720, paddingHorizontal: 16, gap: 12 },
   skel:   { backgroundColor: palette.surface, borderRadius: 8 },
-  stateTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 32, color: palette.foreground },
+  stateTitle: { fontFamily: fonts.display, fontSize: 27, color: palette.foreground },
   stateBody:  { fontFamily: 'SourceSans3_400Regular', fontSize: 16, lineHeight: 23, color: palette.supporting },
 
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, gap: 10, borderBottomWidth: 1, borderBottomColor: palette.border, marginBottom: 12 },
   headerBtn:   { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, borderWidth: 2, borderColor: palette.border },
-  headerTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.foreground, letterSpacing: 1 },
+  headerTitle: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground, letterSpacing: 1 },
   headerSub:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted },
 
   clipCardWrap: { width: '100%' },

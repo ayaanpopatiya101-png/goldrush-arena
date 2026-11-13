@@ -136,7 +136,7 @@ const s = StyleSheet.create({
   youRow: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: palette.background, borderColor: palette.primary },
   fill: { height: '100%', backgroundColor: palette.primary },
   legacyCell: { flex: 1, borderRadius: 10, borderWidth: 2, borderColor: palette.border, padding: 10, backgroundColor: palette.surface },
-  legacyV: { fontFamily: fonts.display, fontSize: 30, color: palette.supporting, fontVariant: ['tabular-nums'] },
+  legacyV: { fontFamily: fonts.display, fontSize: 26, color: palette.supporting, fontVariant: ['tabular-nums'] },
   legacyL: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: palette.supporting },
   ladder: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.inset, padding: 18, gap: 6 },
   ladderTitle: { fontFamily: fonts.display, fontSize: 22, letterSpacing: 1, color: palette.gold },

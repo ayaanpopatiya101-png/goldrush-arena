@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/Text';
 import { palette } from '@/constants/colors';
 import type { QuestDefinition, PlayerProfile } from '@/context/PlayerContext';
 
+import { fonts } from '@/constants/typography';
 export function questProgress(q: QuestDefinition, p: PlayerProfile): number {
   const map = q.period === 'daily' ? p.dailyQuestProgress : q.period === 'weekly' ? p.weeklyQuestProgress : p.seasonalQuestProgress;
   return (map ?? {})[q.trackKey] ?? 0;
@@ -75,7 +76,7 @@ export function QuestSection({ title, period, quests, profile, hasPlus, busyId, 
 
 const q = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 48, paddingVertical: 6 },
-  headTxt: { flex: 1, fontFamily: 'BarlowCondensed_700Bold', fontSize: 20, letterSpacing: 1, color: palette.foreground },
+  headTxt: { flex: 1, fontFamily: fonts.display, fontSize: 20, letterSpacing: 1, color: palette.foreground },
   count: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.supporting },
   row: { flexDirection: 'row', gap: 10, padding: 12, marginBottom: 8, backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.border },
   title: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.foreground },
@@ -86,5 +87,5 @@ const q = StyleSheet.create({
   prog: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, color: palette.foreground },
   reward: { fontFamily: 'SourceSans3_700Bold', fontSize: 13, color: palette.onAccent, backgroundColor: palette.gold, paddingHorizontal: 6, paddingVertical: 2 },
   claim: { minHeight: 44, minWidth: 72, justifyContent: 'center', alignItems: 'center', backgroundColor: palette.primary, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.edge, paddingHorizontal: 10 },
-  claimTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, letterSpacing: 1, color: palette.onAccent },
+  claimTxt: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1, color: palette.onAccent },
 });

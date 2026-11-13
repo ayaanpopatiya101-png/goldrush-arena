@@ -12,6 +12,7 @@ import { RewardInspector, type InspectTarget } from '@/components/progression/Re
 import { trophyRewardView } from '@/components/progression/rewards';
 import { GamesRoadLane } from '@/components/progression/GamesRoadLane';
 
+import { fonts } from '@/constants/typography';
 export default function TrophyRoadMap() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -122,10 +123,10 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingBottom: 12, backgroundColor: palette.background, borderBottomWidth: 1.5, borderBottomColor: palette.border },
   back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge, backgroundColor: palette.surface },
   crest: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.gold, borderBottomWidth: 3, borderBottomColor: palette.goldEdge },
-  headerTitle: { flex: 1, fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, letterSpacing: 1.2, color: palette.foreground },
+  headerTitle: { flex: 1, fontFamily: fonts.display, fontSize: 24, letterSpacing: 1.2, color: palette.foreground },
   passBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 14, borderRadius: 22, backgroundColor: palette.gold, borderBottomWidth: 4, borderBottomColor: palette.goldEdge },
-  passTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, letterSpacing: 1, color: palette.onAccent },
-  section: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, letterSpacing: 1.2, color: palette.foreground },
+  passTxt: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1, color: palette.onAccent },
+  section: { fontFamily: fonts.display, fontSize: 22, letterSpacing: 1.2, color: palette.foreground },
   lede: { fontFamily: 'SourceSans3_400Regular', fontSize: 15, lineHeight: 21, color: palette.supporting },
   notice: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, padding: 10, backgroundColor: palette.raised, borderWidth: 1.5, borderBottomWidth: 4, borderRadius: 14, borderColor: palette.border, borderBottomColor: palette.edge },
   noticeTxt: { flex: 1, fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: palette.foreground },

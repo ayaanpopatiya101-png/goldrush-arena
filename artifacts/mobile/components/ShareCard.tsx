@@ -19,6 +19,7 @@ import { GlowText } from '@/components/effects';
 import { buildChallengeLink } from '@/utils/dailyChallenge';
 import { Glyph } from '@/components/ui/Glyph';
 
+import { fonts } from '@/constants/typography';
 interface ShareCardProps {
   visible:       boolean;
   score:         number;        // deflections / hits
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
   scoreSection: { alignItems: 'center', gap: 0 },
   survivedLabel: { fontFamily: 'SourceSans3_700Bold', fontSize: 11, letterSpacing: 4, color: palette.foreground, marginBottom: 4 },
   scoreNumber: {
-    fontFamily: 'BarlowCondensed_700Bold', fontSize: 96, lineHeight: 96,
+    fontFamily: fonts.display, fontSize: 96, lineHeight: 96,
     color: palette.gold,
     textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0,
   },
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
   statLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 8, letterSpacing: 2, color: palette.foreground },
 
   ctaRow:     { backgroundColor: palette.inset, borderRadius: 8, borderWidth: 1, borderColor: palette.gold, paddingHorizontal: 20, paddingVertical: 10, marginBottom: 12 },
-  ctaText:    { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: palette.gold, letterSpacing: 1 },
+  ctaText:    { fontFamily: fonts.display, fontSize: 18, color: palette.gold, letterSpacing: 1 },
 
   playerTag:  { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.foreground, fontStyle: 'italic' },
 

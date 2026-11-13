@@ -24,6 +24,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { LimitedOffers, identifyNativeCustomer } from '@/components/store/LimitedOffers';
 import { SKINS } from '@/context/PlayerContext';
 
+import { fonts } from '@/constants/typography';
 const NATIVE_PACKAGE_IDS: Record<string, string> = {
   'Starter Sack': 'starter_sack',
   'Gold Pouch': 'gold_pouch',
@@ -629,9 +630,9 @@ const styles = StyleSheet.create({
   tabRow: { flexDirection: 'row', gap: 6, flexShrink: 0, minHeight: 48, borderBottomWidth: 2, paddingHorizontal: 16, paddingBottom: 12, marginBottom: 4 },
   tab: { flex: 1, minHeight: 46, minWidth: 0, paddingHorizontal: 3, justifyContent: 'center', alignItems: 'center', borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface },
   tabOn: { backgroundColor: palette.primary, borderColor: palette.edge },
-  tabText: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 15, letterSpacing: 0.6 },
+  tabText: { fontFamily: fonts.display, fontSize: 15, letterSpacing: 0.6 },
   sectionInfo: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 18 },
-  subsectionTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, letterSpacing: 1.4, marginTop: 14, marginBottom: 4, color: palette.foreground, textTransform: 'uppercase' },
+  subsectionTitle: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 1.4, marginTop: 14, marginBottom: 4, color: palette.foreground, textTransform: 'uppercase' },
   skinGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   skinCard: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, overflow: 'hidden' },
   skinPreview: { height: 88, alignItems: 'center', justifyContent: 'center' },
@@ -671,7 +672,7 @@ const storeStyles = StyleSheet.create({
   bannerSub: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 16, marginTop: 2 },
   errorBox: { alignItems: 'center', borderRadius: 10, borderWidth: 2, padding: 16 },
   passCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 10, borderWidth: 2, borderBottomWidth: 6, padding: 18, overflow: 'hidden' },
-  passName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.foreground, letterSpacing: 0.5, textTransform: 'uppercase' },
+  passName: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground, letterSpacing: 0.5, textTransform: 'uppercase' },
   passDesc: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, lineHeight: 17, marginTop: 2 },
   storeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, padding: 14, gap: 10, overflow: 'hidden' },
   storeName: { fontFamily: 'SourceSans3_700Bold', fontSize: 14 },
@@ -688,7 +689,7 @@ const storeStyles = StyleSheet.create({
   restoreText: { color: palette.foreground, fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1 },
   confirmBackdrop: { flex: 1, backgroundColor: palette.deepest + 'CC', alignItems: 'center', justifyContent: 'center', padding: 24 },
   confirmCard: { width: '100%', maxWidth: 360, borderRadius: 10, borderWidth: 2, borderBottomWidth: 6, borderColor: palette.edge, padding: 20 },
-  confirmTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, letterSpacing: 0.5, textTransform: 'uppercase' },
+  confirmTitle: { fontFamily: fonts.display, fontSize: 26, letterSpacing: 0.5, textTransform: 'uppercase' },
   confirmText: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 21, marginTop: 8 },
   confirmActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 20 },
   confirmCancel: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },

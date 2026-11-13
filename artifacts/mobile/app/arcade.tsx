@@ -171,7 +171,7 @@ const s = StyleSheet.create({
   cell: { flex: 1, paddingVertical: 8, paddingHorizontal: 12 },
   cellMid: { borderLeftWidth: 1, borderRightWidth: 1, borderColor: palette.border },
   cellLabel: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: palette.foreground },
-  cellValue: { fontFamily: fonts.display, fontSize: 30, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  cellValue: { fontFamily: fonts.display, fontSize: 26, color: palette.foreground, fontVariant: ['tabular-nums'] },
   rule: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: palette.foreground, marginTop: 6 },
   frame: { borderWidth: 1, borderColor: palette.edge, borderRadius: 10, overflow: 'hidden', backgroundColor: palette.background },
   footer: { flexDirection: 'row', alignItems: 'center', gap: 10 },

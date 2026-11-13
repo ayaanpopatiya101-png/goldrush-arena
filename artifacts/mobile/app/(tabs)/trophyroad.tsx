@@ -19,6 +19,7 @@ import { RewardInspector, type InspectTarget } from '@/components/progression/Re
 import { RewardArt, StateChip, bpRewardView } from '@/components/progression/rewards';
 import { usePlusOffer } from '@/hooks/usePlusOffer';
 
+import { fonts } from '@/constants/typography';
 const DAILY = QUESTS.filter(q => q.period === 'daily');
 const WEEKLY = QUESTS.filter(q => q.period === 'weekly');
 const SEASONAL = QUESTS.filter(q => q.period === 'seasonal');
@@ -222,21 +223,21 @@ const s = StyleSheet.create({
   card: { padding: 14, gap: 10, backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, borderBottomWidth: 6, borderColor: palette.edge },
   statRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   stat: { flexGrow: 1, flexBasis: 84, padding: 8, backgroundColor: palette.inset, borderRadius: 10, borderWidth: 2, borderColor: palette.border },
-  statVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  statVal: { fontFamily: fonts.display, fontSize: 26, color: palette.foreground, fontVariant: ['tabular-nums'] },
   statLbl: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1, color: palette.supporting },
   small: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 19, color: palette.supporting },
   bar: { height: 18, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.inset, padding: 2 },
   fill: { height: '100%', backgroundColor: palette.primary },
-  h2: { flex: 1, fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, letterSpacing: 1, color: palette.foreground },
+  h2: { flex: 1, fontFamily: fonts.display, fontSize: 22, letterSpacing: 1, color: palette.foreground },
   badge: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1, color: palette.supporting, backgroundColor: palette.inset, paddingHorizontal: 6, paddingVertical: 2 },
   btn: { minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10, backgroundColor: palette.raised, borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge },
-  btnTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, letterSpacing: 0.8, color: palette.foreground, textAlign: 'center' },
+  btnTxt: { fontFamily: fonts.display, fontSize: 17, letterSpacing: 0.8, color: palette.foreground, textAlign: 'center' },
   showcase: { flexGrow: 1, flexBasis: 140, padding: 10, gap: 6, alignItems: 'center', backgroundColor: palette.surface, borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.border },
-  showTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
+  showTitle: { fontFamily: fonts.display, fontSize: 22, color: palette.foreground, textTransform: 'uppercase' },
   tabs: { flexDirection: 'row', gap: 6 },
   tab: { flex: 1, minHeight: 48, flexDirection: 'row', gap: 4, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: palette.border, backgroundColor: palette.surface, paddingHorizontal: 4 },
   tabOn: { backgroundColor: palette.primary, borderColor: palette.edge },
-  tabTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 16, letterSpacing: 1, color: palette.foreground },
+  tabTxt: { fontFamily: fonts.display, fontSize: 16, letterSpacing: 1, color: palette.foreground },
   notice: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, padding: 10, backgroundColor: palette.raised, borderRadius: 10, borderWidth: 2, borderColor: palette.border },
   noticeTxt: { flex: 1, fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: palette.foreground },
 });

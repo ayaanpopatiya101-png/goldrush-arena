@@ -43,6 +43,7 @@ import { Glyph } from '@/components/ui/Glyph';
 import { staticLoop } from '@/components/ui/motion';
 import OnlineMatch, { isOnlineMode } from '@/components/multiplayer/OnlineMatch';
 
+import { fonts } from '@/constants/typography';
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface MatchPlayer {
   id:    string;
@@ -530,7 +531,7 @@ function OfflineLobbyScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: palette.background, alignItems: 'center', paddingTop: topPad + 24, paddingHorizontal: 18 }}>
         <View style={{ width: '100%', maxWidth: 520, gap: 16 }}>
-          <Text accessibilityRole="header" style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 30, color: palette.foreground }}>No match is set up</Text>
+          <Text accessibilityRole="header" style={{ fontFamily: fonts.display, fontSize: 26, color: palette.foreground }}>No match is set up</Text>
           <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 16, lineHeight: 24, color: palette.supporting }}>
             The lobby opens from Play or Events with a chosen mode. Opening it directly or refreshing clears that choice, so no bots were prepared and nothing will start.
           </Text>
@@ -868,7 +869,7 @@ const styles = StyleSheet.create({
   mapLockBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
   mapLockText: { fontFamily: 'SourceSans3_700Bold', fontSize: 9, letterSpacing: 0.5 },
   rulesCard: { borderRadius: 10, borderWidth: 2, padding: 16, gap: 10 },
-  rulesTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 23, letterSpacing: 1 },
+  rulesTitle: { fontFamily: fonts.display, fontSize: 23, letterSpacing: 1 },
   rulesList: { gap: 8 },
   ruleItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   ruleDot: { width: 6, height: 6, borderRadius: 8, marginTop: 6 },

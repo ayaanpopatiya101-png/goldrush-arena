@@ -22,6 +22,7 @@ import { Glyph } from '@/components/ui/Glyph';
 import { ColorPicker } from '@/components/appearance/ColorPicker';
 import { AvatarPhoto, PhotoAvatarEditor, PhotoSourceMenu, type PhotoPickRequest } from '@/components/appearance/PhotoAvatarEditor';
 
+import { fonts } from '@/constants/typography';
 export default function ProfileScreen() {
   const colors    = useColors();
   const insets    = useSafeAreaInsets();
@@ -301,7 +302,7 @@ export default function ProfileScreen() {
         </Panel>
 
         <View style={{ gap: 2, marginTop: 8 }} accessibilityRole="header">
-          <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, letterSpacing: 1, color: palette.foreground }}>YOUR RECORD</Text>
+          <Text style={{ fontFamily: fonts.display, fontSize: 24, letterSpacing: 1, color: palette.foreground }}>YOUR RECORD</Text>
           <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: palette.supporting }}>Stats, recent matches and achievements</Text>
         </View>
         {/* ── Stats grid ── */}
@@ -392,7 +393,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={{ gap: 2, marginTop: 8 }} accessibilityRole="header">
-          <Text style={{ fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, letterSpacing: 1, color: palette.foreground }}>FRIENDS AND CHALLENGES</Text>
+          <Text style={{ fontFamily: fonts.display, fontSize: 24, letterSpacing: 1, color: palette.foreground }}>FRIENDS AND CHALLENGES</Text>
           <Text style={{ fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: palette.supporting }}>Share your rank, challenge friends, and refer new players</Text>
         </View>
         {/* ── Share stats card ── */}
@@ -536,7 +537,7 @@ const styles = StyleSheet.create({
   bigAvatarEmoji: { fontSize: 36 },
   editBadge:      { position: 'absolute', bottom: -6, right: -6, width: 30, height: 30, borderRadius: 15, backgroundColor: palette.primary, borderWidth: 2, borderColor: palette.edge, alignItems: 'center', justifyContent: 'center' },
   profileInfo:    { gap: 5, width: '100%', minWidth: 0 },
-  profileName:    { width: '100%', flexShrink: 1, fontFamily: 'BarlowCondensed_700Bold', fontSize: 34, textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'center' },
+  profileName:    { width: '100%', flexShrink: 1, fontFamily: fonts.display, fontSize: 29, textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'center' },
   levelBadge:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, letterSpacing: 0.5 },
   loginStreakRow:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
   streakIcon:     { fontSize: 12 },
@@ -545,7 +546,7 @@ const styles = StyleSheet.create({
   // Avatar editor
   section:      { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, padding: 16, gap: 12 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionTitle:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 1.2, flex: 1, textTransform: 'uppercase' },
+  sectionTitle:  { fontFamily: fonts.display, fontSize: 18, letterSpacing: 1.2, flex: 1, textTransform: 'uppercase' },
   sectionCount:  { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
   pickerLabel:   { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, letterSpacing: 1.5 },
   emojiGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -566,7 +567,7 @@ const styles = StyleSheet.create({
   // XP
   xpSection: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, padding: 14, gap: 8 },
   xpHeader:  { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
-  xpTitle:   { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, letterSpacing: 0.8, textTransform: 'uppercase', flex: 1 },
+  xpTitle:   { fontFamily: fonts.display, fontSize: 18, letterSpacing: 0.8, textTransform: 'uppercase', flex: 1 },
   xpTotal:   { fontFamily: 'SourceSans3_400Regular', fontSize: 12 },
   xpRemaining: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12 },
   xpTrack:   { height: 16, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, padding: 2, overflow: 'hidden' },
@@ -591,7 +592,7 @@ const styles = StyleSheet.create({
   // Stats
   statsGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   statCard:   { width: '30%', flex: 1, minWidth: 90, alignItems: 'flex-start', paddingVertical: 12, paddingHorizontal: 12, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, gap: 2 },
-  statValue:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: 30, fontVariant: ['tabular-nums'] },
+  statValue:  { fontFamily: fonts.display, fontSize: 26, fontVariant: ['tabular-nums'] },
   statLabel:  { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2 },
 
   // Achievements

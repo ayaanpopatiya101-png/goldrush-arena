@@ -16,6 +16,7 @@ import { updateGameConfig } from '@/store/gameSession';
 import { palette, tactile } from '@/constants/colors';
 import { ScreenTitle } from '@/components/ui/Primitives';
 
+import { fonts } from '@/constants/typography';
 // ─── Win-dot row for a player ─────────────────────────────────────────────────
 function WinDots({ wins, isPlayer }: { wins: number; isPlayer: boolean }) {
   return (
@@ -189,16 +190,16 @@ const s = StyleSheet.create({
   column: { width: '100%', maxWidth: 640, gap: 12 },
   card: { borderWidth: 2, borderColor: palette.border, backgroundColor: palette.surface, borderRadius: 10, padding: 16, gap: 8 },
   kicker: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.muted, letterSpacing: 0.5 },
-  title: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 40, lineHeight: 44 },
+  title: { fontFamily: fonts.display, fontSize: 34, lineHeight: 38 },
   body: { fontFamily: 'SourceSans3_400Regular', fontSize: 15, lineHeight: 21, color: palette.supporting },
   note: { fontFamily: 'SourceSans3_400Regular', fontSize: 13, lineHeight: 18, color: palette.muted },
   statsRow: { flexDirection: 'row', gap: 16, borderRadius: 10, borderWidth: 2, borderColor: palette.edge, backgroundColor: palette.raised, padding: 12 },
   stat: { flex: 1 },
-  statVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, color: palette.foreground },
+  statVal: { fontFamily: fonts.display, fontSize: 26, color: palette.foreground },
   statLbl: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 12, color: palette.supporting },
   nextRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', borderWidth: 2, borderColor: palette.edge, borderRadius: 10, padding: 14, backgroundColor: palette.surface },
   nextLabel: { fontFamily: 'SourceSans3_600SemiBold', fontSize: 13, color: palette.supporting },
-  nextName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.foreground },
+  nextName: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground },
   primaryBtn: { flexDirection: 'row', gap: 8, minHeight: 52, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: palette.ochre },
   primaryText: { fontFamily: 'SourceSans3_700Bold', fontSize: 17, color: palette.onAccent },
   secondaryBtn: { minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: palette.border },
@@ -207,5 +208,5 @@ const s = StyleSheet.create({
   playerRowYou: { borderColor: palette.ochre },
   playerName: { fontFamily: 'SourceSans3_700Bold', fontSize: 15, color: palette.foreground },
   playerTag: { fontFamily: 'SourceSans3_400Regular', fontSize: 12, color: palette.muted },
-  winCount: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 18, color: palette.foreground, minWidth: 34, textAlign: 'right' },
+  winCount: { fontFamily: fonts.display, fontSize: 18, color: palette.foreground, minWidth: 34, textAlign: 'right' },
 });

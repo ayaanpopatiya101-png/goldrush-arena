@@ -15,6 +15,7 @@ import { useColors } from '@/hooks/useColors';
 import { GlowText } from '@/components/effects';
 import { Glyph } from '@/components/ui/Glyph';
 
+import { fonts } from '@/constants/typography';
 const ARENA_THEMES = [
   { id: 'default', name: 'Dark Void',      desc: 'Classic deep-space arena',   color: '#EDE3CC', preview: ['#213D39', '#294C44'] as [string,string] },
   { id: 'solar',   name: 'Solar Flare',    desc: 'Scorching red-orange arena',  color: '#CE7863', preview: ['#294C44', '#1E4A3F'] as [string,string] },
@@ -225,7 +226,7 @@ const s = StyleSheet.create({
   emptyTitle:  { fontFamily: 'SourceSans3_700Bold', fontSize: 16, color: palette.foreground },
   featureCard: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.surface, padding: 18, gap: 20, alignItems: 'center' },
   featureKicker: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2, color: palette.supporting, textTransform: 'uppercase' },
-  featureName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 36, color: palette.foreground, textTransform: 'uppercase' },
+  featureName: { fontFamily: fonts.display, fontSize: 31, color: palette.foreground, textTransform: 'uppercase' },
   featureBody: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 20, color: palette.supporting },
   emptySub:    { fontFamily: 'SourceSans3_400Regular', fontSize: 14, color: palette.supporting, textAlign: 'center' },
 

@@ -6,6 +6,7 @@ import { palette } from '@/constants/colors';
 import { TROPHY_ROAD, type TrophyMilestone } from '@/context/PlayerContext';
 import { RewardArt, StateChip, trophyRewardView, type RewardState } from './rewards';
 
+import { fonts } from '@/constants/typography';
 export const ROAD_ZONES = [
   { name: 'Dusty Trail', subtitle: 'Where legends begin', milestones: TROPHY_ROAD.slice(0, 5) },
   { name: 'Gold Rush Gulch', subtitle: 'Strike it rich', milestones: TROPHY_ROAD.slice(5, 10) },
@@ -132,27 +133,27 @@ const r = StyleSheet.create({
   card: { padding: 16, gap: 12, backgroundColor: palette.surface, borderRadius: 18, borderWidth: 1.5, borderBottomWidth: 5, borderColor: palette.border, borderBottomColor: palette.edge },
   stats: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   stat: { flexGrow: 1, flexBasis: 80, padding: 8, backgroundColor: palette.inset, borderRadius: 14, borderWidth: 1.5, borderColor: palette.border },
-  statVal: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, color: palette.foreground, fontVariant: ['tabular-nums'] },
+  statVal: { fontFamily: fonts.display, fontSize: 24, color: palette.foreground, fontVariant: ['tabular-nums'] },
   statLbl: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1, color: palette.supporting },
   ready: { fontFamily: 'SourceSans3_700Bold', fontSize: 14, color: palette.onAccent, backgroundColor: palette.primary, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, overflow: 'hidden' },
   next: { flexDirection: 'row', gap: 12, alignItems: 'center', padding: 10, minHeight: 44, backgroundColor: palette.raised, borderRadius: 16, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge },
   kicker: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1.2, color: palette.gold },
-  nextTitle: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 24, lineHeight: 26, color: palette.foreground, textTransform: 'uppercase' },
+  nextTitle: { fontFamily: fonts.display, fontSize: 24, lineHeight: 26, color: palette.foreground, textTransform: 'uppercase' },
   sub: { fontFamily: 'SourceSans3_400Regular', fontSize: 14, lineHeight: 19, color: palette.supporting },
   bar: { height: 16, borderRadius: 8, borderWidth: 1.5, borderColor: palette.border, backgroundColor: palette.inset, padding: 2, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: 6, backgroundColor: palette.primary },
   zone: { paddingVertical: 10, paddingHorizontal: 12, marginBottom: 8, backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge, borderLeftWidth: 5, borderLeftColor: palette.gold },
-  zoneName: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 26, lineHeight: 28, letterSpacing: 1, color: palette.foreground },
+  zoneName: { fontFamily: fonts.display, fontSize: 26, lineHeight: 28, letterSpacing: 1, color: palette.foreground },
   msRow: { flexDirection: 'row', alignItems: 'stretch', gap: 8, marginBottom: 8 },
   railCol: { width: 36, alignItems: 'center' },
   railLine: { position: 'absolute', top: -8, bottom: -8, width: 6, borderRadius: 3, backgroundColor: palette.inset, borderWidth: 1, borderColor: palette.border },
   node: { marginTop: 14, width: 34, height: 34, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.raised, borderRadius: 17, borderWidth: 1.5, borderBottomWidth: 3, borderColor: palette.border, borderBottomColor: palette.edge },
   nodeOn: { backgroundColor: palette.primary, borderColor: palette.primary, borderBottomColor: palette.primaryEdge },
   nodeCurrent: { borderColor: palette.gold, borderWidth: 3 },
-  nodeTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, color: palette.foreground },
+  nodeTxt: { fontFamily: fonts.display, fontSize: 17, color: palette.foreground },
   msCard: { minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'center', padding: 10, backgroundColor: palette.surface, borderRadius: 16, borderWidth: 1.5, borderBottomWidth: 4, borderColor: palette.border, borderBottomColor: palette.edge },
   here: { fontFamily: 'SourceSans3_700Bold', fontSize: 12, letterSpacing: 1, color: palette.gold },
   msTitle: { fontFamily: 'SourceSans3_700Bold', fontSize: 16, lineHeight: 20, color: palette.foreground },
   claim: { minWidth: 64, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.primary, borderRadius: 22, borderBottomWidth: 4, borderBottomColor: palette.primaryEdge, paddingHorizontal: 16 },
-  claimTxt: { fontFamily: 'BarlowCondensed_700Bold', fontSize: 17, color: palette.onAccent },
+  claimTxt: { fontFamily: fonts.display, fontSize: 17, color: palette.onAccent },
 });

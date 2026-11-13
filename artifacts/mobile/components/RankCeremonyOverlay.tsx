@@ -25,6 +25,7 @@ import * as Haptics from '@/utils/haptics';
 import { staticLoop } from '@/components/ui/motion';
 import { useBlockingOverlay } from '@/context/OverlayQueue';
 
+import { fonts } from '@/constants/typography';
 const { width: SW, height: SH } = Dimensions.get('window');
 
 // ── Flavor text keyed by rank tier prefix ─────────────────────────────────────
@@ -383,7 +384,7 @@ const s = StyleSheet.create({
     gap: 8,
   },
   rankName: {
-    fontFamily: 'BarlowCondensed_700Bold',
+    fontFamily: fonts.display,
     fontSize: 42,
     letterSpacing: 4,
     textShadowOffset: { width: 0, height: 0 },

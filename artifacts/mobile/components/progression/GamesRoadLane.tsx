@@ -74,7 +74,7 @@ export function GamesRoadLane() {
 
 const s = StyleSheet.create({
   lane: { padding: 16, gap: 12 },
-  total: { fontFamily: fonts.display, fontSize: 30, color: palette.gold, letterSpacing: 0.5 },
+  total: { fontFamily: fonts.display, fontSize: 26, color: palette.gold, letterSpacing: 0.5 },
   body: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: palette.supporting },
   step: { flexDirection: 'row', alignItems: 'stretch', gap: 10 },
   rail: { width: 36, alignItems: 'center', justifyContent: 'center' },

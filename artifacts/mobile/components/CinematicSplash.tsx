@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Easing, Platform, StyleSheet, Text, View } from 'react-native';
 import { staticLoop } from '@/components/ui/motion';
 
+import { fonts } from '@/constants/typography';
 const { width: SW, height: SH } = Dimensions.get('window');
 const TITLE = 'GOLDRUSH ARENA';
 
@@ -161,11 +162,11 @@ const styles = StyleSheet.create({
   particle:     { position: 'absolute', backgroundColor: palette.gold },
   logoWrap:     { width: 96, height: 96, alignItems: 'center', justifyContent: 'center', position: 'relative' },
   logoGlow:     { position: 'absolute', width: 96, height: 96, borderRadius: 8, backgroundColor: palette.gold, shadowColor: palette.gold, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0 },
-  logoText:     { fontFamily: 'BarlowCondensed_700Bold', fontSize: 46, color: palette.foreground, letterSpacing: 4, zIndex: 1, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  logoText:     { fontFamily: fonts.display, fontSize: 46, color: palette.foreground, letterSpacing: 4, zIndex: 1, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
   divider:      { height: 1.5, backgroundColor: palette.deepest, borderRadius: 1 },
   titleRow:     { flexDirection: 'row', flexWrap: 'nowrap' },
-  titleLetter:  { fontFamily: 'BarlowCondensed_700Bold', fontSize: Platform.OS === 'web' ? 25 : 27, color: palette.foreground, letterSpacing: 3, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
+  titleLetter:  { fontFamily: fonts.display, fontSize: Platform.OS === 'web' ? 25 : 27, color: palette.foreground, letterSpacing: 3, textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 },
   subtitle:     { fontFamily: 'SourceSans3_600SemiBold', fontSize: 11, color: palette.supporting, letterSpacing: 2 },
   seasonBadge:  { marginTop: 4, backgroundColor: palette.gold, borderRadius: 8, borderWidth: 1, borderColor: palette.edge, paddingHorizontal: 14, paddingVertical: 5 },
-  seasonText:   { fontFamily: 'BarlowCondensed_700Bold', fontSize: 12, color: palette.foreground, letterSpacing: 1.5 },
+  seasonText:   { fontFamily: fonts.display, fontSize: 12, color: palette.foreground, letterSpacing: 1.5 },
 });
