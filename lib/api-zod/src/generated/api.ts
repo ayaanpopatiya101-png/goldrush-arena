@@ -1356,6 +1356,74 @@ export const GetCompetitionResponse = zod.object({
 })
 
 
+export const getArenaLeaderboardQuerySeasonRegExp = new RegExp('^\\d{4}-(0[1-9]|1[0-2])$');
+export const getArenaLeaderboardQueryDivisionDefault = `All`;
+export const getArenaLeaderboardQuerySearchMax = 24;
+
+export const getArenaLeaderboardQueryPageDefault = 1;
+export const getArenaLeaderboardQueryPageMax = 20;
+
+
+
+export const GetArenaLeaderboardQueryParams = zod.object({
+  "season": zod.coerce.string().regex(getArenaLeaderboardQuerySeasonRegExp).optional(),
+  "division": zod.enum(['All', 'Copper', 'Silver', 'Gold', 'Platinum', 'Master']).default(getArenaLeaderboardQueryDivisionDefault),
+  "search": zod.coerce.string().max(getArenaLeaderboardQuerySearchMax).optional(),
+  "page": zod.coerce.number().min(1).max(getArenaLeaderboardQueryPageMax).default(getArenaLeaderboardQueryPageDefault)
+})
+
+export const getArenaLeaderboardResponseProfileNicknameMax = 24;
+
+
+
+export const GetArenaLeaderboardResponse = zod.object({
+  "season": zod.string(),
+  "seasons": zod.array(zod.string()),
+  "endsAt": zod.string(),
+  "updatedAt": zod.string(),
+  "scope": zod.enum(['global']),
+  "entries": zod.array(zod.object({
+  "position": zod.number(),
+  "name": zod.string(),
+  "rating": zod.number(),
+  "division": zod.string(),
+  "wins": zod.number(),
+  "games": zod.number(),
+  "peak": zod.number(),
+  "isYou": zod.boolean()
+})),
+  "total": zod.number(),
+  "page": zod.number(),
+  "pages": zod.number(),
+  "eligiblePlayers": zod.number(),
+  "yourPosition": zod.number().nullable(),
+  "eligibility": zod.enum(['eligible', 'placements', 'inactive', 'no_games']),
+  "profile": zod.object({
+  "anonymous": zod.boolean(),
+  "nickname": zod.string().max(getArenaLeaderboardResponseProfileNicknameMax)
+})
+})
+
+
+export const updateLeaderboardProfileBodyNicknameMax = 24;
+
+
+
+export const UpdateLeaderboardProfileBody = zod.object({
+  "anonymous": zod.boolean(),
+  "nickname": zod.string().max(updateLeaderboardProfileBodyNicknameMax)
+})
+
+export const updateLeaderboardProfileResponseNicknameMax = 24;
+
+
+
+export const UpdateLeaderboardProfileResponse = zod.object({
+  "anonymous": zod.boolean(),
+  "nickname": zod.string().max(updateLeaderboardProfileResponseNicknameMax)
+})
+
+
 export const CreatePlayerSessionResponse = zod.object({
   "playerId": zod.string(),
   "token": zod.string()

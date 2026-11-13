@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ArenaLeaderboard,
   AvatarCommitInput,
   AvatarInfo,
   AvatarSharingInput,
@@ -33,9 +34,11 @@ import type {
   CustomRoomInput,
   DesignAssistInput,
   DesignAssistResult,
+  GetArenaLeaderboardParams,
   GetCompetition200,
   GetStoreOffersParams,
   HealthStatus,
+  LeaderboardProfile,
   LiveResult,
   LiveRoom,
   NativeReceiptInput,
@@ -2321,6 +2324,149 @@ export function useGetCompetition<TData = Awaited<ReturnType<typeof getCompetiti
 
 
 
+
+export const getGetArenaLeaderboardUrl = (params?: GetArenaLeaderboardParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/multiplayer/leaderboard?${stringifiedParams}` : `/api/multiplayer/leaderboard`
+}
+
+export const getArenaLeaderboard = async (params?: GetArenaLeaderboardParams, options?: RequestInit): Promise<ArenaLeaderboard> => {
+
+  return customFetch<ArenaLeaderboard>(getGetArenaLeaderboardUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetArenaLeaderboardQueryKey = (params?: GetArenaLeaderboardParams,) => {
+    return [
+    `/api/multiplayer/leaderboard`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetArenaLeaderboardQueryOptions = <TData = Awaited<ReturnType<typeof getArenaLeaderboard>>, TError = ErrorType<void>>(params?: GetArenaLeaderboardParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getArenaLeaderboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetArenaLeaderboardQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getArenaLeaderboard>>> = ({ signal }) => getArenaLeaderboard(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getArenaLeaderboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetArenaLeaderboardQueryResult = NonNullable<Awaited<ReturnType<typeof getArenaLeaderboard>>>
+export type GetArenaLeaderboardQueryError = ErrorType<void>
+
+
+
+export function useGetArenaLeaderboard<TData = Awaited<ReturnType<typeof getArenaLeaderboard>>, TError = ErrorType<void>>(
+ params?: GetArenaLeaderboardParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getArenaLeaderboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetArenaLeaderboardQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateLeaderboardProfileUrl = () => {
+
+
+
+
+  return `/api/multiplayer/leaderboard/profile`
+}
+
+export const updateLeaderboardProfile = async (leaderboardProfile: LeaderboardProfile, options?: RequestInit): Promise<LeaderboardProfile> => {
+
+  return customFetch<LeaderboardProfile>(getUpdateLeaderboardProfileUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      leaderboardProfile,)
+  }
+);}
+
+
+
+
+export const getUpdateLeaderboardProfileMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLeaderboardProfile>>, TError,{data: BodyType<LeaderboardProfile>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateLeaderboardProfile>>, TError,{data: BodyType<LeaderboardProfile>}, TContext> => {
+
+const mutationKey = ['updateLeaderboardProfile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateLeaderboardProfile>>, {data: BodyType<LeaderboardProfile>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateLeaderboardProfile(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateLeaderboardProfileMutationResult = NonNullable<Awaited<ReturnType<typeof updateLeaderboardProfile>>>
+    export type UpdateLeaderboardProfileMutationBody = BodyType<LeaderboardProfile>
+    export type UpdateLeaderboardProfileMutationError = ErrorType<void>
+
+    export const useUpdateLeaderboardProfile = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLeaderboardProfile>>, TError,{data: BodyType<LeaderboardProfile>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateLeaderboardProfile>>,
+        TError,
+        {data: BodyType<LeaderboardProfile>},
+        TContext
+      > => {
+      return useMutation(getUpdateLeaderboardProfileMutationOptions(options));
+    }
 
 export const getCreatePlayerSessionUrl = () => {
 

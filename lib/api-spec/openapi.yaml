@@ -416,6 +416,38 @@ paths:
                   history:
                     type: array
                     items: { $ref: "#/components/schemas/CompetitiveSeason" }
+  /multiplayer/leaderboard:
+    get:
+      operationId: getArenaLeaderboard
+      parameters:
+        - { name: season, in: query, schema: { type: string, pattern: '^\d{4}-(0[1-9]|1[0-2])$' } }
+        - { name: division, in: query, schema: { type: string, enum: [All, Copper, Silver, Gold, Platinum, Master], default: All } }
+        - { name: search, in: query, schema: { type: string, maxLength: 24 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, maximum: 20, default: 1 } }
+      responses:
+        "200":
+          description: Verified global seasonal ladder, never device-local scores
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ArenaLeaderboard" }
+        "400": { description: Invalid filters }
+        "401": { description: Player session required }
+  /multiplayer/leaderboard/profile:
+    put:
+      operationId: updateLeaderboardProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LeaderboardProfile" }
+      responses:
+        "200":
+          description: Saved public nickname preference
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LeaderboardProfile" }
+        "400": { description: Invalid nickname }
+        "401": { description: Player session required }
   /multiplayer/session:
     post:
       operationId: createPlayerSession
@@ -796,6 +828,41 @@ components:
         division: { type: string }
         placed: { type: boolean }
         endsAt: { type: string }
+    LeaderboardProfile:
+      type: object
+      required: [anonymous, nickname]
+      properties:
+        anonymous: { type: boolean }
+        nickname: { type: string, maxLength: 24 }
+    LeaderboardEntry:
+      type: object
+      required: [position, name, rating, division, wins, games, peak, isYou]
+      properties:
+        position: { type: integer }
+        name: { type: string }
+        rating: { type: integer }
+        division: { type: string }
+        wins: { type: integer }
+        games: { type: integer }
+        peak: { type: integer }
+        isYou: { type: boolean }
+    ArenaLeaderboard:
+      type: object
+      required: [season, seasons, endsAt, updatedAt, entries, total, page, pages, eligiblePlayers, yourPosition, eligibility, profile, scope]
+      properties:
+        season: { type: string }
+        seasons: { type: array, items: { type: string } }
+        endsAt: { type: string }
+        updatedAt: { type: string }
+        scope: { type: string, enum: [global] }
+        entries: { type: array, items: { $ref: "#/components/schemas/LeaderboardEntry" } }
+        total: { type: integer }
+        page: { type: integer }
+        pages: { type: integer }
+        eligiblePlayers: { type: integer }
+        yourPosition: { type: [integer, "null"] }
+        eligibility: { type: string, enum: [eligible, placements, inactive, no_games] }
+        profile: { $ref: "#/components/schemas/LeaderboardProfile" }
     PlayerSession:
       type: object
       required: [playerId, token]

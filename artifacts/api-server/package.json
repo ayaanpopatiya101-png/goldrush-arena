@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:leaderboard": "node scripts/test-leaderboard.mjs",
+    "test:leaderboard-api": "node scripts/test-leaderboard.mjs --api",
     "test:workshop": "node scripts/test-workshop.mjs",
     "test:workshop-api": "node scripts/test-workshop.mjs --api",
     "test:store": "node scripts/test-store.mjs",

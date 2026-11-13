@@ -15,6 +15,7 @@
 - [Theme migration checks](theme-migration-checks.md) — semantic-token contrast tests do not catch per-page legacy colours or translucent text.
 - [Toolchain security](toolchain-security.md) — align Vite optional peers across aliases; legacy Expo Node tooling needs CommonJS-compatible UUID patches.
 - [Multiplayer boundaries](multiplayer-boundaries.md) — server awards stay separate from untrusted local balances; live rooms need one authoritative process.
+- [Correlated query scope](correlated-query-scope.md) — explicitly qualify outer columns in Drizzle correlated projections; same-name inner columns can silently change meaning.
 - [Avatar privacy](avatar-ownership.md) — optional private photos use guest ownership; publication is explicit and separate from local appearance.
 - [Gameplay pacing](gameplay-pacing.md) — normal-mode balls use 7s then 10s intervals; Home is a bot demonstration and tutorials are hands-on.
 - [Event reminders](event-reminders.md) — US-only SMS is now requested first; international launch needs a readiness plan; keep notification channels separate.

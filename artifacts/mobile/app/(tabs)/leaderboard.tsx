@@ -1,9 +1,11 @@
 import React from 'react';
+import { useRef } from 'react';
 import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Panel, ScreenTitle, SectionLabel, Shell } from '@/components/ui/Primitives';
+import { PublicLeaderboard } from '@/components/rank/PublicLeaderboard';
 import { RankBadge } from '@/components/RankBadge';
 import { HistoryRow, NumberedNote, PlacementTrack, SeasonBadges, SeasonScoreboard } from '@/components/rank/CompetitionPanels';
 import { palette } from '@/constants/colors';
@@ -17,6 +19,8 @@ export default function LeaderboardScreen() {
   const { profile, currentUsername } = usePlayer();
   const focusStyle = useFocusAnimation();
   const { data, isLoading, isError, error, refetch, isRefetching } = useCompetition(currentUsername);
+  const scrollRef = useRef<ScrollView>(null);
+  const formulaY = useRef(0);
   const topPad = Platform.OS === 'web' ? Math.max(insets.top, 67) : insets.top;
 
   const rankIdx = Math.max(0, RANKS.findIndex(r => r.name === profile.rank));
@@ -28,11 +32,16 @@ export default function LeaderboardScreen() {
   return (
     <Reanimated.View style={[s.root, focusStyle]}>
       <View style={[s.header, { paddingTop: topPad + 8 }]}>
-        <ScreenTitle kicker="Personal competition" title="Ranks" tone="dark" style={{ flex: 1 }} />
+        <ScreenTitle kicker="Global and personal competition" title="Leaderboards" tone="dark" style={{ flex: 1 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}>
+      <ScrollView ref={scrollRef} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}>
         <Shell variant="prose" style={{ gap: 22 }}>
+          {/* Public ladder */}
+          {currentUsername ? (
+            <PublicLeaderboard username={currentUsername} onShowFormula={() => scrollRef.current?.scrollTo({ y: formulaY.current, animated: true })} />
+          ) : null}
+
           {/* Live season */}
           <View style={{ gap: 10 }}>
             <SectionLabel title="This season" right={isRefetching ? <ActivityIndicator size="small" color={palette.supporting} /> : null} />
@@ -97,7 +106,7 @@ export default function LeaderboardScreen() {
           </View>
 
           {/* How it works */}
-          <View style={{ gap: 10 }}>
+          <View style={{ gap: 10 }} onLayout={e => { formulaY.current = e.nativeEvent.layout.y; }}>
             <SectionLabel title="How rating works" />
             <Panel style={[s.pad, { gap: 12 }]}>
               <NumberedNote n={1}>Ranked counts only matches against real people. Bot and practice games never change your rating.</NumberedNote>
@@ -108,14 +117,6 @@ export default function LeaderboardScreen() {
             </Panel>
           </View>
 
-          {/* Ladder */}
-          <View style={{ gap: 10 }}>
-            <SectionLabel title="Public ladder" />
-            <View style={s.ladder}>
-              <Text style={s.ladderTitle}>NOT PUBLISHED YET</Text>
-              <Text style={s.ladderBody}>There is no global ladder right now, so we show no other players instead of invented names. Your season above is your real standing.</Text>
-            </View>
-          </View>
         </Shell>
       </ScrollView>
     </Reanimated.View>
@@ -138,7 +139,4 @@ const s = StyleSheet.create({
   legacyCell: { flex: 1, borderRadius: 10, borderWidth: 2, borderColor: palette.border, padding: 10, backgroundColor: palette.surface },
   legacyV: { fontFamily: fonts.display, fontSize: 26, color: palette.supporting, fontVariant: ['tabular-nums'] },
   legacyL: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.2, color: palette.supporting },
-  ladder: { borderRadius: 10, borderWidth: 2, borderBottomWidth: 5, borderColor: palette.edge, backgroundColor: palette.inset, padding: 18, gap: 6 },
-  ladderTitle: { fontFamily: fonts.display, fontSize: 22, letterSpacing: 1, color: palette.gold },
-  ladderBody: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: palette.foreground },
 });

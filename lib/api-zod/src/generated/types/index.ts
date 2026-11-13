@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './arenaLeaderboard';
+export * from './arenaLeaderboardEligibility';
+export * from './arenaLeaderboardScope';
 export * from './avatarCommitInput';
 export * from './avatarInfo';
 export * from './avatarSharingInput';
@@ -30,12 +33,16 @@ export * from './customRulesBounce';
 export * from './customRulesPaddleScale';
 export * from './designAssistInput';
 export * from './designAssistResult';
+export * from './getArenaLeaderboardDivision';
+export * from './getArenaLeaderboardParams';
 export * from './getCompetition200';
 export * from './getStoreOffersParams';
 export * from './getStoreOffersPlatform';
 export * from './healthStatus';
 export * from './hitAppearance';
 export * from './hitAppearanceShape';
+export * from './leaderboardEntry';
+export * from './leaderboardProfile';
 export * from './liveBall';
 export * from './livePlayer';
 export * from './liveResult';

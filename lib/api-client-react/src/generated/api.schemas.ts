@@ -539,6 +539,57 @@ export interface CompetitiveSeason {
   endsAt: string;
 }
 
+export interface LeaderboardProfile {
+  anonymous: boolean;
+  /** @maxLength 24 */
+  nickname: string;
+}
+
+export interface LeaderboardEntry {
+  position: number;
+  name: string;
+  rating: number;
+  division: string;
+  wins: number;
+  games: number;
+  peak: number;
+  isYou: boolean;
+}
+
+export type ArenaLeaderboardScope = typeof ArenaLeaderboardScope[keyof typeof ArenaLeaderboardScope];
+
+
+export const ArenaLeaderboardScope = {
+  global: 'global',
+} as const;
+
+export type ArenaLeaderboardEligibility = typeof ArenaLeaderboardEligibility[keyof typeof ArenaLeaderboardEligibility];
+
+
+export const ArenaLeaderboardEligibility = {
+  eligible: 'eligible',
+  placements: 'placements',
+  inactive: 'inactive',
+  no_games: 'no_games',
+} as const;
+
+export interface ArenaLeaderboard {
+  season: string;
+  seasons: string[];
+  endsAt: string;
+  updatedAt: string;
+  scope: ArenaLeaderboardScope;
+  entries: LeaderboardEntry[];
+  total: number;
+  page: number;
+  pages: number;
+  eligiblePlayers: number;
+  /** @nullable */
+  yourPosition: number | null;
+  eligibility: ArenaLeaderboardEligibility;
+  profile: LeaderboardProfile;
+}
+
 export interface PlayerSession {
   playerId: string;
   token: string;
@@ -697,4 +748,33 @@ export type GetCompetition200 = {
   current: CompetitiveSeason;
   history: CompetitiveSeason[];
 };
+
+export type GetArenaLeaderboardParams = {
+/**
+ * @pattern ^\d{4}-(0[1-9]|1[0-2])$
+ */
+season?: string;
+division?: GetArenaLeaderboardDivision;
+/**
+ * @maxLength 24
+ */
+search?: string;
+/**
+ * @minimum 1
+ * @maximum 20
+ */
+page?: number;
+};
+
+export type GetArenaLeaderboardDivision = typeof GetArenaLeaderboardDivision[keyof typeof GetArenaLeaderboardDivision];
+
+
+export const GetArenaLeaderboardDivision = {
+  All: 'All',
+  Copper: 'Copper',
+  Silver: 'Silver',
+  Gold: 'Gold',
+  Platinum: 'Platinum',
+  Master: 'Master',
+} as const;
 
